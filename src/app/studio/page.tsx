@@ -1,0 +1,241 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { Palette, Sparkles, CheckCircle2, Link2, PlusCircle, Scale, ShieldCheck } from "lucide-react";
+
+export default function ArtisanStudioPage() {
+  const { user } = useAuth();
+  const [claimedBatches, setClaimedBatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Form State
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("45.00");
+  const [selectedBatchId, setSelectedBatchId] = useState("");
+  const [kgDiverted, setKgDiverted] = useState("1.5");
+  const [materialTags, setMaterialTags] = useState("Bamboo, Heritage Loom");
+  const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800");
+  const [ngoFundName, setNgoFundName] = useState("Cordillera Ancestral Watershed Fund");
+
+  const [submitting, setSubmitting] = useState(false);
+  const [createdProduct, setCreatedProduct] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadBatches() {
+      try {
+        const res = await fetch("/api/materials");
+        const data = await res.json();
+        if (data.success) {
+          // Allow listing from claimed or available batches for demonstration
+          setClaimedBatches(data.data);
+          if (data.data.length > 0) {
+            setSelectedBatchId(data.data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load batches:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadBatches();
+  }, []);
+
+  const handleCreateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !price || !selectedBatchId) return;
+
+    setSubmitting(true);
+    try {
+      const tagsArray = materialTags.split(",").map((t) => t.trim());
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          price: parseFloat(price),
+          images: [imageUrl],
+          artisanId: user?.id || "usr_art_05",
+          sourceBatchId: selectedBatchId,
+          materialTags: tagsArray,
+          kgDiverted: parseFloat(kgDiverted),
+          ngoFundName,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCreatedProduct(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to create product:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Header */}
+      <div>
+        <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
+          <Palette className="w-3.5 h-3.5" />
+          <span>ACT 4 — CRAFT, SELL, & PROVE (ARTISAN STUDIO)</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+          Artisan Craft Minting & Provenance Linker
+        </h1>
+        <p className="text-xs text-gray-500 mt-1">
+          Transform claimed festival material into authenticated heritage goods. Every listed craft piece is permanently bound to its source harvest Batch ID.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-3xl border border-[#E6E2D8] p-8 shadow-sm">
+        {createdProduct ? (
+          <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-4 text-center">
+            <div className="w-12 h-12 bg-emerald-100 text-[#1A6B3A] rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900">
+                "{createdProduct.title}" Listed in Marketplace!
+              </h3>
+              <p className="text-xs text-gray-600 mt-1">
+                Bound to Source Batch <strong>{createdProduct.sourceBatchId}</strong>. Buyers can now purchase with 70% direct escrow payout.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setCreatedProduct(null);
+                setTitle("");
+                setDescription("");
+              }}
+              className="px-5 py-2.5 bg-[#1A6B3A] text-white rounded-xl text-xs font-bold shadow-md hover:bg-[#14532D]"
+            >
+              List Another Heritage Piece
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleCreateProduct} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Product Title */}
+              <div className="space-y-1.5 text-xs">
+                <label className="font-bold text-gray-700">Product Title</label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Panagbenga Botanical Loom Wall Tapestry"
+                  className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
+                />
+              </div>
+
+              {/* Price */}
+              <div className="space-y-1.5 text-xs">
+                <label className="font-bold text-gray-700">Fair-Trade Retail Price ($ USD)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
+                />
+                <span className="text-[10px] text-gray-400">
+                  You will receive <strong>70% (${(parseFloat(price || "0") * 0.7).toFixed(2)})</strong> instantly upon sale.
+                </span>
+              </div>
+            </div>
+
+            {/* Source Batch Selection (Immutable Linkage) */}
+            <div className="space-y-1.5 text-xs">
+              <label className="font-bold text-gray-700 flex items-center space-x-1.5">
+                <Link2 className="w-3.5 h-3.5 text-[#1A6B3A]" />
+                <span>Link to Original Harvest Material Batch ID</span>
+              </label>
+              <select
+                value={selectedBatchId}
+                onChange={(e) => setSelectedBatchId(e.target.value)}
+                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-white font-mono-data text-xs font-semibold text-gray-800"
+              >
+                {claimedBatches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    [{b.id}] {b.title} ({b.weightKg} kg {b.materialType}) - {b.agreement?.festival} ({b.agreement?.country})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-1.5 text-xs">
+              <label className="font-bold text-gray-700">Artisan Craft & Material Story</label>
+              <textarea
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe your upcycling technique, natural dyes, or traditional joinery..."
+                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 leading-relaxed"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Diverted kg */}
+              <div className="space-y-1.5 text-xs">
+                <label className="font-bold text-gray-700">Kilograms Diverted per Item</label>
+                <input
+                  type="number"
+                  step="0.05"
+                  value={kgDiverted}
+                  onChange={(e) => setKgDiverted(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
+                />
+              </div>
+
+              {/* NGO Partner Fund */}
+              <div className="space-y-1.5 text-xs">
+                <label className="font-bold text-gray-700">10% Designated Clean-Up NGO Fund</label>
+                <input
+                  type="text"
+                  value={ngoFundName}
+                  onChange={(e) => setNgoFundName(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
+                />
+              </div>
+            </div>
+
+            {/* Material Tags */}
+            <div className="space-y-1.5 text-xs">
+              <label className="font-bold text-gray-700">Material Tags (comma-separated)</label>
+              <input
+                type="text"
+                value={materialTags}
+                onChange={(e) => setMaterialTags(e.target.value)}
+                placeholder="Bamboo, Natural Dyes, Rice Paper"
+                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 font-medium"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-4 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+            >
+              {submitting ? (
+                <span>Minting Heritage Provenance Link...</span>
+              ) : (
+                <>
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Publish Upcycled Piece to Global Marketplace</span>
+                </>
+              )}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  role               String   @default("buyer") // "buyer" | "artisan" | "lgu" | "admin"
+  fullName           String
+  avatarUrl          String?
+  country            String?
+  workshopName       String?  // Artisan only
+  artisanVerified    Boolean  @default(false)
+  stationName        String?  // LGU only
+  stripeAccountId    String?
+  verificationStatus String   @default("none")  // "none" | "pending_artisan" | "pending_lgu" | "approved" | "rejected"
+  applicationNotes   String?  // JSON formatted details submitted during application
+  createdAt          DateTime @default(now())
+
+  // Relations
+  scannedBatches     MaterialBatch[] @relation("ScannedBy")
+  reservedBatches    MaterialBatch[] @relation("ReservedBy")
+  claimedBatches     MaterialBatch[] @relation("ClaimedBy")
+  products           Product[]
+  orders             Order[]
+  sentMessages       Message[]       @relation("SentMessages")
+  receivedMessages   Message[]       @relation("ReceivedMessages")
+
+  @@map("users")
+}
+
+model Agreement {
+  id            String   @id // e.g. "RA-2026-001"
+  title         String
+  organizerName String
+  festival      String
+  country       String
+  allocatedKg   Float
+  collectedKg   Float    @default(0)
+  status        String   @default("active") // "active" | "closed"
+  signedAt      DateTime @default(now())
+
+  // Relations
+  batches       MaterialBatch[]
+
+  @@map("agreements")
+}
+
+model MaterialBatch {
+  id                   String     @id // e.g. "HT-2026-0101"
+  title                String
+  materialType         String
+  weightKg             Float      // Physical scale measurement
+  condition            String     // "Excellent" | "Good" | "Fair"
+  status               String     @default("available") // "available" | "reserved" | "claimed"
+  gpsLat               Float
+  gpsLng               Float
+  imageUrl             String
+  agreementId          String?
+  agreement            Agreement? @relation(fields: [agreementId], references: [id])
+  scannedByOfficerId   String?
+  scannedByOfficer     User?      @relation("ScannedBy", fields: [scannedByOfficerId], references: [id])
+  reservedByArtisanId  String?
+  reservedByArtisan    User?      @relation("ReservedBy", fields: [reservedByArtisanId], references: [id])
+  claimedByArtisanId   String?
+  claimedByArtisan     User?      @relation("ClaimedBy", fields: [claimedByArtisanId], references: [id])
+  txHash               String     // SHA-256 of harvest telemetry
+  aiInferredMaterial   String?
+  aiInferredCondition  String?
+  aiConfidence         Float?
+  createdAt            DateTime   @default(now())
+
+  // Relations
+  products             Product[]
+
+  @@map("material_batches")
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  price         Float
+  images        String        // JSON array of image URLs
+  artisanId     String
+  artisan       User          @relation(fields: [artisanId], references: [id])
+  sourceBatchId String
+  sourceBatch   MaterialBatch @relation(fields: [sourceBatchId], references: [id])
+  materialTags  String        // JSON array of tags
+  stock         Int           @default(1)
+  kgDiverted    Float
+  ngoFundName   String
+  createdAt     DateTime      @default(now())
+
+  // Relations
+  orders        Order[]
+
+  @@map("products")
+}
+
+model Order {
+  id                    String      @id @default(cuid())
+  productId             String
+  product               Product     @relation(fields: [productId], references: [id])
+  buyerId               String
+  buyer                 User        @relation(fields: [buyerId], references: [id])
+  amountPaid            Float
+  artisanPayout         Float       // Fixed 70% Escrow Split
+  platformFee           Float       // Fixed 20% LGU & Platform Escrow Split
+  ngoContribution       Float       // Fixed 10% NGO Trust Fund Escrow Split
+  stripePaymentIntentId String?
+  shippingAddress       String?     // JSON formatted shipping details
+  status                String      @default("completed") // "pending" | "completed" | "refunded"
+  createdAt             DateTime    @default(now())
+
+  // Relations
+  walletPass            WalletPass?
+
+  @@map("orders")
+}
+
+model WalletPass {
+  id                   String   @id @default(cuid())
+  orderId              String   @unique
+  order                Order    @relation(fields: [orderId], references: [id])
+  serial               String   @unique // e.g. "HT-492-AX"
+  googleWalletObjectId String?
+  qrPayload            String
+  harvestHash          String?
+  issuedAt             DateTime @default(now())
+
+  @@map("wallet_passes")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content     String
+  contextType String?  // "order" | "batch_reservation" | "general"
+  contextId   String?  // e.g. orderId or batchId
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("messages")
+}
