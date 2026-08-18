@@ -2,10 +2,13 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import { QrCode, ShieldCheck, CheckCircle2, ScanLine, ArrowRight, User, Package } from "lucide-react";
 
 export default function HandoverPage() {
   const { user } = useAuth();
+  const { translateSync } = useTranslation();
   const [activeTab, setActiveTab] = useState<"artisan" | "lgu">("artisan");
 
   // LGU Audit Scanner form state
@@ -46,14 +49,14 @@ export default function HandoverPage() {
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
           <QrCode className="w-3.5 h-3.5" />
-          <span>ACT 3 — ON-SITE PHYSICAL QR CUSTODY HANDOVER (STRICTLY NO NFC)</span>
+          <TranslatableText>ACT 3 — ON-SITE PHYSICAL QR CUSTODY HANDOVER (STRICTLY NO NFC)</TranslatableText>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+        <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
           QR Handover & Chain-of-Custody Audit
-        </h1>
-        <p className="text-xs text-gray-500 mt-1">
+        </TranslatableHeading>
+        <TranslatableParagraph className="text-xs text-gray-500 mt-1">
           Zero-NFC cross-device verification protocol. Artisans present their HeriTech Verified QR Token; LGU officers scan on-site to release physical custody.
-        </p>
+        </TranslatableParagraph>
       </div>
 
       {/* Mode Switcher Tabs */}
@@ -69,7 +72,7 @@ export default function HandoverPage() {
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
-          Artisan: Show QR Token
+          <TranslatableText>Artisan: Show QR Token</TranslatableText>
         </button>
         <button
           onClick={() => {
@@ -82,7 +85,7 @@ export default function HandoverPage() {
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
-          LGU: Audit & Release
+          <TranslatableText>LGU: Audit & Release</TranslatableText>
         </button>
       </div>
 
@@ -92,14 +95,14 @@ export default function HandoverPage() {
           <div className="flex flex-col items-center text-center space-y-6 max-w-md mx-auto py-4">
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                HERITECH VERIFIED ARTISAN TOKEN
+                <TranslatableText>HERITECH VERIFIED ARTISAN TOKEN</TranslatableText>
               </span>
-              <h2 className="text-lg font-bold text-gray-900 mt-2">
+              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-2">
                 Present to LGU Officer at Collection Depot
-              </h2>
-              <p className="text-xs text-gray-500">
+              </TranslatableHeading>
+              <TranslatableParagraph className="text-xs text-gray-500">
                 Scan using standard mobile camera to unlock custody transfer.
-              </p>
+              </TranslatableParagraph>
             </div>
 
             {/* Generated QR Card */}
@@ -113,10 +116,10 @@ export default function HandoverPage() {
 
               <div className="text-left font-mono-data text-xs space-y-0.5">
                 <p className="text-gray-500">
-                  Artisan: <strong>{user?.fullName || "Danilo Cruz"}</strong>
+                  <TranslatableText>Artisan</TranslatableText>: <strong><TranslatableText>{user?.fullName || "Danilo Cruz"}</TranslatableText></strong>
                 </p>
                 <p className="text-gray-500">
-                  Guild: <strong>{user?.workshopName || "Cordillera Botanical Guild"}</strong>
+                  <TranslatableText>Guild</TranslatableText>: <strong><TranslatableText>{user?.workshopName || "Cordillera Botanical Guild"}</TranslatableText></strong>
                 </p>
               </div>
             </div>
@@ -124,12 +127,12 @@ export default function HandoverPage() {
         ) : (
           <div className="space-y-6 max-w-lg mx-auto py-4">
             <div className="space-y-1 text-center">
-              <h2 className="text-lg font-bold text-gray-900">
+              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900">
                 LGU Field Custody Release Scanner
-              </h2>
-              <p className="text-xs text-gray-500">
+              </TranslatableHeading>
+              <TranslatableParagraph className="text-xs text-gray-500">
                 Verify artisan registration and transition batch status to "Claimed".
-              </p>
+              </TranslatableParagraph>
             </div>
 
             {auditResult ? (
@@ -138,29 +141,29 @@ export default function HandoverPage() {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">
+                  <TranslatableHeading level={3} className="text-base font-bold text-gray-900">
                     Physical Custody Transferred!
-                  </h3>
+                  </TranslatableHeading>
                   <p className="text-xs text-emerald-800 font-semibold mt-1">
-                    {auditResult.message}
+                    <TranslatableText>{auditResult.message}</TranslatableText>
                   </p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-emerald-200 text-left font-mono-data text-xs space-y-1">
                   <p className="text-gray-500">
-                    Batch: <strong>{auditResult.data.batchId}</strong>
+                    <TranslatableText>Batch</TranslatableText>: <strong>{auditResult.data.batchId}</strong>
                   </p>
                   <p className="text-gray-500">
-                    Status: <strong className="text-emerald-700">CLAIMED & TRANSFERRED</strong>
+                    <TranslatableText>Status</TranslatableText>: <strong className="text-emerald-700"><TranslatableText>CLAIMED & TRANSFERRED</TranslatableText></strong>
                   </p>
                   <p className="text-gray-500">
-                    Timestamp: {auditResult.data.verifiedAt}
+                    <TranslatableText>Timestamp</TranslatableText>: {auditResult.data.verifiedAt}
                   </p>
                 </div>
                 <button
                   onClick={() => setAuditResult(null)}
                   className="px-5 py-2.5 bg-[#1A6B3A] text-white rounded-xl text-xs font-bold hover:bg-[#14532D]"
                 >
-                  Audit Another Handover
+                  <TranslatableText>Audit Another Handover</TranslatableText>
                 </button>
               </div>
             ) : (
@@ -168,7 +171,7 @@ export default function HandoverPage() {
                 <div className="space-y-1.5">
                   <label className="font-bold text-gray-700 flex items-center space-x-1.5">
                     <Package className="w-3.5 h-3.5 text-[#1A6B3A]" />
-                    <span>Material Batch ID</span>
+                    <TranslatableText>Material Batch ID</TranslatableText>
                   </label>
                   <input
                     type="text"
@@ -183,7 +186,7 @@ export default function HandoverPage() {
                 <div className="space-y-1.5">
                   <label className="font-bold text-gray-700 flex items-center space-x-1.5">
                     <User className="w-3.5 h-3.5 text-[#1A6B3A]" />
-                    <span>Scanned Artisan QR Token Payload</span>
+                    <TranslatableText>Scanned Artisan QR Token Payload</TranslatableText>
                   </label>
                   <input
                     type="text"
@@ -201,11 +204,11 @@ export default function HandoverPage() {
                   className="w-full py-4 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
                 >
                   {verifying ? (
-                    <span>Verifying Handover Token...</span>
+                    <TranslatableText>Verifying Handover Token...</TranslatableText>
                   ) : (
                     <>
                       <ScanLine className="w-4 h-4" />
-                      <span>Confirm Physical Handover & Transfer Custody</span>
+                      <TranslatableText>Confirm Physical Handover & Transfer Custody</TranslatableText>
                     </>
                   )}
                 </button>

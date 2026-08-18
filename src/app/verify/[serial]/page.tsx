@@ -92,7 +92,7 @@ export default function PublicVerificationPage() {
           <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
             Product Upcycle
           </TranslatableText>
-          <h2 className="text-xl font-bold text-gray-900 mt-0.5"><TranslatableText>{data.product.title}</TranslatableText></h2>
+          <TranslatableHeading level={2} className="text-xl font-bold text-gray-900 mt-0.5"><TranslatableText>{data.product.title}</TranslatableText></TranslatableHeading>
           <TranslatableParagraph className="text-xs text-gray-600 leading-relaxed mt-1">{data.product.description}</TranslatableParagraph>
         </div>
 

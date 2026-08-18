@@ -17,9 +17,12 @@ import {
   Crosshair,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 
 export default function WasteScannerPage() {
   const { user } = useAuth();
+  const { translateSync } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [festivalHint, setFestivalHint] = useState("panagbenga");
@@ -232,14 +235,14 @@ export default function WasteScannerPage() {
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
           <Camera className="w-3.5 h-3.5" />
-          <span>ACT 1 — FIELD LOGGING & MULTIMODAL INFERENCE</span>
+          <TranslatableText>ACT 1 — FIELD LOGGING & MULTIMODAL INFERENCE</TranslatableText>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+        <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
           Google Gemini Multimodal Waste Scanner
-        </h1>
-        <p className="text-xs text-gray-500 mt-1">
+        </TranslatableHeading>
+        <TranslatableParagraph className="text-xs text-gray-500 mt-1">
           LGU field officers photograph waste on-site, select or pin the exact pickup depot location, and log AI-graded batches with cryptographic provenance.
-        </p>
+        </TranslatableParagraph>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -258,8 +261,8 @@ export default function WasteScannerPage() {
                   <Camera className="w-8 h-8" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-900">Upload or Snap Material Photo</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Supports high-res PNG, JPG from field camera</p>
+                  <p className="text-sm font-bold text-gray-900"><TranslatableText>Upload or Snap Material Photo</TranslatableText></p>
+                  <p className="text-xs text-gray-500 mt-0.5"><TranslatableText>Supports high-res PNG, JPG from field camera</TranslatableText></p>
                 </div>
               </div>
             )}
@@ -274,7 +277,7 @@ export default function WasteScannerPage() {
 
           {/* Festival Selection Hint */}
           <div className="space-y-1.5 text-xs">
-            <label className="font-bold text-gray-700">Festival Origin Context</label>
+            <label className="font-bold text-gray-700"><TranslatableText>Festival Origin Context</TranslatableText></label>
             <select
               value={festivalHint}
               onChange={(e) => setFestivalHint(e.target.value)}
@@ -295,12 +298,12 @@ export default function WasteScannerPage() {
             {analyzing ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Running Gemini Multimodal Inference...</span>
+                <span><TranslatableText>Running Gemini Multimodal Inference...</TranslatableText></span>
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Analyze Material with Gemini 3.6 Flash</span>
+                <span><TranslatableText>Analyze Material with Gemini 3.6 Flash</TranslatableText></span>
               </>
             )}
           </button>
@@ -413,7 +416,7 @@ export default function WasteScannerPage() {
                 <div className="flex items-center justify-between border-b border-gray-200 pb-2">
                   <div className="flex items-center space-x-1.5 text-gray-900 font-bold">
                     <MapPin className="w-4 h-4 text-[#1A6B3A]" />
-                    <span>Designated Artisan Pickup Place & GPS Coordinates</span>
+                    <TranslatableText>Designated Artisan Pickup Place & GPS Coordinates</TranslatableText>
                   </div>
                   <button
                     type="button"
@@ -422,19 +425,19 @@ export default function WasteScannerPage() {
                     className="px-2.5 py-1 rounded-lg bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-[10px] flex items-center space-x-1 shadow-xs transition-all disabled:opacity-50"
                   >
                     <Crosshair className={`w-3 h-3 ${isLocating ? "animate-spin" : ""}`} />
-                    <span>{isLocating ? "Acquiring GPS..." : "Use Realtime Location"}</span>
+                    <TranslatableText>{isLocating ? "Acquiring GPS..." : "Use Realtime Location"}</TranslatableText>
                   </button>
                 </div>
 
                 {locationSuccess && (
                   <p className="text-[11px] text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200 font-semibold">
-                    ✓ {locationSuccess}
+                    ✓ <TranslatableText>{locationSuccess}</TranslatableText>
                   </p>
                 )}
 
                 {/* Preset Depot Selector */}
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700">Select Collection Depot / Station:</label>
+                  <label className="font-bold text-gray-700"><TranslatableText>Select Collection Depot / Station:</TranslatableText></label>
                   <select
                     value={pickupDepotName}
                     onChange={(e) => {
@@ -456,14 +459,14 @@ export default function WasteScannerPage() {
                         {depot.name} ({depot.lat.toFixed(4)}°, {depot.lng.toFixed(4)}°)
                       </option>
                     ))}
-                    <option value="Custom Pin Location">Custom Pin Location (Manual GPS / Pin below)</option>
+                    <option value="Custom Pin Location">{translateSync("Custom Pin Location (Manual GPS / Pin below)")}</option>
                   </select>
                 </div>
 
                 {/* Coordinates & Custom Name Input */}
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div className="space-y-1">
-                    <label className="text-gray-500 font-medium">Latitude</label>
+                    <label className="text-gray-500 font-medium"><TranslatableText>Latitude</TranslatableText></label>
                     <input
                       type="number"
                       step="0.0001"
@@ -473,7 +476,7 @@ export default function WasteScannerPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-gray-500 font-medium">Longitude</label>
+                    <label className="text-gray-500 font-medium"><TranslatableText>Longitude</TranslatableText></label>
                     <input
                       type="number"
                       step="0.0001"
@@ -502,10 +505,10 @@ export default function WasteScannerPage() {
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs space-y-2">
                   <div className="flex items-center space-x-2 text-emerald-800 font-bold">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                    <span>Batch Logged & Cryptographically Hashed!</span>
+                    <TranslatableText>Batch Logged & Cryptographically Hashed!</TranslatableText>
                   </div>
                   <p className="font-mono-data text-[10px] text-gray-600 break-all">
-                    Batch ID: <strong>{savedBatch.id}</strong> | Depot: <strong>{pickupDepotName}</strong> | TxHash: {savedBatch.txHash}
+                    <TranslatableText>Batch ID</TranslatableText>: <strong>{savedBatch.id}</strong> | <TranslatableText>Depot</TranslatableText>: <strong><TranslatableText>{pickupDepotName}</TranslatableText></strong> | TxHash: {savedBatch.txHash}
                   </p>
                 </div>
               ) : (
@@ -515,11 +518,11 @@ export default function WasteScannerPage() {
                   className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
                   {saving ? (
-                    <span>Minting SHA-256 Batch Telemetry...</span>
+                    <TranslatableText>Minting SHA-256 Batch Telemetry...</TranslatableText>
                   ) : (
                     <>
                       <FileCheck2 className="w-4 h-4" />
-                      <span>Log Batch to Live Harvest Map ({weightKg || 0} kg at {pickupDepotName.substring(0, 20)}...)</span>
+                      <TranslatableText>Log Batch to Live Harvest Map</TranslatableText> ({weightKg || 0} kg)
                     </>
                   )}
                 </button>
@@ -528,9 +531,9 @@ export default function WasteScannerPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-[#E6E2D8] text-center text-gray-400 space-y-2">
               <Sparkles className="w-8 h-8 text-gray-300" />
-              <p className="text-xs font-semibold">
+              <TranslatableParagraph className="text-xs font-semibold">
                 Upload a field photo and click "Analyze Material" to view AI grading telemetry, select pickup depot, and log the batch.
-              </p>
+              </TranslatableParagraph>
             </div>
           )}
         </div>
