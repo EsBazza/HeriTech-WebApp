@@ -635,39 +635,46 @@ export function TreeMap() {
       {/* 4. Real Interactive Leaflet Satellite Tile Map Container & Telemetry Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Interactive Satellite Map Viewport */}
-        <div className="lg:col-span-7 relative group rounded-3xl overflow-hidden border border-[#E6E2D8] shadow-md bg-gray-950 min-h-[480px]">
-
-          {/* ── SPLIT VIEW: Before (2020) vs Selected Year ── */}
-          {isSplitView ? (
-            <div
-              ref={splitContainerRef}
-              className="relative w-full min-h-[480px] h-full select-none cursor-col-resize overflow-hidden rounded-3xl"
-              onMouseMove={handleSplitMouseMove}
-              onMouseUp={handleSplitMouseUp}
-              onMouseLeave={handleSplitMouseUp}
-              onTouchMove={handleSplitTouchMove}
-              onTouchEnd={handleSplitMouseUp}
-            >
-              {/* Right pane: Selected Year image (full width, behind curtain) */}
-              <div className="absolute inset-0">
-                <img
-                  src={
-                    (activeProject.yearlyProgress?.[selectedYear] as YearlyProgress & { satelliteImage?: string })?.satelliteImage ||
-                    activeProject.currentSatelliteImage
-                  }
-                  alt={`${selectedYear} Reforestation Canopy`}
-                  className="w-full h-full object-cover"
-                />
-                {/* Right label */}
-                <div className="absolute top-4 right-4 bg-emerald-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-emerald-500/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{selectedYear === 2026 ? "2026 LIVE CANOPY" : `${selectedYear} REFORESTATION`}</span>
-                </div>
+        <div
+          ref={splitContainerRef}
+          className="lg:col-span-7 relative group rounded-3xl overflow-hidden border border-[#E6E2D8] shadow-md bg-gray-950 min-h-[480px]"
+          onMouseMove={isSplitView ? handleSplitMouseMove : undefined}
+          onMouseUp={isSplitView ? handleSplitMouseUp : undefined}
+          onMouseLeave={isSplitView ? handleSplitMouseUp : undefined}
+          onTouchMove={isSplitView ? handleSplitTouchMove : undefined}
+          onTouchEnd={isSplitView ? handleSplitMouseUp : undefined}
+        >
+          {/* Fly-to Animation HUD Overlay */}
+          {isAnimating && !isSplitView && (
+            <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 pointer-events-none transition-opacity duration-300">
+              <Compass className="w-10 h-10 text-emerald-400 animate-spin" />
+              <div className="text-white text-xs font-mono font-bold uppercase tracking-widest flex items-center space-x-2">
+                <span>Orbiting Satellite Camera Fly-To</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               </div>
+              <p className="text-emerald-300/80 text-[11px] font-mono">
+                Target Lock: {activeProject.lat.toFixed(4)}°, {activeProject.lng.toFixed(4)}°
+              </p>
+            </div>
+          )}
 
-              {/* Left pane: 2020 Baseline clipped to splitPos% */}
+          {/* ── ALWAYS-PRESENT Leaflet Map (live satellite tiles of actual site) ── */}
+          <div
+            style={{
+              transform: isSplitView ? "none" : `perspective(1000px) rotateX(${pitch}deg) rotateZ(${heading}deg)`,
+              transition: "transform 0.4s ease-out",
+            }}
+            className="absolute inset-0 z-10"
+          >
+            <div ref={mapContainerRef} className="w-full h-full min-h-[480px]" />
+          </div>
+
+          {/* ── SPLIT VIEW OVERLAY: 2020 Baseline image clipped over left portion ── */}
+          {isSplitView && (
+            <>
+              {/* Left pane: 2020 baseline photo clipped to splitPos% — overlaid on live map */}
               <div
-                className="absolute inset-0 overflow-hidden"
+                className="absolute inset-0 z-20 overflow-hidden pointer-events-none"
                 style={{ width: `${splitPos}%` }}
               >
                 <img
@@ -676,14 +683,22 @@ export function TreeMap() {
                     activeProject.baselineImage
                   }
                   alt="2020 Pre-Planting Baseline"
-                  className="w-full h-full object-cover"
-                  style={{ width: `${(100 / splitPos) * 100}%`, maxWidth: "none" }}
+                  className="h-full object-cover"
+                  style={{ width: `${(100 / Math.max(splitPos, 1)) * 100}%`, maxWidth: "none" }}
+                  draggable={false}
                 />
-                {/* Left label */}
-                <div className="absolute top-4 left-4 bg-amber-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-amber-600/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span>2020 BASELINE</span>
-                </div>
+              </div>
+
+              {/* Left label */}
+              <div className="absolute top-4 left-4 z-30 bg-amber-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-amber-600/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>2020 BASELINE PHOTO</span>
+              </div>
+
+              {/* Right label */}
+              <div className="absolute top-4 right-4 z-30 bg-emerald-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-emerald-500/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>{selectedYear === 2026 ? "2026 LIVE MAP" : `${selectedYear} LIVE MAP`}</span>
               </div>
 
               {/* Drag Curtain Handle */}
@@ -693,8 +708,8 @@ export function TreeMap() {
                 onMouseDown={handleSplitMouseDown}
                 onTouchStart={handleSplitMouseDown}
               >
-                <div className="w-1 h-full bg-white/80 shadow-2xl" />
-                <div className="absolute w-9 h-9 rounded-full bg-white shadow-xl border-2 border-[#1A6B3A] flex items-center justify-center cursor-col-resize">
+                <div className="w-0.5 h-full bg-white shadow-2xl" />
+                <div className="absolute w-9 h-9 rounded-full bg-white shadow-xl border-2 border-[#1A6B3A] flex items-center justify-center cursor-col-resize select-none">
                   <Columns2 className="w-4 h-4 text-[#1A6B3A]" />
                 </div>
               </div>
@@ -708,35 +723,12 @@ export function TreeMap() {
                 <X className="w-3 h-3" />
                 <span>Exit Before / After</span>
               </button>
-            </div>
-          ) : (
-            /* ── NORMAL MAP MODE ── */
+            </>
+          )}
+
+          {/* ── NORMAL MAP MODE CONTROLS & HUD (hidden in split view) ── */}
+          {!isSplitView && (
             <>
-              {/* Fly-to Animation HUD Overlay */}
-              {isAnimating && (
-                <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 pointer-events-none transition-opacity duration-300">
-                  <Compass className="w-10 h-10 text-emerald-400 animate-spin" />
-                  <div className="text-white text-xs font-mono font-bold uppercase tracking-widest flex items-center space-x-2">
-                    <span>Orbiting Satellite Camera Fly-To</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  </div>
-                  <p className="text-emerald-300/80 text-[11px] font-mono">
-                    Target Lock: {activeProject.lat.toFixed(4)}°, {activeProject.lng.toFixed(4)}°
-                  </p>
-                </div>
-              )}
-
-              {/* Leaflet Map Container */}
-              <div
-                style={{
-                  transform: `perspective(1000px) rotateX(${pitch}deg) rotateZ(${heading}deg)`,
-                  transition: "transform 0.4s ease-out",
-                }}
-                className="w-full h-full min-h-[480px] relative z-10"
-              >
-                <div ref={mapContainerRef} className="w-full h-full min-h-[480px] rounded-3xl z-10" />
-              </div>
-
               {/* Controls Overlay Bar (Zoom, Pitch Tilt, Rotate) */}
               <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2 bg-black/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 shadow-2xl">
                 <button
