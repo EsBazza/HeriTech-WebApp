@@ -24,9 +24,21 @@ import {
   ShieldCheck,
   TrendingUp,
   AlertCircle,
+  Play,
+  Pause,
+  Calendar,
 } from "lucide-react";
 
-interface TreeProject {
+export interface YearlyProgress {
+  year: number;
+  treesPlanted: number;
+  survivalRate: number;
+  allocatedFundsUsd: number;
+  hectaresRestored: number;
+  statusLabel: string;
+}
+
+export interface TreeProject {
   id: string;
   title: string;
   ngoName: string;
@@ -41,7 +53,10 @@ interface TreeProject {
   googleEarthUrl: string;
   baselineImage: string;
   currentSatelliteImage: string;
+  yearlyProgress?: Record<number, YearlyProgress>;
 }
+
+const YEARS = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
 // Satellite & Terrain Tile Layer URLs
 const TILE_LAYERS = {
@@ -69,9 +84,10 @@ export function TreeMap() {
   // Active location selection
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
 
-  // Toggles
+  // Toggles & Timeline State
   const [viewMode, setViewMode] = useState<"satellite" | "esri" | "terrain">("satellite");
-  const [layerMode, setLayerMode] = useState<"current" | "baseline">("current");
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   // 3D Perspective Pitch Angle
   const [pitch, setPitch] = useState<number>(35); // 0° to 60° 3D tilt
@@ -83,6 +99,17 @@ export function TreeMap() {
   const mapInstanceRef = useRef<any>(null);
   const tileLayerRef = useRef<any>(null);
   const markersRef = useRef<{ [id: string]: any }>({});
+
+  // Auto-play timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setSelectedYear((prevYear) => (prevYear >= 2026 ? 2020 : prevYear + 1));
+      }, 1500);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
   useEffect(() => {
     async function fetchTreeProjects() {
@@ -111,6 +138,62 @@ export function TreeMap() {
 
   const activeProject =
     projects.find((p) => p.id === selectedProjectId) || projects[0];
+
+  // Helper to build marker icon and popup content
+  const createMarkerData = (proj: TreeProject, year: number, L: any) => {
+    const yearProgress = proj.yearlyProgress?.[year];
+    const trees = yearProgress
+      ? yearProgress.treesPlanted
+      : year === 2020
+      ? 0
+      : proj.treesPlanted;
+    const funds = yearProgress
+      ? yearProgress.allocatedFundsUsd
+      : year === 2020
+      ? 0
+      : proj.allocatedFundsUsd;
+    const isBaseline = year === 2020;
+    const isFull = year === 2026;
+
+    const iconColor = isBaseline ? "#78350F" : isFull ? "#15803D" : "#1A6B3A";
+    const badgeText = isBaseline
+      ? "Baseline (0 Trees)"
+      : `+ ${trees.toLocaleString()} Trees (${year})`;
+
+    const customIcon = L.divIcon({
+      className: "custom-tree-pin",
+      html: `
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: ${iconColor}; border: 2.5px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-2l3-3.3a1 1 0 0 1 .7-1.7H7l3-3.3a1 1 0 0 1 1.4 0L17 9h-1.7a1 1 0 0 1-.7 1.7L19 14h-2z"/>
+              <path d="M12 19v3"/>
+            </svg>
+          </div>
+          <div style="font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.85); color: white; padding: 2px 8px; border-radius: 12px; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">
+            ${proj.location.split(",")[0]} (${badgeText})
+          </div>
+        </div>
+      `,
+      iconSize: [40, 56],
+      iconAnchor: [20, 56],
+    });
+
+    const popupHtml = `
+      <div style="font-family: sans-serif; padding: 4px; max-width: 230px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 2px;">
+          <strong style="color: #1A6B3A; font-size: 12px;">${proj.title}</strong>
+          <span style="font-size: 10px; font-weight: 800; background: #e5e7eb; padding: 1px 5px; border-radius: 4px;">${year}</span>
+        </div>
+        <p style="font-size: 11px; margin: 4px 0; color: #444;">${proj.location}</p>
+        <div style="font-size: 11px; font-weight: bold; color: ${isBaseline ? "#b45309" : "#15803d"}; background: ${isBaseline ? "#fef3c7" : "#f0fdf4"}; padding: 4px 6px; border-radius: 6px; border: 1px solid ${isBaseline ? "#fde68a" : "#bbf7d0"};">
+          ${isBaseline ? "🍂 Pre-Planting Baseline (0% Canopy)" : `🌿 Restored: ${trees.toLocaleString()} Trees ($${funds.toFixed(2)})`}
+        </div>
+      </div>
+    `;
+
+    return { customIcon, popupHtml };
+  };
 
   // Initialize Leaflet Map on Client Side
   useEffect(() => {
@@ -170,38 +253,10 @@ export function TreeMap() {
 
       // Create Custom Tree Pins for all projects
       projects.forEach((proj) => {
-        const isCurrent = layerMode === "current";
-        const customIcon = L.divIcon({
-          className: "custom-tree-pin",
-          html: `
-            <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
-              <div style="width: 38px; height: 38px; border-radius: 50%; background: ${
-                isCurrent ? "#1A6B3A" : "#78350F"
-              }; border: 2.5px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-2l3-3.3a1 1 0 0 1 .7-1.7H7l3-3.3a1 1 0 0 1 1.4 0L17 9h-1.7a1 1 0 0 1-.7 1.7L19 14h-2z"/>
-                  <path d="M12 19v3"/>
-                </svg>
-              </div>
-              <div style="font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.85); color: white; padding: 2px 8px; border-radius: 12px; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">
-                ${proj.location.split(",")[0]} (${isCurrent ? "+ " + proj.treesPlanted + " Trees" : "Baseline"})
-              </div>
-            </div>
-          `,
-          iconSize: [40, 56],
-          iconAnchor: [20, 56],
-        });
+        const { customIcon, popupHtml } = createMarkerData(proj, selectedYear, L);
 
         const marker = L.marker([proj.lat, proj.lng], { icon: customIcon }).addTo(map);
-        marker.bindPopup(`
-          <div style="font-family: sans-serif; padding: 4px; max-width: 220px;">
-            <strong style="color: #1A6B3A; font-size: 12px;">${proj.title}</strong>
-            <p style="font-size: 11px; margin: 4px 0; color: #444;">${proj.location}</p>
-            <div style="font-size: 11px; font-weight: bold; color: ${isCurrent ? "#15803d" : "#b45309"}; bg-color: #f0fdf4; padding: 4px; border-radius: 6px;">
-              ${isCurrent ? `🌿 Restored: ${proj.treesPlanted} Trees ($${proj.allocatedFundsUsd.toFixed(2)})` : "🍂 Pre-Planting Baseline (0% Canopy)"}
-            </div>
-          </div>
-        `);
+        marker.bindPopup(popupHtml);
 
         marker.on("click", () => {
           setSelectedProjectId(proj.id);
@@ -215,6 +270,22 @@ export function TreeMap() {
       isMounted = false;
     };
   }, [loading, projects.length]);
+
+  // Update Leaflet marker icons and popup contents dynamically when selectedYear changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || projects.length === 0) return;
+
+    import("leaflet").then((L) => {
+      projects.forEach((proj) => {
+        const marker = markersRef.current[proj.id];
+        if (marker) {
+          const { customIcon, popupHtml } = createMarkerData(proj, selectedYear, L);
+          marker.setIcon(customIcon);
+          marker.setPopupContent(popupHtml);
+        }
+      });
+    });
+  }, [selectedYear, projects]);
 
   // Update Tile Layer when viewMode changes
   useEffect(() => {
@@ -296,12 +367,44 @@ export function TreeMap() {
     );
   }
 
-  const isCurrent = layerMode === "current";
+  // Derive active metrics dynamically from yearlyProgress
+  const currentProgress: YearlyProgress = activeProject.yearlyProgress?.[selectedYear] ?? {
+    year: selectedYear,
+    treesPlanted:
+      selectedYear === 2020
+        ? 0
+        : Math.round(activeProject.treesPlanted * ((selectedYear - 2020) / (2026 - 2020))),
+    survivalRate: selectedYear === 2020 ? 0 : activeProject.survivalRate,
+    allocatedFundsUsd:
+      selectedYear === 2020
+        ? 0
+        : activeProject.allocatedFundsUsd * ((selectedYear - 2020) / (2026 - 2020)),
+    hectaresRestored:
+      selectedYear === 2020
+        ? 0
+        : Math.round(activeProject.hectaresRestored * ((selectedYear - 2020) / (2026 - 2020)) * 10) / 10,
+    statusLabel:
+      selectedYear === 2020
+        ? "Unforested Baseline (Year 0)"
+        : selectedYear === 2026
+        ? "Phase 6: Audited Live Canopy"
+        : `Phase ${selectedYear - 2020}: Growth Progression`,
+  };
+
+  // Satellite visual filter interpolation: sepia at 2020 (ratio 0) -> full vibrant color at 2026 (ratio 1)
+  const progressRatio = Math.max(0, Math.min(1, (selectedYear - 2020) / (2026 - 2020)));
+  const sepiaVal = Math.round((1 - progressRatio) * 60); // 60% down to 0%
+  const saturateVal = Math.round(40 + progressRatio * 90); // 40% up to 130%
+  const contrastVal = Math.round(125 - progressRatio * 15); // 125% down to 110%
+  const brightnessVal = Math.round(75 + progressRatio * 30); // 75% up to 105%
+  const hueRotateVal = Math.round((1 - progressRatio) * -15); // -15deg up to 0deg
+
+  const mapFilterStyle = `sepia(${sepiaVal}%) saturate(${saturateVal}%) contrast(${contrastVal}%) brightness(${brightnessVal}%) hue-rotate(${hueRotateVal}deg)`;
 
   return (
     <div className="bg-white border border-[#E6E2D8] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
       {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-gray-100 pb-5">
         <div>
           <div className="flex items-center space-x-2 text-xs font-extrabold text-[#1A6B3A] tracking-wider uppercase">
             <Globe className="w-4 h-4 text-[#1A6B3A] animate-pulse" />
@@ -314,76 +417,138 @@ export function TreeMap() {
             Active Reforestation & Tree Canopy Growth Ledger
           </TranslatableHeading>
           <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-            Real interactive Google Earth aerial & terrain satellite tiles tracking post-festival tree planting sites across Asia.
+            Real interactive Google Earth aerial & terrain satellite tiles tracking post-festival tree planting sites across Asia (2020–2026).
           </TranslatableParagraph>
         </div>
 
-        {/* 2. View Toggles */}
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          {/* Tile Layer Switcher: Google Satellite vs Esri vs Google Terrain */}
-          <div className="bg-[#F8F6F0] p-1 rounded-2xl border border-[#E6E2D8] inline-flex items-center space-x-1 text-xs font-semibold">
+        {/* Tile Layer Switcher: Google Satellite vs Esri vs Google Terrain */}
+        <div className="bg-[#F8F6F0] p-1 rounded-2xl border border-[#E6E2D8] inline-flex items-center space-x-1 text-xs font-semibold self-start xl:self-auto">
+          <button
+            type="button"
+            onClick={() => setViewMode("satellite")}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              viewMode === "satellite"
+                ? "bg-[#1A6B3A] text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <TranslatableText>Google Satellite</TranslatableText>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("esri")}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              viewMode === "esri"
+                ? "bg-[#1A6B3A] text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <TranslatableText>Esri Aerial</TranslatableText>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("terrain")}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              viewMode === "terrain"
+                ? "bg-[#1A6B3A] text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <TranslatableText>3D Terrain</TranslatableText>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Annual Multi-Year Timeline Slider UI (2020 - 2026) */}
+      <div className="bg-gradient-to-r from-[#F8F6F0] via-white to-[#F8F6F0] rounded-2xl p-4 sm:p-5 border border-[#E6E2D8] shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center space-x-3">
+            {/* Play / Pause Toggle Button */}
             <button
               type="button"
-              onClick={() => setViewMode("satellite")}
-              className={`px-3 py-1.5 rounded-xl transition-all ${
-                viewMode === "satellite"
-                  ? "bg-[#1A6B3A] text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+              onClick={() => setIsPlaying((prev) => !prev)}
+              aria-label={isPlaying ? "Pause Timeline Auto-Play" : "Start Timeline Auto-Play"}
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                isPlaying
+                  ? "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-500/20 animate-pulse"
+                  : "bg-[#1A6B3A] hover:bg-emerald-800 text-white shadow-emerald-700/20"
               }`}
             >
-              <TranslatableText>Google Satellite</TranslatableText>
+              {isPlaying ? (
+                <>
+                  <Pause className="w-3.5 h-3.5 fill-current" />
+                  <span>Pause Auto-Play</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Auto-Play Growth</span>
+                </>
+              )}
             </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("esri")}
-              className={`px-3 py-1.5 rounded-xl transition-all ${
-                viewMode === "esri"
-                  ? "bg-[#1A6B3A] text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <TranslatableText>Esri Aerial</TranslatableText>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("terrain")}
-              className={`px-3 py-1.5 rounded-xl transition-all ${
-                viewMode === "terrain"
-                  ? "bg-[#1A6B3A] text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <TranslatableText>3D Terrain</TranslatableText>
-            </button>
+
+            <div className="flex items-center space-x-1.5 text-xs text-gray-700 font-semibold">
+              <Calendar className="w-3.5 h-3.5 text-[#1A6B3A]" />
+              <span>Timeline Year:</span>
+              <span className="font-extrabold font-mono text-[#1A6B3A] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                {selectedYear === 2020
+                  ? "2020 (Baseline)"
+                  : selectedYear === 2026
+                  ? "2026 (Live Canopy)"
+                  : selectedYear}
+              </span>
+            </div>
           </div>
 
-          {/* Canopy Timeline Switcher: 2026 Live Canopy vs Pre-Planting Baseline */}
-          <div className="bg-[#F8F6F0] p-1 rounded-2xl border border-[#E6E2D8] inline-flex items-center space-x-1 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setLayerMode("current")}
-              className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center space-x-1.5 ${
-                isCurrent
-                  ? "bg-emerald-800 text-white shadow-sm ring-2 ring-emerald-500/30"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
-              <TranslatableText>2026 Live Canopy (+Trees)</TranslatableText>
-            </button>
-            <button
-              type="button"
-              onClick={() => setLayerMode("baseline")}
-              className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center space-x-1.5 ${
-                !isCurrent
-                  ? "bg-amber-900 text-white shadow-sm ring-2 ring-amber-600/30"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-              <TranslatableText>Pre-Planting Baseline (Year 0)</TranslatableText>
-            </button>
+          <div className="text-[11px] font-medium text-gray-600 flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#1A6B3A] animate-ping" />
+            <span>{currentProgress.statusLabel}</span>
           </div>
+        </div>
+
+        {/* Range Slider Track */}
+        <div className="relative px-1 pt-1 pb-1">
+          <input
+            type="range"
+            min={2020}
+            max={2026}
+            step={1}
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1A6B3A] focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30 transition-all"
+          />
+        </div>
+
+        {/* Clickable Year Tick Buttons */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
+          {YEARS.map((year) => {
+            const isSelected = year === selectedYear;
+            const isBase = year === 2020;
+            const isCurrentYr = year === 2026;
+            return (
+              <button
+                key={year}
+                type="button"
+                onClick={() => setSelectedYear(year)}
+                className={`py-1.5 px-1 sm:px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center ${
+                  isSelected
+                    ? isBase
+                      ? "bg-amber-800 text-white shadow-md ring-2 ring-amber-700/30"
+                      : "bg-[#1A6B3A] text-white shadow-md ring-2 ring-emerald-600/30"
+                    : "bg-white/80 hover:bg-gray-100 text-gray-700 border border-[#E6E2D8]"
+                }`}
+              >
+                <span className="font-mono">{year}</span>
+                <span
+                  className={`text-[9px] font-semibold hidden sm:inline-block ${
+                    isSelected ? "text-white/90" : "text-gray-400"
+                  }`}
+                >
+                  {isBase ? "Baseline" : isCurrentYr ? "Live" : `Yr +${year - 2020}`}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -441,17 +606,14 @@ export function TreeMap() {
             </div>
           )}
 
-          {/* Dynamic Map Filter Container: Applies Earth-tone Sepia Filter for Pre-Planting Baseline Mode */}
+          {/* Dynamic Map Filter Container: Shifts from earthy sepia at 2020 to vibrant satellite green at 2026 */}
           <div
             style={{
               transform: `perspective(1000px) rotateX(${pitch}deg) rotateZ(${heading}deg)`,
-              transition: "transform 0.4s ease-out",
+              filter: mapFilterStyle,
+              transition: "transform 0.4s ease-out, filter 0.5s ease-in-out",
             }}
-            className={`w-full h-full min-h-[480px] relative z-10 transition-all duration-700 ${
-              !isCurrent
-                ? "filter contrast-125 sepia-50 brightness-75 grayscale-50 saturate-50"
-                : "filter contrast-110 saturate-125 brightness-105"
-            }`}
+            className="w-full h-full min-h-[480px] relative z-10"
           >
             <div ref={mapContainerRef} className="w-full h-full min-h-[480px] rounded-3xl z-10" />
           </div>
@@ -494,15 +656,23 @@ export function TreeMap() {
             </button>
           </div>
 
-          {/* Target Location Footer Tag */}
+          {/* Target Location Header Tag */}
           <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white text-xs font-mono font-semibold flex items-center space-x-2 shadow-lg pointer-events-none">
             <span
               className={`w-2.5 h-2.5 rounded-full ${
-                isCurrent ? "bg-emerald-400 animate-pulse" : "bg-amber-500"
+                selectedYear === 2020
+                  ? "bg-amber-500"
+                  : selectedYear === 2026
+                  ? "bg-emerald-400 animate-pulse"
+                  : "bg-emerald-400"
               }`}
             />
             <span>
-              {isCurrent ? "2026 LIVE REFORESTATION CANOPY" : "HISTORICAL PRE-PLANTING BASELINE (YEAR 0)"}
+              {selectedYear === 2020
+                ? "HISTORICAL PRE-PLANTING BASELINE (2020)"
+                : selectedYear === 2026
+                ? "2026 LIVE REFORESTATION CANOPY"
+                : `${selectedYear} CANOPY GROWTH TELEMETRY`}
             </span>
           </div>
         </div>
@@ -513,17 +683,19 @@ export function TreeMap() {
             <div className="border-b border-[#E6E2D8] pb-3">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  {isCurrent ? "2026 LIVE REFORESTATION TELEMETRY" : "PRE-PLANTING HISTORICAL BASELINE"}
+                  {selectedYear === 2020
+                    ? "PRE-PLANTING HISTORICAL BASELINE (2020)"
+                    : `${selectedYear} REFORESTATION TELEMETRY`}
                 </p>
-                {isCurrent ? (
-                  <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center space-x-1">
-                    <TrendingUp className="w-3 h-3 text-emerald-700" />
-                    <span>+ Canopy Restored</span>
-                  </span>
-                ) : (
+                {selectedYear === 2020 ? (
                   <span className="text-[10px] font-extrabold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full flex items-center space-x-1">
                     <AlertCircle className="w-3 h-3 text-amber-700" />
                     <span>Unforested Year 0</span>
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                    <TrendingUp className="w-3 h-3 text-emerald-700" />
+                    <span>{currentProgress.statusLabel}</span>
                   </span>
                 )}
               </div>
@@ -537,38 +709,40 @@ export function TreeMap() {
               </p>
             </div>
 
-            {/* Dynamic Metrics Grid (Changes based on Baseline vs Current Canopy) */}
+            {/* Dynamic Metrics Grid (Derived dynamically from activeProject.yearlyProgress?.[selectedYear]) */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white p-3.5 rounded-2xl border border-gray-200 space-y-0.5 shadow-xs">
                 <p className="text-[10px] font-bold text-gray-400 uppercase">
-                  {isCurrent ? "FUNDS ALLOCATED (10%)" : "BASELINE FUNDS"}
+                  {selectedYear === 2020 ? "BASELINE FUNDS" : `FUNDS ALLOCATED (${selectedYear})`}
                 </p>
                 <p className="text-xl font-black text-amber-700 font-mono-data">
-                  {isCurrent ? formatCurrency(activeProject.allocatedFundsUsd) : "$0.00"}
+                  {formatCurrency(currentProgress.allocatedFundsUsd)}
                 </p>
               </div>
               <div className="bg-white p-3.5 rounded-2xl border border-gray-200 space-y-0.5 shadow-xs">
                 <p className="text-[10px] font-bold text-gray-400 uppercase">
-                  {isCurrent ? "TREES PLANTED" : "BASELINE TREES"}
+                  {selectedYear === 2020 ? "BASELINE TREES" : `TREES PLANTED (${selectedYear})`}
                 </p>
                 <p className="text-xl font-black text-[#1A6B3A] font-mono-data">
-                  {isCurrent ? formatNumber(activeProject.treesPlanted) : "0"}{" "}
+                  {formatNumber(currentProgress.treesPlanted)}{" "}
                   <span className="text-xs font-normal">trees</span>
                 </p>
               </div>
             </div>
 
-            {/* Canopy Survival Rate Progress Bar */}
+            {/* Canopy Survival Rate / Coverage Progress Bar */}
             <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-2 shadow-xs">
               <div className="flex justify-between text-xs font-semibold">
                 <span className="text-gray-600">Canopy Density & Growth</span>
                 <span className="text-emerald-700 font-bold">
-                  {isCurrent ? `${activeProject.survivalRate}%` : "0% (Bare Soil)"}
+                  {selectedYear === 2020
+                    ? "0% (Bare Soil)"
+                    : `${currentProgress.survivalRate}% (${currentProgress.statusLabel})`}
                 </span>
               </div>
               <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden">
                 <div
-                  style={{ width: `${isCurrent ? activeProject.survivalRate : 0}%` }}
+                  style={{ width: `${currentProgress.survivalRate}%` }}
                   className="h-full bg-[#1A6B3A] rounded-full transition-all duration-700"
                 />
               </div>
@@ -577,10 +751,14 @@ export function TreeMap() {
             {/* Restored Native Species Tags */}
             <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-2 shadow-xs">
               <p className="text-[10px] font-bold text-gray-400 uppercase">
-                {isCurrent ? "RESTORED NATIVE SPECIES" : "SPECIES STATUS"}
+                {selectedYear === 2020 ? "SPECIES STATUS" : "RESTORED NATIVE SPECIES"}
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {isCurrent ? (
+                {selectedYear === 2020 ? (
+                  <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-lg border border-amber-200">
+                    🍂 Pre-Reforestation Soil Assessment (0 Native Canopy)
+                  </span>
+                ) : (
                   activeProject.species.map((s) => (
                     <span
                       key={s}
@@ -589,10 +767,6 @@ export function TreeMap() {
                       🌿 {s}
                     </span>
                   ))
-                ) : (
-                  <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-lg border border-amber-200">
-                    🍂 Pre-Reforestation Soil Assessment
-                  </span>
                 )}
               </div>
             </div>
@@ -601,8 +775,9 @@ export function TreeMap() {
           {/* Footer Audited Metric */}
           <div className="pt-3 border-t border-[#E6E2D8] text-[11px] text-gray-500 flex items-center justify-between">
             <span>
-              Hectares Target:{" "}
-              <strong className="text-gray-800">{activeProject.hectaresRestored} ha</strong>
+              Hectares Restored:{" "}
+              <strong className="text-gray-800">{currentProgress.hectaresRestored} ha</strong>
+              <span className="text-gray-400 ml-1">/ {activeProject.hectaresRestored} ha target</span>
             </span>
             <span className="text-emerald-700 font-medium flex items-center space-x-1">
               <CheckCircle2 className="w-3.5 h-3.5" />

@@ -1,6 +1,99 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+export interface YearlyProgress {
+  year: number;
+  treesPlanted: number;
+  survivalRate: number;
+  allocatedFundsUsd: number;
+  hectaresRestored: number;
+  statusLabel: string;
+}
+
+export interface TreeProject {
+  id: string;
+  title: string;
+  ngoName: string;
+  location: string;
+  lat: number;
+  lng: number;
+  allocatedFundsUsd: number;
+  treesPlanted: number;
+  survivalRate: number;
+  species: string[];
+  hectaresRestored: number;
+  googleEarthUrl: string;
+  baselineImage: string;
+  currentSatelliteImage: string;
+  yearlyProgress: Record<number, YearlyProgress>;
+}
+
+function generateYearlyProgress(
+  treesPlanted: number,
+  allocatedFundsUsd: number,
+  hectaresRestored: number,
+  survivalRate: number
+): Record<number, YearlyProgress> {
+  return {
+    2020: {
+      year: 2020,
+      treesPlanted: 0,
+      survivalRate: 0,
+      allocatedFundsUsd: 0,
+      hectaresRestored: 0,
+      statusLabel: "Unforested Baseline (Year 0)",
+    },
+    2021: {
+      year: 2021,
+      treesPlanted: Math.round(treesPlanted * 0.15),
+      survivalRate: 82,
+      allocatedFundsUsd: Math.round(allocatedFundsUsd * 0.20 * 100) / 100,
+      hectaresRestored: Math.round(hectaresRestored * 0.15 * 10) / 10,
+      statusLabel: "Phase 1: Nursery & Soil Prep",
+    },
+    2022: {
+      year: 2022,
+      treesPlanted: Math.round(treesPlanted * 0.35),
+      survivalRate: 88,
+      allocatedFundsUsd: Math.round(allocatedFundsUsd * 0.40 * 100) / 100,
+      hectaresRestored: Math.round(hectaresRestored * 0.35 * 10) / 10,
+      statusLabel: "Phase 2: Sapling Propagation",
+    },
+    2023: {
+      year: 2023,
+      treesPlanted: Math.round(treesPlanted * 0.55),
+      survivalRate: 92,
+      allocatedFundsUsd: Math.round(allocatedFundsUsd * 0.60 * 100) / 100,
+      hectaresRestored: Math.round(hectaresRestored * 0.55 * 10) / 10,
+      statusLabel: "Phase 3: Native Canopy Growth",
+    },
+    2024: {
+      year: 2024,
+      treesPlanted: Math.round(treesPlanted * 0.75),
+      survivalRate: 94,
+      allocatedFundsUsd: Math.round(allocatedFundsUsd * 0.75 * 100) / 100,
+      hectaresRestored: Math.round(hectaresRestored * 0.75 * 10) / 10,
+      statusLabel: "Phase 4: Ecosystem Recovery",
+    },
+    2025: {
+      year: 2025,
+      treesPlanted: Math.round(treesPlanted * 0.90),
+      survivalRate: 95,
+      allocatedFundsUsd: Math.round(allocatedFundsUsd * 0.90 * 100) / 100,
+      hectaresRestored: Math.round(hectaresRestored * 0.90 * 10) / 10,
+      statusLabel: "Phase 5: Canopy Verification",
+    },
+    2026: {
+      year: 2026,
+      treesPlanted,
+      survivalRate,
+      allocatedFundsUsd: Math.round(allocatedFundsUsd * 100) / 100,
+      hectaresRestored,
+      statusLabel: "Phase 6: Audited Live Canopy",
+    },
+  };
+}
+
 export async function GET() {
   try {
     const orders = await prisma.order.aggregate({
@@ -11,7 +104,7 @@ export async function GET() {
 
     const totalNgoFunds = orders._sum.ngoContribution || 16.20;
 
-    const projects = [
+    const baseProjects = [
       {
         id: "proj-ph-01",
         title: "Cordillera Heritage Bamboo & Narra Reforestation",
@@ -61,6 +154,16 @@ export async function GET() {
         currentSatelliteImage: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800"
       }
     ];
+
+    const projects: TreeProject[] = baseProjects.map((p) => ({
+      ...p,
+      yearlyProgress: generateYearlyProgress(
+        p.treesPlanted,
+        p.allocatedFundsUsd,
+        p.hectaresRestored,
+        p.survivalRate
+      ),
+    }));
 
     return NextResponse.json({ success: true, data: projects });
   } catch (error) {
