@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from "lucide-react";
+import TreeMap from "@/components/impact/TreeMap";
 
 export default function ImpactPage() {
   const { formatCurrency, formatNumber } = useTranslation();
@@ -103,6 +104,8 @@ export default function ImpactPage() {
           </span>
         </div>
       </div>
+
+      <TreeMap />
 
       {/* Regional Festivals Quota Table */}
       <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-6 shadow-sm">
