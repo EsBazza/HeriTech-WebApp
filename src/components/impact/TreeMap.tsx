@@ -27,6 +27,8 @@ import {
   Play,
   Pause,
   Calendar,
+  Columns2,
+  X,
 } from "lucide-react";
 
 export interface YearlyProgress {
@@ -36,6 +38,7 @@ export interface YearlyProgress {
   allocatedFundsUsd: number;
   hectaresRestored: number;
   statusLabel: string;
+  satelliteImage?: string;
 }
 
 export interface TreeProject {
@@ -88,6 +91,12 @@ export function TreeMap() {
   const [viewMode, setViewMode] = useState<"satellite" | "esri" | "terrain">("satellite");
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isSplitView, setIsSplitView] = useState<boolean>(false);
+  const [splitPos, setSplitPos] = useState<number>(50); // 0–100% curtain position
+
+  // Drag state for split curtain
+  const isDraggingRef = useRef<boolean>(false);
+  const splitContainerRef = useRef<HTMLDivElement | null>(null);
 
   // 3D Perspective Pitch Angle
   const [pitch, setPitch] = useState<number>(35); // 0° to 60° 3D tilt
@@ -346,6 +355,27 @@ export function TreeMap() {
     setPitch((prev) => (prev === 0 ? 45 : 0));
   };
 
+  // Split curtain drag handlers
+  const handleSplitMouseDown = () => {
+    isDraggingRef.current = true;
+  };
+  const handleSplitMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current || !splitContainerRef.current) return;
+    const rect = splitContainerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    setSplitPos(Math.round((x / rect.width) * 100));
+  };
+  const handleSplitMouseUp = () => {
+    isDraggingRef.current = false;
+  };
+  const handleSplitTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!splitContainerRef.current) return;
+    const rect = splitContainerRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = Math.max(0, Math.min(touch.clientX - rect.left, rect.width));
+    setSplitPos(Math.round((x / rect.width) * 100));
+  };
+
   if (loading) {
     return (
       <div className="bg-white border border-[#E6E2D8] rounded-3xl p-8 flex flex-col items-center justify-center min-h-[400px] space-y-3">
@@ -457,6 +487,20 @@ export function TreeMap() {
             <TranslatableText>3D Terrain</TranslatableText>
           </button>
         </div>
+
+        {/* Split View Before/After Toggle */}
+        <button
+          type="button"
+          onClick={() => { setIsSplitView((prev) => !prev); setSplitPos(50); }}
+          className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border self-start xl:self-auto ${
+            isSplitView
+              ? "bg-emerald-800 text-white border-emerald-700 shadow-md ring-2 ring-emerald-500/30"
+              : "bg-[#F8F6F0] text-gray-700 border-[#E6E2D8] hover:bg-gray-100"
+          }`}
+        >
+          <Columns2 className="w-3.5 h-3.5" />
+          <span>{isSplitView ? "Exit Before/After" : "Before / After View"}</span>
+        </button>
       </div>
 
       {/* 2. Annual Multi-Year Timeline Slider UI (2020 - 2026) */}
@@ -591,90 +635,167 @@ export function TreeMap() {
       {/* 4. Real Interactive Leaflet Satellite Tile Map Container & Telemetry Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Interactive Satellite Map Viewport */}
-        <div className="lg:col-span-7 relative group rounded-3xl overflow-hidden border border-[#E6E2D8] shadow-md bg-gray-950 min-h-[480px] flex flex-col justify-between">
-          {/* Fly-to Animation HUD Overlay */}
-          {isAnimating && (
-            <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 pointer-events-none transition-opacity duration-300">
-              <Compass className="w-10 h-10 text-emerald-400 animate-spin" />
-              <div className="text-white text-xs font-mono font-bold uppercase tracking-widest flex items-center space-x-2">
-                <span>Orbiting Satellite Camera Fly-To</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        <div className="lg:col-span-7 relative group rounded-3xl overflow-hidden border border-[#E6E2D8] shadow-md bg-gray-950 min-h-[480px]">
+
+          {/* ── SPLIT VIEW: Before (2020) vs Selected Year ── */}
+          {isSplitView ? (
+            <div
+              ref={splitContainerRef}
+              className="relative w-full min-h-[480px] h-full select-none cursor-col-resize overflow-hidden rounded-3xl"
+              onMouseMove={handleSplitMouseMove}
+              onMouseUp={handleSplitMouseUp}
+              onMouseLeave={handleSplitMouseUp}
+              onTouchMove={handleSplitTouchMove}
+              onTouchEnd={handleSplitMouseUp}
+            >
+              {/* Right pane: Selected Year image (full width, behind curtain) */}
+              <div className="absolute inset-0">
+                <img
+                  src={
+                    (activeProject.yearlyProgress?.[selectedYear] as YearlyProgress & { satelliteImage?: string })?.satelliteImage ||
+                    activeProject.currentSatelliteImage
+                  }
+                  alt={`${selectedYear} Reforestation Canopy`}
+                  className="w-full h-full object-cover"
+                />
+                {/* Right label */}
+                <div className="absolute top-4 right-4 bg-emerald-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-emerald-500/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{selectedYear === 2026 ? "2026 LIVE CANOPY" : `${selectedYear} REFORESTATION`}</span>
+                </div>
               </div>
-              <p className="text-emerald-300/80 text-[11px] font-mono">
-                Target Lock: {activeProject.lat.toFixed(4)}°, {activeProject.lng.toFixed(4)}°
-              </p>
+
+              {/* Left pane: 2020 Baseline clipped to splitPos% */}
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ width: `${splitPos}%` }}
+              >
+                <img
+                  src={
+                    (activeProject.yearlyProgress?.[2020] as YearlyProgress & { satelliteImage?: string })?.satelliteImage ||
+                    activeProject.baselineImage
+                  }
+                  alt="2020 Pre-Planting Baseline"
+                  className="w-full h-full object-cover"
+                  style={{ width: `${(100 / splitPos) * 100}%`, maxWidth: "none" }}
+                />
+                {/* Left label */}
+                <div className="absolute top-4 left-4 bg-amber-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-amber-600/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span>2020 BASELINE</span>
+                </div>
+              </div>
+
+              {/* Drag Curtain Handle */}
+              <div
+                className="absolute top-0 bottom-0 z-30 flex items-center justify-center"
+                style={{ left: `${splitPos}%`, transform: "translateX(-50%)" }}
+                onMouseDown={handleSplitMouseDown}
+                onTouchStart={handleSplitMouseDown}
+              >
+                <div className="w-1 h-full bg-white/80 shadow-2xl" />
+                <div className="absolute w-9 h-9 rounded-full bg-white shadow-xl border-2 border-[#1A6B3A] flex items-center justify-center cursor-col-resize">
+                  <Columns2 className="w-4 h-4 text-[#1A6B3A]" />
+                </div>
+              </div>
+
+              {/* Exit Split View Button */}
+              <button
+                type="button"
+                onClick={() => setIsSplitView(false)}
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 bg-black/80 hover:bg-black text-white text-[10px] font-bold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md shadow-lg transition-all"
+              >
+                <X className="w-3 h-3" />
+                <span>Exit Before / After</span>
+              </button>
             </div>
+          ) : (
+            /* ── NORMAL MAP MODE ── */
+            <>
+              {/* Fly-to Animation HUD Overlay */}
+              {isAnimating && (
+                <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 pointer-events-none transition-opacity duration-300">
+                  <Compass className="w-10 h-10 text-emerald-400 animate-spin" />
+                  <div className="text-white text-xs font-mono font-bold uppercase tracking-widest flex items-center space-x-2">
+                    <span>Orbiting Satellite Camera Fly-To</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  </div>
+                  <p className="text-emerald-300/80 text-[11px] font-mono">
+                    Target Lock: {activeProject.lat.toFixed(4)}°, {activeProject.lng.toFixed(4)}°
+                  </p>
+                </div>
+              )}
+
+              {/* Leaflet Map Container */}
+              <div
+                style={{
+                  transform: `perspective(1000px) rotateX(${pitch}deg) rotateZ(${heading}deg)`,
+                  transition: "transform 0.4s ease-out",
+                }}
+                className="w-full h-full min-h-[480px] relative z-10"
+              >
+                <div ref={mapContainerRef} className="w-full h-full min-h-[480px] rounded-3xl z-10" />
+              </div>
+
+              {/* Controls Overlay Bar (Zoom, Pitch Tilt, Rotate) */}
+              <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2 bg-black/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 shadow-2xl">
+                <button
+                  type="button"
+                  onClick={handleTogglePitch}
+                  title="Toggle 3D Perspective Tilt"
+                  className={`p-2 rounded-xl text-xs flex items-center justify-center transition-all ${
+                    pitch > 0 ? "bg-emerald-700 text-white" : "bg-gray-800 text-gray-300 hover:text-white"
+                  }`}
+                >
+                  <Compass className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRotateHeading}
+                  title="Rotate 360° Orientation"
+                  className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  title="Zoom In Satellite"
+                  className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  title="Zoom Out Satellite"
+                  className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Target Location Header Tag */}
+              <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white text-xs font-mono font-semibold flex items-center space-x-2 shadow-lg pointer-events-none">
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    selectedYear === 2020
+                      ? "bg-amber-500"
+                      : selectedYear === 2026
+                      ? "bg-emerald-400 animate-pulse"
+                      : "bg-emerald-400"
+                  }`}
+                />
+                <span>
+                  {selectedYear === 2020
+                    ? "HISTORICAL PRE-PLANTING BASELINE (2020)"
+                    : selectedYear === 2026
+                    ? "2026 LIVE REFORESTATION CANOPY"
+                    : `${selectedYear} CANOPY GROWTH TELEMETRY`}
+                </span>
+              </div>
+            </>
           )}
-
-          {/* Dynamic Map Filter Container: Shifts from earthy sepia at 2020 to vibrant satellite green at 2026 */}
-          <div
-            style={{
-              transform: `perspective(1000px) rotateX(${pitch}deg) rotateZ(${heading}deg)`,
-              filter: mapFilterStyle,
-              transition: "transform 0.4s ease-out, filter 0.5s ease-in-out",
-            }}
-            className="w-full h-full min-h-[480px] relative z-10"
-          >
-            <div ref={mapContainerRef} className="w-full h-full min-h-[480px] rounded-3xl z-10" />
-          </div>
-
-          {/* Controls Overlay Bar (Zoom, Pitch Tilt, Rotate) */}
-          <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2 bg-black/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 shadow-2xl">
-            <button
-              type="button"
-              onClick={handleTogglePitch}
-              title="Toggle 3D Perspective Tilt"
-              className={`p-2 rounded-xl text-xs flex items-center justify-center transition-all ${
-                pitch > 0 ? "bg-emerald-700 text-white" : "bg-gray-800 text-gray-300 hover:text-white"
-              }`}
-            >
-              <Compass className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleRotateHeading}
-              title="Rotate 360° Orientation"
-              className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              title="Zoom In Satellite"
-              className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              title="Zoom Out Satellite"
-              className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Target Location Header Tag */}
-          <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white text-xs font-mono font-semibold flex items-center space-x-2 shadow-lg pointer-events-none">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                selectedYear === 2020
-                  ? "bg-amber-500"
-                  : selectedYear === 2026
-                  ? "bg-emerald-400 animate-pulse"
-                  : "bg-emerald-400"
-              }`}
-            />
-            <span>
-              {selectedYear === 2020
-                ? "HISTORICAL PRE-PLANTING BASELINE (2020)"
-                : selectedYear === 2026
-                ? "2026 LIVE REFORESTATION CANOPY"
-                : `${selectedYear} CANOPY GROWTH TELEMETRY`}
-            </span>
-          </div>
         </div>
 
         {/* 5. GIS Dynamic Telemetry Panel */}
