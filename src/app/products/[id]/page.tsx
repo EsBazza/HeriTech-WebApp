@@ -3,20 +3,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import {
   Sparkles,
-  MapPin,
   ShieldCheck,
   Heart,
   Scale,
   Leaf,
-  QrCode,
   ArrowLeft,
-  CheckCircle2,
   Lock,
-  ExternalLink,
   ShoppingBag,
-  Truck,
   MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -27,8 +24,9 @@ import { CheckoutModal } from "@/components/checkout/CheckoutModal";
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, signInWithGoogle } = useAuth();
+  const { user } = useAuth();
   const { addToCart } = useCart();
+  const { formatCurrency, formatNumber, translateSync } = useTranslation();
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +56,7 @@ export default function ProductDetailPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-20 text-center">
         <div className="w-10 h-10 border-4 border-[#1A6B3A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-xs text-gray-500 mt-4">Loading provenance passport...</p>
+        <p className="text-xs text-gray-500 mt-4"><TranslatableText>Loading provenance passport...</TranslatableText></p>
       </div>
     );
   }
@@ -66,14 +64,14 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center">
-        <h2 className="text-lg font-bold text-gray-900">Product not found</h2>
-        <p className="text-xs text-gray-500 mt-1">This piece may have already been claimed.</p>
+        <TranslatableHeading level={2} className="text-lg font-bold text-gray-900">Product not found</TranslatableHeading>
+        <TranslatableParagraph className="text-xs text-gray-500 mt-1">This piece may have already been claimed.</TranslatableParagraph>
         <Link
           href="/"
           className="mt-4 inline-flex items-center space-x-1.5 text-xs font-semibold text-[#1A6B3A]"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Return to Marketplace</span>
+          <TranslatableText>Return to Marketplace</TranslatableText>
         </Link>
       </div>
     );
@@ -105,7 +103,7 @@ export default function ProductDetailPage() {
         className="inline-flex items-center space-x-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to All Goods</span>
+        <TranslatableText>Back to All Goods</TranslatableText>
       </Link>
 
       {/* Main Showcase Grid */}
@@ -125,12 +123,12 @@ export default function ProductDetailPage() {
             <div className="flex items-center space-x-2 text-emerald-900 font-medium">
               <ShieldCheck className="w-4 h-4 text-[#1A6B3A]" />
               <span>
-                Origin: <strong>{product.sourceBatch.agreement?.festival || "Cultural Festival"}</strong> (
-                {product.sourceBatch.agreement?.country})
+                <TranslatableText>Origin</TranslatableText>: <strong><TranslatableText>{product.sourceBatch.agreement?.festival || "Cultural Festival"}</TranslatableText></strong> (
+                <TranslatableText>{product.sourceBatch.agreement?.country}</TranslatableText>)
               </span>
             </div>
             <span className="font-mono-data text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
-              {product.kgDiverted} kg diverted
+              {formatNumber(product.kgDiverted)} <TranslatableText>kg diverted</TranslatableText>
             </span>
           </div>
         </div>
@@ -140,18 +138,18 @@ export default function ProductDetailPage() {
           <div>
             <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>AUTHENTICATED HERITAGE UPCYCLE</span>
+              <TranslatableText>AUTHENTICATED HERITAGE UPCYCLE</TranslatableText>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-              {product.title}
-            </h1>
+            <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+              <TranslatableText>{product.title}</TranslatableText>
+            </TranslatableHeading>
             <p className="text-2xl font-black text-[#141312] mt-3">
-              ${product.price.toFixed(2)}{" "}
+              {formatCurrency(product.price)}{" "}
               <span className="text-xs font-normal text-gray-500">USD</span>
             </p>
           </div>
 
-          <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
+          <TranslatableParagraph className="text-sm text-gray-600 leading-relaxed">{product.description}</TranslatableParagraph>
 
           {/* Maker Info with Direct Message Link */}
           <div className="p-4 rounded-2xl bg-white border border-[#E6E2D8] flex items-center justify-between">
@@ -161,20 +159,20 @@ export default function ProductDetailPage() {
               </div>
               <div>
                 <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider block">
-                  Certified Master Maker
+                  <TranslatableText>Certified Master Maker</TranslatableText>
                 </span>
-                <span className="text-sm font-bold text-gray-900">{product.artisan.fullName}</span>
-                <p className="text-xs text-gray-500">{product.artisan.workshopName || "Heritage Guild"}</p>
+                <span className="text-sm font-bold text-gray-900"><TranslatableText>{product.artisan.fullName}</TranslatableText></span>
+                <p className="text-xs text-gray-500"><TranslatableText>{product.artisan.workshopName || "Heritage Guild"}</TranslatableText></p>
               </div>
             </div>
 
             <Link
               href="/messages"
               className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 flex items-center space-x-1.5 text-xs font-semibold"
-              title="Message Maker"
+              title={translateSync("Message Maker")}
             >
               <MessageSquare className="w-4 h-4 text-blue-600" />
-              <span className="hidden sm:inline">Ask Question</span>
+              <span className="hidden sm:inline"><TranslatableText>Ask Question</TranslatableText></span>
             </Link>
           </div>
 
@@ -182,10 +180,10 @@ export default function ProductDetailPage() {
           <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <span className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-                Transparent 70/20/10 Escrow Split
+                <TranslatableText>Transparent 70/20/10 Escrow Split</TranslatableText>
               </span>
               <span className="text-[10px] font-mono-data text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold">
-                100% AUDITABLE
+                100% <TranslatableText>AUDITABLE</TranslatableText>
               </span>
             </div>
 
@@ -193,39 +191,39 @@ export default function ProductDetailPage() {
               <div className="flex items-center justify-between">
                 <span className="flex items-center space-x-2 text-gray-700">
                   <Heart className="w-3.5 h-3.5 text-blue-600" />
-                  <span>70% Direct Artisan Fair-Trade Payout</span>
+                  <TranslatableText>70% Direct Artisan Fair-Trade Payout</TranslatableText>
                 </span>
                 <span className="font-mono-data font-bold text-blue-700">
-                  ${escrow.artisanPayout.toFixed(2)}
+                  {formatCurrency(escrow.artisanPayout)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="flex items-center space-x-2 text-gray-700">
                   <Scale className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>20% Municipal Salvage Logistics & Platform</span>
+                  <TranslatableText>20% Municipal Salvage Logistics & Platform</TranslatableText>
                 </span>
                 <span className="font-mono-data font-bold text-emerald-700">
-                  ${escrow.platformFee.toFixed(2)}
+                  {formatCurrency(escrow.platformFee)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="flex items-center space-x-2 text-gray-700">
                   <Leaf className="w-3.5 h-3.5 text-amber-600" />
-                  <span>10% NGO: {product.ngoFundName}</span>
+                  <span>10% NGO: <TranslatableText>{product.ngoFundName}</TranslatableText></span>
                 </span>
                 <span className="font-mono-data font-bold text-amber-700">
-                  ${escrow.ngoContribution.toFixed(2)}
+                  {formatCurrency(escrow.ngoContribution)}
                 </span>
               </div>
             </div>
 
             {/* Visual Bar */}
             <div className="w-full h-2.5 rounded-full overflow-hidden flex bg-gray-100">
-              <div style={{ width: "70%" }} className="bg-blue-600 h-full" title="70% Artisan" />
-              <div style={{ width: "20%" }} className="bg-emerald-600 h-full" title="20% LGU & Platform" />
-              <div style={{ width: "10%" }} className="bg-amber-500 h-full" title="10% NGO Fund" />
+              <div style={{ width: "70%" }} className="bg-blue-600 h-full" title={translateSync("70% Artisan")} />
+              <div style={{ width: "20%" }} className="bg-emerald-600 h-full" title={translateSync("20% LGU & Platform")} />
+              <div style={{ width: "10%" }} className="bg-amber-500 h-full" title={translateSync("10% NGO Fund")} />
             </div>
           </div>
 
@@ -236,7 +234,7 @@ export default function ProductDetailPage() {
               className="py-4 rounded-xl border-2 border-[#1A6B3A] text-[#1A6B3A] hover:bg-emerald-50 font-bold text-xs shadow-xs transition-all flex items-center justify-center space-x-2"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Add to Cart</span>
+              <TranslatableText>Add to Cart</TranslatableText>
             </button>
 
             <button
@@ -244,7 +242,7 @@ export default function ProductDetailPage() {
               className="py-4 rounded-xl bg-[#D9532F] hover:bg-[#B84223] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
             >
               <Lock className="w-4 h-4" />
-              <span>Buy with 70/20/10 Escrow</span>
+              <TranslatableText>Buy with 70/20/10 Escrow</TranslatableText>
             </button>
           </div>
         </div>

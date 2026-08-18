@@ -2,11 +2,14 @@
 
 import React, { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
-import { X, Trash2, ShoppingBag, ArrowRight, Sparkles } from "lucide-react";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableParagraph } from "@/components/translation/TranslatableText";
+import { X, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeFromCart, totalAmount, totalKgDiverted } = useCart();
+  const { formatCurrency, formatNumber } = useTranslation();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   if (!isOpen) return null;
@@ -20,7 +23,9 @@ export function CartDrawer() {
             <div className="flex items-center justify-between border-b border-gray-100 pb-4">
               <div className="flex items-center space-x-2 text-gray-900">
                 <ShoppingBag className="w-5 h-5 text-[#1A6B3A]" />
-                <h3 className="text-lg font-bold">Your Heritage Cart ({items.length})</h3>
+                <h3 className="text-lg font-bold">
+                  <TranslatableText>Your Heritage Cart</TranslatableText> ({items.length})
+                </h3>
               </div>
               <button
                 onClick={closeCart}
@@ -33,9 +38,9 @@ export function CartDrawer() {
             {/* Total Kilograms Diverted Pill */}
             {items.length > 0 && (
               <div className="mt-4 p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between text-xs">
-                <span className="text-emerald-900 font-medium">Environmental Impact:</span>
+                <TranslatableText className="text-emerald-900 font-medium">Environmental Impact:</TranslatableText>
                 <span className="font-mono-data font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
-                  {totalKgDiverted.toFixed(1)} kg waste diverted
+                  {formatNumber(totalKgDiverted)} <TranslatableText>kg waste diverted</TranslatableText>
                 </span>
               </div>
             )}
@@ -47,10 +52,10 @@ export function CartDrawer() {
                   <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto text-gray-400">
                     <ShoppingBag className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-700">Your cart is empty</p>
-                  <p className="text-xs text-gray-400">
+                  <TranslatableParagraph className="text-sm font-semibold text-gray-700">Your cart is empty</TranslatableParagraph>
+                  <TranslatableParagraph className="text-xs text-gray-400">
                     Explore authenticated heritage pieces in the marketplace.
-                  </p>
+                  </TranslatableParagraph>
                 </div>
               ) : (
                 items.map((item) => (
@@ -65,10 +70,10 @@ export function CartDrawer() {
                         className="w-14 h-14 rounded-xl object-cover border border-gray-200 flex-shrink-0"
                       />
                       <div className="min-w-0">
-                        <h4 className="text-xs font-bold text-gray-900 truncate">{item.title}</h4>
-                        <p className="text-[10px] text-gray-500 truncate">By {item.artisanName}</p>
+                        <h4 className="text-xs font-bold text-gray-900 truncate"><TranslatableText>{item.title}</TranslatableText></h4>
+                        <p className="text-[10px] text-gray-500 truncate"><TranslatableText>By</TranslatableText> <TranslatableText>{item.artisanName}</TranslatableText></p>
                         <p className="font-mono-data text-xs font-bold text-[#141312] mt-0.5">
-                          ${item.price.toFixed(2)} USD
+                          {formatCurrency(item.price)} USD
                         </p>
                       </div>
                     </div>
@@ -89,8 +94,8 @@ export function CartDrawer() {
           {items.length > 0 && (
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div className="flex items-center justify-between text-sm font-bold text-gray-900">
-                <span>Subtotal (70/20/10 Escrow)</span>
-                <span className="font-mono-data text-lg font-black">${totalAmount.toFixed(2)} USD</span>
+                <TranslatableText>Subtotal (70/20/10 Escrow)</TranslatableText>
+                <span className="font-mono-data text-lg font-black">{formatCurrency(totalAmount)} USD</span>
               </div>
 
               <button
@@ -100,7 +105,7 @@ export function CartDrawer() {
                 }}
                 className="w-full py-3.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
               >
-                <span>Proceed to 2-Step Checkout</span>
+                <TranslatableText>Proceed to 2-Step Checkout</TranslatableText>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

@@ -2,20 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import {
   ShieldCheck,
   CheckCircle2,
   XCircle,
   Clock,
-  User,
   Palette,
   Camera,
-  BarChart3,
-  Scale,
-  Heart,
-  Leaf,
-  Globe,
-  ArrowRight,
   TrendingUp,
 } from "lucide-react";
 import {
@@ -33,6 +28,7 @@ import {
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
+  const { formatCurrency, formatNumber, translateSync } = useTranslation();
   const [stats, setStats] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,19 +87,19 @@ export default function AdminDashboardPage() {
         <div>
           <div className="flex items-center space-x-2 text-xs font-bold text-red-700">
             <ShieldCheck className="w-4 h-4" />
-            <span>CENTRAL GOVERNANCE & CONTROL PORTAL</span>
+            <TranslatableText>CENTRAL GOVERNANCE & CONTROL PORTAL</TranslatableText>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+          <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
             HeriTech System Administration
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          </TranslatableHeading>
+          <TranslatableParagraph className="text-xs text-gray-500 mt-1">
             Review and approve Artisan & LGU applications, inspect live escrow distributions, and monitor continent-wide festival waste quotas.
-          </p>
+          </TranslatableParagraph>
         </div>
 
         <div className="flex items-center space-x-2">
           <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 font-mono-data text-xs font-bold border border-red-300">
-            {pendingApps.length} PENDING APPLICATIONS
+            {pendingApps.length} <TranslatableText>PENDING APPLICATIONS</TranslatableText>
           </span>
         </div>
       </div>
@@ -111,29 +107,33 @@ export default function AdminDashboardPage() {
       {actionMessage && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-900 flex items-center space-x-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-          <span>{actionMessage}</span>
+          <span><TranslatableText>{actionMessage}</TranslatableText></span>
         </div>
       )}
 
       {/* Verification Applications Review Queue */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+          <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 flex items-center space-x-2">
             <Clock className="w-5 h-5 text-amber-600" />
             <span>Artisan & LGU Verification Applications Queue</span>
-          </h2>
+          </TranslatableHeading>
           <span className="text-xs text-gray-500">
-            {pendingApps.length === 0 ? "All applications reviewed" : "Requires manual approval"}
+            <TranslatableText>
+              {pendingApps.length === 0 ? "All applications reviewed" : "Requires manual approval"}
+            </TranslatableText>
           </span>
         </div>
 
         {pendingApps.length === 0 ? (
           <div className="p-8 bg-white rounded-3xl border border-[#E6E2D8] text-center space-y-2">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-            <h3 className="text-sm font-bold text-gray-900">Application Queue is Clear</h3>
-            <p className="text-xs text-gray-500">
+            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
+              Application Queue is Clear
+            </TranslatableHeading>
+            <TranslatableParagraph className="text-xs text-gray-500">
               There are no pending verification requests awaiting administrative review.
-            </p>
+            </TranslatableParagraph>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -169,7 +169,9 @@ export default function AdminDashboardPage() {
                             : "bg-blue-50 text-blue-800 border-blue-300"
                         }`}
                       >
-                        {isArtisan ? "APPLYING: ARTISAN" : "APPLYING: LGU OFFICER"}
+                        <TranslatableText>
+                          {isArtisan ? "APPLYING: ARTISAN" : "APPLYING: LGU OFFICER"}
+                        </TranslatableText>
                       </span>
                     </div>
 
@@ -178,19 +180,19 @@ export default function AdminDashboardPage() {
                       {isArtisan ? (
                         <>
                           <p className="font-semibold text-gray-900">
-                            Workshop: <strong>{applicant.workshopName || "Not specified"}</strong>
+                            <TranslatableText>Workshop</TranslatableText>: <strong>{applicant.workshopName || translateSync("Not specified")}</strong>
                           </p>
                           <p className="text-gray-600">
-                            Craft: {applicant.applicationDetails?.craftTypology || "Bamboo/Paper"}
+                            <TranslatableText>Craft</TranslatableText>: <TranslatableText>{applicant.applicationDetails?.craftTypology || "Bamboo/Paper"}</TranslatableText>
                           </p>
                         </>
                       ) : (
                         <>
                           <p className="font-semibold text-gray-900">
-                            Station: <strong>{applicant.stationName || "Not specified"}</strong>
+                            <TranslatableText>Station</TranslatableText>: <strong>{applicant.stationName || translateSync("Not specified")}</strong>
                           </p>
                           <p className="text-gray-600">
-                            Country: {applicant.country || "Philippines"}
+                            <TranslatableText>Country</TranslatableText>: <TranslatableText>{applicant.country || "Philippines"}</TranslatableText>
                           </p>
                         </>
                       )}
@@ -209,7 +211,7 @@ export default function AdminDashboardPage() {
                       className="py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 font-bold text-xs hover:bg-red-100 transition-all flex items-center justify-center space-x-1.5"
                     >
                       <XCircle className="w-4 h-4" />
-                      <span>Reject</span>
+                      <TranslatableText>Reject</TranslatableText>
                     </button>
 
                     <button
@@ -217,7 +219,7 @@ export default function AdminDashboardPage() {
                       className="py-2.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-1.5"
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Approve Role</span>
+                      <TranslatableText>Approve Role</TranslatableText>
                     </button>
                   </div>
                 </div>
@@ -230,47 +232,47 @@ export default function AdminDashboardPage() {
       {/* Analytics & KPI Dashboard */}
       <section className="space-y-6 pt-6 border-t border-[#E6E2D8]">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+          <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 flex items-center space-x-2">
             <TrendingUp className="w-5 h-5 text-[#1A6B3A]" />
             <span>Platform Financial & Material Telemetry</span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
+          </TranslatableHeading>
+          <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
             Aggregated gross volume, automated 70/20/10 disbursements, and festival diversion metrics.
-          </p>
+          </TranslatableParagraph>
         </div>
 
         {/* 4 Key Admin Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <span className="text-[10px] font-bold text-gray-400 uppercase">Gross Volume</span>
+            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Gross Volume</TranslatableText>
             <p className="text-3xl font-black text-gray-900 font-mono-data">
-              ${stats?.kpis?.grossVolume?.toFixed(2) || "162.00"}
+              {formatCurrency(stats?.kpis?.grossVolume || 162.00)}
             </p>
-            <span className="text-[11px] text-gray-500 font-medium">100% Escrow Transacted</span>
+            <TranslatableText className="text-[11px] text-gray-500 font-medium">100% Escrow Transacted</TranslatableText>
           </div>
 
           <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <span className="text-[10px] font-bold text-gray-400 uppercase">70% Artisan Payouts</span>
+            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">70% Artisan Payouts</TranslatableText>
             <p className="text-3xl font-black text-blue-700 font-mono-data">
-              ${stats?.kpis?.artisanPayoutTotal?.toFixed(2) || "113.40"}
+              {formatCurrency(stats?.kpis?.artisanPayoutTotal || 113.40)}
             </p>
-            <span className="text-[11px] text-blue-600 font-medium">To Certified Guilds</span>
+            <TranslatableText className="text-[11px] text-blue-600 font-medium">To Certified Guilds</TranslatableText>
           </div>
 
           <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <span className="text-[10px] font-bold text-gray-400 uppercase">10% NGO Trust Funds</span>
+            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">10% NGO Trust Funds</TranslatableText>
             <p className="text-3xl font-black text-amber-700 font-mono-data">
-              ${stats?.kpis?.ngoFundTotal?.toFixed(2) || "16.20"}
+              {formatCurrency(stats?.kpis?.ngoFundTotal || 16.20)}
             </p>
-            <span className="text-[11px] text-amber-600 font-medium">Clean Air & River Trusts</span>
+            <TranslatableText className="text-[11px] text-amber-600 font-medium">Clean Air & River Trusts</TranslatableText>
           </div>
 
           <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <span className="text-[10px] font-bold text-gray-400 uppercase">Total Diverted</span>
+            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Diverted</TranslatableText>
             <p className="text-3xl font-black text-[#1A6B3A] font-mono-data">
-              {stats?.kpis?.totalKgCollected || 303.2} <span className="text-xs font-normal">kg</span>
+              {formatNumber(stats?.kpis?.totalKgCollected || 303.2)} <span className="text-xs font-normal">kg</span>
             </p>
-            <span className="text-[11px] text-emerald-700 font-medium">From Asian Landfills</span>
+            <TranslatableText className="text-[11px] text-emerald-700 font-medium">From Asian Landfills</TranslatableText>
           </div>
         </div>
 
@@ -278,9 +280,9 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Chart 1: Festival Quota Progress */}
           <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-gray-900">
+            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
               Pan-Asian Festival Waste Quotas (kg Collected vs Target)
-            </h3>
+            </TranslatableHeading>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats?.festivals || []}>
@@ -298,12 +300,12 @@ export default function AdminDashboardPage() {
           {/* Chart 2: 70/20/10 Escrow Breakdown */}
           <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-bold text-gray-900">
+              <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
                 Fixed 70/20/10 Escrow Distribution
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
+              </TranslatableHeading>
+              <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
                 Direct economic routing across artisans, infrastructure, and clean-up funds.
-              </p>
+              </TranslatableParagraph>
             </div>
 
             <div className="h-56 w-full flex items-center justify-center">
@@ -330,15 +332,15 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono-data pt-2 border-t border-gray-100">
               <div>
                 <span className="block text-blue-700 font-bold">70%</span>
-                <span className="text-[10px] text-gray-500">Artisan Payout</span>
+                <TranslatableText className="text-[10px] text-gray-500">Artisan Payout</TranslatableText>
               </div>
               <div>
                 <span className="block text-emerald-700 font-bold">20%</span>
-                <span className="text-[10px] text-gray-500">LGU & Platform</span>
+                <TranslatableText className="text-[10px] text-gray-500">LGU & Platform</TranslatableText>
               </div>
               <div>
                 <span className="block text-amber-700 font-bold">10%</span>
-                <span className="text-[10px] text-gray-500">NGO Fund</span>
+                <TranslatableText className="text-[10px] text-gray-500">NGO Fund</TranslatableText>
               </div>
             </div>
           </div>

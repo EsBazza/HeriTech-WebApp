@@ -2,10 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Palette, Sparkles, CheckCircle2, Link2, PlusCircle, Scale, ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
+import { Palette, CheckCircle2, Link2, PlusCircle } from "lucide-react";
 
 export default function ArtisanStudioPage() {
   const { user } = useAuth();
+  const { translateSync } = useTranslation();
   const [claimedBatches, setClaimedBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +31,6 @@ export default function ArtisanStudioPage() {
         const res = await fetch("/api/materials");
         const data = await res.json();
         if (data.success) {
-          // Allow listing from claimed or available batches for demonstration
           setClaimedBatches(data.data);
           if (data.data.length > 0) {
             setSelectedBatchId(data.data[0].id);
@@ -82,14 +84,14 @@ export default function ArtisanStudioPage() {
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
           <Palette className="w-3.5 h-3.5" />
-          <span>ACT 4 — CRAFT, SELL, & PROVE (ARTISAN STUDIO)</span>
+          <TranslatableText>ACT 4 — CRAFT, SELL, & PROVE (ARTISAN STUDIO)</TranslatableText>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+        <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
           Artisan Craft Minting & Provenance Linker
-        </h1>
-        <p className="text-xs text-gray-500 mt-1">
+        </TranslatableHeading>
+        <TranslatableParagraph className="text-xs text-gray-500 mt-1">
           Transform claimed festival material into authenticated heritage goods. Every listed craft piece is permanently bound to its source harvest Batch ID.
-        </p>
+        </TranslatableParagraph>
       </div>
 
       <div className="bg-white rounded-3xl border border-[#E6E2D8] p-8 shadow-sm">
@@ -99,12 +101,12 @@ export default function ArtisanStudioPage() {
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">
-                "{createdProduct.title}" Listed in Marketplace!
-              </h3>
-              <p className="text-xs text-gray-600 mt-1">
+              <TranslatableHeading level={3} className="text-base font-bold text-gray-900">
+                "{createdProduct.title}" <TranslatableText>Listed in Marketplace!</TranslatableText>
+              </TranslatableHeading>
+              <TranslatableParagraph className="text-xs text-gray-600 mt-1">
                 Bound to Source Batch <strong>{createdProduct.sourceBatchId}</strong>. Buyers can now purchase with 70% direct escrow payout.
-              </p>
+              </TranslatableParagraph>
             </div>
             <button
               onClick={() => {
@@ -114,7 +116,7 @@ export default function ArtisanStudioPage() {
               }}
               className="px-5 py-2.5 bg-[#1A6B3A] text-white rounded-xl text-xs font-bold shadow-md hover:bg-[#14532D]"
             >
-              List Another Heritage Piece
+              <TranslatableText>List Another Heritage Piece</TranslatableText>
             </button>
           </div>
         ) : (
@@ -122,20 +124,24 @@ export default function ArtisanStudioPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Product Title */}
               <div className="space-y-1.5 text-xs">
-                <label className="font-bold text-gray-700">Product Title</label>
+                <label className="font-bold text-gray-700">
+                  <TranslatableText>Product Title</TranslatableText>
+                </label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Panagbenga Botanical Loom Wall Tapestry"
+                  placeholder={translateSync("e.g. Panagbenga Botanical Loom Wall Tapestry")}
                   className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
                 />
               </div>
 
               {/* Price */}
               <div className="space-y-1.5 text-xs">
-                <label className="font-bold text-gray-700">Fair-Trade Retail Price ($ USD)</label>
+                <label className="font-bold text-gray-700">
+                  <TranslatableText>Fair-Trade Retail Price ($ USD)</TranslatableText>
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -145,7 +151,7 @@ export default function ArtisanStudioPage() {
                   className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
                 />
                 <span className="text-[10px] text-gray-400">
-                  You will receive <strong>70% (${(parseFloat(price || "0") * 0.7).toFixed(2)})</strong> instantly upon sale.
+                  <TranslatableText>You will receive</TranslatableText> <strong>70% (${(parseFloat(price || "0") * 0.7).toFixed(2)})</strong> <TranslatableText>instantly upon sale.</TranslatableText>
                 </span>
               </div>
             </div>
@@ -154,7 +160,7 @@ export default function ArtisanStudioPage() {
             <div className="space-y-1.5 text-xs">
               <label className="font-bold text-gray-700 flex items-center space-x-1.5">
                 <Link2 className="w-3.5 h-3.5 text-[#1A6B3A]" />
-                <span>Link to Original Harvest Material Batch ID</span>
+                <TranslatableText>Link to Original Harvest Material Batch ID</TranslatableText>
               </label>
               <select
                 value={selectedBatchId}
@@ -171,12 +177,14 @@ export default function ArtisanStudioPage() {
 
             {/* Description */}
             <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-gray-700">Artisan Craft & Material Story</label>
+              <label className="font-bold text-gray-700">
+                <TranslatableText>Artisan Craft & Material Story</TranslatableText>
+              </label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe your upcycling technique, natural dyes, or traditional joinery..."
+                placeholder={translateSync("Describe your upcycling technique, natural dyes, or traditional joinery...")}
                 className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 leading-relaxed"
               />
             </div>
@@ -184,7 +192,9 @@ export default function ArtisanStudioPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Diverted kg */}
               <div className="space-y-1.5 text-xs">
-                <label className="font-bold text-gray-700">Kilograms Diverted per Item</label>
+                <label className="font-bold text-gray-700">
+                  <TranslatableText>Kilograms Diverted per Item</TranslatableText>
+                </label>
                 <input
                   type="number"
                   step="0.05"
@@ -196,7 +206,9 @@ export default function ArtisanStudioPage() {
 
               {/* NGO Partner Fund */}
               <div className="space-y-1.5 text-xs">
-                <label className="font-bold text-gray-700">10% Designated Clean-Up NGO Fund</label>
+                <label className="font-bold text-gray-700">
+                  <TranslatableText>10% Designated Clean-Up NGO Fund</TranslatableText>
+                </label>
                 <input
                   type="text"
                   value={ngoFundName}
@@ -208,12 +220,14 @@ export default function ArtisanStudioPage() {
 
             {/* Material Tags */}
             <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-gray-700">Material Tags (comma-separated)</label>
+              <label className="font-bold text-gray-700">
+                <TranslatableText>Material Tags (comma-separated)</TranslatableText>
+              </label>
               <input
                 type="text"
                 value={materialTags}
                 onChange={(e) => setMaterialTags(e.target.value)}
-                placeholder="Bamboo, Natural Dyes, Rice Paper"
+                placeholder={translateSync("Bamboo, Natural Dyes, Rice Paper")}
                 className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 font-medium"
               />
             </div>
@@ -225,11 +239,11 @@ export default function ArtisanStudioPage() {
               className="w-full py-4 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {submitting ? (
-                <span>Minting Heritage Provenance Link...</span>
+                <TranslatableText>Minting Heritage Provenance Link...</TranslatableText>
               ) : (
                 <>
                   <PlusCircle className="w-4 h-4" />
-                  <span>Publish Upcycled Piece to Global Marketplace</span>
+                  <TranslatableText>Publish Upcycled Piece to Global Marketplace</TranslatableText>
                 </>
               )}
             </button>

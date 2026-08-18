@@ -491,9 +491,8 @@ export default function WasteScannerPage() {
                     height="100%"
                     style={{ border: 0 }}
                     loading="lazy"
-                    src={`https://www.google.com/maps/embed/v1/place?key=${
-                      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
-                    }&q=${pickupLat},${pickupLng}&zoom=15`}
+                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
+                      }&q=${pickupLat},${pickupLng}&zoom=15`}
                   />
                 </div>
               </div>

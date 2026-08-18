@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/components/cart/CartContext";
+import { LanguageSelector, MobileLanguageSelector } from "@/components/language/LanguageSelector";
+import { useTranslation } from "@/contexts/TranslationContext";
 import {
   Sparkles,
   ShoppingBag,
@@ -26,46 +28,47 @@ export function Navbar() {
   const pathname = usePathname();
   const { user, loading, signInWithGoogle, signOut } = useAuth();
   const { openCart, itemCount } = useCart();
+  const { translateSync } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const role = user?.role || "guest";
 
   const navLinks = [
-    { name: "Marketplace", href: "/", icon: ShoppingBag, show: true },
-    { name: "Impact Ledger", href: "/impact", icon: BarChart3, show: true },
+    { name: translateSync("Marketplace"), href: "/", icon: ShoppingBag, show: true },
+    { name: translateSync("Impact Ledger"), href: "/impact", icon: BarChart3, show: true },
     {
-      name: "Harvest Map",
+      name: translateSync("Harvest Map"),
       href: "/map",
       icon: MapPin,
       show: role === "artisan" || role === "lgu" || role === "admin",
     },
     {
-      name: "Artisan Studio",
+      name: translateSync("Artisan Studio"),
       href: "/studio",
       icon: Palette,
       show: role === "artisan" || role === "admin",
     },
     {
-      name: "AI Scanner",
+      name: translateSync("AI Scanner"),
       href: "/scanner",
       icon: Camera,
       show: role === "lgu" || role === "admin",
     },
     {
-      name: "Agreements",
+      name: translateSync("Agreements"),
       href: "/agreements",
       icon: FileCheck2,
       show: role === "lgu" || role === "admin",
     },
     {
-      name: "Messages",
+      name: translateSync("Messages"),
       href: "/messages",
       icon: MessageSquare,
       show: true,
     },
     {
-      name: "Admin Hub",
+      name: translateSync("Admin Hub"),
       href: "/admin",
       icon: ShieldCheck,
       show: role === "admin",
@@ -76,13 +79,13 @@ export function Navbar() {
   const getRoleBadge = (r: string) => {
     switch (r) {
       case "admin":
-        return { label: "ADMIN", bg: "bg-red-100 text-red-800 border-red-200" };
+        return { label: translateSync("ADMIN"), bg: "bg-red-100 text-red-800 border-red-200" };
       case "lgu":
-        return { label: "LGU OFFICER", bg: "bg-blue-100 text-blue-800 border-blue-200" };
+        return { label: translateSync("LGU OFFICER"), bg: "bg-blue-100 text-blue-800 border-blue-200" };
       case "artisan":
-        return { label: "VERIFIED ARTISAN", bg: "bg-amber-100 text-amber-800 border-amber-200" };
+        return { label: translateSync("VERIFIED ARTISAN"), bg: "bg-amber-100 text-amber-800 border-amber-200" };
       default:
-        return { label: "HERITAGE BUYER", bg: "bg-emerald-100 text-emerald-800 border-emerald-200" };
+        return { label: translateSync("HERITAGE BUYER"), bg: "bg-emerald-100 text-emerald-800 border-emerald-200" };
     }
   };
 
@@ -103,7 +106,7 @@ export function Navbar() {
                 </span>
               </div>
               <p className="text-[10px] text-gray-500 font-medium tracking-wide">
-                PAN-ASIAN CIRCULAR PROVENANCE
+                {translateSync("PAN-ASIAN CIRCULAR PROVENANCE")}
               </p>
             </div>
           </Link>
@@ -134,13 +137,18 @@ export function Navbar() {
               })}
           </nav>
 
-          {/* Right Action: Cart Drawer Button + Auth Button */}
+          {/* Right Action: Language Selector + Cart Drawer Button + Auth Button */}
           <div className="flex items-center space-x-3">
+            {/* Language Selector - Desktop */}
+            <div className="hidden md:block">
+              <LanguageSelector variant="compact" />
+            </div>
+
             {/* Cart Drawer Trigger */}
             <button
               onClick={openCart}
               className="relative p-2.5 rounded-xl border border-[#E6E2D8] bg-white hover:border-[#1A6B3A] text-gray-800 transition-all shadow-xs flex items-center justify-center"
-              title="View Cart"
+              title={translateSync("View Cart")}
             >
               <ShoppingBag className="w-5 h-5 text-gray-700" />
               {itemCount > 0 && (
@@ -191,7 +199,7 @@ export function Navbar() {
                     onClick={() => setDropdownOpen(false)}
                   >
                     <div className="px-4 py-2.5 border-b border-gray-100">
-                      <p className="text-xs text-gray-500">Signed in as</p>
+                      <p className="text-xs text-gray-500">{translateSync("Signed in as")}</p>
                       <p className="text-sm font-semibold text-gray-900 truncate">{user.email}</p>
                     </div>
 
@@ -200,7 +208,7 @@ export function Navbar() {
                       className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 space-x-2.5"
                     >
                       <User className="w-4 h-4 text-gray-500" />
-                      <span>Profile, Badges & Guild Sales</span>
+                      <span>{translateSync("Profile, Badges & Guild Sales")}</span>
                     </Link>
 
                     <Link
@@ -208,7 +216,7 @@ export function Navbar() {
                       className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 space-x-2.5"
                     >
                       <MessageSquare className="w-4 h-4 text-gray-500" />
-                      <span>Messages & Logistics</span>
+                      <span>{translateSync("Messages & Logistics")}</span>
                     </Link>
 
                     {user.role === "admin" && (
@@ -217,7 +225,7 @@ export function Navbar() {
                         className="flex items-center px-4 py-2.5 text-sm font-semibold text-red-700 bg-red-50/50 hover:bg-red-50 space-x-2.5"
                       >
                         <ShieldCheck className="w-4 h-4 text-red-600" />
-                        <span>Admin Control Dashboard</span>
+                        <span>{translateSync("Admin Control Dashboard")}</span>
                       </Link>
                     )}
 
@@ -228,7 +236,7 @@ export function Navbar() {
                       className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 space-x-2.5"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
+                      <span>{translateSync("Sign Out")}</span>
                     </button>
                   </div>
                 )}
@@ -256,7 +264,7 @@ export function Navbar() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Sign In with Google</span>
+                <span>{translateSync("Sign In with Google")}</span>
               </button>
             )}
 
@@ -273,6 +281,11 @@ export function Navbar() {
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-3 border-t border-[#E6E2D8] space-y-1">
+            {/* Mobile Language Selector */}
+            <div className="px-3 py-2 border-b border-[#E6E2D8] mb-2">
+              <MobileLanguageSelector />
+            </div>
+
             {navLinks
               .filter((l) => l.show)
               .map((link) => {

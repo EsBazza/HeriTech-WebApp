@@ -2,17 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import {
   MessageSquare,
   Send,
   Sparkles,
   User,
-  CheckCircle2,
-  Clock,
-  Package,
-  MapPin,
-  HeartHandshake,
-  ShieldCheck,
   Palette,
   Camera,
 } from "lucide-react";
@@ -46,6 +42,7 @@ interface MessageItem {
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const { translateSync } = useTranslation();
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
@@ -62,19 +59,17 @@ export default function MessagesPage() {
       if (data.success && data.data.length > 0) {
         setMessages(data.data);
         if (!selectedPartnerId) {
-          // Select first partner
           const first = data.data[0];
           const partnerId = first.senderId === currentUserId ? first.receiverId : first.senderId;
           setSelectedPartnerId(partnerId);
         }
       } else {
-        // Mock sample conversations for immediate demonstration
         const sampleMessages: MessageItem[] = [
           {
             id: "msg_01",
             senderId: "usr_lgu_04",
             receiverId: currentUserId,
-            content: "📍 Engr. Maria Santos (CEPMO Baguio) confirmed your reservation for Batch #HT-2026-0102 (Baguio Bamboo Float Frames). Please arrive at Depot A for QR verification.",
+            content: translateSync("📍 Engr. Maria Santos (CEPMO Baguio) confirmed your reservation for Batch #HT-2026-0102 (Baguio Bamboo Float Frames). Please arrive at Depot A for QR verification."),
             contextType: "batch_reservation",
             contextId: "HT-2026-0102",
             isSystem: true,
@@ -86,7 +81,7 @@ export default function MessagesPage() {
             id: "msg_02",
             senderId: currentUserId,
             receiverId: "usr_lgu_04",
-            content: "Hello Engr. Santos! I'll be arriving tomorrow at 10:00 AM with our guild truck to scan the QR token.",
+            content: translateSync("Hello Engr. Santos! I'll be arriving tomorrow at 10:00 AM with our guild truck to scan the QR token."),
             contextType: "batch_reservation",
             contextId: "HT-2026-0102",
             isSystem: false,
@@ -98,7 +93,7 @@ export default function MessagesPage() {
             id: "msg_03",
             senderId: "usr_buyer_03",
             receiverId: currentUserId,
-            content: "🎉 Order #HT-ORD-519 completed for 'Cordillera Botanical Loom Wall Tapestry'! 70% direct escrow payout ($31.50) sent to your guild. Thank you for diverting 1.5 kg of festival waste!",
+            content: translateSync("🎉 Order #HT-ORD-519 completed for 'Cordillera Botanical Loom Wall Tapestry'! 70% direct escrow payout ($31.50) sent to your guild. Thank you for diverting 1.5 kg of festival waste!"),
             contextType: "order",
             contextId: "HT-ORD-519",
             isSystem: true,
@@ -110,7 +105,7 @@ export default function MessagesPage() {
             id: "msg_04",
             senderId: currentUserId,
             receiverId: "usr_buyer_03",
-            content: "Maraming salamat Bea! We have hand-woven your tapestry using natural marigold dyes from Baguio. Shipping out tomorrow morning via express courier!",
+            content: translateSync("Maraming salamat Bea! We have hand-woven your tapestry using natural marigold dyes from Baguio. Shipping out tomorrow morning via express courier!"),
             contextType: "order",
             contextId: "HT-ORD-519",
             isSystem: false,
@@ -133,7 +128,6 @@ export default function MessagesPage() {
     fetchMessages();
   }, [currentUserId]);
 
-  // Extract unique conversation partners
   const partnersMap = new Map<string, { partner: any; lastMsg: MessageItem }>();
   messages.forEach((msg) => {
     const isSender = msg.senderId === currentUserId;
@@ -187,14 +181,14 @@ export default function MessagesPage() {
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
           <MessageSquare className="w-3.5 h-3.5" />
-          <span>THREADED IN-APP COMMUNICATION HUB</span>
+          <TranslatableText>THREADED IN-APP COMMUNICATION HUB</TranslatableText>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+        <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
           HeriTech Messages & Circular Coordination
-        </h1>
-        <p className="text-xs text-gray-500 mt-1">
-          Direct communication channels connecting <strong>Buyers ↔ Artisans</strong> (for thank-you notes & shipping updates) and <strong>Artisans ↔ LGU Officers</strong> (for harvest depot pickup scheduling).
-        </p>
+        </TranslatableHeading>
+        <TranslatableParagraph className="text-xs text-gray-500 mt-1">
+          Direct communication channels connecting Buyers, Artisans, and LGU Officers.
+        </TranslatableParagraph>
       </div>
 
       {/* Split Inbox Grid */}
@@ -203,7 +197,7 @@ export default function MessagesPage() {
         <div className="lg:col-span-4 border-r border-[#E6E2D8] p-4 space-y-3 overflow-y-auto max-h-[650px]">
           <div className="flex items-center justify-between pb-2 border-b border-gray-100">
             <span className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-              Conversations ({partners.length})
+              <TranslatableText>Conversations</TranslatableText> ({partners.length})
             </span>
           </div>
 
@@ -239,10 +233,10 @@ export default function MessagesPage() {
 
                       <div className="min-w-0">
                         <h4 className="text-xs font-bold text-gray-900 truncate">
-                          {partner.fullName}
+                          <TranslatableText>{partner.fullName}</TranslatableText>
                         </h4>
                         <span className="text-[10px] text-gray-500 truncate block">
-                          {partner.workshopName || partner.stationName || "Heritage Patron"}
+                          <TranslatableText>{partner.workshopName || partner.stationName || "Heritage Patron"}</TranslatableText>
                         </span>
                       </div>
                     </div>
@@ -256,12 +250,12 @@ export default function MessagesPage() {
                           : "bg-emerald-50 text-emerald-700"
                       }`}
                     >
-                      {partner.role}
+                      <TranslatableText>{partner.role}</TranslatableText>
                     </span>
                   </div>
 
                   <p className="text-[11px] text-gray-500 mt-2 truncate font-medium">
-                    {lastMsg.content}
+                    <TranslatableText>{lastMsg.content}</TranslatableText>
                   </p>
                 </div>
               );
@@ -280,15 +274,15 @@ export default function MessagesPage() {
                     {selectedPartner.fullName.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-900">{selectedPartner.fullName}</h3>
+                    <h3 className="text-sm font-bold text-gray-900"><TranslatableText>{selectedPartner.fullName}</TranslatableText></h3>
                     <p className="text-xs text-gray-500">
-                      {selectedPartner.workshopName || selectedPartner.stationName || "Verified Heritage Buyer"}
+                      <TranslatableText>{selectedPartner.workshopName || selectedPartner.stationName || "Verified Heritage Buyer"}</TranslatableText>
                     </p>
                   </div>
                 </div>
 
                 <span className="text-[10px] font-mono-data text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full font-bold">
-                  ENCRYPTED AUDIT THREAD
+                  <TranslatableText>ENCRYPTED AUDIT THREAD</TranslatableText>
                 </span>
               </div>
 
@@ -305,10 +299,10 @@ export default function MessagesPage() {
                       >
                         <div className="flex items-center space-x-2 text-emerald-800 font-bold">
                           <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                          <span>HeriTech Automated Milestone Event</span>
+                          <TranslatableText>HeriTech Automated Milestone Event</TranslatableText>
                         </div>
                         <p className="text-emerald-900 leading-relaxed font-medium">
-                          {msg.content}
+                          <TranslatableText>{msg.content}</TranslatableText>
                         </p>
                         <span className="text-[10px] text-emerald-700 font-mono-data block pt-1">
                           {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -329,7 +323,7 @@ export default function MessagesPage() {
                             : "bg-[#F8F6F0] text-gray-900 border border-[#E6E2D8] rounded-bl-xs"
                         }`}
                       >
-                        <p>{msg.content}</p>
+                        <p><TranslatableText>{msg.content}</TranslatableText></p>
                       </div>
                       <span className="text-[9px] text-gray-400 font-mono-data mt-1 px-1">
                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -345,7 +339,7 @@ export default function MessagesPage() {
                   type="text"
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  placeholder={`Send a message to ${selectedPartner.fullName}...`}
+                  placeholder={translateSync("Send a message...")}
                   className="flex-1 p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-xs font-medium text-gray-900 focus:outline-none focus:border-[#1A6B3A]"
                 />
                 <button
@@ -353,7 +347,7 @@ export default function MessagesPage() {
                   disabled={sending || !replyText.trim()}
                   className="px-5 py-3 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white text-xs font-bold shadow-md transition-all flex items-center space-x-1.5 disabled:opacity-50"
                 >
-                  <span>Send</span>
+                  <TranslatableText>Send</TranslatableText>
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </form>
@@ -361,7 +355,7 @@ export default function MessagesPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 p-8 space-y-2">
               <MessageSquare className="w-10 h-10 text-gray-300" />
-              <p className="text-xs font-semibold">Select a conversation from the left to view messages</p>
+              <TranslatableParagraph className="text-xs font-semibold">Select a conversation from the left to view messages</TranslatableParagraph>
             </div>
           )}
         </div>

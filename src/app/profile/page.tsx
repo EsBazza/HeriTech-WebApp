@@ -3,31 +3,22 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import {
   User,
   ShieldCheck,
   Palette,
   Camera,
   CheckCircle2,
-  Clock,
-  ArrowRight,
-  Sparkles,
   Award,
-  Package,
-  Heart,
-  Scale,
-  Leaf,
   MessageSquare,
   Edit3,
-  ExternalLink,
-  MapPin,
-  QrCode,
-  Tag,
 } from "lucide-react";
-import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
 
 export default function ProfilePage() {
   const { user, signInWithGoogle, refreshProfile } = useAuth();
+  const { formatCurrency, formatNumber, translateSync } = useTranslation();
 
   // Profile Edit State
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -49,7 +40,6 @@ export default function ProfilePage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Profile Data States
-  const [orders, setOrders] = useState<any[]>([]);
   const [artisanProducts, setArtisanProducts] = useState<any[]>([]);
   const [lguBatches, setLguBatches] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -97,15 +87,15 @@ export default function ProfilePage() {
         <div className="w-16 h-16 bg-[#1A6B3A]/10 text-[#1A6B3A] rounded-3xl flex items-center justify-center mx-auto shadow-sm">
           <User className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900">Sign in to Access Your Profile</h2>
-        <p className="text-xs text-gray-500">
+        <TranslatableHeading level={2} className="text-xl font-bold text-gray-900">Sign in to Access Your Profile</TranslatableHeading>
+        <TranslatableParagraph className="text-xs text-gray-500">
           Sign in with Google to view your Google Impact Badges, order history, and artisan/LGU tools.
-        </p>
+        </TranslatableParagraph>
         <button
           onClick={signInWithGoogle}
           className="px-6 py-3 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold shadow-md hover:bg-[#14532D] transition-all"
         >
-          Sign In with Google
+          <TranslatableText>Sign In with Google</TranslatableText>
         </button>
       </div>
     );
@@ -129,7 +119,7 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (data.success) {
-        setStatusMessage("Profile updated successfully!");
+        setStatusMessage(translateSync("Profile updated successfully!"));
         setEditModalOpen(false);
         await refreshProfile();
       }
@@ -140,46 +130,14 @@ export default function ProfilePage() {
     }
   };
 
-  const handleApply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!modalType) return;
-    setSubmitting(true);
-    setStatusMessage(null);
-    try {
-      const res = await fetch("/api/user/apply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          type: modalType,
-          workshopName: modalType === "artisan" ? workshopName : undefined,
-          craftTypology: modalType === "artisan" ? craftTypology : undefined,
-          stationName: modalType === "lgu" ? stationName : undefined,
-          country,
-          bio,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setStatusMessage(data.message);
-        setModalType(null);
-        await refreshProfile();
-      }
-    } catch (err) {
-      console.error("Application submission failed:", err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   // Tiered Google Impact Badges Definitions
   const badges = [
     {
       id: "b1",
-      title: "Panagbenga Patron",
-      tier: "Gold Tier",
-      festival: "Panagbenga Flower Festival 🇵🇭",
-      description: "Diverted 10+ kg of Baguio floral float armatures and empowered Cordillera weavers.",
+      title: translateSync("Panagbenga Patron"),
+      tier: translateSync("Gold Tier"),
+      festival: translateSync("Panagbenga Flower Festival 🇵🇭"),
+      description: translateSync("Diverted 10+ kg of Baguio floral float armatures and empowered Cordillera weavers."),
       color: "from-amber-400 to-amber-600",
       icon: "🌸",
       unlocked: true,
@@ -187,10 +145,10 @@ export default function ProfilePage() {
     },
     {
       id: "b2",
-      title: "Yi Peng Sky Guardian",
-      tier: "Silver Tier",
-      festival: "Yi Peng Lantern Festival 🇹🇭",
-      description: "Intercepted wire-free bamboo frames in Chiang Mai for upcycled luminaries.",
+      title: translateSync("Yi Peng Sky Guardian"),
+      tier: translateSync("Silver Tier"),
+      festival: translateSync("Yi Peng Lantern Festival 🇹🇭"),
+      description: translateSync("Intercepted wire-free bamboo frames in Chiang Mai for upcycled luminaries."),
       color: "from-blue-400 to-indigo-600",
       icon: "🏮",
       unlocked: true,
@@ -198,25 +156,25 @@ export default function ProfilePage() {
     },
     {
       id: "b3",
-      title: "Nirmalaya River Protector",
-      tier: "Bronze Tier",
-      festival: "Ganesh Chaturthi Nirmalaya 🇮🇳",
-      description: "Prevented temple floral runoff into Ulhas River; converted into natural ink pigments.",
+      title: translateSync("Nirmalaya River Protector"),
+      tier: translateSync("Bronze Tier"),
+      festival: translateSync("Ganesh Chaturthi Nirmalaya 🇮🇳"),
+      description: translateSync("Prevented temple floral runoff into Ulhas River; converted into natural ink pigments."),
       color: "from-emerald-400 to-teal-600",
       icon: "🪷",
       unlocked: false,
-      earnedDate: "Locked (1 purchase required)",
+      earnedDate: translateSync("Locked (1 purchase required)"),
     },
     {
       id: "b4",
-      title: "Zero-Waste Circular Pioneer",
-      tier: "Platinum Tier",
-      festival: "Pan-Asian Milestone",
-      description: "Diverted over 25+ kilograms across multiple Asian cultural celebrations.",
+      title: translateSync("Zero-Waste Circular Pioneer"),
+      tier: translateSync("Platinum Tier"),
+      festival: translateSync("Pan-Asian Milestone"),
+      description: translateSync("Diverted over 25+ kilograms across multiple Asian cultural celebrations."),
       color: "from-purple-400 to-purple-700",
       icon: "🌿",
       unlocked: false,
-      earnedDate: "Locked (25 kg milestone)",
+      earnedDate: translateSync("Locked (25 kg milestone)"),
     },
   ];
 
@@ -241,21 +199,21 @@ export default function ProfilePage() {
             <div className="flex items-center space-x-2.5">
               <h1 className="text-2xl font-black text-gray-900">{user.fullName}</h1>
               <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wide border border-emerald-300">
-                {user.role}
+                <TranslatableText>{user.role}</TranslatableText>
               </span>
             </div>
             <p className="text-xs text-gray-500 font-mono-data">{user.email}</p>
             <p className="text-xs text-gray-700 font-medium">
-              Country: <strong>{user.country || "Philippines"}</strong>
+              <TranslatableText>Country</TranslatableText>: <strong><TranslatableText>{user.country || "Philippines"}</TranslatableText></strong>
             </p>
             {user.workshopName && (
               <p className="text-xs text-amber-800 font-bold">
-                Guild Workshop: {user.workshopName}
+                <TranslatableText>Guild Workshop</TranslatableText>: <TranslatableText>{user.workshopName}</TranslatableText>
               </p>
             )}
             {user.stationName && (
               <p className="text-xs text-blue-800 font-bold">
-                Government Station: {user.stationName}
+                <TranslatableText>Government Station</TranslatableText>: <TranslatableText>{user.stationName}</TranslatableText>
               </p>
             )}
           </div>
@@ -268,7 +226,7 @@ export default function ProfilePage() {
             className="px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-white hover:bg-gray-50 text-gray-800 text-xs font-bold shadow-xs flex items-center space-x-1.5 transition-all"
           >
             <Edit3 className="w-4 h-4 text-gray-500" />
-            <span>Edit Profile</span>
+            <TranslatableText>Edit Profile</TranslatableText>
           </button>
 
           <Link
@@ -276,7 +234,7 @@ export default function ProfilePage() {
             className="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold flex items-center space-x-1.5 transition-all"
           >
             <MessageSquare className="w-4 h-4 text-blue-600" />
-            <span>My Messages</span>
+            <TranslatableText>My Messages</TranslatableText>
           </Link>
 
           {user.role === "admin" && (
@@ -285,7 +243,7 @@ export default function ProfilePage() {
               className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md flex items-center space-x-1.5 transition-all"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>Admin Hub</span>
+              <TranslatableText>Admin Hub</TranslatableText>
             </Link>
           )}
         </div>
@@ -294,26 +252,24 @@ export default function ProfilePage() {
       {statusMessage && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center space-x-3 text-xs text-emerald-900 font-semibold shadow-xs">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-          <span>{statusMessage}</span>
+          <span><TranslatableText>{statusMessage}</TranslatableText></span>
         </div>
       )}
 
-      {/* ======================================================== */}
       {/* 1. BUYER SECTION: TIERED GOOGLE IMPACT BADGES */}
-      {/* ======================================================== */}
       <section className="space-y-5">
         <div className="flex items-center justify-between border-b border-[#E6E2D8] pb-3">
           <div>
             <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
               <Award className="w-4 h-4 text-amber-500" />
-              <span>AUTHENTICATED GOOGLE IMPACT BADGES</span>
+              <TranslatableText>AUTHENTICATED GOOGLE IMPACT BADGES</TranslatableText>
             </div>
-            <h2 className="text-lg font-bold text-gray-900 mt-0.5">
+            <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-0.5">
               Your Cultural & Ecological Patronage Gallery
-            </h2>
+            </TranslatableHeading>
           </div>
           <span className="text-xs font-mono-data text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full font-bold">
-            2 BADGES UNLOCKED
+            2 <TranslatableText>BADGES UNLOCKED</TranslatableText>
           </span>
         </div>
 
@@ -358,7 +314,7 @@ export default function ProfilePage() {
                 {badge.unlocked && (
                   <span className="text-emerald-700 font-bold flex items-center space-x-1">
                     <CheckCircle2 className="w-3 h-3" />
-                    <span>In Google Wallet</span>
+                    <TranslatableText>In Google Wallet</TranslatableText>
                   </span>
                 )}
               </div>
@@ -367,65 +323,63 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {/* ======================================================== */}
       {/* 2. ARTISAN SECTION: PRODUCTS LISTED & SOLD DASHBOARD */}
-      {/* ======================================================== */}
       {(user.role === "artisan" || user.role === "admin") && (
         <section className="space-y-6 pt-4">
           <div className="flex items-center justify-between border-b border-[#E6E2D8] pb-3">
             <div>
               <div className="flex items-center space-x-2 text-xs font-bold text-amber-800">
                 <Palette className="w-4 h-4 text-amber-600" />
-                <span>ARTISAN GUILD COMMERCE & SALES HUB</span>
+                <TranslatableText>ARTISAN GUILD COMMERCE & SALES HUB</TranslatableText>
               </div>
-              <h2 className="text-lg font-bold text-gray-900 mt-0.5">
+              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-0.5">
                 Your Heritage Goods & 70% Escrow Payouts
-              </h2>
+              </TranslatableHeading>
             </div>
             <Link
               href="/studio"
               className="px-4 py-2 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold hover:bg-[#14532D] shadow-sm transition-all"
             >
-              + List New Piece in Studio
+              + <TranslatableText>List New Piece in Studio</TranslatableText>
             </Link>
           </div>
 
           {/* Artisan 4 Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Products Listed</span>
+              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Products Listed</TranslatableText>
               <p className="text-2xl font-black text-gray-900 font-mono-data">
                 {artisanProducts.length}
               </p>
-              <span className="text-[11px] text-gray-500 font-medium">In Global Marketplace</span>
+              <TranslatableText className="text-[11px] text-gray-500 font-medium">In Global Marketplace</TranslatableText>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Products Sold</span>
+              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Products Sold</TranslatableText>
               <p className="text-2xl font-black text-blue-700 font-mono-data">3</p>
-              <span className="text-[11px] text-blue-600 font-medium">Verified Orders</span>
+              <TranslatableText className="text-[11px] text-blue-600 font-medium">Verified Orders</TranslatableText>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">70% Net Payouts</span>
-              <p className="text-2xl font-black text-emerald-700 font-mono-data">$113.40</p>
-              <span className="text-[11px] text-emerald-600 font-medium">Direct Guild Payout</span>
+              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">70% Net Payouts</TranslatableText>
+              <p className="text-2xl font-black text-emerald-700 font-mono-data">{formatCurrency(113.40)}</p>
+              <TranslatableText className="text-[11px] text-emerald-600 font-medium">Direct Guild Payout</TranslatableText>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Total Diverted</span>
+              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Diverted</TranslatableText>
               <p className="text-2xl font-black text-[#1A6B3A] font-mono-data">
-                {artisanProducts.reduce((sum, p) => sum + p.kgDiverted, 0).toFixed(1)} kg
+                {formatNumber(parseFloat(artisanProducts.reduce((sum, p) => sum + p.kgDiverted, 0).toFixed(1)))} kg
               </p>
-              <span className="text-[11px] text-emerald-700 font-medium">Salvaged Waste Used</span>
+              <TranslatableText className="text-[11px] text-emerald-700 font-medium">Salvaged Waste Used</TranslatableText>
             </div>
           </div>
 
           {/* Listed Products Gallery */}
           <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-gray-900">
+            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
               Your Listed Artifacts (Click piece to view details)
-            </h3>
+            </TranslatableHeading>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {artisanProducts.map((product) => (
@@ -440,13 +394,13 @@ export default function ProfilePage() {
                     className="w-full aspect-square rounded-xl object-cover"
                   />
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900 truncate">{product.title}</h4>
+                    <h4 className="text-xs font-bold text-gray-900 truncate"><TranslatableText>{product.title}</TranslatableText></h4>
                     <div className="flex items-center justify-between mt-1 text-xs">
                       <span className="font-mono-data font-black text-gray-900">
-                        ${product.price.toFixed(2)}
+                        {formatCurrency(product.price)}
                       </span>
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                        {product.kgDiverted} kg
+                        {formatNumber(product.kgDiverted)} kg
                       </span>
                     </div>
                   </div>
@@ -457,63 +411,61 @@ export default function ProfilePage() {
         </section>
       )}
 
-      {/* ======================================================== */}
       {/* 3. LGU OFFICER SECTION: MATERIAL HARVEST & HANDOVER HISTORY */}
-      {/* ======================================================== */}
       {(user.role === "lgu" || user.role === "admin") && (
         <section className="space-y-6 pt-4">
           <div className="flex items-center justify-between border-b border-[#E6E2D8] pb-3">
             <div>
               <div className="flex items-center space-x-2 text-xs font-bold text-blue-800">
                 <Camera className="w-4 h-4 text-blue-600" />
-                <span>MUNICIPAL LGU MATERIAL HARVEST & HANDOVER REGISTRY</span>
+                <TranslatableText>MUNICIPAL LGU MATERIAL HARVEST & HANDOVER REGISTRY</TranslatableText>
               </div>
-              <h2 className="text-lg font-bold text-gray-900 mt-0.5">
+              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-0.5">
                 Logged Festival Waste & Physical Custody History
-              </h2>
+              </TranslatableHeading>
             </div>
             <Link
               href="/scanner"
               className="px-4 py-2 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold hover:bg-[#14532D] shadow-sm transition-all"
             >
-              + Scan New Field Waste
+              + <TranslatableText>Scan New Field Waste</TranslatableText>
             </Link>
           </div>
 
           {/* LGU Metric Overview */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Total Batches Scanned</span>
+              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Batches Scanned</TranslatableText>
               <p className="text-2xl font-black text-gray-900 font-mono-data">
                 {lguBatches.length}
               </p>
-              <span className="text-[11px] text-gray-500 font-medium">Under Step 0 MOUs</span>
+              <TranslatableText className="text-[11px] text-gray-500 font-medium">Under Step 0 MOUs</TranslatableText>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Total Tonnage Salvaged</span>
+              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Tonnage Salvaged</TranslatableText>
               <p className="text-2xl font-black text-emerald-700 font-mono-data">
-                {lguBatches.reduce((acc, b) => acc + b.weightKg, 0).toFixed(1)} kg
+                {formatNumber(parseFloat(lguBatches.reduce((acc, b) => acc + b.weightKg, 0).toFixed(1)))} kg
               </p>
-              <span className="text-[11px] text-emerald-600 font-medium">Diverted from Landfill</span>
+              <TranslatableText className="text-[11px] text-emerald-600 font-medium">Diverted from Landfill</TranslatableText>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Handover Rate</span>
+              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Handover Rate</TranslatableText>
               <p className="text-2xl font-black text-blue-700 font-mono-data">
                 {Math.round(
                   (lguBatches.filter((b) => b.status === "claimed").length / (lguBatches.length || 1)) * 100
                 )}%
               </p>
-              <span className="text-[11px] text-blue-600 font-medium">Claimed by Artisans</span>
+              <TranslatableText className="text-[11px] text-blue-600 font-medium">Claimed by Artisans</TranslatableText>
             </div>
           </div>
 
           {/* Logged Materials & Handover History Table */}
           <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-gray-900">
+            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
               Material Harvest Log & Chain-of-Custody Handover Audit
-            </h3>
+            </TranslatableHeading>
 
             <div className="space-y-3">
               {lguBatches.map((batch) => {
@@ -539,21 +491,23 @@ export default function ProfilePage() {
                               : "bg-emerald-100 text-emerald-800 border-emerald-300"
                           }`}
                         >
-                          {isClaimed
-                            ? "CLAIMED & HANDED OVER"
-                            : isReserved
-                            ? "RESERVED (PENDING HANDOVER)"
-                            : "AVAILABLE"}
+                          <TranslatableText>
+                            {isClaimed
+                              ? "CLAIMED & HANDED OVER"
+                              : isReserved
+                              ? "RESERVED (PENDING HANDOVER)"
+                              : "AVAILABLE"}
+                          </TranslatableText>
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-gray-900">{batch.title}</h4>
+                      <h4 className="text-sm font-bold text-gray-900"><TranslatableText>{batch.title}</TranslatableText></h4>
                       <p className="text-xs text-gray-600 flex items-center space-x-2">
                         <span>
-                          Scale: <strong>{batch.weightKg} kg</strong> ({batch.materialType})
+                          <TranslatableText>Scale</TranslatableText>: <strong>{formatNumber(batch.weightKg)} kg</strong> (<TranslatableText>{batch.materialType}</TranslatableText>)
                         </span>
                         <span>•</span>
                         <span>
-                          Gemini Vision: <strong>{batch.condition} Grade</strong>
+                          <TranslatableText>Gemini Vision</TranslatableText>: <strong><TranslatableText>{batch.condition}</TranslatableText> Grade</strong>
                         </span>
                       </p>
                     </div>
@@ -562,20 +516,20 @@ export default function ProfilePage() {
                     <div className="text-left md:text-right text-xs space-y-1">
                       {isClaimed ? (
                         <div>
-                          <span className="text-[10px] text-gray-400 font-bold block uppercase">
+                          <TranslatableText className="text-[10px] text-gray-400 font-bold block uppercase">
                             Handed Over To
-                          </span>
+                          </TranslatableText>
                           <span className="font-bold text-gray-900">
-                            {batch.claimedByArtisan?.fullName || "Danilo Cruz"}
+                            <TranslatableText>{batch.claimedByArtisan?.fullName || "Danilo Cruz"}</TranslatableText>
                           </span>
                           <p className="text-[10px] text-gray-500">
-                            {batch.claimedByArtisan?.workshopName || "Cordillera Botanical Guild"}
+                            <TranslatableText>{batch.claimedByArtisan?.workshopName || "Cordillera Botanical Guild"}</TranslatableText>
                           </p>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-500 font-medium">
+                        <TranslatableText className="text-xs text-gray-500 font-medium">
                           Awaiting Artisan Reservation & QR Scan
-                        </span>
+                        </TranslatableText>
                       )}
                     </div>
                   </div>
@@ -591,7 +545,7 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-[#E6E2D8]">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-base font-bold text-gray-900">Listed Piece Details</h3>
+              <TranslatableHeading level={3} className="text-base font-bold text-gray-900">Listed Piece Details</TranslatableHeading>
               <button
                 onClick={() => setSelectedProduct(null)}
                 className="text-gray-400 hover:text-gray-600 font-bold"
@@ -607,21 +561,21 @@ export default function ProfilePage() {
                 className="w-full aspect-video rounded-2xl object-cover"
               />
               <div>
-                <h4 className="text-base font-bold text-gray-900">{selectedProduct.title}</h4>
-                <p className="text-gray-600 mt-1">{selectedProduct.description}</p>
+                <h4 className="text-base font-bold text-gray-900"><TranslatableText>{selectedProduct.title}</TranslatableText></h4>
+                <TranslatableParagraph className="text-gray-600 mt-1">{selectedProduct.description}</TranslatableParagraph>
               </div>
 
               <div className="p-3 bg-[#F8F6F0] rounded-xl space-y-1.5 font-mono-data">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Retail Price:</span>
-                  <span className="font-bold text-gray-900">${selectedProduct.price.toFixed(2)} USD</span>
+                  <TranslatableText className="text-gray-500">Retail Price:</TranslatableText>
+                  <span className="font-bold text-gray-900">{formatCurrency(selectedProduct.price)} USD</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Your 70% Payout per sale:</span>
-                  <span className="font-bold text-blue-700">${(selectedProduct.price * 0.7).toFixed(2)} USD</span>
+                  <TranslatableText className="text-gray-500">Your 70% Payout per sale:</TranslatableText>
+                  <span className="font-bold text-blue-700">{formatCurrency(selectedProduct.price * 0.7)} USD</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Source Harvest Batch:</span>
+                  <TranslatableText className="text-gray-500">Source Harvest Batch:</TranslatableText>
                   <span className="font-bold text-emerald-800">{selectedProduct.sourceBatchId}</span>
                 </div>
               </div>
@@ -635,7 +589,7 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-[#E6E2D8]">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-base font-bold text-gray-900">Edit Profile & Guild Info</h3>
+              <TranslatableHeading level={3} className="text-base font-bold text-gray-900">Edit Profile & Guild Info</TranslatableHeading>
               <button
                 onClick={() => setEditModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 font-bold"
@@ -646,7 +600,7 @@ export default function ProfilePage() {
 
             <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Display Name</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Display Name</TranslatableText></label>
                 <input
                   type="text"
                   required
@@ -657,7 +611,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Country</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Country</TranslatableText></label>
                 <input
                   type="text"
                   required
@@ -668,7 +622,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Profile Photo URL</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Profile Photo URL</TranslatableText></label>
                 <input
                   type="url"
                   value={editAvatarUrl}
@@ -680,7 +634,7 @@ export default function ProfilePage() {
 
               {user.role === "artisan" && (
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700">Artisan Workshop / Guild Name</label>
+                  <label className="font-bold text-gray-700"><TranslatableText>Artisan Workshop / Guild Name</TranslatableText></label>
                   <input
                     type="text"
                     value={editWorkshop}
@@ -692,7 +646,7 @@ export default function ProfilePage() {
 
               {user.role === "lgu" && (
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700">LGU Station / Office Name</label>
+                  <label className="font-bold text-gray-700"><TranslatableText>LGU Station / Office Name</TranslatableText></label>
                   <input
                     type="text"
                     value={editStation}
@@ -708,14 +662,14 @@ export default function ProfilePage() {
                   onClick={() => setEditModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-gray-600 hover:bg-gray-100 font-semibold"
                 >
-                  Cancel
+                  <TranslatableText>Cancel</TranslatableText>
                 </button>
                 <button
                   type="submit"
                   disabled={savingProfile}
                   className="px-5 py-2 rounded-xl bg-[#1A6B3A] text-white font-bold hover:bg-[#14532D]"
                 >
-                  {savingProfile ? "Saving..." : "Save Changes"}
+                  <TranslatableText>{savingProfile ? "Saving..." : "Save Changes"}</TranslatableText>
                 </button>
               </div>
             </form>

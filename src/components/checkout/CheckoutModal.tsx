@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart, CartProduct } from "@/components/cart/CartContext";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import {
   X,
-  MapPin,
-  ShieldCheck,
   Heart,
   Scale,
   Leaf,
@@ -31,6 +31,7 @@ interface CheckoutModalProps {
 export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalProps) {
   const { user, signInWithGoogle } = useAuth();
   const { items, clearCart } = useCart();
+  const { formatCurrency, formatNumber, translateSync } = useTranslation();
 
   const checkoutItems = directProduct ? [directProduct] : items;
   const totalPrice = checkoutItems.reduce((acc, item) => acc + item.price, 0);
@@ -46,7 +47,6 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   const [country, setCountry] = useState("Philippines");
   const [postalCode, setPostalCode] = useState("1000");
 
-  // Geocoded destination coordinates for map route
   const getCityCoordinates = (cityName: string) => {
     switch (cityName.toLowerCase()) {
       case "manila":
@@ -91,7 +91,6 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
     setProcessing(true);
     try {
-      // 1. Create order for each item in checkout
       const primaryProduct = checkoutItems[0];
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -115,7 +114,6 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
         clearCart();
         setStep(3);
 
-        // 2. Trigger automated order completed message to Artisan
         try {
           await fetch("/api/messages", {
             method: "POST",
@@ -155,13 +153,13 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
         <div className="border-b border-gray-100 pb-4">
           <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>HERITECH 70/20/10 ESCROW CHECKOUT</span>
+            <TranslatableText>HERITECH 70/20/10 ESCROW CHECKOUT</TranslatableText>
           </div>
-          <h2 className="text-xl font-extrabold text-gray-900 mt-1">
+          <TranslatableHeading level={2} className="text-xl font-extrabold text-gray-900 mt-1">
             {step === 1 && "Step 1: Delivery & Shipping Address"}
             {step === 2 && "Step 2: Provenance Route & Escrow Breakdown"}
             {step === 3 && "Order Confirmed & Google Impact Badge Earned!"}
-          </h2>
+          </TranslatableHeading>
         </div>
 
         {/* STEP 1: Shipping Form */}
@@ -170,18 +168,18 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             {/* Order Items Snapshot */}
             <div className="p-3 bg-[#F8F6F0] rounded-2xl space-y-2">
               <div className="flex items-center justify-between font-bold text-gray-800">
-                <span>Selected Pieces ({checkoutItems.length})</span>
+                <span><TranslatableText>Selected Pieces</TranslatableText> ({checkoutItems.length})</span>
                 <span className="font-mono-data text-emerald-800 font-extrabold">
-                  ${totalPrice.toFixed(2)} USD • {totalKg.toFixed(1)} kg diverted
+                  {formatCurrency(totalPrice)} USD • {formatNumber(totalKg)} <TranslatableText>kg diverted</TranslatableText>
                 </span>
               </div>
               <div className="space-y-1">
                 {checkoutItems.map((item) => (
                   <div key={item.id} className="flex items-center justify-between text-[11px] text-gray-600">
                     <span className="truncate max-w-[280px]">
-                      • {item.title} (by {item.artisanName})
+                      • <TranslatableText>{item.title}</TranslatableText> (<TranslatableText>by</TranslatableText> <TranslatableText>{item.artisanName}</TranslatableText>)
                     </span>
-                    <span className="font-mono-data font-bold">${item.price.toFixed(2)}</span>
+                    <span className="font-mono-data font-bold">{formatCurrency(item.price)}</span>
                   </div>
                 ))}
               </div>
@@ -189,19 +187,19 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Recipient Full Name</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Recipient Full Name</TranslatableText></label>
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Maria Clara Santos"
+                  placeholder={translateSync("e.g. Maria Clara Santos")}
                   className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Destination City</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Destination City</TranslatableText></label>
                 <select
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
@@ -217,20 +215,20 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-gray-700">Street Address</label>
+              <label className="font-bold text-gray-700"><TranslatableText>Street Address</TranslatableText></label>
               <input
                 type="text"
                 required
                 value={streetAddress}
                 onChange={(e) => setStreetAddress(e.target.value)}
-                placeholder="e.g. Unit 402 Heritage Tower, Ayala Avenue"
+                placeholder={translateSync("e.g. Unit 402 Heritage Tower, Ayala Avenue")}
                 className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Country</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Country</TranslatableText></label>
                 <input
                   type="text"
                   required
@@ -241,7 +239,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Postal / ZIP Code</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Postal / ZIP Code</TranslatableText></label>
                 <input
                   type="text"
                   required
@@ -257,7 +255,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
               type="submit"
               className="w-full mt-4 py-3.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
             >
-              <span>Inspect Provenance Route & Escrow</span>
+              <TranslatableText>Inspect Provenance Route & Escrow</TranslatableText>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
@@ -266,19 +264,17 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
         {/* STEP 2: Provenance Map & 70/20/10 Escrow Breakdown */}
         {step === 2 && (
           <div className="space-y-5 text-xs">
-            {/* Interactive Origin-to-Destination Route Visualizer */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-gray-800">
                 <span className="flex items-center space-x-1.5">
                   <Truck className="w-4 h-4 text-[#1A6B3A]" />
-                  <span>Pan-Asian Provenance Shipping Route</span>
+                  <TranslatableText>Pan-Asian Provenance Shipping Route</TranslatableText>
                 </span>
                 <span className="font-mono-data text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold">
-                  Distance: ~{buyerCoords.distance}
+                  <TranslatableText>Distance</TranslatableText>: ~{buyerCoords.distance}
                 </span>
               </div>
 
-              {/* Map Embed or Route Box */}
               <div className="h-48 rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 relative">
                 <iframe
                   width="100%"
@@ -291,19 +287,18 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 />
               </div>
 
-              {/* Route Endpoints Summary */}
               <div className="grid grid-cols-2 gap-2 text-[11px] p-3 bg-[#F8F6F0] rounded-xl">
                 <div>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase block">
+                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase block">
                     Origin (Artisan Workshop)
-                  </span>
-                  <p className="font-bold text-gray-900">{artisanCoords.name}</p>
-                  <p className="text-gray-500 text-[10px]">{artisanCoords.city}</p>
+                  </TranslatableText>
+                  <p className="font-bold text-gray-900"><TranslatableText>{artisanCoords.name}</TranslatableText></p>
+                  <p className="text-gray-500 text-[10px]"><TranslatableText>{artisanCoords.city}</TranslatableText></p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase block">
+                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase block">
                     Destination (Your Delivery)
-                  </span>
+                  </TranslatableText>
                   <p className="font-bold text-gray-900">{fullName}</p>
                   <p className="text-gray-500 text-[10px]">{city}, {country}</p>
                 </div>
@@ -313,11 +308,11 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             {/* 70/20/10 Escrow Split Details */}
             <div className="p-4 rounded-2xl bg-white border border-[#E6E2D8] space-y-2.5 shadow-sm">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                <span className="font-bold text-gray-900 uppercase">
+                <TranslatableText className="font-bold text-gray-900 uppercase">
                   Audited 70/20/10 Escrow Distribution
-                </span>
+                </TranslatableText>
                 <span className="font-mono-data font-black text-gray-900 text-sm">
-                  ${totalPrice.toFixed(2)} USD
+                  {formatCurrency(totalPrice)} USD
                 </span>
               </div>
 
@@ -325,30 +320,30 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 <div className="flex items-center justify-between">
                   <span className="flex items-center space-x-1.5 text-gray-700">
                     <Heart className="w-3.5 h-3.5 text-blue-600" />
-                    <span>70% Direct Fair-Trade Artisan Payout</span>
+                    <TranslatableText>70% Direct Fair-Trade Artisan Payout</TranslatableText>
                   </span>
                   <span className="font-mono-data font-bold text-blue-700">
-                    ${escrow.artisanPayout.toFixed(2)}
+                    {formatCurrency(escrow.artisanPayout)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="flex items-center space-x-1.5 text-gray-700">
                     <Scale className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>20% Municipal Collection Logistics & Platform</span>
+                    <TranslatableText>20% Municipal Collection Logistics & Platform</TranslatableText>
                   </span>
                   <span className="font-mono-data font-bold text-emerald-700">
-                    ${escrow.platformFee.toFixed(2)}
+                    {formatCurrency(escrow.platformFee)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="flex items-center space-x-1.5 text-gray-700">
                     <Leaf className="w-3.5 h-3.5 text-amber-600" />
-                    <span>10% Environmental NGO Trust Fund</span>
+                    <TranslatableText>10% Environmental NGO Trust Fund</TranslatableText>
                   </span>
                   <span className="font-mono-data font-bold text-amber-700">
-                    ${escrow.ngoContribution.toFixed(2)}
+                    {formatCurrency(escrow.ngoContribution)}
                   </span>
                 </div>
               </div>
@@ -362,7 +357,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 className="px-4 py-3.5 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 flex items-center space-x-1.5"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Edit Address</span>
+                <TranslatableText>Edit Address</TranslatableText>
               </button>
 
               <button
@@ -374,14 +369,14 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 {processing ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Executing Escrow & Minting Google Wallet Pass...</span>
+                    <TranslatableText>Executing Escrow & Minting Google Wallet Pass...</TranslatableText>
                   </>
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    <span>
-                      {user ? `Pay with Google Wallet ($${totalPrice.toFixed(2)})` : "Sign In with Google to Complete"}
-                    </span>
+                    <TranslatableText>
+                      {user ? `Pay with Google Wallet (${formatCurrency(totalPrice)})` : "Sign In with Google to Complete"}
+                    </TranslatableText>
                   </>
                 )}
               </button>
@@ -389,63 +384,59 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
           </div>
         )}
 
-        {/* STEP 3: Order Completed & Google Impact Badge Earned! */}
+        {/* STEP 3: Order Completed */}
         {step === 3 && orderResult && (
           <div className="space-y-6 text-center">
-            {/* Big Badge Reveal */}
             <div className="p-6 bg-gradient-to-br from-amber-50 to-emerald-50 rounded-3xl border-2 border-emerald-300 space-y-4 shadow-lg">
               <div className="w-20 h-20 bg-emerald-100 text-[#1A6B3A] rounded-full flex items-center justify-center mx-auto shadow-md ring-4 ring-emerald-200">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
 
               <div>
-                <span className="text-[10px] font-mono-data font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                <TranslatableText className="text-[10px] font-mono-data font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
                   NEW GOOGLE IMPACT BADGE UNLOCKED!
-                </span>
-                <h3 className="text-xl font-black text-gray-900 mt-2">
+                </TranslatableText>
+                <TranslatableHeading level={3} className="text-xl font-black text-gray-900 mt-2">
                   🏅 Panagbenga Festival Patron (Bronze Tier)
-                </h3>
-                <p className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                  You successfully diverted <strong>{totalKg.toFixed(1)} kg</strong> of raw floral festival waste and directly supported master artisan <strong>{checkoutItems[0]?.artisanName}</strong>.
-                </p>
+                </TranslatableHeading>
+                <TranslatableParagraph className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
+                  You successfully diverted {formatNumber(totalKg)} kg of raw floral festival waste and directly supported master artisan {checkoutItems[0]?.artisanName}.
+                </TranslatableParagraph>
               </div>
 
-              {/* Real Scannable QR Code */}
               <div className="flex flex-col items-center justify-center pt-2">
                 <QRCodeViewer
                   value={`https://heritech.app/verify/${orderResult.walletPass?.serial || "HT-519-PH"}`}
                   size={140}
                   label={`PASS SERIAL: ${orderResult.walletPass?.serial || "HT-519-PH"}`}
-                  sublabel="Scan with standard phone camera to audit cryptographic provenance"
+                  sublabel={translateSync("Scan with standard phone camera to audit cryptographic provenance")}
                 />
               </div>
             </div>
 
-            {/* Automated Messaging Notice */}
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center justify-between text-left">
               <div>
-                <span className="font-bold">Automated Message Sent to Artisan:</span>
-                <p className="text-[11px] text-blue-700">
+                <TranslatableText className="font-bold">Automated Message Sent to Artisan:</TranslatableText>
+                <TranslatableParagraph className="text-[11px] text-blue-700">
                   {checkoutItems[0]?.artisanName} was notified to begin preparation and shipping.
-                </p>
+                </TranslatableParagraph>
               </div>
               <Link
                 href="/messages"
                 onClick={onClose}
                 className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-[11px] whitespace-nowrap hover:bg-blue-700 ml-3"
               >
-                Open Messages
+                <TranslatableText>Open Messages</TranslatableText>
               </Link>
             </div>
 
-            {/* Finish & View in Profile */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
                 href="/profile"
                 onClick={onClose}
                 className="px-5 py-2.5 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold shadow-md hover:bg-[#14532D]"
               >
-                View Badges in Profile
+                <TranslatableText>View Badges in Profile</TranslatableText>
               </Link>
 
               <Link
@@ -453,7 +444,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 onClick={onClose}
                 className="px-5 py-2.5 rounded-xl bg-white border border-[#E6E2D8] text-gray-800 text-xs font-bold hover:bg-gray-50 flex items-center space-x-1.5"
               >
-                <span>Inspect Public Ledger</span>
+                <TranslatableText>Inspect Public Ledger</TranslatableText>
                 <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
               </Link>
             </div>

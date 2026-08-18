@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { FileCheck2, Sparkles, Plus, CheckCircle2, ShieldCheck, MapPin, Scale } from "lucide-react";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
+import { FileCheck2, Plus, MapPin } from "lucide-react";
 
 export default function AgreementsPage() {
+  const { formatNumber, translateSync } = useTranslation();
   const [agreements, setAgreements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,14 +73,14 @@ export default function AgreementsPage() {
         <div>
           <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
             <FileCheck2 className="w-3.5 h-3.5" />
-            <span>STEP 0 — MUNICIPAL PARTNERSHIPS & DIGITAL CONSENT</span>
+            <TranslatableText>STEP 0 — MUNICIPAL PARTNERSHIPS & DIGITAL CONSENT</TranslatableText>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+          <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
             Material Release Agreements & Quotas
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          </TranslatableHeading>
+          <TranslatableParagraph className="text-xs text-gray-500 mt-1">
             Pre-collection consent contracts establishing legal salvage rights and quota thresholds with municipal authorities.
-          </p>
+          </TranslatableParagraph>
         </div>
 
         <button
@@ -85,7 +88,7 @@ export default function AgreementsPage() {
           className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white text-xs font-bold shadow-md transition-all self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>New Municipal Agreement MOU</span>
+          <TranslatableText>New Municipal Agreement MOU</TranslatableText>
         </button>
       </div>
 
@@ -113,27 +116,31 @@ export default function AgreementsPage() {
                     <span className="text-[10px] font-mono-data font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
                       {agreement.id}
                     </span>
-                    <h3 className="text-base font-bold text-gray-900 mt-1">{agreement.title}</h3>
-                    <p className="text-xs text-gray-500">{agreement.organizerName}</p>
+                    <h3 className="text-base font-bold text-gray-900 mt-1">
+                      <TranslatableText>{agreement.title}</TranslatableText>
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      <TranslatableText>{agreement.organizerName}</TranslatableText>
+                    </p>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
-                    ACTIVE MOU
+                    <TranslatableText>ACTIVE MOU</TranslatableText>
                   </span>
                 </div>
 
                 <div className="flex items-center space-x-2 text-xs text-gray-600">
                   <MapPin className="w-3.5 h-3.5 text-[#1A6B3A]" />
                   <span>
-                    {agreement.festival} ({agreement.country})
+                    <TranslatableText>{agreement.festival}</TranslatableText> (<TranslatableText>{agreement.country}</TranslatableText>)
                   </span>
                 </div>
 
                 {/* Quota Progress Bar */}
                 <div className="space-y-1.5 pt-2">
                   <div className="flex items-center justify-between text-xs font-mono-data">
-                    <span className="text-gray-500 font-medium">Harvest Quota Collected:</span>
+                    <TranslatableText className="text-gray-500 font-medium">Harvest Quota Collected:</TranslatableText>
                     <span className="font-bold text-gray-900">
-                      {agreement.collectedKg} kg / {agreement.allocatedKg} kg ({percentage}%)
+                      {formatNumber(agreement.collectedKg)} kg / {formatNumber(agreement.allocatedKg)} kg ({percentage}%)
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
@@ -154,7 +161,7 @@ export default function AgreementsPage() {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-[#E6E2D8]">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-base font-bold text-gray-900">Issue Municipal Release Agreement</h3>
+              <TranslatableHeading level={3} className="text-base font-bold text-gray-900">Issue Municipal Release Agreement</TranslatableHeading>
               <button
                 onClick={() => setModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 text-sm font-bold"
@@ -165,43 +172,43 @@ export default function AgreementsPage() {
 
             <form onSubmit={handleCreateAgreement} className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Agreement Title</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Agreement Title</TranslatableText></label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Baguio Panagbenga Floral Salvage Protocol"
+                  placeholder={translateSync("e.g. Baguio Panagbenga Floral Salvage Protocol")}
                   className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Organizer / Municipality Name</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Organizer / Municipality Name</TranslatableText></label>
                 <input
                   type="text"
                   required
                   value={organizerName}
                   onChange={(e) => setOrganizerName(e.target.value)}
-                  placeholder="e.g. Baguio Flower Festival Foundation & CEPMO"
+                  placeholder={translateSync("e.g. Baguio Flower Festival Foundation & CEPMO")}
                   className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700">Festival</label>
+                  <label className="font-bold text-gray-700"><TranslatableText>Festival</TranslatableText></label>
                   <input
                     type="text"
                     required
                     value={festival}
                     onChange={(e) => setFestival(e.target.value)}
-                    placeholder="e.g. Panagbenga Festival"
+                    placeholder={translateSync("e.g. Panagbenga Festival")}
                     className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700">Country</label>
+                  <label className="font-bold text-gray-700"><TranslatableText>Country</TranslatableText></label>
                   <input
                     type="text"
                     required
@@ -213,7 +220,7 @@ export default function AgreementsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">Allocated Waste Quota Target (kg)</label>
+                <label className="font-bold text-gray-700"><TranslatableText>Allocated Waste Quota Target (kg)</TranslatableText></label>
                 <input
                   type="number"
                   required
@@ -229,14 +236,14 @@ export default function AgreementsPage() {
                   onClick={() => setModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-gray-600 hover:bg-gray-100 font-semibold"
                 >
-                  Cancel
+                  <TranslatableText>Cancel</TranslatableText>
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
                   className="px-5 py-2 rounded-xl bg-[#1A6B3A] text-white font-bold hover:bg-[#14532D]"
                 >
-                  {submitting ? "Signing MOU..." : "Create Agreement"}
+                  <TranslatableText>{submitting ? "Signing MOU..." : "Create Agreement"}</TranslatableText>
                 </button>
               </div>
             </form>

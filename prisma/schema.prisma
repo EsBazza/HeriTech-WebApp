@@ -19,6 +19,7 @@ model User {
   stripeAccountId    String?
   verificationStatus String   @default("none")  // "none" | "pending_artisan" | "pending_lgu" | "approved" | "rejected"
   applicationNotes   String?  // JSON formatted details submitted during application
+  preferredLanguage  String   @default("en")    // User's preferred language code
   createdAt          DateTime @default(now())
 
   // Relations
@@ -149,4 +150,37 @@ model Message {
   createdAt   DateTime @default(now())
 
   @@map("messages")
+}
+
+model Translation {
+  id             String   @id @default(cuid())
+  sourceText     String   // Original text to translate
+  targetLanguage String   // Target language code (e.g., "zh-CN", "ja")
+  translatedText String   // Translated result
+  sourceLanguage String   @default("en") // Source language (usually English)
+  contextHash    String?  // Hash of surrounding context for better caching
+  quality        Float?   // Translation quality score (0-1)
+  verified       Boolean  @default(false) // Human-verified translation
+  usageCount     Int      @default(1) // How many times this translation was requested
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([sourceText, targetLanguage, sourceLanguage])
+  @@index([targetLanguage])
+  @@index([sourceLanguage])
+  @@map("translations")
+}
+
+model TranslationStats {
+  id               String   @id @default(cuid())
+  languageCode     String   @unique
+  totalRequests    Int      @default(0)
+  cacheHits        Int      @default(0)
+  averageLatency   Float    @default(0)
+  errorCount       Int      @default(0)
+  lastRequestAt    DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("translation_stats")
 }

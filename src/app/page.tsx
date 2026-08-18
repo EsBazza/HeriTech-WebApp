@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles, ArrowRight, ShieldCheck, Scale, Heart, Leaf, MapPin, Tag } from "lucide-react";
+import { Sparkles, ArrowRight, Scale, Heart, Leaf, MapPin, Tag, Search } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 
 interface ProductItem {
   id: string;
@@ -34,9 +36,11 @@ interface ProductItem {
 
 export default function MarketplacePage() {
   const { user, signInWithGoogle, authError } = useAuth();
+  const { currentLanguage, formatCurrency, formatNumber, translateSync } = useTranslation();
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [urlAuthError, setUrlAuthError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,6 +73,17 @@ export default function MarketplacePage() {
   const allTags = ["All", "Bamboo", "Botanical Flora", "Rice Paper", "Mulberry Paper", "Philippines", "Thailand", "India"];
 
   const filteredProducts = products.filter((p) => {
+    // Search query filter
+    if (searchQuery.trim().length > 0) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = p.title.toLowerCase().includes(q);
+      const matchDesc = p.description.toLowerCase().includes(q);
+      const matchArtisan = p.artisan.fullName.toLowerCase().includes(q);
+      const matchFestival = p.sourceBatch.agreement?.festival?.toLowerCase().includes(q);
+      if (!matchTitle && !matchDesc && !matchArtisan && !matchFestival) return false;
+    }
+
+    // Tag filter
     if (selectedTag === "All") return true;
     if (selectedTag === "Philippines") return p.sourceBatch.agreement?.country === "Philippines";
     if (selectedTag === "Thailand") return p.sourceBatch.agreement?.country === "Thailand";
@@ -78,18 +93,15 @@ export default function MarketplacePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-      {/* OAuth Callback Notice (if any) */}
+      {/* OAuth Callback Notice */}
       {(urlAuthError || authError) && (
         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 space-y-1 shadow-sm">
           <div className="flex items-center space-x-2 font-bold">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span>Google Authentication Notice:</span>
+            <TranslatableText>Google Authentication Notice:</TranslatableText>
           </div>
           <p className="text-amber-800 leading-relaxed">
             {urlAuthError || authError}
-          </p>
-          <p className="text-[11px] text-amber-700 pt-1">
-            💡 <strong>Quick Fix in Supabase Dashboard:</strong> Go to <strong>Authentication → URL Configuration</strong> and add <code>http://localhost:3000/**</code> to your <strong>Redirect URLs</strong>.
           </p>
         </div>
       )}
@@ -99,23 +111,26 @@ export default function MarketplacePage() {
         <div className="relative z-10 max-w-2xl space-y-5">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-emerald-200">
             <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
-            <span>Pan-Asian Circular Craft Economy</span>
+            <TranslatableText>Pan-Asian Circular Craft Economy</TranslatableText>
           </div>
 
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
+          <TranslatableHeading 
+            level={1}
+            className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight"
+          >
             Every Piece Reclaims a Sacred Asian Festival.
-          </h1>
+          </TranslatableHeading>
 
-          <p className="text-sm md:text-base text-emerald-100/90 leading-relaxed">
-            Direct from Panagbenga, Yi Peng, and Ganesh Chaturthi. Crafted by master artisans, backed by a fixed <strong>70% Artisan / 20% LGU / 10% NGO</strong> escrow standard, and authenticated with a verifiable <strong>Google Wallet Impact Pass</strong>.
-          </p>
+          <TranslatableParagraph className="text-sm md:text-base text-emerald-100/90 leading-relaxed">
+            Direct from Panagbenga, Yi Peng, and Ganesh Chaturthi. Crafted by master artisans, backed by a fixed 70% Artisan / 20% LGU / 10% NGO escrow standard, and authenticated with a verifiable Google Wallet Impact Pass.
+          </TranslatableParagraph>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
               href="/impact"
               className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-white text-[#1A6B3A] font-semibold text-sm hover:bg-emerald-50 transition-all shadow-md"
             >
-              <span>Explore Public Impact Ledger</span>
+              <TranslatableText>Explore Public Impact Ledger</TranslatableText>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -124,13 +139,13 @@ export default function MarketplacePage() {
                 onClick={signInWithGoogle}
                 className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium text-sm transition-all"
               >
-                <span>Sign in with Google</span>
+                <TranslatableText>Sign in with Google</TranslatableText>
               </button>
             )}
           </div>
         </div>
 
-        {/* Decorative Watermark Grid */}
+        {/* Decorative Watermark */}
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none hidden md:flex items-center justify-center">
           <Leaf className="w-96 h-96 text-white" />
         </div>
@@ -143,10 +158,12 @@ export default function MarketplacePage() {
             <Heart className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-900">70% Direct Artisan Payout</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
+              70% Direct Artisan Payout
+            </TranslatableHeading>
+            <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
               Guaranteed fair-trade floor price sent directly to certified regional craft guilds.
-            </p>
+            </TranslatableParagraph>
           </div>
         </div>
 
@@ -155,10 +172,12 @@ export default function MarketplacePage() {
             <Scale className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-900">20% LGU Logistics & Platform</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
+              20% LGU & Platform Operations
+            </TranslatableHeading>
+            <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
               Funds on-site municipal collection bins and AI multimodal inspection infrastructure.
-            </p>
+            </TranslatableParagraph>
           </div>
         </div>
 
@@ -167,40 +186,56 @@ export default function MarketplacePage() {
             <Leaf className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-900">10% Verified NGO Trust Fund</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
+              10% Verified NGO Trust Fund
+            </TranslatableHeading>
+            <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
               Transparent continent-wide post-festival clean water and forest conservation funds.
-            </p>
+            </TranslatableParagraph>
           </div>
         </div>
       </section>
 
-      {/* Marketplace Catalog Header & Filter */}
+      {/* Marketplace Catalog Header, Search Bar & Filter */}
       <section className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-[#141312]">Authenticated Heritage Upcycles</h2>
-            <p className="text-xs text-gray-500 mt-1">
+            <TranslatableHeading level={2} className="text-2xl font-bold text-[#141312]">
+              Authenticated Heritage Upcycles
+            </TranslatableHeading>
+            <TranslatableParagraph className="text-xs text-gray-500 mt-1">
               Select a piece to inspect its immutable harvest coordinates, maker journey, and Google Wallet Pass.
-            </p>
+            </TranslatableParagraph>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap gap-2">
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  selectedTag === tag
-                    ? "bg-[#1A6B3A] text-white shadow-sm"
-                    : "bg-white border border-[#E6E2D8] text-gray-600 hover:border-gray-400"
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
+          {/* Search Input Bar */}
+          <div className="relative min-w-[240px]">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={translateSync("Search heritage pieces...")}
+              className="w-full pl-9 pr-4 py-2 rounded-full border border-[#E6E2D8] bg-white text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1A6B3A] shadow-xs"
+            />
           </div>
+        </div>
+
+        {/* Filter Tags Bar */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                selectedTag === tag
+                  ? "bg-[#1A6B3A] text-white shadow-sm"
+                  : "bg-white border border-[#E6E2D8] text-gray-600 hover:border-gray-400"
+              }`}
+            >
+              <TranslatableText>{tag}</TranslatableText>
+            </button>
+          ))}
         </div>
 
         {/* Product Cards Grid */}
@@ -213,8 +248,12 @@ export default function MarketplacePage() {
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-3xl border border-[#E6E2D8] p-8">
             <Tag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-gray-900">No goods match this filter</h3>
-            <p className="text-xs text-gray-500 mt-1">Try selecting a different material tag or festival.</p>
+            <TranslatableHeading level={3} className="text-base font-bold text-gray-900">
+              No goods match this filter
+            </TranslatableHeading>
+            <TranslatableParagraph className="text-xs text-gray-500 mt-1">
+              Try selecting a different material tag or festival.
+            </TranslatableParagraph>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -224,7 +263,7 @@ export default function MarketplacePage() {
                 href={`/products/${product.id}`}
                 className="group flex flex-col bg-white rounded-2xl border border-[#E6E2D8] overflow-hidden hover:border-[#1A6B3A] hover:shadow-lg transition-all"
               >
-                {/* Product Image */}
+                {/* Product Image & Badges */}
                 <div className="relative aspect-square w-full bg-gray-100 overflow-hidden">
                   <img
                     src={product.images[0] || "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"}
@@ -234,41 +273,45 @@ export default function MarketplacePage() {
                   <div className="absolute top-3 left-3 flex flex-col gap-1">
                     <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-bold text-white flex items-center space-x-1">
                       <MapPin className="w-3 h-3 text-emerald-400" />
-                      <span>{product.sourceBatch.agreement?.country || "Asia"}</span>
+                      <span><TranslatableText>{product.sourceBatch.agreement?.country || "Asia"}</TranslatableText></span>
                     </span>
                     <span className="px-2 py-0.5 rounded-md bg-[#1A6B3A]/90 backdrop-blur-md text-[10px] font-bold text-white">
-                      {product.kgDiverted} kg diverted
+                      {formatNumber(product.kgDiverted)} <TranslatableText>kg diverted</TranslatableText>
                     </span>
                   </div>
                 </div>
 
-                {/* Content */}
+                {/* Card Content & Details */}
                 <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                   <div>
                     <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
-                      <span>{product.sourceBatch.agreement?.festival || "Cultural Festival"}</span>
+                      <span><TranslatableText>{product.sourceBatch.agreement?.festival || "Cultural Festival"}</TranslatableText></span>
                       <span className="font-mono-data text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
-                        {product.sourceBatch.materialType}
+                        <TranslatableText>{product.sourceBatch.materialType}</TranslatableText>
                       </span>
                     </div>
 
                     <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#1A6B3A] transition-colors mt-1 line-clamp-2">
-                      {product.title}
+                      <TranslatableText>{product.title}</TranslatableText>
                     </h3>
                   </div>
 
                   <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-gray-400 block font-medium">Crafted by</span>
+                      <TranslatableText className="text-[10px] text-gray-400 block font-medium">
+                        Crafted by
+                      </TranslatableText>
                       <span className="text-xs font-semibold text-gray-800 truncate max-w-[130px] block">
-                        {product.artisan.fullName}
+                        <TranslatableText>{product.artisan.fullName}</TranslatableText>
                       </span>
                     </div>
                     <div className="text-right">
                       <span className="text-base font-extrabold text-[#141312]">
-                        ${product.price.toFixed(2)}
+                        {formatCurrency(product.price)}
                       </span>
-                      <span className="text-[10px] text-gray-400 block">USD</span>
+                      <span className="text-[10px] text-gray-400 block">
+                        {currentLanguage.code === 'en' ? 'USD' : currentLanguage.code.toUpperCase()}
+                      </span>
                     </div>
                   </div>
                 </div>

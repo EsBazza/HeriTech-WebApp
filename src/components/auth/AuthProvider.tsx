@@ -73,11 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    // Failsafe timeout to prevent infinite spinner
-    const timer = setTimeout(() => {
-      if (isMounted) setLoading(false);
-    }, 2000);
-
     const initAuth = async () => {
       try {
         const {
@@ -117,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
       subscription.unsubscribe();
     };
   }, []);
