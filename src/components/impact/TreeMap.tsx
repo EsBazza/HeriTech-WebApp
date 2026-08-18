@@ -11,9 +11,7 @@ import {
   Globe,
   Layers,
   MapPin,
-  DollarSign,
   TreePine,
-  Activity,
   Maximize2,
   CheckCircle2,
   Loader2,
@@ -22,9 +20,8 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCw,
-  Sliders,
-  ExternalLink,
-  Crosshair,
+  Navigation,
+  ShieldCheck,
 } from "lucide-react";
 
 interface TreeProject {
@@ -44,6 +41,22 @@ interface TreeProject {
   currentSatelliteImage: string;
 }
 
+// Satellite & Terrain Tile Layer URLs
+const TILE_LAYERS = {
+  googleSatellite: {
+    url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+    attribution: "&copy; Google Earth / Satellite Telemetry",
+  },
+  esriSatellite: {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "&copy; Esri World Imagery & NASA Earth",
+  },
+  googleTerrain: {
+    url: "https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
+    attribution: "&copy; Google Terrain & Elevation",
+  },
+};
+
 export function TreeMap() {
   const { formatCurrency, formatNumber } = useTranslation();
 
@@ -55,18 +68,19 @@ export function TreeMap() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
 
   // Toggles
-  const [viewMode, setViewMode] = useState<"satellite" | "terrain">("satellite");
+  const [viewMode, setViewMode] = useState<"satellite" | "esri" | "terrain">("satellite");
   const [layerMode, setLayerMode] = useState<"current" | "baseline">("current");
 
-  // 3D Camera Controls State
-  const [pitch, setPitch] = useState<number>(45); // Pitch / 3D Tilt angle controls (0° to 75°)
-  const [heading, setHeading] = useState<number>(0); // 360° Globe Rotation control (0° to 360°)
-  const [zoomLevel, setZoomLevel] = useState<number>(15); // Zoom level 12 - 18
+  // 3D Perspective Pitch Angle
+  const [pitch, setPitch] = useState<number>(35); // 0° to 60° 3D tilt
+  const [heading, setHeading] = useState<number>(0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [autoRotate, setAutoRotate] = useState<boolean>(false);
 
-  // Ref for auto rotation animation frame
-  const animFrameRef = useRef<number | null>(null);
+  // Leaflet Map Ref & Instance
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const tileLayerRef = useRef<any>(null);
+  const markersRef = useRef<{ [id: string]: any }>({});
 
   useEffect(() => {
     async function fetchTreeProjects() {
@@ -93,49 +107,175 @@ export function TreeMap() {
     fetchTreeProjects();
   }, []);
 
-  // Handle location selection with Fly-To animation trigger
-  const handleSelectProject = (projectId: string) => {
-    if (projectId === selectedProjectId) return;
-    setIsAnimating(true);
-    setSelectedProjectId(projectId);
-    // Reset heading & set pitch to default 45 on fly-to
-    setPitch(50);
-    setZoomLevel(15);
-    setTimeout(() => {
-      setIsAnimating(false);
-    }, 1200);
-  };
-
-  // Auto rotation effect
-  useEffect(() => {
-    if (!autoRotate) {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      return;
-    }
-
-    let lastTime = performance.now();
-    const rotate = (now: number) => {
-      const delta = (now - lastTime) / 1000;
-      lastTime = now;
-      setHeading((prev) => (prev + delta * 15) % 360);
-      animFrameRef.current = requestAnimationFrame(rotate);
-    };
-
-    animFrameRef.current = requestAnimationFrame(rotate);
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    };
-  }, [autoRotate]);
-
   const activeProject =
     projects.find((p) => p.id === selectedProjectId) || projects[0];
+
+  // Initialize Leaflet Map on Client Side
+  useEffect(() => {
+    if (loading || !mapContainerRef.current || !activeProject) return;
+
+    let isMounted = true;
+
+    // Dynamically load Leaflet CSS if not present
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+
+    import("leaflet").then((L) => {
+      if (!isMounted || !mapContainerRef.current) return;
+
+      // Fix default Leaflet icon paths in Next.js
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      // If map already exists, just return
+      if (mapInstanceRef.current) return;
+
+      // Initialize map instance
+      const map = L.map(mapContainerRef.current, {
+        center: [activeProject.lat, activeProject.lng],
+        zoom: 14,
+        zoomControl: false,
+        attributionControl: false,
+      });
+
+      // Add Zoom Control to Top Right
+      L.control.zoom({ position: "topright" }).addTo(map);
+
+      // Select tile layer config based on viewMode
+      const activeTileConfig =
+        viewMode === "esri"
+          ? TILE_LAYERS.esriSatellite
+          : viewMode === "terrain"
+          ? TILE_LAYERS.googleTerrain
+          : TILE_LAYERS.googleSatellite;
+
+      const tileLayer = L.tileLayer(activeTileConfig.url, {
+        maxZoom: 20,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"],
+      }).addTo(map);
+
+      tileLayerRef.current = tileLayer;
+      mapInstanceRef.current = map;
+
+      // Create Custom Tree Pins for all projects
+      projects.forEach((proj) => {
+        const customIcon = L.divIcon({
+          className: "custom-tree-pin",
+          html: `
+            <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: #1A6B3A; border: 2.5px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-2l3-3.3a1 1 0 0 1 .7-1.7H7l3-3.3a1 1 0 0 1 1.4 0L17 9h-1.7a1 1 0 0 1-.7 1.7L19 14h-2z"/>
+                  <path d="M12 19v3"/>
+                </svg>
+              </div>
+              <div style="font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.85); color: white; padding: 2px 8px; border-radius: 12px; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">
+                ${proj.location.split(",")[0]}
+              </div>
+            </div>
+          `,
+          iconSize: [40, 56],
+          iconAnchor: [20, 56],
+        });
+
+        const marker = L.marker([proj.lat, proj.lng], { icon: customIcon }).addTo(map);
+        marker.bindPopup(`
+          <div style="font-family: sans-serif; padding: 4px; max-width: 200px;">
+            <strong style="color: #1A6B3A; font-size: 12px;">${proj.title}</strong>
+            <p style="font-size: 11px; margin: 4px 0; color: #444;">${proj.location}</p>
+            <div style="font-size: 11px; font-weight: bold; color: #b45309;">
+              Funds: $${proj.allocatedFundsUsd.toFixed(2)} | ${proj.treesPlanted} Trees
+            </div>
+          </div>
+        `);
+
+        marker.on("click", () => {
+          setSelectedProjectId(proj.id);
+        });
+
+        markersRef.current[proj.id] = marker;
+      });
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [loading, projects.length]);
+
+  // Update Tile Layer when viewMode changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || !tileLayerRef.current) return;
+
+    import("leaflet").then((L) => {
+      const activeTileConfig =
+        viewMode === "esri"
+          ? TILE_LAYERS.esriSatellite
+          : viewMode === "terrain"
+          ? TILE_LAYERS.googleTerrain
+          : TILE_LAYERS.googleSatellite;
+
+      mapInstanceRef.current.removeLayer(tileLayerRef.current);
+      const newLayer = L.tileLayer(activeTileConfig.url, {
+        maxZoom: 20,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"],
+      }).addTo(mapInstanceRef.current);
+
+      tileLayerRef.current = newLayer;
+    });
+  }, [viewMode]);
+
+  // Handle location selection with Leaflet flyTo
+  const handleSelectProject = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    const targetProj = projects.find((p) => p.id === projectId);
+    if (!targetProj || !mapInstanceRef.current) return;
+
+    setIsAnimating(true);
+    mapInstanceRef.current.flyTo([targetProj.lat, targetProj.lng], 15, {
+      duration: 1.8,
+    });
+
+    if (markersRef.current[projectId]) {
+      setTimeout(() => {
+        markersRef.current[projectId].openPopup();
+        setIsAnimating(false);
+      }, 1900);
+    } else {
+      setTimeout(() => setIsAnimating(false), 1900);
+    }
+  };
+
+  const handleZoomIn = () => {
+    if (mapInstanceRef.current) mapInstanceRef.current.zoomIn();
+  };
+
+  const handleZoomOut = () => {
+    if (mapInstanceRef.current) mapInstanceRef.current.zoomOut();
+  };
+
+  const handleRotateHeading = () => {
+    setHeading((prev) => (prev + 45) % 360);
+  };
+
+  const handleTogglePitch = () => {
+    setPitch((prev) => (prev === 0 ? 45 : 0));
+  };
 
   if (loading) {
     return (
       <div className="bg-white border border-[#E6E2D8] rounded-3xl p-8 flex flex-col items-center justify-center min-h-[400px] space-y-3">
         <Loader2 className="w-8 h-8 text-[#1A6B3A] animate-spin" />
         <TranslatableText className="text-sm font-medium text-gray-500">
-          Loading 3D Google Earth Satellite Telemetry...
+          Initializing Embedded 3D Google Earth Satellite Map...
         </TranslatableText>
       </div>
     );
@@ -151,15 +291,6 @@ export function TreeMap() {
     );
   }
 
-  const activeImage =
-    layerMode === "current"
-      ? activeProject.currentSatelliteImage
-      : activeProject.baselineImage;
-
-  // Compute 3D perspective matrix transform values for satellite canvas
-  // Scale dynamically based on zoom level (12 to 18 -> scale 0.85 to 1.35)
-  const imageScale = 1 + (zoomLevel - 15) * 0.12;
-
   return (
     <div className="bg-white border border-[#E6E2D8] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
       {/* 1. Header */}
@@ -167,22 +298,22 @@ export function TreeMap() {
         <div>
           <div className="flex items-center space-x-2 text-xs font-extrabold text-[#1A6B3A] tracking-wider uppercase">
             <Globe className="w-4 h-4 text-[#1A6B3A] animate-pulse" />
-            <TranslatableText>EMBEDDED 3D GOOGLE EARTH SATELLITE ENGINE</TranslatableText>
+            <TranslatableText>LIVE INTERACTIVE GOOGLE EARTH SATELLITE MAP</TranslatableText>
           </div>
           <TranslatableHeading
             level={2}
             className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight mt-1"
           >
-            Active Tree Planting & Canopy Growth Ledger
+            Active Reforestation & Tree Canopy Growth Ledger
           </TranslatableHeading>
           <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-            Interactive 3D Google Earth satellite viewing engine and GIS telemetry monitoring post-festival reforestation sites across Asia.
+            Real interactive Google Earth aerial & terrain satellite tiles tracking post-festival tree planting sites across Asia.
           </TranslatableParagraph>
         </div>
 
         {/* 2. View Toggles */}
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          {/* Map View Switcher: Satellite vs Terrain */}
+          {/* Tile Layer Switcher: Google Satellite vs Esri vs Google Terrain */}
           <div className="bg-[#F8F6F0] p-1 rounded-2xl border border-[#E6E2D8] inline-flex items-center space-x-1 text-xs font-semibold">
             <button
               type="button"
@@ -193,7 +324,18 @@ export function TreeMap() {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              <TranslatableText>Satellite Aerial</TranslatableText>
+              <TranslatableText>Google Satellite</TranslatableText>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("esri")}
+              className={`px-3 py-1.5 rounded-xl transition-all ${
+                viewMode === "esri"
+                  ? "bg-[#1A6B3A] text-white shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <TranslatableText>Esri Aerial</TranslatableText>
             </button>
             <button
               type="button"
@@ -204,11 +346,11 @@ export function TreeMap() {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              <TranslatableText>Terrain View</TranslatableText>
+              <TranslatableText>3D Terrain</TranslatableText>
             </button>
           </div>
 
-          {/* Canopy Timeline Switcher: Current Canopy vs Pre-Planting Baseline */}
+          {/* Canopy Timeline Switcher */}
           <div className="bg-[#F8F6F0] p-1 rounded-2xl border border-[#E6E2D8] inline-flex items-center space-x-1 text-xs font-semibold">
             <button
               type="button"
@@ -220,7 +362,7 @@ export function TreeMap() {
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <TranslatableText>Current Canopy</TranslatableText>
+              <TranslatableText>2026 Live Canopy</TranslatableText>
             </button>
             <button
               type="button"
@@ -237,10 +379,10 @@ export function TreeMap() {
         </div>
       </div>
 
-      {/* 3. Interactive Location Pill Selector (Benguet, Chiang Mai, Shizuoka) */}
+      {/* 3. Interactive Location Pill Selector */}
       <div className="space-y-2">
         <TranslatableText className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-          Select Reforestation Site (Triggers 3D Orbit Fly-To Animation)
+          Select Reforestation Site (Triggers Real Satellite Orbit Fly-To)
         </TranslatableText>
         <div className="flex flex-wrap gap-2">
           {projects.map((proj) => {
@@ -264,7 +406,7 @@ export function TreeMap() {
                 <span>{proj.location}</span>
                 {isSelected && (
                   <span className="ml-1 text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full uppercase tracking-widest font-mono">
-                    3D Active
+                    Active Target
                   </span>
                 )}
               </button>
@@ -273,277 +415,163 @@ export function TreeMap() {
         </div>
       </div>
 
-      {/* 4. Embedded 3D Google Earth viewing canvas & Telemetry Panel */}
+      {/* 4. Real Interactive Leaflet Satellite Tile Map Container & Telemetry Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Embedded 3D Google Earth Canvas Container */}
-        <div className="lg:col-span-7 relative group rounded-3xl overflow-hidden border border-[#E6E2D8] shadow-md bg-gray-950 min-h-[480px] flex flex-col justify-between perspective-1000">
-          {/* Fly-to Animation Overlay state */}
+        {/* Interactive Satellite Map Viewport */}
+        <div className="lg:col-span-7 relative group rounded-3xl overflow-hidden border border-[#E6E2D8] shadow-md bg-gray-950 min-h-[480px] flex flex-col justify-between">
+          {/* Fly-to Animation HUD Overlay */}
           {isAnimating && (
-            <div className="absolute inset-0 z-40 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 transition-opacity duration-300">
+            <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 pointer-events-none transition-opacity duration-300">
               <Compass className="w-10 h-10 text-emerald-400 animate-spin" />
               <div className="text-white text-xs font-mono font-bold uppercase tracking-widest flex items-center space-x-2">
-                <span>Orbiting Fly-To Navigation</span>
+                <span>Orbiting Satellite Camera Fly-To</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               </div>
               <p className="text-emerald-300/80 text-[11px] font-mono">
-                Locking target coordinates: {activeProject.lat.toFixed(4)}°, {activeProject.lng.toFixed(4)}°
+                Target Lock: {activeProject.lat.toFixed(4)}°, {activeProject.lng.toFixed(4)}°
               </p>
             </div>
           )}
 
-          {/* 3D Google Earth Canvas Surface */}
-          <div className="absolute inset-0 overflow-hidden bg-gray-900">
-            {/* Embedded 3D Render Surface with Pitch Tilt & Rotation CSS Transform */}
-            <div
-              className={`w-full h-full transition-transform duration-500 ease-out origin-center ${
-                viewMode === "terrain" ? "contrast-125 saturate-150 brightness-90 hue-rotate-15" : ""
+          {/* Interactive Leaflet Map Div with 3D Tilt CSS Transform option */}
+          <div
+            style={{
+              transform: `perspective(1000px) rotateX(${pitch}deg) rotateZ(${heading}deg)`,
+              transition: "transform 0.4s ease-out",
+            }}
+            className="w-full h-full min-h-[480px] relative z-10"
+          >
+            <div ref={mapContainerRef} className="w-full h-full min-h-[480px] rounded-3xl z-10" />
+          </div>
+
+          {/* Controls Overlay Bar (Zoom, Pitch Tilt, Rotate) */}
+          <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2 bg-black/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 shadow-2xl">
+            <button
+              type="button"
+              onClick={handleTogglePitch}
+              title="Toggle 3D Perspective Tilt"
+              className={`p-2 rounded-xl text-xs flex items-center justify-center transition-all ${
+                pitch > 0 ? "bg-emerald-700 text-white" : "bg-gray-800 text-gray-300 hover:text-white"
               }`}
-              style={{
-                backgroundImage: `url(${activeImage})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                transform: `scale(${imageScale}) rotateX(${pitch * 0.45}deg) rotate(${heading}deg)`,
-                transformStyle: "preserve-3d",
-              }}
-            />
-
-            {/* Simulated Satellite Scan Overlay Lines */}
-            <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 via-transparent to-black/70 pointer-events-none" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/20 to-black/80 pointer-events-none" />
+            >
+              <Compass className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleRotateHeading}
+              title="Rotate 360° Orientation"
+              className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+            >
+              <RotateCw className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              title="Zoom In Satellite"
+              className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              title="Zoom Out Satellite"
+              className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
           </div>
 
-          {/* 3D On-Map Pulsing Pin Anchor on coordinates */}
-          <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-            <div className="relative flex flex-col items-center justify-center transform -translate-y-6">
-              {/* Outer pulsing ring 1 */}
-              <div className="absolute w-28 h-28 rounded-full border-2 border-emerald-400/60 animate-ping" />
-              {/* Outer pulsing ring 2 */}
-              <div className="absolute w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-300 animate-pulse" />
-              {/* Inner pin badge */}
-              <div className="relative z-10 flex items-center space-x-1.5 bg-black/80 backdrop-blur-md border border-emerald-400 px-3 py-1.5 rounded-full shadow-2xl">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <MapPin className="w-4 h-4 text-emerald-400" />
-                <span className="font-mono text-xs font-bold text-white tracking-wider">
-                  {activeProject.location}
-                </span>
-              </div>
-              {/* Pin pointer anchor stick */}
-              <div className="w-0.5 h-6 bg-gradient-to-b from-emerald-400 to-transparent" />
-              {/* Ground ripple */}
-              <div className="w-8 h-2 bg-emerald-400/40 rounded-full blur-[1px]" />
-            </div>
-          </div>
-
-          {/* Top Telemetry Header Bar */}
-          <div className="relative z-30 p-4 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center space-x-2 bg-black/75 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 shadow-lg">
-              <Crosshair className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-mono text-xs text-white font-medium">
-                Lat: {activeProject.lat.toFixed(4)}° | Lng: {activeProject.lng.toFixed(4)}°
-              </span>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <div className="bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-semibold text-emerald-300 flex items-center space-x-1">
-                <Layers className="w-3.5 h-3.5" />
-                <TranslatableText>
-                  {layerMode === "current" ? "2026 Live Optical Overlay" : "Historical Baseline"}
-                </TranslatableText>
-              </div>
-
-              {/* Pitch and Heading HUD indicator */}
-              <div className="bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-mono text-emerald-400 flex items-center space-x-2">
-                <span>Tilt: {pitch}°</span>
-                <span>•</span>
-                <span>Rot: {Math.round(heading)}°</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 3D Google Earth Camera Controls Bar */}
-          <div className="relative z-30 px-4 py-3 bg-black/80 backdrop-blur-md border-t border-b border-white/10 flex flex-wrap items-center justify-between gap-3 text-white text-xs">
-            {/* Pitch / 3D Tilt angle controls (0° to 75°) */}
-            <div className="flex items-center space-x-2">
-              <Sliders className="w-4 h-4 text-emerald-400" />
-              <span className="font-semibold text-gray-300 text-[11px] uppercase tracking-wider">
-                3D Tilt ({pitch}°)
-              </span>
-              <input
-                type="range"
-                min="0"
-                max="75"
-                value={pitch}
-                onChange={(e) => setPitch(Number(e.target.value))}
-                className="w-24 accent-emerald-500 cursor-pointer h-1.5 bg-gray-700 rounded-lg"
-              />
-            </div>
-
-            {/* 360° Globe Rotation control */}
-            <div className="flex items-center space-x-2">
-              <RotateCw className="w-4 h-4 text-emerald-400" />
-              <span className="font-semibold text-gray-300 text-[11px] uppercase tracking-wider">
-                Rotation ({Math.round(heading)}°)
-              </span>
-              <input
-                type="range"
-                min="0"
-                max="360"
-                value={heading}
-                onChange={(e) => setHeading(Number(e.target.value))}
-                className="w-24 accent-emerald-500 cursor-pointer h-1.5 bg-gray-700 rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={() => setAutoRotate(!autoRotate)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${
-                  autoRotate
-                    ? "bg-emerald-500 text-black shadow-md"
-                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                }`}
-              >
-                {autoRotate ? "Auto Rot ON" : "Auto Rot"}
-              </button>
-            </div>
-
-            {/* Orbit Zoom In / Zoom Out controls */}
-            <div className="flex items-center space-x-1">
-              <button
-                type="button"
-                onClick={() => setZoomLevel((z) => Math.max(12, z - 1))}
-                className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-all border border-white/10"
-                title="Orbit Zoom Out"
-              >
-                <ZoomOut className="w-4 h-4" />
-              </button>
-              <span className="font-mono text-xs text-gray-300 px-1">
-                {zoomLevel}x
-              </span>
-              <button
-                type="button"
-                onClick={() => setZoomLevel((z) => Math.min(18, z + 1))}
-                className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-all border border-white/10"
-                title="Orbit Zoom In"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Bottom Title & Earth Web Link */}
-          <div className="relative z-30 p-5 space-y-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-              <div className="space-y-1">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-semibold flex items-center space-x-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <TranslatableText>{activeProject.ngoName}</TranslatableText>
-                </span>
-                <TranslatableHeading
-                  level={3}
-                  className="text-lg sm:text-xl font-bold text-white leading-tight"
-                >
-                  {activeProject.title}
-                </TranslatableHeading>
-              </div>
-
-              {/* External Google Earth Web Launcher */}
-              <a
-                href={activeProject.googleEarthUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/20 backdrop-blur-md shrink-0"
-              >
-                <Globe className="w-3.5 h-3.5 text-emerald-300" />
-                <TranslatableText>Open Google Earth Web</TranslatableText>
-                <ExternalLink className="w-3 h-3 ml-0.5" />
-              </a>
-            </div>
+          {/* Target Location Footer Tag */}
+          <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white text-xs font-mono font-semibold flex items-center space-x-2 shadow-lg pointer-events-none">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>
+              LAT {activeProject.lat.toFixed(4)}° N | LNG {activeProject.lng.toFixed(4)}° E
+            </span>
           </div>
         </div>
 
-        {/* 5. Telemetry Drawer & Breakdown Panel */}
-        <div className="lg:col-span-5 flex flex-col justify-between space-y-4 bg-[#F8F6F0] p-6 rounded-3xl border border-[#E6E2D8]">
-          <div className="space-y-1 border-b border-gray-200/80 pb-4">
-            <div className="flex items-center space-x-1.5 text-[#1A6B3A] text-xs font-bold uppercase tracking-wider">
-              <Activity className="w-4 h-4" />
-              <TranslatableText>GIS TELEMETRY DRAWER</TranslatableText>
-            </div>
-            <p className="text-xs text-gray-500">
-              Disbursed NGO escrow telemetry & canopy metrics for <TranslatableText>{activeProject.location}</TranslatableText>.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* NGO Funds Allocated ($) */}
-            <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] shadow-sm space-y-1">
-              <div className="flex items-center space-x-1 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                <DollarSign className="w-3.5 h-3.5 text-amber-600" />
-                <TranslatableText>NGO Funds Allocated</TranslatableText>
-              </div>
-              <p className="text-xl font-black text-gray-900 font-mono-data">
-                {formatCurrency(activeProject.allocatedFundsUsd)}
+        {/* 5. GIS Telemetry Panel */}
+        <div className="lg:col-span-5 bg-[#F8F6F0] rounded-3xl p-6 border border-[#E6E2D8] flex flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <div className="border-b border-[#E6E2D8] pb-3">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                NGO TRUST FUND TELEMETRY
+              </p>
+              <h4 className="text-base font-bold text-gray-900 mt-0.5">
+                {activeProject.location}
+              </h4>
+              <p className="text-xs text-emerald-800 font-semibold flex items-center space-x-1 mt-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{activeProject.ngoName}</span>
               </p>
             </div>
 
-            {/* Trees Planted count */}
-            <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] shadow-sm space-y-1">
-              <div className="flex items-center space-x-1 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                <TreePine className="w-3.5 h-3.5 text-[#1A6B3A]" />
-                <TranslatableText>Trees Planted</TranslatableText>
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white p-3.5 rounded-2xl border border-gray-200 space-y-0.5 shadow-xs">
+                <p className="text-[10px] font-bold text-gray-400 uppercase">
+                  FUNDS ALLOCATED (10%)
+                </p>
+                <p className="text-xl font-black text-amber-700 font-mono-data">
+                  {formatCurrency(activeProject.allocatedFundsUsd)}
+                </p>
               </div>
-              <p className="text-xl font-black text-[#1A6B3A] font-mono-data">
-                {formatNumber(activeProject.treesPlanted)}
-              </p>
+              <div className="bg-white p-3.5 rounded-2xl border border-gray-200 space-y-0.5 shadow-xs">
+                <p className="text-[10px] font-bold text-gray-400 uppercase">
+                  TREES PLANTED
+                </p>
+                <p className="text-xl font-black text-[#1A6B3A] font-mono-data">
+                  {formatNumber(activeProject.treesPlanted)}{" "}
+                  <span className="text-xs font-normal">trees</span>
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Canopy Survival Rate % with progress bar */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-gray-500 uppercase tracking-wider text-[11px] flex items-center space-x-1">
-                <Maximize2 className="w-3.5 h-3.5 text-emerald-600" />
-                <TranslatableText>Canopy Survival Rate</TranslatableText>
-              </span>
-              <span className="text-emerald-700 font-mono-data text-sm font-black">
-                {activeProject.survivalRate}%
-              </span>
-            </div>
-            <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden border border-gray-200/60 p-0.5">
-              <div
-                style={{ width: `${activeProject.survivalRate}%` }}
-                className="h-full bg-[#1A6B3A] rounded-full transition-all duration-700"
-              />
-            </div>
-          </div>
-
-          {/* Restored Species tags */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] shadow-sm space-y-2">
-            <TranslatableText className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-              Restored Native Species
-            </TranslatableText>
-            <div className="flex flex-wrap gap-2">
-              {activeProject.species.map((sp, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center space-x-1 px-3 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold"
-                >
-                  <span>🌿</span>
-                  <TranslatableText>{sp}</TranslatableText>
+            {/* Canopy Survival Rate Progress Bar */}
+            <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-2 shadow-xs">
+              <div className="flex justify-between text-xs font-semibold">
+                <span className="text-gray-600">Canopy Survival Rate</span>
+                <span className="text-emerald-700 font-bold">
+                  {activeProject.survivalRate}%
                 </span>
-              ))}
+              </div>
+              <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  style={{ width: `${activeProject.survivalRate}%` }}
+                  className="h-full bg-[#1A6B3A] rounded-full transition-all duration-500"
+                />
+              </div>
+            </div>
+
+            {/* Restored Native Species Tags */}
+            <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-2 shadow-xs">
+              <p className="text-[10px] font-bold text-gray-400 uppercase">
+                RESTORED NATIVE SPECIES
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {activeProject.species.map((s) => (
+                  <span
+                    key={s}
+                    className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-bold rounded-lg border border-emerald-200/60"
+                  >
+                    🌿 {s}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Hectares Restored count */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] shadow-sm flex items-center justify-between">
-            <TranslatableText className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Hectares Restored
-            </TranslatableText>
-            <div className="flex items-baseline space-x-1">
-              <span className="text-2xl font-black text-gray-900 font-mono-data">
-                {activeProject.hectaresRestored}
-              </span>
-              <span className="text-xs text-gray-500 font-medium">ha</span>
-            </div>
+          {/* Footer Audited Metric */}
+          <div className="pt-3 border-t border-[#E6E2D8] text-[11px] text-gray-500 flex items-center justify-between">
+            <span>
+              Hectares Restored:{" "}
+              <strong className="text-gray-800">{activeProject.hectaresRestored} ha</strong>
+            </span>
+            <span className="text-emerald-700 font-medium flex items-center space-x-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Audited via Step 0 Trust</span>
+            </span>
           </div>
         </div>
       </div>

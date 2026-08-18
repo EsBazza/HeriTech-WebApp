@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from "lucide-react";
-import TreeMap from "@/components/impact/TreeMap";
+import { TreeMap } from "@/components/impact/TreeMap";
 
 export default function ImpactPage() {
   const { formatCurrency, formatNumber } = useTranslation();
