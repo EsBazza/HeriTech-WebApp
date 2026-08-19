@@ -288,7 +288,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { addToCart } = useCart();
-  const { formatCurrency, formatNumber, translateSync } = useTranslation();
+  const { formatCurrency, formatNumber, translateSync, currentCurrency } = useTranslation();
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -434,7 +434,7 @@ export default function ProductDetailPage() {
             <p className="text-2xl font-bold font-display text-[#7D5A3C] mt-3">
               {formatCurrency(product.price)}{" "}
               <span className="text-xs font-sans font-normal text-[#5C4A38]">
-                USD
+                {currentCurrency}
               </span>
             </p>
           </div>

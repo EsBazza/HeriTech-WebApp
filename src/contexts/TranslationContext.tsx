@@ -20,6 +20,7 @@ import {
 
 interface TranslationContextType {
   currentLanguage: Language;
+  currentCurrency: string;
   isLoading: boolean;
   changeLanguage: (languageCode: string) => Promise<void>;
   translate: (key: string, fallback?: string) => Promise<string>;
@@ -175,6 +176,12 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
           document.documentElement.dir = lang?.rtl ? "rtl" : "ltr";
         }
 
+        // Fetch live exchange rates in parallel with translation init
+        fetchExchangeRates().then(() => {
+          // Trigger a re-render so formatCurrency picks up the live rates
+          setCacheVersion((v) => v + 1);
+        });
+
         if (langCode !== "en") {
           const loaded = loadCacheFromStorage(langCode);
           if (!loaded) {
@@ -315,22 +322,28 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
   }, []);
 
   const formatCurrency = useCallback(
-    (amount: number, currency?: string): string => {
+    (amountUSD: number, currency?: string): string => {
       const currencyCode = currency || getCurrencyForLanguage(currentLanguage.code);
+      // Convert from USD base price to the target currency
+      const convertedAmount = currency
+        ? amountUSD // If an explicit currency is provided, assume amount is already in that currency
+        : convertFromUSD(amountUSD, currencyCode);
       try {
         return new Intl.NumberFormat(currentLanguage.code, {
           style: "currency",
           currency: currencyCode,
-        }).format(amount);
+          maximumFractionDigits: currencyCode === "JPY" || currencyCode === "KRW" || currencyCode === "VND" || currencyCode === "IDR" ? 0 : 2,
+        }).format(convertedAmount);
       } catch {
         return new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
-        }).format(amount);
+        }).format(amountUSD);
       }
     },
     [currentLanguage.code]
   );
+
 
   const formatDate = useCallback(
     (date: Date): string => {
@@ -369,6 +382,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
   const value: TranslationContextType = {
     currentLanguage,
+    currentCurrency: getCurrencyForLanguage(currentLanguage.code),
     isLoading,
     changeLanguage,
     translate,
@@ -482,7 +496,56 @@ function getCurrencyForLanguage(languageCode: string): string {
     ur: "PKR",
     si: "LKR",
     ne: "NPR",
+    my: "MMK",
+    km: "KHR",
+    lo: "LAK",
+    ta: "INR",
+    te: "INR",
+    kk: "KZT",
+    ky: "KGS",
+    uz: "UZS",
   };
 
   return currencyMap[languageCode] || "USD";
+}
+
+/**
+ * Fallback USD-based exchange rates used when the live API is unreachable.
+ * These approximate rates keep pricing functional offline or during API errors.
+ */
+const FALLBACK_RATES: Record<string, number> = {
+  USD: 1, CNY: 7.25, TWD: 32.5, JPY: 149.5, KRW: 1330,
+  THB: 36.2, VND: 24500, IDR: 15800, MYR: 4.72, PHP: 56.5,
+  INR: 83.5, BDT: 110, PKR: 280, LKR: 325, NPR: 133,
+  MMK: 2100, KHR: 4100, LAK: 21000, KZT: 460, KGS: 89, UZS: 12600,
+};
+
+/**
+ * Module-level live rates cache — shared across all instances so we only
+ * fetch once per session (the API route also caches server-side for 1 hour).
+ */
+let liveRates: Record<string, number> = { ...FALLBACK_RATES };
+let ratesFetched = false;
+
+/** Fetch live exchange rates from the internal API route */
+export async function fetchExchangeRates(): Promise<void> {
+  if (ratesFetched) return;
+  try {
+    const res = await fetch("/api/exchange-rates");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.success && data.rates) {
+      liveRates = { ...FALLBACK_RATES, ...data.rates }; // merge so no currency is ever missing
+      ratesFetched = true;
+    }
+  } catch (err) {
+    console.warn("[exchange-rates] Using fallback rates:", err);
+    // liveRates already holds FALLBACK_RATES — no action needed
+  }
+}
+
+/** Convert a USD amount to the target currency using live (or fallback) rates */
+export function convertFromUSD(amountUSD: number, targetCurrency: string): number {
+  const rate = liveRates[targetCurrency] ?? 1;
+  return amountUSD * rate;
 }

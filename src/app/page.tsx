@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -97,7 +97,7 @@ const CURATED_FEED_BATCHES: FeedMaterialBatch[] = [
 
 export default function FeedHomePage() {
   const { user } = useAuth();
-  const { translateSync } = useTranslation();
+  const { translateSync, formatNumber } = useTranslation();
   const [batches, setBatches] = useState<FeedMaterialBatch[]>(CURATED_FEED_BATCHES);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
@@ -105,6 +105,49 @@ export default function FeedHomePage() {
 
   // Live Countdown state inspired by reference card element
   const [timeLeft, setTimeLeft] = useState({ days: 22, hours: 23, mins: 5, secs: 36 });
+
+  // Live kg upcycled from /api/stats
+  const [totalKgUpcycled, setTotalKgUpcycled] = useState<number | null>(null);
+  const [displayedKg, setDisplayedKg] = useState(0);
+  const animFrameRef = useRef<number | null>(null);
+
+  // Animated count-up: smoothly counts from 0 → target over ~1.5 s
+  const animateCounter = useCallback((target: number) => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    const duration = 1500;
+    const start = performance.now();
+    const step = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayedKg(Math.round(eased * target * 10) / 10);
+      if (progress < 1) animFrameRef.current = requestAnimationFrame(step);
+    };
+    animFrameRef.current = requestAnimationFrame(step);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.data?.totalKgCollected != null) {
+          const kg = data.data.totalKgCollected;
+          setTotalKgUpcycled(kg);
+          animateCounter(kg);
+        }
+      })
+      .catch(() => {
+        // Fallback: sum weightKg from the curated feed
+        const fallback = CURATED_FEED_BATCHES.reduce((s, b) => s + b.weightKg, 0);
+        setTotalKgUpcycled(fallback);
+        animateCounter(fallback);
+      });
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -322,7 +365,7 @@ export default function FeedHomePage() {
                 </div>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
                   <div className="bg-[#F4F8F5] p-3.5 rounded-xl border border-[#D8E6DC]">
                     <span className="text-[9px] uppercase tracking-wider font-bold text-[#5B8870] block">
                       BIOMASS DIVERTED
@@ -338,6 +381,27 @@ export default function FeedHomePage() {
                     </span>
                     <span className="text-lg font-bold text-[#1E4D34] font-mono-data">
                       48 <span className="text-xs font-normal text-[#2E6B4A]">UNITS</span>
+                    </span>
+                  </div>
+
+                  {/* Live Total KG Upcycled counter */}
+                  <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-[#E8F3ED] to-[#F4F8F5] p-3.5 rounded-xl border border-[#BDE0CB] relative overflow-hidden">
+                    {/* live pulse dot */}
+                    <div className="flex items-center space-x-1.5 mb-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#2E6B4A] animate-ping flex-shrink-0" />
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-[#2E6B4A] block">
+                        KG UPCYCLED
+                      </span>
+                    </div>
+                    <span className="text-lg font-bold text-[#1E4D34] font-mono-data tabular-nums">
+                      {totalKgUpcycled === null ? (
+                        <span className="animate-pulse text-[#5B8870]">—</span>
+                      ) : (
+                        <>
+                          {formatNumber(displayedKg)}
+                          <span className="text-xs font-normal text-[#2E6B4A] ml-1">KG</span>
+                        </>
+                      )}
                     </span>
                   </div>
                 </div>

@@ -29,7 +29,7 @@ interface FeedCardProps {
 
 export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
   const { addToCart } = useCart();
-  const { formatCurrency, formatNumber, translateSync } = useTranslation();
+  const { formatCurrency, formatNumber, translateSync, currentCurrency } = useTranslation();
 
   const handleReserve = () => {
     addToCart({
@@ -110,7 +110,7 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
         <span className="font-display text-xl font-medium text-[#7D5A3C]">
           {formatCurrency(batch.price)}{" "}
           <span className="text-xs font-sans font-normal text-[var(--text-muted)]">
-            USD
+            {currentCurrency}
           </span>
         </span>
       </div>
