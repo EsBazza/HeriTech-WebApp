@@ -2,8 +2,30 @@
 import { TranslationRequest, TranslationResponse, BatchTranslationRequest, BatchTranslationResponse } from './google-translate';
 
 // Mock translations for common Asian languages
-const MOCK_TRANSLATIONS: Record<string, Record<string, string>> = {
+export const MOCK_TRANSLATIONS: Record<string, Record<string, string>> = {
   'zh-CN': {
+    'Preserving Culture Through Circular Innovation': '通过循环创新传承文化',
+    'Authentic Upcycled Goods Across Pan-Asia, Powered by Google': '泛亚认证升级改造工艺品，由 Google 技术支持',
+    'We upcycle post-festival materials into certified heritage crafts throughout the Pan-Asian region. Every item features digital proof of origin and automated financial splits to ensure artisans and partners are paid fairly.': '我们将泛亚地区的节后回收材料升级改造为认证遗产手工艺品。每件作品均附带数字产地证明与自动化财务分配，确保工匠与合作伙伴获得公平报酬。',
+    'PARTNERED WITH': '合作伙伴',
+    'University of the Assumption': '圣母大学',
+    'City of San Fernando, Pampanga': '圣费尔南多市，彭亨邦',
+    'LIVE PROVENANCE LEDGER': '实时溯源账本',
+    'AUTOMATED DISBURSEMENT ENGINE': '自动化拨款引擎',
+    '100% TRANSPARENT': '100% 透明',
+    'Artisans': '工匠',
+    'Municipal NGO': '市政 NGO',
+    'Protocol': '协议',
+    'BIOMASS DIVERTED': '回收生物质',
+    'TONS': '吨',
+    'ACTIVE COOPERATIVES': '活跃合作社',
+    'UNITS': '个',
+    'KG UPCYCLED': '已升级改造 KG',
+    'GOOGLE WALLET COMPATIBLE': '兼容 GOOGLE 钱包',
+    '100% VERIFIED': '100% 认证',
+    '70% Artisan Direct Payout': '70% 工匠直接分红',
+    '15% LGU Cleanup Trust': '15% 市政清理基金',
+    '15% Protocol': '15% 协议支出',
     'Marketplace': '集市',
     'Global Impact': '全球影响力',
     'Impact Ledger': '影响账本',

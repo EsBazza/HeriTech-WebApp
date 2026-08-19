@@ -5,13 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "@/contexts/TranslationContext";
 import {
-  ShieldCheck,
-  Cpu,
-  Globe2,
-  Award,
   Mail,
   Send,
-  MessageCircle,
   HelpCircle,
   FileText,
   Share2,
@@ -33,129 +28,6 @@ export function Footer() {
 
   return (
     <div className="w-full">
-      {/* ── PRE-FOOTER: IMPACT & TRUST SECTION ── */}
-      <section className="bg-[#FAF8F5] border-t border-[#E6E2D8] py-14 px-6 sm:px-8 lg:px-12">
-        <div className="max-w-7xl mx-auto space-y-10">
-          
-          {/* Projected Impact Banner */}
-          <div className="bg-white border border-[#E6E2D8] rounded-3xl p-6 sm:p-8 shadow-sm">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#F0ECE1]">
-              <div>
-                <span className="text-[10px] uppercase font-mono-data font-bold tracking-[0.2em] text-[#1A6B3A] block">
-                  {translateSync("OUR IMPACT")}
-                </span>
-              </div>
-              <span className="text-[11px] font-bold text-[#1A6B3A] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 self-start md:self-auto">
-                {translateSync("Projected Regional Impact")}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-extrabold font-mono-data text-[#1A6B3A]">
-                  <span>♻</span>
-                  <span>12,450+</span>
-                  <span className="text-xs font-normal text-gray-500">kg</span>
-                </div>
-                <p className="text-xs text-gray-600 font-medium leading-normal">
-                  {translateSync("Materials diverted from Asian landfills")}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-extrabold font-mono-data text-[#1A6B3A]">
-                  <span>🧑‍🎨</span>
-                  <span>320+</span>
-                </div>
-                <p className="text-xs text-gray-600 font-medium leading-normal">
-                  {translateSync("Artisans supported across cooperatives")}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-extrabold font-mono-data text-[#1A6B3A]">
-                  <span>🏛</span>
-                  <span>18</span>
-                </div>
-                <p className="text-xs text-gray-600 font-medium leading-normal">
-                  {translateSync("Community & municipal partners")}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-extrabold font-mono-data text-[#1A6B3A]">
-                  <span>🌱</span>
-                  <span>2,400+</span>
-                </div>
-                <p className="text-xs text-gray-600 font-medium leading-normal">
-                  {translateSync("Trees funded via watershed trusts")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Why HeriTech Trust Cards Strip */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-2 shadow-sm">
-              <div className="flex items-center space-x-2.5 text-[#1A6B3A]">
-                <div className="p-2 rounded-xl bg-emerald-50 text-[#1A6B3A]">
-                  <Cpu className="w-5 h-5 shrink-0" />
-                </div>
-                <span className="font-extrabold text-sm text-gray-900">
-                  {translateSync("Fair Value Distribution")}
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-gray-600">
-                {translateSync("Guaranteed 70% Artisan / 20% LGU Municipal Trust / 10% Watershed NGO revenue split.")}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-2 shadow-sm">
-              <div className="flex items-center space-x-2.5 text-[#1A6B3A]">
-                <div className="p-2 rounded-xl bg-emerald-50 text-[#1A6B3A]">
-                  <ShieldCheck className="w-5 h-5 shrink-0" />
-                </div>
-                <span className="font-extrabold text-sm text-gray-900">
-                  {translateSync("Verifiable Heritage")}
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-gray-600">
-                {translateSync("Google Wallet Digital Origin Passes & Badges secured via cryptographic SHA-256 batch hashes.")}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-2 shadow-sm">
-              <div className="flex items-center space-x-2.5 text-[#1A6B3A]">
-                <div className="p-2 rounded-xl bg-emerald-50 text-[#1A6B3A]">
-                  <Globe2 className="w-5 h-5 shrink-0" />
-                </div>
-                <span className="font-extrabold text-sm text-gray-900">
-                  {translateSync("Built for Communities")}
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-gray-600">
-                {translateSync("Seamless multi-language regional access supporting English, Tagalog, Thai, Hindi, and more.")}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-2 shadow-sm">
-              <div className="flex items-center space-x-2.5 text-[#1A6B3A]">
-                <div className="p-2 rounded-xl bg-emerald-50 text-[#1A6B3A]">
-                  <Award className="w-5 h-5 shrink-0" />
-                </div>
-                <span className="font-extrabold text-sm text-gray-900">
-                  {translateSync("Trusted Partnerships")}
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-gray-600">
-                {translateSync("Developed in partnership with EDUtech ASIA and University of the Assumption.")}
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
       {/* ── FOOTER: NAVIGATION, COMPLIANCE, TECH BADGES & ESSENTIAL LINKS ── */}
       <footer className="bg-[#122B1E] text-white border-t border-[#1F4732] pb-16 pt-14">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-12">

@@ -17,6 +17,7 @@ import {
   getLanguageByCode,
   type Language,
 } from "@/lib/languages";
+import { MOCK_TRANSLATIONS } from "@/lib/translation/mock-translate";
 
 interface TranslationContextType {
   currentLanguage: Language;
@@ -185,11 +186,13 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
         if (langCode !== "en") {
           const loaded = loadCacheFromStorage(langCode);
           if (!loaded) {
-            await batchTranslate(langCode);
-            saveCacheToStorage(langCode);
-          } else {
-            setCacheVersion((v) => v + 1);
+            const localDict = MOCK_TRANSLATIONS[langCode];
+            if (localDict) {
+              Object.entries(localDict).forEach(([k, v]) => globalCache.set(k, v));
+            }
+            batchTranslate(langCode).then(() => saveCacheToStorage(langCode));
           }
+          setCacheVersion((v) => v + 1);
         }
       } catch (error) {
         console.error("Failed to initialize language:", error);
@@ -204,7 +207,6 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
   const changeLanguage = useCallback(
     async (languageCode: string): Promise<void> => {
-      setIsLoading(true);
       try {
         const language = getLanguageByCode(languageCode);
         if (!language) {
@@ -225,20 +227,29 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
           sessionStorage.removeItem(CACHE_LANG_KEY);
         }
 
+        // Hydrate instant local translations synchronously
+        const localDict = MOCK_TRANSLATIONS[language.code];
+        if (localDict) {
+          Object.entries(localDict).forEach(([k, v]) => globalCache.set(k, v));
+        }
+
+        // Instantly notify components so UI updates in 0ms without waiting for network requests
+        setCacheVersion((v) => v + 1);
+        setIsLoading(false);
+
+        // Fetch any un-cached strings in the background without blocking the UI
         if (language.code !== "en") {
-          await batchTranslate(language.code);
-          saveCacheToStorage(language.code);
-        } else {
-          setCacheVersion((v) => v + 1);
+          batchTranslate(language.code).then(() => {
+            saveCacheToStorage(language.code);
+          });
         }
       } catch (error) {
         console.error("Failed to change language:", error);
-        throw error;
-      } finally {
         setIsLoading(false);
+        throw error;
       }
     },
-    [batchTranslate, loadCacheFromStorage, saveCacheToStorage]
+    [batchTranslate, saveCacheToStorage]
   );
 
   /** Synchronous translation lookup: returns cached value or original text */

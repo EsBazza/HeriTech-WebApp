@@ -50,22 +50,20 @@ export function LanguageSelector({
     }
   }, [isOpen]);
 
-  const handleLanguageChange = async (languageCode: string) => {
+  const handleLanguageChange = (languageCode: string) => {
     if (languageCode === currentLanguage.code) {
       setIsOpen(false);
       return;
     }
 
-    setIsChanging(true);
-    try {
-      await changeLanguage(languageCode);
-      setIsOpen(false);
-      setSearchTerm('');
-    } catch (error) {
+    // Instantly close the dropdown menu so the UI responds in 0ms
+    setIsOpen(false);
+    setSearchTerm('');
+
+    // Trigger instant language change in context
+    changeLanguage(languageCode).catch((error) => {
       console.error('Failed to change language:', error);
-    } finally {
-      setIsChanging(false);
-    }
+    });
   };
 
   // Filter languages based on search term

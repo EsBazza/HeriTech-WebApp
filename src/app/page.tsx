@@ -290,23 +290,23 @@ export default function FeedHomePage() {
                     </h1>
                   </div>
                   <p className="text-xs sm:text-sm uppercase tracking-[0.18em] font-extrabold text-[#2E6B4A] pt-1 text-center lg:text-left">
-                    Preserving Culture Through Circular Innovation
+                    {translateSync("Preserving Culture Through Circular Innovation")}
                   </p>
                 </div>
 
                 <div className="space-y-1.5 pt-1 max-w-xl text-center lg:text-left mx-auto lg:mx-0">
                   <p className="text-sm sm:text-base font-bold text-[#143826]">
-                    Authentic Upcycled Goods Across Pan-Asia, Powered by Google
+                    {translateSync("Authentic Upcycled Goods Across Pan-Asia, Powered by Google")}
                   </p>
                   <p className="text-sm sm:text-base text-[#2B523E] leading-relaxed font-body font-medium">
-                    We upcycle post-festival materials into certified heritage crafts throughout the Pan-Asian region. Every item features digital proof of origin and automated financial splits to ensure artisans and partners are paid fairly.
+                    {translateSync("We upcycle post-festival materials into certified heritage crafts throughout the Pan-Asian region. Every item features digital proof of origin and automated financial splits to ensure artisans and partners are paid fairly.")}
                   </p>
                 </div>
 
                 {/* Partnered With Section with Clean Background-Free Partner Logos */}
                 <div className="pt-5 border-t border-[#D5E6DC] max-w-xl w-full text-center lg:text-left">
                   <span className="text-[10px] uppercase font-extrabold tracking-[0.2em] text-[#5B8870] block mb-3 text-center lg:text-left">
-                    PARTNERED WITH
+                    {translateSync("PARTNERED WITH")}
                   </span>
                   <div className="flex items-center justify-center lg:justify-start space-x-6 sm:space-x-8 flex-wrap gap-y-4">
                     
@@ -339,10 +339,10 @@ export default function FeedHomePage() {
                       </div>
                       <div className="text-left">
                         <span className="text-sm sm:text-base font-extrabold uppercase text-[#1E4D34] block leading-tight tracking-wide">
-                          University of the Assumption
+                          {translateSync("University of the Assumption")}
                         </span>
                         <span className="text-xs font-bold text-[#5B8870] block pt-1">
-                          City of San Fernando, Pampanga
+                          {translateSync("City of San Fernando, Pampanga")}
                         </span>
                       </div>
                     </div>
@@ -361,36 +361,36 @@ export default function FeedHomePage() {
                 {/* Card Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-[#E4EFE7]">
                   <span className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#1E4D34]">
-                    LIVE PROVENANCE LEDGER
+                    {translateSync("LIVE PROVENANCE LEDGER")}
                   </span>
                 </div>
 
                 {/* 70 / 15 / 15 Financial Escrow Breakdown */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-[#2B523E]">
-                    <span>AUTOMATED DISBURSEMENT ENGINE</span>
-                    <span className="text-[#2E6B4A]">100% TRANSPARENT</span>
+                    <span>{translateSync("AUTOMATED DISBURSEMENT ENGINE")}</span>
+                    <span className="text-[#2E6B4A]">{translateSync("100% TRANSPARENT")}</span>
                   </div>
                   
                   {/* Progress Bar */}
                   <div className="h-2.5 w-full rounded-full bg-[#E4EFE7] overflow-hidden flex border border-[#C5DCD0]">
-                    <div className="h-full bg-[#2E6B4A] w-[70%]" title="70% Artisan Direct Payout" />
-                    <div className="h-full bg-[#3A7B59] w-[15%]" title="15% LGU Cleanup Trust" />
-                    <div className="h-full bg-[#C49B48] w-[15%]" title="15% Protocol" />
+                    <div className="h-full bg-[#2E6B4A] w-[70%]" title={translateSync("70% Artisan Direct Payout")} />
+                    <div className="h-full bg-[#3A7B59] w-[15%]" title={translateSync("15% LGU Cleanup Trust")} />
+                    <div className="h-full bg-[#C49B48] w-[15%]" title={translateSync("15% Protocol")} />
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 pt-1 text-center">
                     <div className="bg-[#E8F3ED]/80 p-2.5 rounded-lg border border-[#C5DCD0]">
                       <span className="block text-sm font-bold text-[#1E4D34] font-mono-data">70%</span>
-                      <span className="text-[9px] uppercase font-semibold text-[#2B523E]">Artisans</span>
+                      <span className="text-[9px] uppercase font-semibold text-[#2B523E]">{translateSync("Artisans")}</span>
                     </div>
                     <div className="bg-[#E4F2E9]/80 p-2.5 rounded-lg border border-[#BDE0CB]">
                       <span className="block text-sm font-bold text-[#2E6B4A] font-mono-data">15%</span>
-                      <span className="text-[9px] uppercase font-semibold text-[#2B523E]">Municipal NGO</span>
+                      <span className="text-[9px] uppercase font-semibold text-[#2B523E]">{translateSync("Municipal NGO")}</span>
                     </div>
                     <div className="bg-[#FAF3E6]/80 p-2.5 rounded-lg border border-[#EADBBD]">
                       <span className="block text-sm font-bold text-[#A67E2E] font-mono-data">15%</span>
-                      <span className="text-[9px] uppercase font-semibold text-[#664D18]">Protocol</span>
+                      <span className="text-[9px] uppercase font-semibold text-[#664D18]">{translateSync("Protocol")}</span>
                     </div>
                   </div>
                 </div>
@@ -399,29 +399,29 @@ export default function FeedHomePage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
                   <div className="bg-[#F4F8F5] p-3.5 rounded-xl border border-[#D8E6DC]">
                     <span className="text-[9px] uppercase tracking-wider font-bold text-[#5B8870] block">
-                      BIOMASS DIVERTED
+                      {translateSync("BIOMASS DIVERTED")}
                     </span>
                     <span className="text-lg font-bold text-[#1E4D34] font-mono-data">
-                      14.8 <span className="text-xs font-normal text-[#2E6B4A]">TONS</span>
+                      14.8 <span className="text-xs font-normal text-[#2E6B4A]">{translateSync("TONS")}</span>
                     </span>
                   </div>
 
                   <div className="bg-[#F4F8F5] p-3.5 rounded-xl border border-[#D8E6DC]">
                     <span className="text-[9px] uppercase tracking-wider font-bold text-[#5B8870] block">
-                      ACTIVE COOPERATIVES
+                      {translateSync("ACTIVE COOPERATIVES")}
                     </span>
                     <span className="text-lg font-bold text-[#1E4D34] font-mono-data">
-                      48 <span className="text-xs font-normal text-[#2E6B4A]">UNITS</span>
+                      48 <span className="text-xs font-normal text-[#2E6B4A]">{translateSync("UNITS")}</span>
                     </span>
                   </div>
 
                   {/* Live Total KG Upcycled counter */}
-                  <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-[#E8F3ED] to-[#F4F8F5] p-3.5 rounded-xl border border-[#BDE0CB] relative overflow-hidden">
+                  <div className="col-span-2 sm:col-span-1 bg-[#E8F3ED] p-3.5 rounded-xl border border-[#BDE0CB] relative overflow-hidden">
                     {/* live pulse dot */}
                     <div className="flex items-center space-x-1.5 mb-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#2E6B4A] animate-ping flex-shrink-0" />
                       <span className="text-[9px] uppercase tracking-wider font-bold text-[#2E6B4A] block">
-                        KG UPCYCLED
+                        {translateSync("KG UPCYCLED")}
                       </span>
                     </div>
                     <span className="text-lg font-bold text-[#1E4D34] font-mono-data tabular-nums">
@@ -439,8 +439,8 @@ export default function FeedHomePage() {
 
                 {/* Subtext */}
                 <div className="pt-2 border-t border-[#E4EFE7] flex items-center justify-between text-[9px] font-bold text-[#5B8870] uppercase tracking-widest">
-                  <span>GOOGLE WALLET COMPATIBLE</span>
-                  <span className="text-[#2E6B4A]">100% VERIFIED</span>
+                  <span>{translateSync("GOOGLE WALLET COMPATIBLE")}</span>
+                  <span className="text-[#2E6B4A]">{translateSync("100% VERIFIED")}</span>
                 </div>
 
               </div>
