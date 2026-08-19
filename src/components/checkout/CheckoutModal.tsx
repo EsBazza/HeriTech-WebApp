@@ -35,7 +35,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
   const checkoutItems = directProduct ? [directProduct] : items;
   const totalPrice = checkoutItems.reduce((acc, item) => acc + item.price, 0);
-  const totalKg = checkoutItems.reduce((acc, item) => acc + item.kgDiverted, 0);
+  const totalKg = checkoutItems.reduce((acc, item) => acc + (item.kgDiverted || 0), 0);
   const escrow = calculateEscrowSplit(totalPrice);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);

@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import { CartProvider } from "@/components/cart/CartContext";
+import { CartProvider } from "@/context/CartContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
-import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { FloatingBubble } from "@/components/FloatingBubble";
+import { BottomTabBar } from "@/components/BottomTabBar";
 
 export const metadata: Metadata = {
   title: "HeriTech: Pan-Asian Circular Origin Ledger",
   description:
-    "Intercepting festival waste across Asia with Google Gemini AI, coordinating with certified artisans, and issuing verifiable Google Wallet Impact Passes.",
+    "Recovering festival materials across Asia, coordinating with certified artisan cooperatives, and tracking transparent escrow disbursements.",
 };
 
 export default function RootLayout({
@@ -28,14 +29,15 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-[var(--cream)] text-[var(--bark)] antialiased font-body">
+      <body className="min-h-screen flex flex-col bg-[var(--cream)] text-[var(--bark)] antialiased font-body pb-16 md:pb-0">
         <TranslationProvider>
           <AuthProvider>
             <CartProvider>
               <Navbar />
               <main className="flex-grow">{children}</main>
-              <CartDrawer />
               <Footer />
+              <FloatingBubble />
+              <BottomTabBar />
             </CartProvider>
           </AuthProvider>
         </TranslationProvider>

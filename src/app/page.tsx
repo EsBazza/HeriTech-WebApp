@@ -1,282 +1,349 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { MaterialCard, MaterialProduct } from "@/components/MaterialCard";
-import { Search, Sparkles, Loader2 } from "lucide-react";
+import { FeedCard, FeedMaterialBatch } from "@/components/FeedCard";
+import { userRole } from "@/lib/roleGuard";
 
-// Curated Fallback Products for Demo Resilience
-const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
+const CURATED_FEED_BATCHES: FeedMaterialBatch[] = [
   {
-    id: "prod_demo_01",
+    id: "batch_01",
     title: "Panagbenga Botanical Loom Wall Tapestry",
-    description: "Handcrafted from highland bamboo and sun-dried floral clusters salvaged from float sculptures in Baguio City.",
+    description:
+      "Salvaged highland bolo bamboo and sun-dried strawflowers from Baguio City float sculptures. Hand-woven into archival wall decor.",
     price: 68.0,
-    images: ["https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800"],
-    materialTags: ["Bamboo", "Botanical Flora", "Highland Loom"],
-    stock: 4,
-    kgDiverted: 2.4,
-    ngoFundName: "Cordillera Ancestral Watershed Trust",
-    artisan: {
-      fullName: "Danilo Cruz",
-      workshopName: "Cordillera Botanical Cooperative",
-      country: "Philippines",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0101",
-      materialType: "Highland Bolo Bamboo & Strawflower",
-      condition: "Pristine & Dry",
-      agreement: {
-        festival: "Panagbenga Festival",
-        country: "Philippines",
-      },
-    },
+    weightKg: 2.4,
+    image: "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800",
+    cooperativeName: "Cordillera Botanical Cooperative",
+    region: "Baguio City",
+    country: "Philippines",
+    materialType: "Highland Bolo Bamboo",
+    festival: "Panagbenga Festival",
   },
   {
-    id: "prod_demo_02",
+    id: "batch_02",
     title: "Yi Peng Luminary Ambient Table Lamp",
-    description: "Constructed with split bamboo frames and mulberry rice paper recovered post-celebration in Chiang Mai.",
+    description:
+      "Constructed with split bamboo frames and mulberry rice paper recovered post-celebration along the Ping River in Chiang Mai.",
     price: 85.0,
-    images: ["https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"],
-    materialTags: ["Bamboo", "Rice Paper", "Mulberry Fiber"],
-    stock: 3,
-    kgDiverted: 1.8,
-    ngoFundName: "Ping River Aquatic Ecology Trust",
-    artisan: {
-      fullName: "Somchai Prasert",
-      workshopName: "Lanna Heritage Joinery",
-      country: "Thailand",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0102",
-      materialType: "Split Bamboo & Mulberry Paper",
-      condition: "Intact & Wire-Free",
-      agreement: {
-        festival: "Yi Peng Lantern Festival",
-        country: "Thailand",
-      },
-    },
+    weightKg: 1.8,
+    image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
+    cooperativeName: "Lanna Heritage Joinery",
+    region: "Chiang Mai",
+    country: "Thailand",
+    materialType: "Mulberry Rice Paper & Bamboo",
+    festival: "Yi Peng Lantern Festival",
   },
   {
-    id: "prod_demo_03",
+    id: "batch_03",
     title: "Temple Nirmalaya Artisanal Watercolor Pigment Set",
-    description: "Extracted from ceremonial marigolds and rose garland biomass. Solar-dried and milled into archival watercolor pans.",
+    description:
+      "Extracted from ceremonial marigolds and rose garland biomass. Solar-dried and milled into archival watercolor half-pans.",
     price: 45.0,
-    images: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800"],
-    materialTags: ["Botanical Flora", "Natural Pigment", "Organic Marigold"],
-    stock: 8,
-    kgDiverted: 3.5,
-    ngoFundName: "Ganges River Clean Water Foundation",
-    artisan: {
-      fullName: "Aarav Sharma",
-      workshopName: "Nirmalaya Bio-Craft Collective",
-      country: "India",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0103",
-      materialType: "Temple Nirmalaya Floral Biomass",
-      condition: "Organic Rich Pigment",
-      agreement: {
-        festival: "Ganesh Chaturthi",
-        country: "India",
-      },
-    },
+    weightKg: 3.5,
+    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800",
+    cooperativeName: "Nirmalaya Bio-Craft Collective",
+    region: "Varanasi",
+    country: "India",
+    materialType: "Ceremonial Floral Biomass",
+    festival: "Ganesh Chaturthi",
   },
   {
-    id: "prod_demo_04",
+    id: "batch_04",
     title: "Pingxi Repulped Botanical Accordion Journal",
-    description: "Recycled long-fiber lantern sheets reconstituted with indigenous fern inclusions and unbleached cotton cord.",
+    description:
+      "Recycled long-fiber lantern sheets reconstituted with indigenous fern inclusions and unbleached cotton binding cord.",
     price: 38.0,
-    images: ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800"],
-    materialTags: ["Rice Paper", "Mulberry Paper", "Recycled Fiber"],
-    stock: 6,
-    kgDiverted: 1.2,
-    ngoFundName: "Taiwan Mountain Forest Trust",
-    artisan: {
-      fullName: "Lin Wei-Ting",
-      workshopName: "Pingxi Sustainable Papermaking",
-      country: "Taiwan",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0104",
-      materialType: "Mulberry Lantern Paper",
-      condition: "Clean & Sun-Dried",
-      agreement: {
-        festival: "Pingxi Lantern Festival",
-        country: "Taiwan",
-      },
-    },
+    weightKg: 1.2,
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
+    cooperativeName: "Pingxi Sustainable Papermaking",
+    region: "New Taipei",
+    country: "Taiwan",
+    materialType: "Mulberry Lantern Paper",
+    festival: "Pingxi Lantern Festival",
+  },
+  {
+    id: "batch_05",
+    title: "Sinulog Festival Upcycled Abaca Bunting Tote",
+    description:
+      "Heavy-duty abaca fiber strips and ceremonial banner textiles repurposed into reinforced market bags.",
+    price: 52.0,
+    weightKg: 2.1,
+    image: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800",
+    cooperativeName: "Cebu Ancestral Weavers Cooperative",
+    region: "Cebu City",
+    country: "Philippines",
+    materialType: "Abaca Fiber & Banner Textile",
+    festival: "Sinulog Festival",
   },
 ];
 
-export default function MarketplacePage() {
+const ACTIVE_REGIONS = [
+  { name: "Cordillera (Philippines)", batches: 12, kg: "340 kg" },
+  { name: "Chiang Mai (Thailand)", batches: 8, kg: "210 kg" },
+  { name: "Varanasi (India)", batches: 15, kg: "480 kg" },
+  { name: "New Taipei (Taiwan)", batches: 6, kg: "135 kg" },
+  { name: "Cebu (Philippines)", batches: 9, kg: "195 kg" },
+];
+
+const RECENT_COOPERATIVES = [
+  "Cordillera Botanical Cooperative",
+  "Lanna Heritage Joinery",
+  "Nirmalaya Bio-Craft Collective",
+  "Pingxi Sustainable Papermaking",
+  "Cebu Ancestral Weavers Cooperative",
+];
+
+export default function FeedHomePage() {
+  const pathname = usePathname();
   const { user } = useAuth();
   const { translateSync } = useTranslation();
-  const [products, setProducts] = useState<MaterialProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedTag, setSelectedTag] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [batches, setBatches] = useState<FeedMaterialBatch[]>(CURATED_FEED_BATCHES);
+  const [loading, setLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(4);
 
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const res = await fetch("/api/products");
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          setProducts(data.data);
-        } else {
-          setProducts(CURATED_DEMO_PRODUCTS);
-        }
-      } catch (err) {
-        console.warn("Using fallback products:", err);
-        setProducts(CURATED_DEMO_PRODUCTS);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts();
-  }, []);
+  const role = userRole(user);
 
-  const allTags = [
-    "All",
-    "Bamboo",
-    "Botanical Flora",
-    "Rice Paper",
-    "Mulberry Paper",
-    "Philippines",
-    "Thailand",
-    "India",
+  const navLinks = [
+    {
+      name: "Home",
+      href: "/",
+      icon: (active: boolean) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"
+            stroke={active ? "#7D5A3C" : "#5C4A38"}
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: "Harvest Map",
+      href: "/map",
+      icon: (active: boolean) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 21s-7-5.5-7-11.5a7 7 0 1 1 14 0C19 15.5 12 21 12 21z"
+            stroke={active ? "#7D5A3C" : "#5C4A38"}
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="12"
+            cy="9.5"
+            r="2.5"
+            stroke={active ? "#7D5A3C" : "#5C4A38"}
+            strokeWidth="1.75"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: "Impact Ledger",
+      href: "/impact",
+      icon: (active: boolean) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M18 20V10M12 20V4M6 20v-6"
+            stroke={active ? "#7D5A3C" : "#5C4A38"}
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: "Profile",
+      href: "/profile",
+      icon: (active: boolean) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+            stroke={active ? "#7D5A3C" : "#5C4A38"}
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="12"
+            cy="7"
+            r="4"
+            stroke={active ? "#7D5A3C" : "#5C4A38"}
+            strokeWidth="1.75"
+          />
+        </svg>
+      ),
+    },
   ];
 
-  const displayProducts = products.length > 0 ? products : CURATED_DEMO_PRODUCTS;
-
-  const filteredProducts = displayProducts.filter((p) => {
-    if (searchQuery.trim().length > 0) {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = p.title.toLowerCase().includes(q);
-      const matchDesc = p.description ? p.description.toLowerCase().includes(q) : false;
-      const matchArtisan = p.artisan?.fullName ? p.artisan.fullName.toLowerCase().includes(q) : false;
-      const matchFestival = p.sourceBatch?.agreement?.festival?.toLowerCase().includes(q);
-      if (!matchTitle && !matchDesc && !matchArtisan && !matchFestival) return false;
-    }
-
-    if (selectedTag === "All") return true;
-    if (selectedTag === "Philippines") return p.sourceBatch?.agreement?.country === "Philippines";
-    if (selectedTag === "Thailand") return p.sourceBatch?.agreement?.country === "Thailand";
-    if (selectedTag === "India") return p.sourceBatch?.agreement?.country === "India";
-    return (
-      p.materialTags?.some((tag) => tag.toLowerCase().includes(selectedTag.toLowerCase())) ||
-      p.sourceBatch?.materialType?.toLowerCase().includes(selectedTag.toLowerCase())
-    );
-  });
-
   return (
-    <div className="w-full flex flex-col">
-      {/* Marketplace & Certified Goods Grid */}
-      <section
-        id="marketplace-grid"
-        className="section-main w-full py-10 sm:py-14 px-5 sm:px-12"
-      >
-        <div className="max-w-7xl mx-auto space-y-8 sm:space-y-10">
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2 max-w-xl">
-              <div className="flex items-center space-x-2">
-                <span className="w-5 h-[1.5px] bg-[#3E7B5C] inline-block" />
-                <span className="text-[11px] uppercase tracking-[0.14em] text-[#3E7B5C] font-bold">
-                  {translateSync("AVAILABLE CRAFT PIECES")}
+    <div className="w-full min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex justify-center lg:justify-between gap-8 items-start">
+          {/* ==================================================== */}
+          {/* 1. LEFT SIDEBAR (Desktop Only: 240px Fixed)          */}
+          {/* ==================================================== */}
+          <aside className="hidden lg:flex flex-col justify-between w-[240px] sticky top-24 h-[calc(100vh-8rem)] shrink-0 pr-4 border-r border-[rgba(125,90,60,0.12)]">
+            <div className="space-y-6">
+              {/* Brand Header */}
+              <Link href="/" className="flex items-center space-x-2.5 group">
+                <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[rgba(125,90,60,0.2)] bg-[#3D2B1F] flex items-center justify-center">
+                  <Image
+                    src="/logo heritech.png"
+                    alt="HeriTech Logo"
+                    width={36}
+                    height={36}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = "none";
+                    }}
+                  />
+                </div>
+                <span className="font-display text-2xl font-semibold text-[#2E1E12] tracking-tight">
+                  HeriTech
                 </span>
+              </Link>
+
+              {/* Vertical Nav Links */}
+              <nav className="space-y-1">
+                {navLinks.map((link) => {
+                  const isActive =
+                    link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+                  return (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      className={`flex items-center space-x-3 px-3 py-2.5 rounded-[4px] text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-[rgba(125,90,60,0.1)] text-[#7D5A3C] font-bold"
+                          : "text-[var(--text-body)] hover:bg-[rgba(125,90,60,0.05)] hover:text-[#7D5A3C]"
+                      }`}
+                    >
+                      {link.icon(isActive)}
+                      <span>{link.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* User Identity Card at Bottom */}
+            <div className="pt-4 border-t border-[rgba(125,90,60,0.12)]">
+              {user ? (
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#7D5A3C] text-[#EDE0C4] flex items-center justify-center font-bold text-xs shrink-0">
+                    {user.fullName?.slice(0, 2).toUpperCase() || "HT"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-[#2E1E12] truncate">
+                      {user.fullName || "User"}
+                    </p>
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-[#7D5A3C] bg-[rgba(125,90,60,0.1)] px-1.5 py-0.2 rounded-[1px]">
+                      {role}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href="/profile"
+                  className="block text-center py-2 text-xs font-bold uppercase tracking-wider text-[#7D5A3C] border border-[#7D5A3C]/40 rounded-[2px] hover:bg-[#7D5A3C] hover:text-[#EDE0C4] transition-colors"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+          </aside>
+
+          {/* ==================================================== */}
+          {/* 2. CENTER SOCIAL FEED (Max 640px, Centered)          */}
+          {/* ==================================================== */}
+          <main className="w-full max-w-[640px] space-y-6">
+            {/* Feed Subtitle / Filter Row */}
+            <div className="flex items-center justify-between pb-2 border-b border-[rgba(125,90,60,0.12)]">
+              <div>
+                <h1 className="font-display text-2xl sm:text-3xl font-medium text-[var(--text-heading)]">
+                  Material Harvest Feed
+                </h1>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                  Verified salvage batches ready for artisan craft transformation
+                </p>
               </div>
-              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium text-[var(--text-heading)] tracking-tight">
-                Handmade from festival salvage
-              </h1>
-              <p className="font-body text-[13px] sm:text-sm text-[var(--text-body)] leading-relaxed">
-                {translateSync(
-                  "Each piece is made by local artisan cooperatives using salvaged ceremonial materials."
-                )}
-              </p>
+
+              {role !== "guest" && (
+                <span className="text-[11px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-[2px] bg-[rgba(46,90,68,0.1)] text-[#2E5A44]">
+                  {role} view
+                </span>
+              )}
             </div>
 
-            {/* Quick Stats Pill */}
-            <div className="flex items-center space-x-2 text-xs text-[#3E7B5C] font-mono-data bg-[rgba(255,255,255,0.85)] px-3.5 py-2 rounded-[2px] border border-[var(--border-light)] self-start md:self-auto font-bold min-h-[44px] shadow-xs">
-              <Sparkles className="w-4 h-4 text-[#3E7B5C]" />
-              <span>
-                {filteredProducts.length} {translateSync("Pieces available")}
-              </span>
-            </div>
-          </div>
-
-          {/* Search & Tag Filter Bar */}
-          <div className="space-y-4 pt-2">
-            {/* Search Input */}
-            <div className="relative max-w-md">
-              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={translateSync("Search by festival, material, or artisan...")}
-                className="w-full pl-10 pr-4 py-3 rounded-[2px] bg-[rgba(255,255,255,0.88)] border border-[var(--border-mid)] text-sm text-[var(--text-heading)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#3E7B5C] transition-colors min-h-[44px]"
-              />
-            </div>
-
-            {/* Filter Tags */}
-            <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
-              {allTags.map((tag) => {
-                const active = selectedTag === tag;
-                return (
-                  <button
-                    key={tag}
-                    onClick={() => setSelectedTag(tag)}
-                    className={`px-3.5 py-2 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[44px] ${
-                      active
-                        ? "bg-[#3E7B5C] text-[#F4F7F4] border border-[#3E7B5C]"
-                        : "bg-[rgba(255,255,255,0.85)] text-[var(--text-body)] hover:text-[#3E7B5C] hover:bg-white border border-[var(--border-light)] shadow-xs"
-                    }`}
-                  >
-                    {translateSync(tag)}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Product Cards Grid: 3-Col Desktop, 2-Col Tablet, 1-Col Mobile */}
-          {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-3">
-              <Loader2 className="w-8 h-8 text-[#3E7B5C] animate-spin" />
-              <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-mono-data">
-                {translateSync("Loading material catalog...")}
-              </p>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="p-12 text-center border border-[var(--border-light)] rounded-[4px] bg-[rgba(255,255,255,0.8)] space-y-3">
-              <p className="font-display text-xl text-[var(--text-heading)] font-medium">
-                {translateSync("No matching items found")}
-              </p>
-              <p className="text-[13px] text-[var(--text-body)] max-w-sm mx-auto">
-                {translateSync("Try clearing your search query or selecting a different tag above.")}
-              </p>
-              <button
-                onClick={() => {
-                  setSelectedTag("All");
-                  setSearchQuery("");
-                }}
-                className="px-4 py-2.5 rounded-[2px] bg-[#3E7B5C] text-[#F4F7F4] text-xs font-bold uppercase tracking-wider min-h-[44px]"
-              >
-                {translateSync("Reset filters")}
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <MaterialCard key={product.id} product={product} />
+            {/* Vertical Stack of Feed Cards */}
+            <div className="space-y-5">
+              {batches.slice(0, visibleCount).map((batch) => (
+                <FeedCard key={batch.id} batch={batch} role={role} />
               ))}
             </div>
-          )}
+
+            {/* Load More Button */}
+            {visibleCount < batches.length && (
+              <div className="pt-4 text-center">
+                <button
+                  onClick={() => setVisibleCount((prev) => prev + 2)}
+                  className="px-6 py-3 bg-[rgba(255,255,255,0.85)] border border-[rgba(125,90,60,0.25)] hover:border-[#7D5A3C] text-[var(--text-heading)] hover:text-[#7D5A3C] text-xs uppercase tracking-wider font-bold rounded-[2px] transition-colors cursor-pointer min-h-[44px]"
+                >
+                  Load more batches
+                </button>
+              </div>
+            )}
+          </main>
+
+          {/* ==================================================== */}
+          {/* 3. RIGHT SIDEBAR (Desktop Only: 220px Optional)      */}
+          {/* ==================================================== */}
+          <aside className="hidden xl:block w-[220px] sticky top-24 space-y-6 shrink-0 pl-4 border-l border-[rgba(125,90,60,0.12)]">
+            {/* Active Regions Widget */}
+            <div className="space-y-3">
+              <h3 className="text-xs uppercase tracking-[0.1em] font-bold text-[var(--text-heading)]">
+                Active Regions
+              </h3>
+              <div className="divide-y divide-[rgba(125,90,60,0.08)]">
+                {ACTIVE_REGIONS.map((r) => (
+                  <div key={r.name} className="py-2 flex items-center justify-between text-xs">
+                    <span className="text-[var(--text-body)] truncate max-w-[130px]">
+                      {r.name}
+                    </span>
+                    <span className="font-mono-data text-[var(--text-muted)] text-[11px]">
+                      {r.kg}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recently Joined Cooperatives Widget */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs uppercase tracking-[0.1em] font-bold text-[var(--text-heading)]">
+                Recent Cooperatives
+              </h3>
+              <ul className="space-y-2 text-xs text-[var(--text-body)]">
+                {RECENT_COOPERATIVES.map((name) => (
+                  <li key={name} className="truncate py-0.5 border-b border-[rgba(125,90,60,0.06)]">
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
