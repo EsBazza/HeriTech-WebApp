@@ -22,6 +22,9 @@ import {
   ExternalLink,
   RefreshCw,
   Package,
+  Upload,
+  Link as LinkIcon,
+  FileImage,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -69,6 +72,10 @@ export default function ArtisanStudioPage() {
   // --- Form state ---
   const [form, setForm] = useState(BLANK_FORM);
   const [imagePreviewError, setImagePreviewError] = useState(false);
+  const [imageMode, setImageMode] = useState<"file" | "url">("file");
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // --- Edit mode ---
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -87,6 +94,68 @@ export default function ArtisanStudioPage() {
   const formRef = useRef<HTMLDivElement>(null);
 
   const isAuthorized = role === "artisan" || role === "admin";
+
+  // --- Image Compression & File Handler (.jpg, .jpeg, .png) ---
+  const compressImage = (file: File, maxDimension = 1200, quality = 0.88): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const validTypes = ["image/jpeg", "image/jpg", "image/png"];
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (!validTypes.includes(file.type) && !["jpg", "jpeg", "png"].includes(ext || "")) {
+        reject(new Error(translateSync("Please upload a .jpg, .jpeg, or .png image file.")));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDimension) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            }
+          } else {
+            if (height > maxDimension) {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => reject(new Error(translateSync("Failed to load image")));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error(translateSync("Failed to read file")));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (file: File | undefined | null) => {
+    if (!file) return;
+    setErrorMessage(null);
+    try {
+      const dataUrl = await compressImage(file);
+      setField("imageUrl", dataUrl);
+      setFileName(file.name);
+      setImagePreviewError(false);
+    } catch (err: any) {
+      setErrorMessage(err.message || translateSync("Failed to process image file."));
+    }
+  };
 
   // --- Load batches ---
   useEffect(() => {
@@ -133,6 +202,7 @@ export default function ArtisanStudioPage() {
   const resetForm = () => {
     setForm({ ...BLANK_FORM, selectedBatchId: claimedBatches[0]?.id ?? "" });
     setEditingId(null);
+    setFileName(null);
     setSuccessMessage(null);
     setErrorMessage(null);
     setImagePreviewError(false);
@@ -140,6 +210,7 @@ export default function ArtisanStudioPage() {
 
   const startEdit = (product: Product) => {
     setEditingId(product.id);
+    const existingImg = product.images?.[0] ?? "";
     setForm({
       title: product.title,
       description: product.description,
@@ -147,9 +218,11 @@ export default function ArtisanStudioPage() {
       selectedBatchId: product.sourceBatchId,
       kgDiverted: String(product.kgDiverted),
       materialTags: product.materialTags.join(", "),
-      imageUrl: product.images?.[0] ?? "",
+      imageUrl: existingImg,
       ngoFundName: product.ngoFundName,
     });
+    setFileName(existingImg.startsWith("data:") ? "uploaded-image.jpg" : null);
+    setImageMode(existingImg.startsWith("data:") ? "file" : "url");
     setImagePreviewError(false);
     setSuccessMessage(null);
     setErrorMessage(null);
@@ -405,65 +478,169 @@ export default function ArtisanStudioPage() {
             </div>
           </div>
 
-          {/* ── IMAGE SECTION ────────────────────────────────── */}
+          {/* ── IMAGE SECTION (DUAL OPTION: FILE UPLOAD OR URL) ── */}
           <div className="space-y-3">
-            <label className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
-              <ImagePlus className="w-3.5 h-3.5 text-[#7D5A3C]" />
-              <span>{translateSync("Product Image")}</span>
-            </label>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <label className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
+                <ImagePlus className="w-3.5 h-3.5 text-[#7D5A3C]" />
+                <span>{translateSync("Product Image")}</span>
+                <span className="text-[10px] text-gray-400 font-normal">
+                  ({translateSync("Choose Upload or URL")})
+                </span>
+              </label>
+
+              {/* Segmented Mode Selector */}
+              <div className="inline-flex p-0.5 rounded-lg bg-[#F0EDE6] border border-[#E6E2D8] text-xs">
+                <button
+                  type="button"
+                  onClick={() => setImageMode("file")}
+                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-[11px] ${
+                    imageMode === "file"
+                      ? "bg-white text-[#7D5A3C] shadow-xs"
+                      : "text-gray-500 hover:text-gray-800"
+                  }`}
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>{translateSync("Upload File (.jpg, .png)")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageMode("url")}
+                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-[11px] ${
+                    imageMode === "url"
+                      ? "bg-white text-[#7D5A3C] shadow-xs"
+                      : "text-gray-500 hover:text-gray-800"
+                  }`}
+                >
+                  <LinkIcon className="w-3 h-3" />
+                  <span>{translateSync("Image URL")}</span>
+                </button>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* URL input */}
-              <div className="space-y-2">
-                <input
-                  type="url"
-                  value={form.imageUrl}
-                  onChange={(e) => setField("imageUrl", e.target.value)}
-                  placeholder="https://example.com/your-craft-photo.jpg"
-                  className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#7D5A3C]/30"
-                />
-                <p className="text-[10px] text-gray-400 leading-relaxed">
-                  {translateSync(
-                    "Paste a direct image URL (Unsplash, Imgur, your own CDN, etc.). This photo will be visible to all buyers on the marketplace."
-                  )}
-                </p>
-                {/* Quick Unsplash suggestion chips */}
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { label: "Bamboo craft", url: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800" },
-                    { label: "Woven textile", url: "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800" },
-                    { label: "Paper art", url: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800" },
-                  ].map((s) => (
-                    <button
-                      key={s.label}
-                      type="button"
-                      onClick={() => setField("imageUrl", s.url)}
-                      className="px-2 py-1 rounded-full border border-[#E6E2D8] bg-[#F8F6F0] text-[10px] font-semibold text-[#7D5A3C] hover:bg-[#F0E8DF] transition-colors"
-                    >
-                      {s.label}
-                    </button>
-                  ))}
+              {/* Option 1: File Upload Mode */}
+              {imageMode === "file" ? (
+                <div className="space-y-2">
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      handleFileChange(e.dataTransfer.files?.[0]);
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`relative aspect-auto h-44 rounded-xl border-2 border-dashed p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                      isDragging
+                        ? "border-[#7D5A3C] bg-[#F5EDE4]"
+                        : "border-[#E6E2D8] bg-[#F8F6F0] hover:bg-[#F2ECE3] hover:border-[#C8B89A]"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                      onChange={(e) => handleFileChange(e.target.files?.[0])}
+                      className="hidden"
+                    />
+                    <div className="w-10 h-10 rounded-full bg-[#EADCCF] text-[#7D5A3C] flex items-center justify-center mb-2 shadow-xs">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-bold text-gray-800">
+                      {translateSync("Click to upload or drag & drop")}
+                    </p>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      {translateSync("Supports .JPG, .JPEG, or .PNG files")}
+                    </p>
+                    {fileName && (
+                      <div className="mt-2 inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white border border-[#E6E2D8] text-[10px] font-semibold text-[#7D5A3C]">
+                        <FileImage className="w-3 h-3" />
+                        <span className="truncate max-w-[150px]">{fileName}</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    {translateSync("Images are automatically optimized and embedded for the marketplace.")}
+                  </p>
                 </div>
-              </div>
+              ) : (
+                /* Option 2: Image URL Mode */
+                <div className="space-y-2">
+                  <input
+                    type="url"
+                    value={form.imageUrl}
+                    onChange={(e) => {
+                      setField("imageUrl", e.target.value);
+                      setFileName(null);
+                    }}
+                    placeholder="https://example.com/your-craft-photo.jpg"
+                    className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#7D5A3C]/30"
+                  />
+                  <p className="text-[10px] text-gray-400 leading-relaxed">
+                    {translateSync(
+                      "Paste a direct image URL (.jpg, .png, Unsplash, CDN). Visible to all buyers."
+                    )}
+                  </p>
+                  {/* Quick Unsplash suggestion chips */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {[
+                      { label: "Bamboo craft", url: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800" },
+                      { label: "Woven textile", url: "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800" },
+                      { label: "Paper art", url: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800" },
+                    ].map((s) => (
+                      <button
+                        key={s.label}
+                        type="button"
+                        onClick={() => {
+                          setField("imageUrl", s.url);
+                          setFileName(null);
+                        }}
+                        className="px-2 py-1 rounded-full border border-[#E6E2D8] bg-[#F8F6F0] text-[10px] font-semibold text-[#7D5A3C] hover:bg-[#F0E8DF] transition-colors"
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              {/* Live preview */}
+              {/* Live Preview Box */}
               <div className="relative aspect-square sm:aspect-auto sm:h-44 rounded-xl overflow-hidden border-2 border-dashed border-[#E6E2D8] bg-[#F8F6F0] flex items-center justify-center">
                 {form.imageUrl && !imagePreviewError ? (
-                  <Image
-                    src={form.imageUrl}
-                    alt="Product preview"
-                    fill
-                    className="object-cover rounded-xl"
-                    onError={() => setImagePreviewError(true)}
-                    unoptimized
-                  />
+                  <>
+                    <Image
+                      src={form.imageUrl}
+                      alt="Product preview"
+                      fill
+                      className="object-cover rounded-xl"
+                      onError={() => setImagePreviewError(true)}
+                      unoptimized
+                    />
+                    <div className="absolute top-2 right-2 flex items-center space-x-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setField("imageUrl", "");
+                          setFileName(null);
+                        }}
+                        className="p-1 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors"
+                        title={translateSync("Remove photo")}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <div className="text-center p-4 space-y-1.5">
                     <ImagePlus className="w-8 h-8 text-[#C8B89A] mx-auto" />
                     <p className="text-[10px] text-gray-400">
                       {imagePreviewError
-                        ? translateSync("Image URL could not be loaded. Try a different URL.")
-                        : translateSync("Image preview will appear here")}
+                        ? translateSync("Image could not be loaded. Try a different file or URL.")
+                        : translateSync("Live preview will appear here")}
                     </p>
                   </div>
                 )}
