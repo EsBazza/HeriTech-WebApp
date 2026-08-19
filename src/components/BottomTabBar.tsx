@@ -3,14 +3,21 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { userRole } from "@/lib/roleGuard";
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const role = userRole(user);
 
-  const tabs = [
+  const canAccessMap = role === "artisan" || role === "lgu" || role === "admin";
+
+  const allTabs = [
     {
       name: "Home",
       href: "/",
+      show: true,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path
@@ -24,8 +31,25 @@ export function BottomTabBar() {
       ),
     },
     {
+      name: "Ledger",
+      href: "/impact",
+      show: true,
+      icon: (active: boolean) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M18 20V10M12 20V4M6 20v-6"
+            stroke={active ? "#C8A96A" : "#B0C4AB"}
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       name: "Map",
       href: "/map",
+      show: canAccessMap,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path
@@ -46,23 +70,9 @@ export function BottomTabBar() {
       ),
     },
     {
-      name: "Ledger",
-      href: "/impact",
-      icon: (active: boolean) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M18 20V10M12 20V4M6 20v-6"
-            stroke={active ? "#C8A96A" : "#B0C4AB"}
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
       name: "Profile",
       href: "/profile",
+      show: true,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path
@@ -84,13 +94,18 @@ export function BottomTabBar() {
     },
   ];
 
+  const visibleTabs = allTabs.filter((t) => t.show);
+
   return (
     <nav
       aria-label="Mobile navigation bar"
       className="fixed bottom-0 left-0 right-0 h-14 bg-[#3D2B1F] border-t border-[#C8A96A]/15 z-40 block md:hidden shadow-lg"
     >
-      <div className="grid grid-cols-4 h-full">
-        {tabs.map((tab) => {
+      <div
+        className="grid h-full"
+        style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}
+      >
+        {visibleTabs.map((tab) => {
           const isActive =
             tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
           return (

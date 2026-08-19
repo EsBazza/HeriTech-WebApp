@@ -18,19 +18,22 @@ export function Navbar() {
 
   const role = userRole(user);
 
+  // Harvest Map is ONLY accessible to artisan, lgu, and admin (NOT buyer or guest)
+  const canAccessMap = role === "artisan" || role === "lgu" || role === "admin";
+
   const navLinks = [
-    { name: translateSync("Harvest Map"), href: "/map" },
-    { name: translateSync("Impact Ledger"), href: "/impact" },
+    { name: translateSync("Impact Ledger"), href: "/impact", show: true },
+    { name: translateSync("Harvest Map"), href: "/map", show: canAccessMap },
   ];
 
   return (
     <header className="sticky top-0 z-40 bg-[var(--forest-dark)] border-b border-[var(--forest-mid)]/60 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo Only (36px, No Wordmark Text) */}
+          {/* Logo with "HeriTech" Text Wordmark */}
           <Link
             href="/"
-            className="flex items-center justify-center min-h-[44px] min-w-[44px] group"
+            className="flex items-center space-x-2.5 min-h-[44px] group"
             aria-label="HeriTech Home Feed"
           >
             <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#8FBC8F]/60 bg-[#183324] flex items-center justify-center group-hover:border-[#8FBC8F] transition-colors shadow-xs">
@@ -46,29 +49,34 @@ export function Navbar() {
                 }}
               />
             </div>
+            <span className="font-display text-2xl font-semibold tracking-tight text-[#8FBC8F]">
+              Heri<span className="font-normal text-[#F4F7F4]">Tech</span>
+            </span>
           </Link>
 
-          {/* Desktop Navigation Links (Max 4 items total) */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-2">
-            {navLinks.map((link) => {
-              const active = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-3.5 py-2 text-xs uppercase tracking-[0.08em] font-medium transition-all rounded-[2px] min-h-[44px] flex items-center ${
-                    active
-                      ? "text-[#8FBC8F] border-b-2 border-[#8FBC8F] bg-[#2E5A44]/40 font-bold"
-                      : "text-[#F4F7F4]/90 hover:text-[#8FBC8F] hover:bg-[#2E5A44]/30"
-                  }`}
-                >
-                  <span>{link.name}</span>
-                </Link>
-              );
-            })}
+            {navLinks
+              .filter((link) => link.show)
+              .map((link) => {
+                const active = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`px-3.5 py-2 text-xs uppercase tracking-[0.08em] font-medium transition-all rounded-[2px] min-h-[44px] flex items-center ${
+                      active
+                        ? "text-[#8FBC8F] border-b-2 border-[#8FBC8F] bg-[#2E5A44]/40 font-bold"
+                        : "text-[#F4F7F4]/90 hover:text-[#8FBC8F] hover:bg-[#2E5A44]/30"
+                    }`}
+                  >
+                    <span>{link.name}</span>
+                  </Link>
+                );
+              })}
           </nav>
 
-          {/* Right Actions: Language Selector + Auth Action */}
+          {/* Right Actions: Language Selector + User Profile on Header */}
           <div className="flex items-center space-x-3">
             {/* Language Selector - Desktop */}
             <div className="hidden md:block">
@@ -86,7 +94,7 @@ export function Navbar() {
                   <div className="w-7 h-7 rounded-full bg-[#2E5A44] text-[#EDE0C4] flex items-center justify-center font-bold text-xs">
                     {user.fullName?.slice(0, 2).toUpperCase() || "U"}
                   </div>
-                  <span className="text-xs font-semibold text-[#F4F7F4] hidden sm:inline-block truncate max-w-[100px]">
+                  <span className="text-xs font-semibold text-[#F4F7F4] hidden sm:inline-block truncate max-w-[110px]">
                     {user.fullName}
                   </span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-[#8FBC8F]">
@@ -112,7 +120,7 @@ export function Navbar() {
                       href="/profile"
                       className="flex items-center px-4 py-2.5 text-[#F4F7F4] hover:bg-[#2E5A44]/50 hover:text-[#8FBC8F] min-h-[44px]"
                     >
-                      <span>{translateSync("Profile")}</span>
+                      <span>{translateSync("Profile & Cooperative Record")}</span>
                     </Link>
 
                     {role === "admin" && (
@@ -164,7 +172,7 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer (Slides in from right, #3D2B1F bg, linen links) */}
+      {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/60 md:hidden"
@@ -176,14 +184,19 @@ export function Navbar() {
           >
             <div className="space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-[#C8A96A]/20">
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-[#8FBC8F]">
-                  <Image
-                    src="/logo heritech.png"
-                    alt="Logo"
-                    width={32}
-                    height={32}
-                    className="w-full h-full object-contain"
-                  />
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-[#8FBC8F]">
+                    <Image
+                      src="/logo heritech.png"
+                      alt="Logo"
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <span className="font-display text-lg font-semibold text-[#8FBC8F]">
+                    HeriTech
+                  </span>
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -201,28 +214,30 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-3 py-2.5 text-sm uppercase tracking-wider text-[#EDE0C4] hover:text-[#C8A96A] hover:bg-white/5 rounded-[2px]"
                 >
-                  Home (Feed)
-                </Link>
-                <Link
-                  href="/map"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 text-sm uppercase tracking-wider text-[#EDE0C4] hover:text-[#C8A96A] hover:bg-white/5 rounded-[2px]"
-                >
-                  Harvest Map
+                  {translateSync("Feed")}
                 </Link>
                 <Link
                   href="/impact"
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-3 py-2.5 text-sm uppercase tracking-wider text-[#EDE0C4] hover:text-[#C8A96A] hover:bg-white/5 rounded-[2px]"
                 >
-                  Impact Ledger
+                  {translateSync("Impact Ledger")}
                 </Link>
+                {canAccessMap && (
+                  <Link
+                    href="/map"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-3 py-2.5 text-sm uppercase tracking-wider text-[#EDE0C4] hover:text-[#C8A96A] hover:bg-white/5 rounded-[2px]"
+                  >
+                    {translateSync("Harvest Map")}
+                  </Link>
+                )}
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-3 py-2.5 text-sm uppercase tracking-wider text-[#EDE0C4] hover:text-[#C8A96A] hover:bg-white/5 rounded-[2px]"
                 >
-                  Profile
+                  {translateSync("Profile")}
                 </Link>
               </nav>
             </div>

@@ -1,9 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import React, { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, FeedMaterialBatch } from "@/components/FeedCard";
@@ -82,267 +79,157 @@ const CURATED_FEED_BATCHES: FeedMaterialBatch[] = [
   },
 ];
 
-const ACTIVE_REGIONS = [
-  { name: "Cordillera (Philippines)", batches: 12, kg: "340 kg" },
-  { name: "Chiang Mai (Thailand)", batches: 8, kg: "210 kg" },
-  { name: "Varanasi (India)", batches: 15, kg: "480 kg" },
-  { name: "New Taipei (Taiwan)", batches: 6, kg: "135 kg" },
-  { name: "Cebu (Philippines)", batches: 9, kg: "195 kg" },
-];
-
-const RECENT_COOPERATIVES = [
-  "Cordillera Botanical Cooperative",
-  "Lanna Heritage Joinery",
-  "Nirmalaya Bio-Craft Collective",
-  "Pingxi Sustainable Papermaking",
-  "Cebu Ancestral Weavers Cooperative",
-];
-
 export default function FeedHomePage() {
-  const pathname = usePathname();
   const { user } = useAuth();
   const { translateSync } = useTranslation();
   const [batches, setBatches] = useState<FeedMaterialBatch[]>(CURATED_FEED_BATCHES);
-  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState("All");
   const [visibleCount, setVisibleCount] = useState(4);
 
   const role = userRole(user);
 
-  const navLinks = [
-    {
-      name: "Home",
-      href: "/",
-      icon: (active: boolean) => (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"
-            stroke={active ? "#7D5A3C" : "#5C4A38"}
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Harvest Map",
-      href: "/map",
-      icon: (active: boolean) => (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 21s-7-5.5-7-11.5a7 7 0 1 1 14 0C19 15.5 12 21 12 21z"
-            stroke={active ? "#7D5A3C" : "#5C4A38"}
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="12"
-            cy="9.5"
-            r="2.5"
-            stroke={active ? "#7D5A3C" : "#5C4A38"}
-            strokeWidth="1.75"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Impact Ledger",
-      href: "/impact",
-      icon: (active: boolean) => (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M18 20V10M12 20V4M6 20v-6"
-            stroke={active ? "#7D5A3C" : "#5C4A38"}
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Profile",
-      href: "/profile",
-      icon: (active: boolean) => (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-            stroke={active ? "#7D5A3C" : "#5C4A38"}
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="12"
-            cy="7"
-            r="4"
-            stroke={active ? "#7D5A3C" : "#5C4A38"}
-            strokeWidth="1.75"
-          />
-        </svg>
-      ),
-    },
+  const filterTags = [
+    "All",
+    "Bamboo",
+    "Rice Paper",
+    "Botanical Flora",
+    "Abaca",
+    "Philippines",
+    "Thailand",
+    "India",
   ];
 
+  const filteredBatches = batches.filter((b) => {
+    if (searchQuery.trim().length > 0) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = b.title.toLowerCase().includes(q);
+      const matchDesc = b.description.toLowerCase().includes(q);
+      const matchCoop = b.cooperativeName.toLowerCase().includes(q);
+      const matchFestival = b.festival.toLowerCase().includes(q);
+      const matchMat = b.materialType.toLowerCase().includes(q);
+      const matchRegion = b.region.toLowerCase().includes(q);
+      if (
+        !matchTitle &&
+        !matchDesc &&
+        !matchCoop &&
+        !matchFestival &&
+        !matchMat &&
+        !matchRegion
+      ) {
+        return false;
+      }
+    }
+
+    if (selectedTag === "All") return true;
+    if (selectedTag === "Philippines") return b.country === "Philippines";
+    if (selectedTag === "Thailand") return b.country === "Thailand";
+    if (selectedTag === "India") return b.country === "India";
+    return (
+      b.materialType.toLowerCase().includes(selectedTag.toLowerCase()) ||
+      b.title.toLowerCase().includes(selectedTag.toLowerCase())
+    );
+  });
+
   return (
-    <div className="w-full min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="flex justify-center lg:justify-between gap-8 items-start">
-          {/* ==================================================== */}
-          {/* 1. LEFT SIDEBAR (Desktop Only: 240px Fixed)          */}
-          {/* ==================================================== */}
-          <aside className="hidden lg:flex flex-col justify-between w-[240px] sticky top-24 h-[calc(100vh-8rem)] shrink-0 pr-4 border-r border-[rgba(125,90,60,0.12)]">
-            <div className="space-y-6">
-              {/* Brand Header */}
-              <Link href="/" className="flex items-center space-x-2.5 group">
-                <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[rgba(125,90,60,0.2)] bg-[#3D2B1F] flex items-center justify-center">
-                  <Image
-                    src="/logo heritech.png"
-                    alt="HeriTech Logo"
-                    width={36}
-                    height={36}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLElement).style.display = "none";
-                    }}
-                  />
-                </div>
-                <span className="font-display text-2xl font-semibold text-[#2E1E12] tracking-tight">
-                  HeriTech
-                </span>
-              </Link>
+    <div className="w-full min-h-screen py-6 sm:py-10 px-4 sm:px-6">
+      <div className="max-w-[640px] mx-auto space-y-6">
+        {/* Clean Search & Filter Bar on Feed */}
+        <div className="space-y-3">
+          {/* Search Input Box */}
+          <div className="relative w-full">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[rgba(92,74,56,0.6)] pointer-events-none"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+                stroke="currentColor"
+                strokeWidth="1.75"
+              />
+              <line
+                x1="21"
+                y1="21"
+                x2="16.65"
+                y2="16.65"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={translateSync("Search festival materials, crafts, or cooperatives...")}
+              className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.88)] border border-[rgba(125,90,60,0.18)] rounded-[4px] text-sm text-[#2E1E12] placeholder-[rgba(92,74,56,0.55)] focus:outline-none focus:border-[#7D5A3C] transition-colors min-h-[44px] shadow-xs"
+            />
+          </div>
 
-              {/* Vertical Nav Links */}
-              <nav className="space-y-1">
-                {navLinks.map((link) => {
-                  const isActive =
-                    link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
-                  return (
-                    <Link
-                      key={link.name}
-                      href={link.href}
-                      className={`flex items-center space-x-3 px-3 py-2.5 rounded-[4px] text-sm font-medium transition-colors ${
-                        isActive
-                          ? "bg-[rgba(125,90,60,0.1)] text-[#7D5A3C] font-bold"
-                          : "text-[var(--text-body)] hover:bg-[rgba(125,90,60,0.05)] hover:text-[#7D5A3C]"
-                      }`}
-                    >
-                      {link.icon(isActive)}
-                      <span>{link.name}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* User Identity Card at Bottom */}
-            <div className="pt-4 border-t border-[rgba(125,90,60,0.12)]">
-              {user ? (
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#7D5A3C] text-[#EDE0C4] flex items-center justify-center font-bold text-xs shrink-0">
-                    {user.fullName?.slice(0, 2).toUpperCase() || "HT"}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-[#2E1E12] truncate">
-                      {user.fullName || "User"}
-                    </p>
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-[#7D5A3C] bg-[rgba(125,90,60,0.1)] px-1.5 py-0.2 rounded-[1px]">
-                      {role}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  href="/profile"
-                  className="block text-center py-2 text-xs font-bold uppercase tracking-wider text-[#7D5A3C] border border-[#7D5A3C]/40 rounded-[2px] hover:bg-[#7D5A3C] hover:text-[#EDE0C4] transition-colors"
-                >
-                  Sign In
-                </Link>
-              )}
-            </div>
-          </aside>
-
-          {/* ==================================================== */}
-          {/* 2. CENTER SOCIAL FEED (Max 640px, Centered)          */}
-          {/* ==================================================== */}
-          <main className="w-full max-w-[640px] space-y-6">
-            {/* Feed Subtitle / Filter Row */}
-            <div className="flex items-center justify-between pb-2 border-b border-[rgba(125,90,60,0.12)]">
-              <div>
-                <h1 className="font-display text-2xl sm:text-3xl font-medium text-[var(--text-heading)]">
-                  Material Harvest Feed
-                </h1>
-                <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                  Verified salvage batches ready for artisan craft transformation
-                </p>
-              </div>
-
-              {role !== "guest" && (
-                <span className="text-[11px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-[2px] bg-[rgba(46,90,68,0.1)] text-[#2E5A44]">
-                  {role} view
-                </span>
-              )}
-            </div>
-
-            {/* Vertical Stack of Feed Cards */}
-            <div className="space-y-5">
-              {batches.slice(0, visibleCount).map((batch) => (
-                <FeedCard key={batch.id} batch={batch} role={role} />
-              ))}
-            </div>
-
-            {/* Load More Button */}
-            {visibleCount < batches.length && (
-              <div className="pt-4 text-center">
+          {/* Filter Tags Carousel */}
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+            {filterTags.map((tag) => {
+              const active = selectedTag === tag;
+              return (
                 <button
-                  onClick={() => setVisibleCount((prev) => prev + 2)}
-                  className="px-6 py-3 bg-[rgba(255,255,255,0.85)] border border-[rgba(125,90,60,0.25)] hover:border-[#7D5A3C] text-[var(--text-heading)] hover:text-[#7D5A3C] text-xs uppercase tracking-wider font-bold rounded-[2px] transition-colors cursor-pointer min-h-[44px]"
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className={`px-3 py-1.5 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[36px] ${
+                    active
+                      ? "bg-[#3D2B1F] text-[#EDE0C4] border border-[#3D2B1F]"
+                      : "bg-[rgba(255,255,255,0.85)] text-[#5C4A38] hover:text-[#2E1E12] hover:bg-white border border-[rgba(125,90,60,0.15)]"
+                  }`}
                 >
-                  Load more batches
+                  {translateSync(tag)}
                 </button>
-              </div>
-            )}
-          </main>
-
-          {/* ==================================================== */}
-          {/* 3. RIGHT SIDEBAR (Desktop Only: 220px Optional)      */}
-          {/* ==================================================== */}
-          <aside className="hidden xl:block w-[220px] sticky top-24 space-y-6 shrink-0 pl-4 border-l border-[rgba(125,90,60,0.12)]">
-            {/* Active Regions Widget */}
-            <div className="space-y-3">
-              <h3 className="text-xs uppercase tracking-[0.1em] font-bold text-[var(--text-heading)]">
-                Active Regions
-              </h3>
-              <div className="divide-y divide-[rgba(125,90,60,0.08)]">
-                {ACTIVE_REGIONS.map((r) => (
-                  <div key={r.name} className="py-2 flex items-center justify-between text-xs">
-                    <span className="text-[var(--text-body)] truncate max-w-[130px]">
-                      {r.name}
-                    </span>
-                    <span className="font-mono-data text-[var(--text-muted)] text-[11px]">
-                      {r.kg}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recently Joined Cooperatives Widget */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-xs uppercase tracking-[0.1em] font-bold text-[var(--text-heading)]">
-                Recent Cooperatives
-              </h3>
-              <ul className="space-y-2 text-xs text-[var(--text-body)]">
-                {RECENT_COOPERATIVES.map((name) => (
-                  <li key={name} className="truncate py-0.5 border-b border-[rgba(125,90,60,0.06)]">
-                    {name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Vertical Stack of Clean Feed Cards */}
+        {filteredBatches.length === 0 ? (
+          <div className="p-12 text-center border border-[rgba(125,90,60,0.15)] rounded-[6px] bg-[rgba(255,255,255,0.8)] space-y-3">
+            <p className="font-display text-xl text-[#2E1E12] font-medium">
+              {translateSync("No matching items found")}
+            </p>
+            <p className="text-xs text-[#5C4A38] max-w-sm mx-auto">
+              {translateSync("Try clearing your search query or selecting a different tag above.")}
+            </p>
+            <button
+              onClick={() => {
+                setSelectedTag("All");
+                setSearchQuery("");
+              }}
+              className="px-4 py-2 bg-[#3D2B1F] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider rounded-[2px] min-h-[44px] cursor-pointer"
+            >
+              {translateSync("Reset filters")}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {filteredBatches.slice(0, visibleCount).map((batch) => (
+              <FeedCard key={batch.id} batch={batch} role={role} />
+            ))}
+          </div>
+        )}
+
+        {/* Load More Action Button */}
+        {visibleCount < filteredBatches.length && (
+          <div className="pt-2 text-center">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 2)}
+              className="px-6 py-3 bg-[rgba(255,255,255,0.85)] border border-[rgba(125,90,60,0.25)] hover:border-[#7D5A3C] text-[#2E1E12] hover:text-[#7D5A3C] text-xs uppercase tracking-wider font-bold rounded-[2px] transition-colors cursor-pointer min-h-[44px]"
+            >
+              {translateSync("Load more batches")}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
