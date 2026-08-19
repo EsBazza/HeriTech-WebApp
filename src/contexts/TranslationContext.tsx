@@ -237,13 +237,27 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
   /** Synchronous translation lookup: returns cached value or original text */
   const translateSync = useCallback(
     (text: string): string => {
-      if (!text) return text;
+      if (!text || typeof text !== "string") return text;
+      registerTextForTranslation(text);
       if (currentLanguage.code === "en") return text;
-      return globalCache.get(text) || text;
+
+      const cached = globalCache.get(text);
+      if (cached) return cached;
+
+      // Queue for background batch translation if not already in flight
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          if (!globalCache.has(text)) {
+            batchTranslate(currentLanguage.code, [text]);
+          }
+        }, 100);
+      }
+
+      return text;
     },
     // cacheVersion in deps ensures re-render when cache is populated
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentLanguage.code, cacheVersion]
+    [currentLanguage.code, cacheVersion, batchTranslate]
   );
 
   /** Async translation: checks cache first, falls back to API */

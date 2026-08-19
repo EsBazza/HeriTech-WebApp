@@ -92,20 +92,20 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
       <div>
         <Link href={`/products/${batch.id}`} className="block group">
           <h3 className="font-display text-[22px] leading-snug font-medium text-[var(--text-heading)] group-hover:text-[#7D5A3C] transition-colors">
-            {batch.title}
+            {translateSync(batch.title)}
           </h3>
         </Link>
       </div>
 
       {/* 4. Description (Max 3 lines clamped) */}
       <p className="font-body text-sm text-[var(--text-body)] line-clamp-3 leading-relaxed">
-        {batch.description}
+        {translateSync(batch.description)}
       </p>
 
       {/* 5. Meta Row: Weight Diverted (left) + Price (right) */}
       <div className="flex items-center justify-between pt-2 border-t border-[rgba(125,90,60,0.08)]">
         <span className="text-xs font-mono-data text-[var(--text-muted)]">
-          {formatNumber(batch.weightKg)} kg verified salvage
+          {formatNumber(batch.weightKg)} {translateSync("kg verified salvage")}
         </span>
         <span className="font-display text-xl font-medium text-[#7D5A3C]">
           {formatCurrency(batch.price)}{" "}

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 interface Message {
   role: "user" | "assistant";
@@ -48,14 +49,6 @@ const INITIAL_THREADS: Thread[] = [
         content:
           "The highland strawflower and bamboo batch from Baguio has been dried and categorized.",
       },
-      {
-        role: "user",
-        content: "Thank you Danilo, looking forward to the loom wall tapestry.",
-      },
-      {
-        role: "assistant",
-        content: "We will ship the batch once the municipal handover QR is confirmed.",
-      },
     ],
   },
   {
@@ -69,22 +62,7 @@ const INITIAL_THREADS: Thread[] = [
       {
         role: "assistant",
         content:
-          "Recovered split bamboo frames from Chiang Mai lantern celebrations are now stored in Depot 02.",
-      },
-    ],
-  },
-  {
-    id: "thread_aarav",
-    name: "Aarav Sharma",
-    subtitle: "Nirmalaya Bio-Craft Collective",
-    avatarText: "AS",
-    time: "2d ago",
-    unread: false,
-    messages: [
-      {
-        role: "assistant",
-        content:
-          "Temple Nirmalaya marigold pigment pans have been milled to 200 mesh archival grade.",
+          "We received the mulberry paper lantern batch and are preparing the split bamboo frames.",
       },
     ],
   },
@@ -96,79 +74,108 @@ interface MessagesPanelProps {
 }
 
 export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
+  const { translateSync } = useTranslation();
   const [threads, setThreads] = useState<Thread[]>(INITIAL_THREADS);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [inputText, setInputText] = useState("");
-  const [isLoadingBot, setIsLoadingBot] = useState(false);
+  const [inputMessage, setInputMessage] = useState("");
+  const [isBotThinking, setIsBotThinking] = useState(false);
   const [botError, setBotError] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeThread = threads.find((t) => t.id === activeThreadId);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeThread?.messages, isLoadingBot]);
+  }, [activeThread?.messages, isBotThinking]);
 
-  const handleSendMessage = async () => {
-    if (!inputText.trim() || !activeThreadId) return;
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || !activeThreadId) return;
 
-    const text = inputText.trim();
-    setInputText("");
+    const userText = inputMessage.trim();
+    setInputMessage("");
     setBotError(null);
 
-    const updatedUserMessages: Message[] = [
-      ...(activeThread?.messages || []),
-      { role: "user", content: text },
-    ];
+    // Append user message
+    const updatedThreads = threads.map((t) => {
+      if (t.id === activeThreadId) {
+        return {
+          ...t,
+          messages: [...t.messages, { role: "user" as const, content: userText }],
+        };
+      }
+      return t;
+    });
+    setThreads(updatedThreads);
 
-    setThreads((prev) =>
-      prev.map((t) =>
-        t.id === activeThreadId ? { ...t, messages: updatedUserMessages } : t
-      )
-    );
-
-    if (activeThread?.isBot) {
-      setIsLoadingBot(true);
+    if (activeThreadId === "bot_assistant") {
+      setIsBotThinking(true);
       try {
+        const history =
+          activeThread?.messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })) || [];
+
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: updatedUserMessages }),
+          body: JSON.stringify({
+            message: userText,
+            history,
+          }),
         });
 
-        if (!res.ok) throw new Error("Server error");
         const data = await res.json();
-
-        if (data.reply) {
+        if (data.success && data.reply) {
           setThreads((prev) =>
-            prev.map((t) =>
-              t.id === activeThreadId
-                ? {
-                    ...t,
-                    messages: [
-                      ...updatedUserMessages,
-                      { role: "assistant", content: data.reply },
-                    ],
-                  }
-                : t
-            )
+            prev.map((t) => {
+              if (t.id === "bot_assistant") {
+                return {
+                  ...t,
+                  messages: [
+                    ...t.messages,
+                    { role: "assistant" as const, content: data.reply },
+                  ],
+                };
+              }
+              return t;
+            })
           );
         } else {
-          setBotError("Could not reach HeriTech Assistant. Try again.");
+          setBotError(
+            data.error || "Could not reach HeriTech Assistant. Try again."
+          );
         }
       } catch (err) {
-        console.warn("Chatbot request failed:", err);
+        console.error("Assistant chat error:", err);
         setBotError("Could not reach HeriTech Assistant. Try again.");
       } finally {
-        setIsLoadingBot(false);
+        setIsBotThinking(false);
       }
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+    } else {
+      // Mock peer artisan response
+      setTimeout(() => {
+        setThreads((prev) =>
+          prev.map((t) => {
+            if (t.id === activeThreadId) {
+              return {
+                ...t,
+                messages: [
+                  ...t.messages,
+                  {
+                    role: "assistant" as const,
+                    content:
+                      "Thank you for your message. Our cooperative workshop will review and coordinate the craft handover.",
+                  },
+                ],
+              };
+            }
+            return t;
+          })
+        );
+      }, 1000);
     }
   };
 
@@ -201,7 +208,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
             </button>
           )}
           <h2 className="font-display text-xl font-semibold text-[#2E1E12]">
-            {activeThread ? activeThread.name : "Messages"}
+            {activeThread ? activeThread.name : translateSync("Messages")}
           </h2>
         </div>
 
@@ -238,35 +245,41 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
                 <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[rgba(125,90,60,0.2)] bg-[#3D2B1F] flex items-center justify-center">
                   <Image
                     src="/logo heritech.png"
-                    alt="HeriTech Logo"
-                    width={36}
-                    height={36}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLElement).style.display = "none";
-                    }}
+                    alt="Bot"
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-contain"
                   />
                 </div>
               ) : (
-                <div className="w-9 h-9 rounded-full bg-[#7D5A3C] text-[#EDE0C4] flex items-center justify-center font-bold text-xs shrink-0">
+                <div className="w-9 h-9 rounded-full bg-[rgba(125,90,60,0.12)] text-[#7D5A3C] font-bold text-xs flex items-center justify-center shrink-0">
                   {t.avatarText || t.name.slice(0, 2).toUpperCase()}
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-[#2E1E12] truncate">
-                    {t.name}
-                  </span>
+                  <div className="flex items-center space-x-1.5 truncate">
+                    <span className="font-semibold text-sm text-[#2E1E12] truncate">
+                      {t.name}
+                    </span>
+                    {t.isBot && (
+                      <span className="text-[9px] uppercase tracking-wider font-bold bg-[#3D2B1F] text-[#EDE0C4] px-1.5 py-0.5 rounded-[1px]">
+                        AI
+                      </span>
+                    )}
+                  </div>
                   {t.time && (
-                    <span className="text-[11px] text-[rgba(92,74,56,0.6)] shrink-0 ml-2">
+                    <span className="text-[10px] text-[rgba(92,74,56,0.6)] shrink-0 ml-2">
                       {t.time}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[#5C4A38] truncate mt-0.5">
+
+                <p className="text-xs text-[rgba(92,74,56,0.8)] truncate mt-0.5">
                   {t.subtitle}
                 </p>
+
                 {t.messages.length > 0 && (
                   <p className="text-xs text-[rgba(92,74,56,0.7)] truncate mt-1">
                     {t.messages[t.messages.length - 1].content}
@@ -299,37 +312,43 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
               </div>
             ))}
 
-            {isLoadingBot && (
-              <div className="text-xs text-[rgba(92,74,56,0.7)] italic py-1">
-                HeriTech is thinking
+            {/* Chatbot Thinking State */}
+            {isBotThinking && (
+              <div className="text-xs italic text-[rgba(92,74,56,0.65)] pl-1 py-1">
+                {translateSync("HeriTech is thinking")}
               </div>
             )}
 
+            {/* Chatbot Error State */}
             {botError && (
-              <div className="text-xs text-red-700 py-1">{botError}</div>
+              <div className="text-xs text-red-600 pl-1 py-1">
+                {translateSync(botError)}
+              </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Text Input Row */}
-          <div className="p-3 border-t border-[rgba(125,90,60,0.12)] bg-[#FAF7F2] flex items-center space-x-2">
+          {/* Bottom Message Input Form */}
+          <form
+            onSubmit={handleSendMessage}
+            className="p-3 border-t border-[rgba(125,90,60,0.12)] flex items-center space-x-2 bg-[#FAF7F2] shrink-0"
+          >
             <input
               type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              className="flex-1 px-3 py-2.5 bg-white border border-[rgba(125,90,60,0.2)] rounded-[2px] text-sm text-[#2E1E12] placeholder-[rgba(92,74,56,0.5)] focus:outline-none focus:border-[#7D5A3C] min-h-[44px]"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder={translateSync("Type a message...")}
+              className="flex-1 px-3 py-2 text-xs bg-white border border-[rgba(125,90,60,0.2)] rounded-[2px] text-[#2E1E12] placeholder-[rgba(92,74,56,0.5)] focus:outline-none focus:border-[#7D5A3C] min-h-[40px]"
             />
             <button
-              onClick={handleSendMessage}
-              disabled={!inputText.trim() || isLoadingBot}
-              className="px-4 py-2.5 bg-[#3D2B1F] text-[#EDE0C4] text-xs uppercase tracking-wider font-bold rounded-[2px] hover:bg-[#5A3F2A] disabled:opacity-50 transition-colors cursor-pointer min-h-[44px]"
+              type="submit"
+              disabled={!inputMessage.trim()}
+              className="px-3.5 py-2 bg-[#3D2B1F] hover:bg-[#5A3F2A] disabled:opacity-50 text-[#EDE0C4] text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors cursor-pointer min-h-[40px]"
             >
-              Send
+              {translateSync("Send")}
             </button>
-          </div>
+          </form>
         </div>
       )}
     </div>

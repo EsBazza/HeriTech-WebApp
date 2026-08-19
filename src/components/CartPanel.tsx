@@ -39,7 +39,7 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
       {/* Header Bar */}
       <div className="h-16 px-4 border-b border-[rgba(125,90,60,0.12)] flex items-center justify-between bg-[#FAF7F2] shrink-0">
         <h2 className="font-display text-xl font-semibold text-[#2E1E12]">
-          Reserved Batches
+          {translateSync("Cart & Reserved Batches")}
         </h2>
         <button
           onClick={onClose}
@@ -59,73 +59,69 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
       </div>
 
       {/* Cart Items List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {confirmed ? (
-          <div className="py-16 text-center space-y-2">
-            <h3 className="font-display text-2xl font-semibold text-[#2E1E12]">
-              Reservation Confirmed
-            </h3>
-            <p className="text-xs text-[#5C4A38] max-w-xs mx-auto">
-              Your material allocation request has been routed to the artisan cooperative.
+      <div className="flex-1 overflow-y-auto p-4 divide-y divide-[rgba(125,90,60,0.08)]">
+        {items.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2">
+            <p className="font-display text-lg text-[#2E1E12] font-medium">
+              {translateSync("Your cart is empty")}
+            </p>
+            <p className="text-xs text-[rgba(92,74,56,0.7)]">
+              {translateSync("Add items from the marketplace feed to reserve materials.")}
             </p>
           </div>
-        ) : items.length === 0 ? (
-          <div className="py-20 text-center text-sm text-[rgba(92,74,56,0.65)] font-body">
-            No batches reserved yet.
-          </div>
         ) : (
-          <div className="divide-y divide-[rgba(125,90,60,0.08)]">
-            {items.map((item) => (
-              <div key={item.id} className="py-3.5 space-y-1.5">
-                <div className="flex items-start justify-between">
-                  <div className="pr-2">
-                    <h4 className="text-sm font-medium text-[#2E1E12] line-clamp-1">
-                      {item.title}
-                    </h4>
-                    <p className="text-xs text-[rgba(92,74,56,0.7)]">
-                      {item.cooperativeName || item.artisanName || "Artisan Cooperative"}
-                    </p>
-                  </div>
-                  <span className="font-display text-base font-semibold text-[#7D5A3C] shrink-0">
-                    {formatCurrency(item.price)}
+          items.map((item) => (
+            <div key={item.id} className="py-3 flex items-start justify-between space-x-3">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-[#2E1E12] truncate">
+                  {item.title}
+                </p>
+                <div className="flex items-center space-x-2 text-xs text-[rgba(92,74,56,0.7)]">
+                  <span>{translateSync("Qty")}: {item.quantity || 1}</span>
+                  <span>|</span>
+                  <span className="font-semibold text-[#7D5A3C]">
+                    {formatCurrency(item.price * (item.quantity || 1))}
                   </span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <span className="text-[rgba(92,74,56,0.6)] font-mono-data">
-                    {item.kgDiverted ? `${item.kgDiverted} kg material` : "1 batch"}
-                  </span>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-xs text-[#7D5A3C] hover:text-red-700 font-medium transition-colors cursor-pointer min-h-[32px] flex items-center"
-                  >
-                    Remove
-                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+              <button
+                onClick={() => removeFromCart(item.id)}
+                className="text-xs text-red-600 hover:text-red-800 p-1 cursor-pointer"
+                title={translateSync("Remove")}
+              >
+                {translateSync("Remove")}
+              </button>
+            </div>
+          ))
         )}
       </div>
 
-      {/* Cart Summary & Footer Action */}
-      {items.length > 0 && !confirmed && (
-        <div className="p-4 border-t border-[rgba(125,90,60,0.12)] bg-[#FAF7F2] space-y-3">
+      {/* Footer Actions */}
+      {items.length > 0 && (
+        <div className="p-4 border-t border-[rgba(125,90,60,0.12)] space-y-3 bg-[#FAF7F2] shrink-0">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-[#5C4A38] uppercase tracking-wider text-[11px] font-bold">
-              Subtotal
+            <span className="text-[rgba(92,74,56,0.8)] font-medium">
+              {translateSync("Subtotal")}
             </span>
-            <span className="font-display text-xl font-semibold text-[#2E1E12]">
+            <span className="font-display text-lg font-bold text-[#2E1E12]">
               {formatCurrency(subtotal)}
             </span>
           </div>
 
           <button
             onClick={handleConfirmReservation}
-            disabled={isConfirming}
-            className="w-full py-3 bg-[#3D2B1F] hover:bg-[#5A3F2A] text-[#EDE0C4] text-xs uppercase tracking-wider font-bold rounded-[2px] transition-colors cursor-pointer min-h-[44px]"
+            disabled={isConfirming || confirmed}
+            className={`w-full py-3 text-xs font-bold uppercase tracking-wider rounded-[2px] transition-all cursor-pointer min-h-[44px] ${
+              confirmed
+                ? "bg-[#4F7244] text-[#EDE0C4]"
+                : "bg-[#3D2B1F] hover:bg-[#5A3F2A] text-[#EDE0C4]"
+            }`}
           >
-            {isConfirming ? "Processing reservation..." : "Confirm reservation"}
+            {confirmed
+              ? translateSync("Reservation Confirmed")
+              : isConfirming
+              ? translateSync("Confirming...")
+              : translateSync("Confirm & Checkout")}
           </button>
         </div>
       )}
