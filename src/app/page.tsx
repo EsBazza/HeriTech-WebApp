@@ -149,6 +149,43 @@ export default function FeedHomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fetch live products from /api/products to display in the global marketplace feed
+  useEffect(() => {
+    async function loadMarketplaceProducts() {
+      try {
+        const res = await fetch("/api/products");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const liveBatches: FeedMaterialBatch[] = data.data.map((p: any) => {
+            const firstImg = Array.isArray(p.images) && p.images[0] ? p.images[0] : (typeof p.images === "string" ? p.images : undefined);
+            const tags = Array.isArray(p.materialTags) && p.materialTags.length > 0 ? p.materialTags.join(", ") : (p.sourceBatch?.materialType || "Upcycled Heritage Piece");
+            return {
+              id: p.id,
+              title: p.title,
+              description: p.description || "",
+              price: Number(p.price) || 0,
+              image: firstImg,
+              cooperativeName: p.artisan?.workshopName || p.artisan?.fullName || "Certified Artisan Workshop",
+              region: p.artisan?.country || p.sourceBatch?.agreement?.country || "Asia",
+              country: p.sourceBatch?.agreement?.country || p.artisan?.country || "Asia",
+              weightKg: Number(p.kgDiverted) || 1.5,
+              materialType: tags,
+              festival: p.sourceBatch?.agreement?.festival || "Pan-Asian Origin",
+            };
+          });
+
+          // Combine live products with curated ones, avoiding duplicates
+          const liveIds = new Set(liveBatches.map((b) => b.id));
+          const remainingCurated = CURATED_FEED_BATCHES.filter((b) => !liveIds.has(b.id));
+          setBatches([...liveBatches, ...remainingCurated]);
+        }
+      } catch (err) {
+        console.warn("Failed to load live marketplace products, using curated default:", err);
+      }
+    }
+    loadMarketplaceProducts();
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {

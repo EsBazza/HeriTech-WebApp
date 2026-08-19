@@ -75,6 +75,7 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, 640px"
             className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
