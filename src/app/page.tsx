@@ -5,8 +5,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { HeroSection } from "@/components/HeroSection";
 import { MaterialCard, MaterialProduct } from "@/components/MaterialCard";
-import { FeaturesGrid } from "@/components/FeaturesGrid";
-import { EscrowBar } from "@/components/EscrowBar";
 import { Search, Sparkles, Loader2 } from "lucide-react";
 
 // Curated Fallback Products for Demo Resilience
@@ -179,7 +177,7 @@ export default function MarketplacePage() {
       {/* 1. Hero Section (Solid dark anchor) */}
       <HeroSection />
 
-      {/* 2. Marketplace & Certified Goods Grid (Transparent weave shows through) */}
+      {/* 2. Marketplace & Certified Goods Grid */}
       <section
         id="marketplace-grid"
         className="section-main w-full py-12 sm:py-[72px] px-5 sm:px-12"
@@ -189,8 +187,8 @@ export default function MarketplacePage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-2 max-w-xl">
               <div className="flex items-center space-x-2">
-                <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
-                <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
+                <span className="w-5 h-[1.5px] bg-[#3E7B5C] inline-block" />
+                <span className="text-[11px] uppercase tracking-[0.14em] text-[#3E7B5C] font-bold">
                   {translateSync("AVAILABLE CRAFT PIECES")}
                 </span>
               </div>
@@ -205,8 +203,8 @@ export default function MarketplacePage() {
             </div>
 
             {/* Quick Stats Pill */}
-            <div className="flex items-center space-x-2 text-xs text-[#7D5A3C] font-mono-data bg-[rgba(255,255,255,0.85)] px-3.5 py-2 rounded-[2px] border border-[var(--border-light)] self-start md:self-auto font-bold min-h-[44px] shadow-xs">
-              <Sparkles className="w-4 h-4 text-[#C8A96A]" />
+            <div className="flex items-center space-x-2 text-xs text-[#3E7B5C] font-mono-data bg-[rgba(255,255,255,0.85)] px-3.5 py-2 rounded-[2px] border border-[var(--border-light)] self-start md:self-auto font-bold min-h-[44px] shadow-xs">
+              <Sparkles className="w-4 h-4 text-[#3E7B5C]" />
               <span>
                 {filteredProducts.length} {translateSync("Pieces available")}
               </span>
@@ -283,12 +281,6 @@ export default function MarketplacePage() {
           )}
         </div>
       </section>
-
-      {/* 3. Features Grid Section (Alternating cream overlay) */}
-      <FeaturesGrid />
-
-      {/* 4. How payments work Section (Transparent weave background) */}
-      <EscrowBar />
     </div>
   );
 }
