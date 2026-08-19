@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { userRole } from "@/lib/roleGuard";
 import {
   TranslatableText,
   TranslatableHeading,
@@ -16,11 +18,14 @@ import {
   Sparkles,
   Loader2,
   RotateCcw,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function ArtisanStudioPage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { translateSync } = useTranslation();
+  const role = userRole(user);
   const [claimedBatches, setClaimedBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,8 +47,11 @@ export default function ArtisanStudioPage() {
   const [submitting, setSubmitting] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<any>(null);
 
+  const isAuthorized = role === "artisan" || role === "admin";
+
   useEffect(() => {
     async function loadBatches() {
+      if (!isAuthorized) { setLoading(false); return; }
       try {
         const res = await fetch("/api/materials");
         const data = await res.json();
@@ -59,10 +67,43 @@ export default function ArtisanStudioPage() {
         setLoading(false);
       }
     }
-    loadBatches();
-  }, []);
+    if (!authLoading) loadBatches();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading]);
 
   const selectedBatch = claimedBatches.find((b) => b.id === selectedBatchId);
+
+  // Show auth loading spinner
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-[#7D5A3C] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Access denied — not an artisan or admin
+  if (!isAuthorized) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-24 text-center space-y-4">
+        <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto">
+          <ShieldAlert className="w-7 h-7 text-amber-600" />
+        </div>
+        <h2 className="text-lg font-bold text-[#2E1E12]">
+          {translateSync("Artisan Access Only")}
+        </h2>
+        <p className="text-sm text-[#5C4A38]">
+          {translateSync("The Artisan Studio is reserved for verified artisan accounts. Sign in as an artisan to list your crafted pieces.")}
+        </p>
+        <a
+          href="/"
+          className="inline-block mt-4 px-6 py-2.5 rounded-full bg-[#3D2B1F] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider hover:bg-[#5A3F2A] transition-colors"
+        >
+          {translateSync("Back to Marketplace")}
+        </a>
+      </div>
+    );
+  }
 
   // AI Origin Story Generator
   const handleGenerateAIStory = async () => {

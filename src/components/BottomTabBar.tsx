@@ -12,6 +12,7 @@ export function BottomTabBar() {
   const role = userRole(user);
 
   const canAccessMap = role === "artisan" || role === "lgu" || role === "admin";
+  const canAccessStudio = role === "artisan" || role === "admin";
 
   const allTabs = [
     {
@@ -65,6 +66,22 @@ export function BottomTabBar() {
             r="2.5"
             stroke={active ? "#C8A96A" : "#B0C4AB"}
             strokeWidth="1.75"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: "Studio",
+      href: "/studio",
+      show: canAccessStudio,
+      icon: (active: boolean) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+            stroke={active ? "#C8A96A" : "#B0C4AB"}
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       ),

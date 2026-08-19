@@ -21,11 +21,15 @@ export function Navbar() {
   // Harvest Map is ONLY accessible to artisan, lgu, and admin (NOT buyer or guest)
   const canAccessMap = role === "artisan" || role === "lgu" || role === "admin";
 
+  // Artisan Studio is ONLY accessible to artisans and admins
+  const canAccessStudio = role === "artisan" || role === "admin";
+
   // Navbar navigation links including Home
   const navLinks = [
     { name: translateSync("Home"), href: "/", show: true },
     { name: translateSync("Impact Ledger"), href: "/impact", show: true },
     { name: translateSync("Harvest Map"), href: "/map", show: canAccessMap },
+    { name: translateSync("Artisan Studio"), href: "/studio", show: canAccessStudio },
   ];
 
   return (
@@ -41,17 +45,27 @@ export function Navbar() {
             {navLinks
               .filter((link) => link.show)
               .map((link) => {
-                const active = pathname === link.href;
+                const active = pathname === link.href || pathname.startsWith(link.href + "/");
+                const isStudio = link.href === "/studio";
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     className={`px-5 py-2 text-xs uppercase tracking-[0.09em] font-bold transition-all rounded-full min-h-[36px] flex items-center whitespace-nowrap ${
-                      active
-                        ? "bg-[#2E6B4A] text-white shadow-xs"
-                        : "text-[#2B523E] hover:text-[#1E4D34] hover:bg-[#D5E6DC]"
+                      isStudio
+                        ? active
+                          ? "bg-[#7D5A3C] text-white shadow-xs"
+                          : "text-[#7D5A3C] hover:text-[#5C3D20] hover:bg-[#F5EDE4]"
+                        : active
+                          ? "bg-[#2E6B4A] text-white shadow-xs"
+                          : "text-[#2B523E] hover:text-[#1E4D34] hover:bg-[#D5E6DC]"
                     }`}
                   >
+                    {isStudio && (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="mr-1.5 flex-shrink-0">
+                        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round"/>
+                      </svg>
+                    )}
                     <span>{link.name}</span>
                   </Link>
                 );
@@ -180,20 +194,33 @@ export function Navbar() {
               </div>
 
               <nav className="flex flex-col space-y-1">
-                {navLinks.filter((l) => l.show).map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`px-4 py-3 text-xs uppercase tracking-wider font-bold rounded-lg ${
-                      pathname === link.href
-                        ? "bg-[#2E6B4A] text-white"
-                        : "text-[#2B523E] hover:bg-[#E4EFE7]"
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
+                {navLinks.filter((l) => l.show).map((link) => {
+                  const active = pathname === link.href || pathname.startsWith(link.href + "/");
+                  const isStudio = link.href === "/studio";
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`px-4 py-3 text-xs uppercase tracking-wider font-bold rounded-lg flex items-center ${
+                        isStudio
+                          ? active
+                            ? "bg-[#7D5A3C] text-white"
+                            : "text-[#7D5A3C] hover:bg-[#F5EDE4]"
+                          : active
+                            ? "bg-[#2E6B4A] text-white"
+                            : "text-[#2B523E] hover:bg-[#E4EFE7]"
+                      }`}
+                    >
+                      {isStudio && (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="mr-2 flex-shrink-0">
+                          <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      {link.name}
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
 
