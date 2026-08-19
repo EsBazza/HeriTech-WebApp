@@ -19,6 +19,7 @@ import {
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
+import { AccessGuard } from "@/components/AccessGuard";
 
 export default function WasteScannerPage() {
   const { user } = useAuth();
@@ -230,314 +231,316 @@ export default function WasteScannerPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-      <div>
-        <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
-          <Camera className="w-3.5 h-3.5" />
-          <TranslatableText>ACT 1: FIELD LOGGING & MULTIMODAL INFERENCE</TranslatableText>
-        </div>
-        <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-          Google Gemini Multimodal Waste Scanner
-        </TranslatableHeading>
-        <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-          LGU field officers photograph waste on-site, select or pin the exact pickup depot location, and log AI-graded batches with cryptographic origin.
-        </TranslatableParagraph>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Col: Camera / File Upload Viewfinder */}
-        <div className="space-y-4">
-          <div className="aspect-square rounded-3xl bg-white border-2 border-dashed border-[#E6E2D8] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden group shadow-xs">
-            {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="Captured Waste"
-                className="w-full h-full object-cover rounded-2xl"
-              />
-            ) : (
-              <div className="space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-[#1A6B3A] flex items-center justify-center mx-auto shadow-sm">
-                  <Camera className="w-8 h-8" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900"><TranslatableText>Upload or Snap Material Photo</TranslatableText></p>
-                  <p className="text-xs text-gray-500 mt-0.5"><TranslatableText>Supports high-res PNG, JPG from field camera</TranslatableText></p>
-                </div>
-              </div>
-            )}
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-            />
+    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="Multimodal AI Waste Scanner">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Header */}
+        <div>
+          <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
+            <Camera className="w-3.5 h-3.5" />
+            <TranslatableText>ACT 1: FIELD LOGGING & MULTIMODAL INFERENCE</TranslatableText>
           </div>
-
-          {/* Festival Selection Hint */}
-          <div className="space-y-1.5 text-xs">
-            <label className="font-bold text-gray-700"><TranslatableText>Festival Origin Context</TranslatableText></label>
-            <select
-              value={festivalHint}
-              onChange={(e) => setFestivalHint(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-white text-xs font-semibold text-gray-800"
-            >
-              <option value="panagbenga">Panagbenga Flower Festival (Baguio, Philippines)</option>
-              <option value="yipeng">Yi Peng Sky Lantern Festival (Chiang Mai, Thailand)</option>
-              <option value="nirmalaya">Ganesh Chaturthi Nirmalaya (Thane, India)</option>
-              <option value="pingxi">Pingxi Lantern Paper (New Taipei, Taiwan)</option>
-            </select>
-          </div>
-
-          <button
-            onClick={handleAnalyzeAI}
-            disabled={!previewUrl || analyzing}
-            className="w-full py-3.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-          >
-            {analyzing ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span><TranslatableText>Running Gemini Multimodal Inference...</TranslatableText></span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                <span><TranslatableText>Analyze Material with Gemini 3.6 Flash</TranslatableText></span>
-              </>
-            )}
-          </button>
+          <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
+            Google Gemini Multimodal Waste Scanner
+          </TranslatableHeading>
+          <TranslatableParagraph className="text-xs text-gray-500 mt-1">
+            LGU field officers photograph waste on-site, select or pin the exact pickup depot location, and log AI-graded batches with cryptographic origin.
+          </TranslatableParagraph>
         </div>
 
-        {/* Right Col: AI Inference & Pickup Depot Form */}
-        <div className="space-y-4">
-          {analysisResult ? (
-            <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-5 shadow-sm">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center space-x-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>
-                    Gemini Confidence: {Math.round(analysisResult.confidence * 100)}%
-                  </span>
-                </span>
-                <span className="text-xs font-mono-data text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold">
-                  LIVE OBJECTIVE VISION
-                </span>
-              </div>
-
-              {/* Inferred Category */}
-              <div className="space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">
-                  Classified Material Type
-                </span>
-                <p className="text-lg font-black text-gray-900">{analysisResult.materialType}</p>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  {analysisResult.inferredMaterialDetails}
-                </p>
-
-                {/* Material Subtypes */}
-                {analysisResult.materialSubtypes && analysisResult.materialSubtypes.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {analysisResult.materialSubtypes.map((subtype: string) => (
-                      <span
-                        key={subtype}
-                        className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold"
-                      >
-                        {subtype}
-                      </span>
-                    ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left Col: Camera / File Upload Viewfinder */}
+          <div className="space-y-4">
+            <div className="aspect-square rounded-3xl bg-white border-2 border-dashed border-[#E6E2D8] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden group shadow-xs">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Captured Waste"
+                  className="w-full h-full object-cover rounded-2xl"
+                />
+              ) : (
+                <div className="space-y-3">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-[#1A6B3A] flex items-center justify-center mx-auto shadow-sm">
+                    <Camera className="w-8 h-8" />
                   </div>
-                )}
-              </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900"><TranslatableText>Upload or Snap Material Photo</TranslatableText></p>
+                    <p className="text-xs text-gray-500 mt-0.5"><TranslatableText>Supports high-res PNG, JPG from field camera</TranslatableText></p>
+                  </div>
+                </div>
+              )}
 
-              {/* Degradation Condition */}
-              <div className="p-3 bg-[#F8F6F0] rounded-xl flex items-center justify-between text-xs">
-                <span className="font-bold text-gray-700">Structural Degradation Grade:</span>
-                <span className="font-bold text-[#1A6B3A] bg-emerald-100 px-2 py-0.5 rounded">
-                  {analysisResult.condition}
-                </span>
-              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </div>
 
-              {/* AI Volumetric Weight Estimation WITH Integrated Physical Scale Input */}
-              <div className="p-4 bg-gradient-to-br from-blue-50/80 to-emerald-50/50 rounded-2xl border border-blue-200 text-xs space-y-3 shadow-xs">
-                <div className="flex items-center justify-between border-b border-blue-100 pb-2">
-                  <span className="font-bold text-blue-900 flex items-center space-x-1.5">
-                    <Scale className="w-4 h-4 text-blue-700" />
-                    <span>AI Volumetric Weight Estimation & Scale Input</span>
-                  </span>
-                  {analysisResult.estimatedWeightKg && (
-                    <span className="font-mono-data font-black text-blue-800 bg-blue-100/80 px-2 py-0.5 rounded">
-                      ~{analysisResult.estimatedWeightKg.bestEstimate} kg ({analysisResult.estimatedWeightKg.low} - {analysisResult.estimatedWeightKg.high} kg)
+            {/* Festival Selection Hint */}
+            <div className="space-y-1.5 text-xs">
+              <label className="font-bold text-gray-700"><TranslatableText>Festival Origin Context</TranslatableText></label>
+              <select
+                value={festivalHint}
+                onChange={(e) => setFestivalHint(e.target.value)}
+                className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-white text-xs font-semibold text-gray-800"
+              >
+                <option value="panagbenga">Panagbenga Flower Festival (Baguio, Philippines)</option>
+                <option value="yipeng">Yi Peng Sky Lantern Festival (Chiang Mai, Thailand)</option>
+                <option value="nirmalaya">Ganesh Chaturthi Nirmalaya (Thane, India)</option>
+                <option value="pingxi">Pingxi Lantern Paper (New Taipei, Taiwan)</option>
+              </select>
+            </div>
+
+            <button
+              onClick={handleAnalyzeAI}
+              disabled={!previewUrl || analyzing}
+              className="w-full py-3.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+            >
+              {analyzing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span><TranslatableText>Running Gemini Multimodal Inference...</TranslatableText></span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span><TranslatableText>Analyze Material with Gemini 3.6 Flash</TranslatableText></span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Right Col: AI Inference & Pickup Depot Form */}
+          <div className="space-y-4">
+            {analysisResult ? (
+              <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-5 shadow-sm">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center space-x-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>
+                      Gemini Confidence: {Math.round(analysisResult.confidence * 100)}%
                     </span>
+                  </span>
+                  <span className="text-xs font-mono-data text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold">
+                    LIVE OBJECTIVE VISION
+                  </span>
+                </div>
+
+                {/* Inferred Category */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">
+                    Classified Material Type
+                  </span>
+                  <p className="text-lg font-black text-gray-900">{analysisResult.materialType}</p>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    {analysisResult.inferredMaterialDetails}
+                  </p>
+
+                  {/* Material Subtypes */}
+                  {analysisResult.materialSubtypes && analysisResult.materialSubtypes.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {analysisResult.materialSubtypes.map((subtype: string) => (
+                        <span
+                          key={subtype}
+                          className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold"
+                        >
+                          {subtype}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                {analysisResult.estimatedWeightKg?.visualRationale && (
-                  <p className="text-[11px] text-blue-900/80 leading-relaxed italic">
-                    "{analysisResult.estimatedWeightKg.visualRationale}"
-                  </p>
-                )}
+                {/* Degradation Condition */}
+                <div className="p-3 bg-[#F8F6F0] rounded-xl flex items-center justify-between text-xs">
+                  <span className="font-bold text-gray-700">Structural Degradation Grade:</span>
+                  <span className="font-bold text-[#1A6B3A] bg-emerald-100 px-2 py-0.5 rounded">
+                    {analysisResult.condition}
+                  </span>
+                </div>
 
-                {/* Integrated Scale Input inside Card */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-gray-800 flex items-center space-x-1">
-                      <span>Verified Physical Scale Weight (kg):</span>
-                    </label>
+                {/* AI Volumetric Weight Estimation WITH Integrated Physical Scale Input */}
+                <div className="p-4 bg-gradient-to-br from-blue-50/80 to-emerald-50/50 rounded-2xl border border-blue-200 text-xs space-y-3 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-blue-100 pb-2">
+                    <span className="font-bold text-blue-900 flex items-center space-x-1.5">
+                      <Scale className="w-4 h-4 text-blue-700" />
+                      <span>AI Volumetric Weight Estimation & Scale Input</span>
+                    </span>
+                    {analysisResult.estimatedWeightKg && (
+                      <span className="font-mono-data font-black text-blue-800 bg-blue-100/80 px-2 py-0.5 rounded">
+                        ~{analysisResult.estimatedWeightKg.bestEstimate} kg ({analysisResult.estimatedWeightKg.low} - {analysisResult.estimatedWeightKg.high} kg)
+                      </span>
+                    )}
+                  </div>
+
+                  {analysisResult.estimatedWeightKg?.visualRationale && (
+                    <p className="text-[11px] text-blue-900/80 leading-relaxed italic">
+                      "{analysisResult.estimatedWeightKg.visualRationale}"
+                    </p>
+                  )}
+
+                  {/* Integrated Scale Input inside Card */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-gray-800 flex items-center space-x-1">
+                        <span>Verified Physical Scale Weight (kg):</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (analysisResult.estimatedWeightKg?.bestEstimate !== undefined) {
+                            setWeightKg(analysisResult.estimatedWeightKg.bestEstimate.toString());
+                          }
+                        }}
+                        className="text-[10px] text-blue-700 hover:text-blue-900 font-bold flex items-center space-x-1 underline"
+                      >
+                        <RefreshCw className="w-2.5 h-2.5" />
+                        <span>Reset to AI Best Estimate ({analysisResult.estimatedWeightKg?.bestEstimate} kg)</span>
+                      </button>
+                    </div>
+
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={weightKg}
+                      onChange={(e) => setWeightKg(e.target.value)}
+                      className="w-full p-3 rounded-xl border border-blue-200 bg-white font-mono-data font-black text-xl text-gray-900 shadow-xs focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                      placeholder="e.g. 24.5"
+                    />
+                  </div>
+                </div>
+
+                {/* ======================================================== */}
+                {/* PICKUP PLACE & REALTIME LOCATION MAP PIN SELECTOR */}
+                {/* ======================================================== */}
+                <div className="p-4 bg-[#F8F6F0] rounded-2xl border border-[#E6E2D8] text-xs space-y-3 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+                    <div className="flex items-center space-x-1.5 text-gray-900 font-bold">
+                      <MapPin className="w-4 h-4 text-[#1A6B3A]" />
+                      <TranslatableText>Designated Artisan Pickup Place & GPS Coordinates</TranslatableText>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (analysisResult.estimatedWeightKg?.bestEstimate !== undefined) {
-                          setWeightKg(analysisResult.estimatedWeightKg.bestEstimate.toString());
-                        }
-                      }}
-                      className="text-[10px] text-blue-700 hover:text-blue-900 font-bold flex items-center space-x-1 underline"
+                      onClick={handleUseRealtimeLocation}
+                      disabled={isLocating}
+                      className="px-2.5 py-1 rounded-lg bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-[10px] flex items-center space-x-1 shadow-xs transition-all disabled:opacity-50"
                     >
-                      <RefreshCw className="w-2.5 h-2.5" />
-                      <span>Reset to AI Best Estimate ({analysisResult.estimatedWeightKg?.bestEstimate} kg)</span>
+                      <Crosshair className={`w-3 h-3 ${isLocating ? "animate-spin" : ""}`} />
+                      <TranslatableText>{isLocating ? "Acquiring GPS..." : "Use Realtime Location"}</TranslatableText>
                     </button>
                   </div>
 
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={weightKg}
-                    onChange={(e) => setWeightKg(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-blue-200 bg-white font-mono-data font-black text-xl text-gray-900 shadow-xs focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                    placeholder="e.g. 24.5"
-                  />
-                </div>
-              </div>
-
-              {/* ======================================================== */}
-              {/* PICKUP PLACE & REALTIME LOCATION MAP PIN SELECTOR */}
-              {/* ======================================================== */}
-              <div className="p-4 bg-[#F8F6F0] rounded-2xl border border-[#E6E2D8] text-xs space-y-3 shadow-xs">
-                <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-                  <div className="flex items-center space-x-1.5 text-gray-900 font-bold">
-                    <MapPin className="w-4 h-4 text-[#1A6B3A]" />
-                    <TranslatableText>Designated Artisan Pickup Place & GPS Coordinates</TranslatableText>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleUseRealtimeLocation}
-                    disabled={isLocating}
-                    className="px-2.5 py-1 rounded-lg bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-[10px] flex items-center space-x-1 shadow-xs transition-all disabled:opacity-50"
-                  >
-                    <Crosshair className={`w-3 h-3 ${isLocating ? "animate-spin" : ""}`} />
-                    <TranslatableText>{isLocating ? "Acquiring GPS..." : "Use Realtime Location"}</TranslatableText>
-                  </button>
-                </div>
-
-                {locationSuccess && (
-                  <p className="text-[11px] text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200 font-semibold">
-                    <TranslatableText>{locationSuccess}</TranslatableText>
-                  </p>
-                )}
-
-                {/* Preset Depot Selector */}
-                <div className="space-y-1">
-                  <label className="font-bold text-gray-700"><TranslatableText>Select Collection Depot / Station:</TranslatableText></label>
-                  <select
-                    value={pickupDepotName}
-                    onChange={(e) => {
-                      const selected = (depotPresets[festivalHint] || depotPresets.panagbenga).find(
-                        (d) => d.name === e.target.value
-                      );
-                      if (selected) {
-                        setPickupDepotName(selected.name);
-                        setPickupLat(selected.lat);
-                        setPickupLng(selected.lng);
-                      } else {
-                        setPickupDepotName(e.target.value);
-                      }
-                    }}
-                    className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-semibold text-gray-900 text-xs"
-                  >
-                    {(depotPresets[festivalHint] || depotPresets.panagbenga).map((depot) => (
-                      <option key={depot.name} value={depot.name}>
-                        {depot.name} ({depot.lat.toFixed(4)}°, {depot.lng.toFixed(4)}°)
-                      </option>
-                    ))}
-                    <option value="Custom Pin Location">{translateSync("Custom Pin Location (Manual GPS / Pin below)")}</option>
-                  </select>
-                </div>
-
-                {/* Coordinates & Custom Name Input */}
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="space-y-1">
-                    <label className="text-gray-500 font-medium"><TranslatableText>Latitude</TranslatableText></label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      value={pickupLat}
-                      onChange={(e) => setPickupLat(parseFloat(e.target.value) || 0)}
-                      className="w-full p-2 rounded-lg border border-gray-200 bg-white font-mono-data font-bold text-gray-900"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-gray-500 font-medium"><TranslatableText>Longitude</TranslatableText></label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      value={pickupLng}
-                      onChange={(e) => setPickupLng(parseFloat(e.target.value) || 0)}
-                      className="w-full p-2 rounded-lg border border-gray-200 bg-white font-mono-data font-bold text-gray-900"
-                    />
-                  </div>
-                </div>
-
-                {/* Live Embedded Map Viewfinder for the Pin */}
-                <div className="h-36 rounded-xl overflow-hidden border border-gray-300 bg-gray-100 relative">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
-                      }&q=${pickupLat},${pickupLng}&zoom=15`}
-                  />
-                </div>
-              </div>
-
-              {/* Save Batch Result */}
-              {savedBatch ? (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs space-y-2">
-                  <div className="flex items-center space-x-2 text-emerald-800 font-bold">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                    <TranslatableText>Batch Logged & Cryptographically Hashed!</TranslatableText>
-                  </div>
-                  <p className="font-mono-data text-[10px] text-gray-600 break-all">
-                    <TranslatableText>Batch ID</TranslatableText>: <strong>{savedBatch.id}</strong> | <TranslatableText>Depot</TranslatableText>: <strong><TranslatableText>{pickupDepotName}</TranslatableText></strong> | TxHash: {savedBatch.txHash}
-                  </p>
-                </div>
-              ) : (
-                <button
-                  onClick={handleLogBatch}
-                  disabled={saving || !weightKg}
-                  className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-                >
-                  {saving ? (
-                    <TranslatableText>Minting SHA-256 Batch Telemetry...</TranslatableText>
-                  ) : (
-                    <>
-                      <FileCheck2 className="w-4 h-4" />
-                      <TranslatableText>Log Batch to Live Harvest Map</TranslatableText> ({weightKg || 0} kg)
-                    </>
+                  {locationSuccess && (
+                    <p className="text-[11px] text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200 font-semibold">
+                      <TranslatableText>{locationSuccess}</TranslatableText>
+                    </p>
                   )}
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-[#E6E2D8] text-center text-gray-400 space-y-2">
-              <Sparkles className="w-8 h-8 text-gray-300" />
-              <TranslatableParagraph className="text-xs font-semibold">
-                Upload a field photo and click "Analyze Material" to view AI grading telemetry, select pickup depot, and log the batch.
-              </TranslatableParagraph>
-            </div>
-          )}
+
+                  {/* Preset Depot Selector */}
+                  <div className="space-y-1">
+                    <label className="font-bold text-gray-700"><TranslatableText>Select Collection Depot / Station:</TranslatableText></label>
+                    <select
+                      value={pickupDepotName}
+                      onChange={(e) => {
+                        const selected = (depotPresets[festivalHint] || depotPresets.panagbenga).find(
+                          (d) => d.name === e.target.value
+                        );
+                        if (selected) {
+                          setPickupDepotName(selected.name);
+                          setPickupLat(selected.lat);
+                          setPickupLng(selected.lng);
+                        } else {
+                          setPickupDepotName(e.target.value);
+                        }
+                      }}
+                      className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-semibold text-gray-900 text-xs"
+                    >
+                      {(depotPresets[festivalHint] || depotPresets.panagbenga).map((depot) => (
+                        <option key={depot.name} value={depot.name}>
+                          {depot.name} ({depot.lat.toFixed(4)}°, {depot.lng.toFixed(4)}°)
+                        </option>
+                      ))}
+                      <option value="Custom Pin Location">{translateSync("Custom Pin Location (Manual GPS / Pin below)")}</option>
+                    </select>
+                  </div>
+
+                  {/* Coordinates & Custom Name Input */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="space-y-1">
+                      <label className="text-gray-500 font-medium"><TranslatableText>Latitude</TranslatableText></label>
+                      <input
+                        type="number"
+                        step="0.0001"
+                        value={pickupLat}
+                        onChange={(e) => setPickupLat(parseFloat(e.target.value) || 0)}
+                        className="w-full p-2 rounded-lg border border-gray-200 bg-white font-mono-data font-bold text-gray-900"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-gray-500 font-medium"><TranslatableText>Longitude</TranslatableText></label>
+                      <input
+                        type="number"
+                        step="0.0001"
+                        value={pickupLng}
+                        onChange={(e) => setPickupLng(parseFloat(e.target.value) || 0)}
+                        className="w-full p-2 rounded-lg border border-gray-200 bg-white font-mono-data font-bold text-gray-900"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Embedded Map Viewfinder for the Pin */}
+                  <div className="h-36 rounded-xl overflow-hidden border border-gray-300 bg-gray-100 relative">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
+                        }&q=${pickupLat},${pickupLng}&zoom=15`}
+                    />
+                  </div>
+                </div>
+
+                {/* Save Batch Result */}
+                {savedBatch ? (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs space-y-2">
+                    <div className="flex items-center space-x-2 text-emerald-800 font-bold">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                      <TranslatableText>Batch Logged & Cryptographically Hashed!</TranslatableText>
+                    </div>
+                    <p className="font-mono-data text-[10px] text-gray-600 break-all">
+                      <TranslatableText>Batch ID</TranslatableText>: <strong>{savedBatch.id}</strong> | <TranslatableText>Depot</TranslatableText>: <strong><TranslatableText>{pickupDepotName}</TranslatableText></strong> | TxHash: {savedBatch.txHash}
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleLogBatch}
+                    disabled={saving || !weightKg}
+                    className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                  >
+                    {saving ? (
+                      <TranslatableText>Minting SHA-256 Batch Telemetry...</TranslatableText>
+                    ) : (
+                      <>
+                        <FileCheck2 className="w-4 h-4" />
+                        <TranslatableText>Log Batch to Live Harvest Map</TranslatableText> ({weightKg || 0} kg)
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-[#E6E2D8] text-center text-gray-400 space-y-2">
+                <Sparkles className="w-8 h-8 text-gray-300" />
+                <TranslatableParagraph className="text-xs font-semibold">
+                  Upload a field photo and click "Analyze Material" to view AI grading telemetry, select pickup depot, and log the batch.
+                </TranslatableParagraph>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AccessGuard>
   );
 }

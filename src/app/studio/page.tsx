@@ -55,6 +55,8 @@ const BLANK_FORM = {
   ngoFundName: "Cordillera Ancestral Watershed Fund",
 };
 
+import { AccessGuard } from "@/components/AccessGuard";
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function ArtisanStudioPage() {
   const { user, loading: authLoading } = useAuth();
@@ -338,42 +340,10 @@ export default function ArtisanStudioPage() {
     }
   };
 
-  // ─── Guards ──────────────────────────────────────────────────────────────────
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-[#7D5A3C] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isAuthorized) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-24 text-center space-y-4">
-        <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto">
-          <ShieldAlert className="w-7 h-7 text-amber-600" />
-        </div>
-        <h2 className="text-lg font-bold text-[#2E1E12]">
-          {translateSync("Artisan Access Only")}
-        </h2>
-        <p className="text-sm text-[#5C4A38]">
-          {translateSync(
-            "The Artisan Studio is reserved for verified artisan accounts. Sign in as an artisan to list your crafted pieces."
-          )}
-        </p>
-        <a
-          href="/"
-          className="inline-block mt-4 px-6 py-2.5 rounded-full bg-[#3D2B1F] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider hover:bg-[#5A3F2A] transition-colors"
-        >
-          {translateSync("Back to Marketplace")}
-        </a>
-      </div>
-    );
-  }
-
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+    <AccessGuard allowedRoles={["artisan", "admin"]} pageTitle="Artisan Studio">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
       {/* ── Header ── */}
       <div>
@@ -992,5 +962,6 @@ export default function ArtisanStudioPage() {
       )}
 
     </div>
+    </AccessGuard>
   );
 }

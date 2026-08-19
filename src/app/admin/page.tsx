@@ -25,6 +25,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { AccessGuard } from "@/components/AccessGuard";
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
@@ -81,6 +82,7 @@ export default function AdminDashboardPage() {
   const escrowColors = ["#2563EB", "#10B981", "#F59E0B"];
 
   return (
+    <AccessGuard allowedRoles={["admin"]} pageTitle="System Administration">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
       {/* Admin Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E6E2D8] pb-6">
@@ -347,5 +349,6 @@ export default function AdminDashboardPage() {
         </div>
       </section>
     </div>
+    </AccessGuard>
   );
 }

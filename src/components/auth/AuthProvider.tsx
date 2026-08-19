@@ -51,6 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (data.success) {
         setUser(data.data);
+        if (typeof document !== "undefined") {
+          document.cookie = `user_role=${data.data.role || "buyer"}; path=/; max-age=604800; SameSite=Lax`;
+        }
       }
     } catch (err) {
       console.error("Failed to sync profile with DB:", err);
@@ -64,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (data.success) {
         setUser(data.data);
+        if (typeof document !== "undefined") {
+          document.cookie = `user_role=${data.data.role || "buyer"}; path=/; max-age=604800; SameSite=Lax`;
+        }
       }
     } catch (err) {
       console.error("Failed to refresh profile:", err);
@@ -85,6 +91,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             session.user.user_metadata?.full_name || session.user.email.split("@")[0],
             session.user.user_metadata?.avatar_url
           );
+        } else if (isMounted && typeof document !== "undefined") {
+          document.cookie = "user_role=guest; path=/; max-age=604800; SameSite=Lax";
         }
       } catch (e: any) {
         console.warn("Auth session check warning:", e);
@@ -106,6 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       } else if (isMounted) {
         setUser(null);
+        if (typeof document !== "undefined") {
+          document.cookie = "user_role=guest; path=/; max-age=604800; SameSite=Lax";
+        }
       }
       if (isMounted) setLoading(false);
     });
@@ -146,6 +157,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Sign out error:", e);
     } finally {
       setUser(null);
+      if (typeof document !== "undefined") {
+        document.cookie = "user_role=guest; path=/; max-age=0; SameSite=Lax";
+      }
     }
   };
 

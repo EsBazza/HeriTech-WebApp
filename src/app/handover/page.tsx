@@ -5,6 +5,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import { QrCode, ShieldCheck, CheckCircle2, ScanLine, ArrowRight, User, Package } from "lucide-react";
+import { AccessGuard } from "@/components/AccessGuard";
 
 export default function HandoverPage() {
   const { user } = useAuth();
@@ -44,7 +45,8 @@ export default function HandoverPage() {
   const artisanToken = user?.id || "usr_art_05";
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Physical Custody Handover Audit">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
@@ -218,5 +220,6 @@ export default function HandoverPage() {
         )}
       </div>
     </div>
+    </AccessGuard>
   );
 }

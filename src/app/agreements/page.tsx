@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import { FileCheck2, Plus, MapPin } from "lucide-react";
+import { AccessGuard } from "@/components/AccessGuard";
 
 export default function AgreementsPage() {
   const { formatNumber, translateSync } = useTranslation();
@@ -67,7 +68,8 @@ export default function AgreementsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="Municipal Material Release Agreements">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E6E2D8] pb-6">
         <div>
@@ -251,5 +253,6 @@ export default function AgreementsPage() {
         </div>
       )}
     </div>
+    </AccessGuard>
   );
 }
