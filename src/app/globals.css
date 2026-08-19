@@ -2,28 +2,31 @@
 
 @layer base {
   :root {
-    --bark: #2C1A0E;
-    --mahogany: #6B4226;
-    --gold: #C9A96E;
-    --gold-light: #E0C48A;
-    --linen: #E8D8B0;
-    --cream: #F5F0E8;
-    --forest: #4A6741;
-    --forest-light: #6B8F62;
-    --sage: #A8BFA3;
-    --warm-gray: #8C7B6B;
+    --bark:         #3D2B1F;   /* lighter warm dark for nav/footer */
+    --mahogany:     #7D5A3C;   /* warmer, lighter */
+    --gold:         #C8A96A;   /* primary gold accent */
+    --gold-light:   #DFC48E;   /* hover states */
+    --linen:        #EDE0C4;   /* hero text on dark */
+    --cream:        #FAF7F2;   /* lighter, clean canvas */
+    --cream-alt:    #F2EDE3;   /* alternating section bg */
+    --forest:       #4F7244;   /* artisan / success green */
+    --forest-light: #72956A;
+    --sage:         #B0C4AB;   /* muted text on dark */
+    --warm-gray:    #7A6A5A;   /* body text on light */
+    --border-light: rgba(125, 90, 60, 0.12); /* all card/section borders */
+    --border-mid:   rgba(125, 90, 60, 0.22); /* stronger borders */
 
     --background: var(--cream);
     --foreground: var(--bark);
     --primary: var(--gold);
     --primary-hover: var(--gold-light);
     --accent: var(--mahogany);
-    --accent-hover: #54331C;
+    --accent-hover: #5A3F2A;
     --card: var(--cream);
     --card-foreground: var(--bark);
-    --border: rgba(107, 66, 38, 0.15);
+    --border: var(--border-light);
     --muted: var(--warm-gray);
-    --muted-light: #EDE8DF;
+    --muted-light: var(--cream-alt);
   }
 
   body {
@@ -32,6 +35,20 @@
     font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+.bg-linen {
+  background-color: var(--cream);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+.bg-cream-alt {
+  background-color: var(--cream-alt);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
 }
 
 .font-display {
@@ -52,7 +69,7 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bark);
+  background: var(--cream-alt);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--mahogany);

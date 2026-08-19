@@ -7,7 +7,7 @@ interface WeaveDividerProps {
 }
 
 export function WeaveDivider({
-  bgColor = "#2C1A0E",
+  bgColor = "#3D2B1F",
   height = 24,
   className = "",
 }: WeaveDividerProps) {
@@ -41,33 +41,33 @@ export function WeaveDivider({
 
             {/* Horizontal Weft Thread Blocks (Alternating Mahogany & Forest) */}
             {/* Row 1 (y=2, height=4) */}
-            <rect x="0" y="2" width="14" height="4" fill="#6B4226" opacity="0.9" rx="0.5" />
-            <rect x="16" y="2" width="14" height="4" fill="#4A6741" opacity="0.9" rx="0.5" />
+            <rect x="0" y="2" width="14" height="4" fill="#7D5A3C" opacity="0.9" rx="0.5" />
+            <rect x="16" y="2" width="14" height="4" fill="#4F7244" opacity="0.9" rx="0.5" />
 
             {/* Row 2 (y=8, height=4) */}
-            <rect x="2" y="8" width="14" height="4" fill="#4A6741" opacity="0.9" rx="0.5" />
-            <rect x="18" y="8" width="14" height="4" fill="#6B4226" opacity="0.9" rx="0.5" />
+            <rect x="2" y="8" width="14" height="4" fill="#4F7244" opacity="0.9" rx="0.5" />
+            <rect x="18" y="8" width="14" height="4" fill="#7D5A3C" opacity="0.9" rx="0.5" />
 
             {/* Row 3 (y=14, height=4) */}
-            <rect x="0" y="14" width="14" height="4" fill="#6B4226" opacity="0.9" rx="0.5" />
-            <rect x="16" y="14" width="14" height="4" fill="#4A6741" opacity="0.9" rx="0.5" />
+            <rect x="0" y="14" width="14" height="4" fill="#7D5A3C" opacity="0.9" rx="0.5" />
+            <rect x="16" y="14" width="14" height="4" fill="#4F7244" opacity="0.9" rx="0.5" />
 
             {/* Row 4 (y=20, height=4) */}
-            <rect x="2" y="20" width="14" height="4" fill="#4A6741" opacity="0.9" rx="0.5" />
-            <rect x="18" y="20" width="14" height="4" fill="#6B4226" opacity="0.9" rx="0.5" />
+            <rect x="2" y="20" width="14" height="4" fill="#4F7244" opacity="0.9" rx="0.5" />
+            <rect x="18" y="20" width="14" height="4" fill="#7D5A3C" opacity="0.9" rx="0.5" />
 
             {/* Vertical Gold Warp Threads (at x=0, x=12, x=24) */}
-            <rect x="0" y="0" width="4" height="24" fill="#C9A96E" opacity="0.55" />
-            <rect x="12" y="0" width="4" height="24" fill="#C9A96E" opacity="0.55" />
-            <rect x="24" y="0" width="4" height="24" fill="#C9A96E" opacity="0.55" />
+            <rect x="0" y="0" width="4" height="24" fill="#C8A96A" opacity="0.55" />
+            <rect x="12" y="0" width="4" height="24" fill="#C8A96A" opacity="0.55" />
+            <rect x="24" y="0" width="4" height="24" fill="#C8A96A" opacity="0.55" />
 
             {/* Gold Intersection Highlight Nodes where warp meets weft */}
-            <rect x="0" y="2" width="4" height="4" fill="#E0C48A" opacity="0.85" />
-            <rect x="12" y="8" width="4" height="4" fill="#E0C48A" opacity="0.85" />
-            <rect x="24" y="2" width="4" height="4" fill="#E0C48A" opacity="0.85" />
-            <rect x="0" y="14" width="4" height="4" fill="#E0C48A" opacity="0.85" />
-            <rect x="12" y="20" width="4" height="4" fill="#E0C48A" opacity="0.85" />
-            <rect x="24" y="14" width="4" height="4" fill="#E0C48A" opacity="0.85" />
+            <rect x="0" y="2" width="4" height="4" fill="#DFC48E" opacity="0.85" />
+            <rect x="12" y="8" width="4" height="4" fill="#DFC48E" opacity="0.85" />
+            <rect x="24" y="2" width="4" height="4" fill="#DFC48E" opacity="0.85" />
+            <rect x="0" y="14" width="4" height="4" fill="#DFC48E" opacity="0.85" />
+            <rect x="12" y="20" width="4" height="4" fill="#DFC48E" opacity="0.85" />
+            <rect x="24" y="14" width="4" height="4" fill="#DFC48E" opacity="0.85" />
           </pattern>
         </defs>
         <rect

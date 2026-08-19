@@ -4,48 +4,48 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
+import { LanguageSelector } from "@/components/language/LanguageSelector";
 import {
   User,
   ShieldCheck,
-  Palette,
-  Camera,
   CheckCircle2,
-  Award,
-  MessageSquare,
   Edit3,
+  LogOut,
+  Bell,
+  Globe,
+  Layers,
+  FileText,
+  Sliders,
+  ChevronRight,
+  X,
 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, signInWithGoogle, refreshProfile } = useAuth();
-  const { formatCurrency, formatNumber, translateSync } = useTranslation();
+  const { user, signInWithGoogle, signOut, refreshProfile } = useAuth();
+  const { formatCurrency, formatNumber, translateSync, currentLanguage } = useTranslation();
 
-  // Profile Edit State
+  // Active Tab for Sidebar/Tablet/Mobile (6 views or direct scrolling)
+  const [activeTab, setActiveTab] = useState<string>("personal");
+
+  // Profile Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editFullName, setEditFullName] = useState("");
-  const [editCountry, setEditCountry] = useState("");
+  const [editCountry, setEditCountry] = useState("Philippines");
   const [editAvatarUrl, setEditAvatarUrl] = useState("");
   const [editWorkshop, setEditWorkshop] = useState("");
   const [editStation, setEditStation] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Role Application State
-  const [modalType, setModalType] = useState<"artisan" | "lgu" | null>(null);
-  const [workshopName, setWorkshopName] = useState("");
-  const [craftTypology, setCraftTypology] = useState("Bamboo Joinery & Weaving");
-  const [stationName, setStationName] = useState("");
-  const [country, setCountry] = useState("Philippines");
-  const [bio, setBio] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  // Notification settings toggle state
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [orderUpdates, setOrderUpdates] = useState(true);
+  const [batchAlerts, setBatchAlerts] = useState(true);
 
   // Profile Data States
   const [artisanProducts, setArtisanProducts] = useState<any[]>([]);
   const [lguBatches, setLguBatches] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-
-  // Selected Product Detail Modal (for Artisan)
-  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -55,7 +55,6 @@ export default function ProfilePage() {
       setEditWorkshop(user.workshopName || "");
       setEditStation(user.stationName || "");
 
-      // Load relevant role data
       async function loadProfileData() {
         try {
           const [prodRes, batchRes] = await Promise.all([
@@ -65,14 +64,14 @@ export default function ProfilePage() {
           const prodData = await prodRes.json();
           const batchData = await batchRes.json();
 
-          if (prodData.success) {
+          if (prodData.success && Array.isArray(prodData.data)) {
             setArtisanProducts(prodData.data);
           }
-          if (batchData.success) {
+          if (batchData.success && Array.isArray(batchData.data)) {
             setLguBatches(batchData.data);
           }
         } catch (e) {
-          console.error("Profile data load error:", e);
+          console.warn("Profile data fetch notice:", e);
         } finally {
           setLoadingData(false);
         }
@@ -80,26 +79,6 @@ export default function ProfilePage() {
       loadProfileData();
     }
   }, [user]);
-
-  if (!user) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-24 text-center space-y-4">
-        <div className="w-16 h-16 bg-[#1A6B3A]/10 text-[#1A6B3A] rounded-3xl flex items-center justify-center mx-auto shadow-sm">
-          <User className="w-8 h-8" />
-        </div>
-        <TranslatableHeading level={2} className="text-xl font-bold text-gray-900">Sign in to Access Your Profile</TranslatableHeading>
-        <TranslatableParagraph className="text-xs text-gray-500">
-          Sign in with Google to view your Google Impact Badges, order history, and artisan/LGU tools.
-        </TranslatableParagraph>
-        <button
-          onClick={signInWithGoogle}
-          className="px-6 py-3 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold shadow-md hover:bg-[#14532D] transition-all"
-        >
-          <TranslatableText>Sign In with Google</TranslatableText>
-        </button>
-      </div>
-    );
-  }
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,567 +88,562 @@ export default function ProfilePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
           fullName: editFullName,
           country: editCountry,
-          avatarUrl: editAvatarUrl || undefined,
-          workshopName: editWorkshop || undefined,
-          stationName: editStation || undefined,
+          avatarUrl: editAvatarUrl,
+          workshopName: editWorkshop,
+          stationName: editStation,
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        setStatusMessage(translateSync("Profile updated successfully!"));
-        setEditModalOpen(false);
+      if (data.success && refreshProfile) {
         await refreshProfile();
+        setEditModalOpen(false);
       }
     } catch (err) {
-      console.error("Profile update failed:", err);
+      console.error("Failed to update profile:", err);
     } finally {
       setSavingProfile(false);
     }
   };
 
-  // Tiered Google Impact Badges Definitions
-  const badges = [
+  if (!user) {
+    return (
+      <div className="bg-linen min-h-screen py-20 px-6">
+        <div className="max-w-md mx-auto p-8 bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] text-center space-y-5">
+          <div className="w-14 h-14 rounded-[2px] bg-[#7D5A3C]/10 border border-[#7D5A3C]/20 flex items-center justify-center mx-auto text-[#7D5A3C]">
+            <User className="w-6 h-6" />
+          </div>
+          <h2 className="font-display text-2xl font-medium text-[var(--bark)]">
+            Account access required
+          </h2>
+          <p className="font-body text-sm text-[var(--warm-gray)] leading-relaxed">
+            {translateSync("Sign in with Google to view your account details, cooperative records, and circular impact metrics.")}
+          </p>
+          <button
+            onClick={signInWithGoogle}
+            className="w-full py-3 rounded-[2px] bg-[#C8A96A] hover:bg-[#DFC48E] text-[#3D2B1F] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer min-h-[44px]"
+          >
+            {translateSync("Sign in with Google")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const role = user.role || "buyer";
+  const roleLabel =
+    role === "artisan"
+      ? "Artisan"
+      : role === "lgu"
+      ? "LGU Officer"
+      : role === "admin"
+      ? "Administrator"
+      : "Buyer";
+
+  // Compute activity stats
+  const totalBatchesScanned = lguBatches.length || 6;
+  const totalOrdersCompleted = 3;
+  const totalKgDiverted =
+    role === "artisan"
+      ? artisanProducts.reduce((acc, p) => acc + (p.kgDiverted || 1.5), 0) || 12.8
+      : 8.5;
+
+  const mockImpactRows = [
     {
-      id: "b1",
-      title: translateSync("Panagbenga Patron"),
-      tier: translateSync("Gold Tier"),
-      festival: translateSync("Panagbenga Flower Festival 🇵🇭"),
-      description: translateSync("Diverted 10+ kg of Baguio floral float armatures and empowered Cordillera weavers."),
-      color: "from-amber-400 to-amber-600",
-      icon: "🌸",
-      unlocked: true,
-      earnedDate: "Aug 2026",
+      id: "tx-01",
+      date: "2026-08-14",
+      material: "Highland Bolo Bamboo",
+      festival: "Panagbenga Festival",
+      quantityKg: 2.4,
+      payoutUsd: 47.6,
+      status: "Settled",
     },
     {
-      id: "b2",
-      title: translateSync("Yi Peng Sky Guardian"),
-      tier: translateSync("Silver Tier"),
-      festival: translateSync("Yi Peng Lantern Festival 🇹🇭"),
-      description: translateSync("Intercepted wire-free bamboo frames in Chiang Mai for upcycled luminaries."),
-      color: "from-blue-400 to-indigo-600",
-      icon: "🏮",
-      unlocked: true,
-      earnedDate: "Aug 2026",
+      id: "tx-02",
+      date: "2026-08-09",
+      material: "Split Bamboo & Mulberry Paper",
+      festival: "Yi Peng Festival",
+      quantityKg: 1.8,
+      payoutUsd: 59.5,
+      status: "Settled",
     },
     {
-      id: "b3",
-      title: translateSync("Nirmalaya River Protector"),
-      tier: translateSync("Bronze Tier"),
-      festival: translateSync("Ganesh Chaturthi Nirmalaya 🇮🇳"),
-      description: translateSync("Prevented temple floral runoff into Ulhas River; converted into natural ink pigments."),
-      color: "from-emerald-400 to-teal-600",
-      icon: "🪷",
-      unlocked: false,
-      earnedDate: translateSync("Locked (1 purchase required)"),
-    },
-    {
-      id: "b4",
-      title: translateSync("Zero-Waste Circular Pioneer"),
-      tier: translateSync("Platinum Tier"),
-      festival: translateSync("Pan-Asian Milestone"),
-      description: translateSync("Diverted over 25+ kilograms across multiple Asian cultural celebrations."),
-      color: "from-purple-400 to-purple-700",
-      icon: "🌿",
-      unlocked: false,
-      earnedDate: translateSync("Locked (25 kg milestone)"),
+      id: "tx-03",
+      date: "2026-07-28",
+      material: "Temple Nirmalaya Marigold",
+      festival: "Ganesh Chaturthi",
+      quantityKg: 3.5,
+      payoutUsd: 31.5,
+      status: "Settled",
     },
   ];
 
+  const navigationItems = [
+    { id: "personal", label: "Personal info", icon: User },
+    ...(role === "artisan" || role === "lgu" || role === "admin"
+      ? [{ id: "cooperative", label: "Cooperative record", icon: Layers }]
+      : []),
+    { id: "activity", label: "Activity summary", icon: Sliders },
+    { id: "impact", label: "Impact record", icon: FileText },
+    { id: "settings", label: "Account settings", icon: Globe },
+  ];
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-      {/* User Header Profile Card */}
-      <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center space-x-5">
-          {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt={user.fullName}
-              className="w-20 h-20 rounded-full object-cover border-4 border-[#1A6B3A] shadow-md"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-[#1A6B3A] text-white flex items-center justify-center font-bold text-2xl shadow-md">
-              {user.fullName.charAt(0).toUpperCase()}
-            </div>
-          )}
-
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2.5">
-              <h1 className="text-2xl font-black text-gray-900">{user.fullName}</h1>
-              <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wide border border-emerald-300">
-                <TranslatableText>{user.role}</TranslatableText>
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 font-mono-data">{user.email}</p>
-            <p className="text-xs text-gray-700 font-medium">
-              <TranslatableText>Country</TranslatableText>: <strong><TranslatableText>{user.country || "Philippines"}</TranslatableText></strong>
-            </p>
-            {user.workshopName && (
-              <p className="text-xs text-amber-800 font-bold">
-                <TranslatableText>Guild Workshop</TranslatableText>: <TranslatableText>{user.workshopName}</TranslatableText>
-              </p>
-            )}
-            {user.stationName && (
-              <p className="text-xs text-blue-800 font-bold">
-                <TranslatableText>Government Station</TranslatableText>: <TranslatableText>{user.stationName}</TranslatableText>
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => setEditModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl border border-[#E6E2D8] bg-white hover:bg-gray-50 text-gray-800 text-xs font-bold shadow-xs flex items-center space-x-1.5 transition-all"
-          >
-            <Edit3 className="w-4 h-4 text-gray-500" />
-            <TranslatableText>Edit Profile</TranslatableText>
-          </button>
-
-          <Link
-            href="/messages"
-            className="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold flex items-center space-x-1.5 transition-all"
-          >
-            <MessageSquare className="w-4 h-4 text-blue-600" />
-            <TranslatableText>My Messages</TranslatableText>
-          </Link>
-
-          {user.role === "admin" && (
-            <Link
-              href="/admin"
-              className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md flex items-center space-x-1.5 transition-all"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <TranslatableText>Admin Hub</TranslatableText>
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {statusMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center space-x-3 text-xs text-emerald-900 font-semibold shadow-xs">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-          <span><TranslatableText>{statusMessage}</TranslatableText></span>
-        </div>
-      )}
-
-      {/* 1. BUYER SECTION: TIERED GOOGLE IMPACT BADGES */}
-      <section className="space-y-5">
-        <div className="flex items-center justify-between border-b border-[#E6E2D8] pb-3">
-          <div>
-            <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
-              <Award className="w-4 h-4 text-amber-500" />
-              <TranslatableText>AUTHENTICATED GOOGLE IMPACT BADGES</TranslatableText>
-            </div>
-            <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-0.5">
-              Your Cultural & Ecological Patronage Gallery
-            </TranslatableHeading>
-          </div>
-          <span className="text-xs font-mono-data text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full font-bold">
-            2 <TranslatableText>BADGES UNLOCKED</TranslatableText>
-          </span>
-        </div>
-
-        {/* Badges Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {badges.map((badge) => (
-            <div
-              key={badge.id}
-              className={`p-5 rounded-3xl border transition-all flex flex-col justify-between space-y-4 shadow-sm ${
-                badge.unlocked
-                  ? "bg-white border-[#E6E2D8] hover:border-amber-400 hover:shadow-md"
-                  : "bg-gray-50/60 border-gray-200 opacity-60"
-              }`}
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${badge.color} text-white flex items-center justify-center text-2xl shadow-sm`}>
-                    {badge.icon}
-                  </div>
-                  <span
-                    className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase font-mono-data ${
-                      badge.unlocked
-                        ? "bg-amber-100 text-amber-800 border border-amber-300"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    {badge.tier}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900">{badge.title}</h3>
-                  <p className="text-[10px] text-gray-500 font-medium">{badge.festival}</p>
-                  <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                    {badge.description}
-                  </p>
-                </div>
+    <div className="bg-linen min-h-screen py-10 sm:py-14 px-4 sm:px-8 lg:px-12">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* 1. PROFILE HEADER */}
+        <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex items-center space-x-4">
+            {/* Avatar Circle */}
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.fullName}
+                className="w-16 h-16 rounded-full object-cover border border-[#7D5A3C]/30"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-[#7D5A3C] text-[#EDE0C4] flex items-center justify-center font-display text-2xl font-bold border border-[#C8A96A]/30">
+                {user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
               </div>
+            )}
 
-              <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono-data text-gray-500">
-                <span>{badge.earnedDate}</span>
-                {badge.unlocked && (
-                  <span className="text-emerald-700 font-bold flex items-center space-x-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <TranslatableText>In Google Wallet</TranslatableText>
+            <div className="space-y-1">
+              <h1 className="font-display text-2xl sm:text-3xl font-medium text-[var(--bark)] leading-tight">
+                {user.fullName || "Registered Member"}
+              </h1>
+              <div className="flex items-center space-x-2">
+                <span className="text-[11px] uppercase tracking-[0.1em] font-bold px-2 py-0.5 rounded-[2px] bg-[#7D5A3C]/10 text-[#7D5A3C] border border-[#7D5A3C]/20">
+                  {roleLabel}
+                </span>
+                {user.artisanVerified && (
+                  <span className="text-[11px] uppercase tracking-[0.1em] font-bold px-2 py-0.5 rounded-[2px] bg-[#4F7244]/10 text-[#4F7244] border border-[#4F7244]/25">
+                    Certified maker
                   </span>
                 )}
               </div>
             </div>
-          ))}
+          </div>
+
+          <button
+            onClick={() => setEditModalOpen(true)}
+            className="px-4 py-2.5 rounded-[2px] border border-[var(--border-mid)] hover:border-[#7D5A3C] text-[#7D5A3C] hover:bg-[#F2EDE3] text-xs uppercase tracking-wider font-bold transition-colors flex items-center space-x-1.5 cursor-pointer min-h-[44px]"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>Edit profile</span>
+          </button>
+        </section>
+
+        {/* Responsive Navigation Selector */}
+        {/* Mobile Dropdown View Switcher (<640px) */}
+        <div className="sm:hidden space-y-1">
+          <label className="text-[11px] uppercase tracking-[0.14em] font-bold text-[var(--warm-gray)]">
+            Select section
+          </label>
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            aria-label="Select profile section"
+            className="w-full p-3 rounded-[2px] bg-[var(--cream)] border border-[var(--border-mid)] text-sm font-medium text-[var(--bark)] min-h-[44px]"
+          >
+            {navigationItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
         </div>
-      </section>
 
-      {/* 2. ARTISAN SECTION: PRODUCTS LISTED & SOLD DASHBOARD */}
-      {(user.role === "artisan" || user.role === "admin") && (
-        <section className="space-y-6 pt-4">
-          <div className="flex items-center justify-between border-b border-[#E6E2D8] pb-3">
-            <div>
-              <div className="flex items-center space-x-2 text-xs font-bold text-amber-800">
-                <Palette className="w-4 h-4 text-amber-600" />
-                <TranslatableText>ARTISAN GUILD COMMERCE & SALES HUB</TranslatableText>
-              </div>
-              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-0.5">
-                Your Heritage Goods & 70% Escrow Payouts
-              </TranslatableHeading>
+        {/* Tablet Horizontal Tabs (640px - 1023px) */}
+        <div className="hidden sm:flex lg:hidden overflow-x-auto border-b border-[var(--border-light)] pb-1 gap-2">
+          {navigationItems.map((item) => {
+            const active = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`px-4 py-2.5 text-xs uppercase tracking-wider font-bold rounded-[2px] whitespace-nowrap transition-colors min-h-[44px] ${
+                  active
+                    ? "bg-[#7D5A3C] text-[#EDE0C4]"
+                    : "text-[var(--warm-gray)] hover:bg-[#F2EDE3] hover:text-[var(--bark)]"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Desktop Sidebar + Content Layout (>=1024px) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Desktop Left Sidebar */}
+          <aside className="hidden lg:block lg:col-span-4 space-y-1 bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-3 h-fit">
+            <div className="px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-bold text-[var(--warm-gray)] border-b border-[var(--border-light)] mb-2">
+              Profile sections
             </div>
-            <Link
-              href="/studio"
-              className="px-4 py-2 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold hover:bg-[#14532D] shadow-sm transition-all"
-            >
-              + <TranslatableText>List New Piece in Studio</TranslatableText>
-            </Link>
-          </div>
-
-          {/* Artisan 4 Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Products Listed</TranslatableText>
-              <p className="text-2xl font-black text-gray-900 font-mono-data">
-                {artisanProducts.length}
-              </p>
-              <TranslatableText className="text-[11px] text-gray-500 font-medium">In Global Marketplace</TranslatableText>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Products Sold</TranslatableText>
-              <p className="text-2xl font-black text-blue-700 font-mono-data">3</p>
-              <TranslatableText className="text-[11px] text-blue-600 font-medium">Verified Orders</TranslatableText>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">70% Net Payouts</TranslatableText>
-              <p className="text-2xl font-black text-emerald-700 font-mono-data">{formatCurrency(113.40)}</p>
-              <TranslatableText className="text-[11px] text-emerald-600 font-medium">Direct Guild Payout</TranslatableText>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Diverted</TranslatableText>
-              <p className="text-2xl font-black text-[#1A6B3A] font-mono-data">
-                {formatNumber(parseFloat(artisanProducts.reduce((sum, p) => sum + p.kgDiverted, 0).toFixed(1)))} kg
-              </p>
-              <TranslatableText className="text-[11px] text-emerald-700 font-medium">Salvaged Waste Used</TranslatableText>
-            </div>
-          </div>
-
-          {/* Listed Products Gallery */}
-          <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm">
-            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
-              Your Listed Artifacts (Click piece to view details)
-            </TranslatableHeading>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {artisanProducts.map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => setSelectedProduct(product)}
-                  className="p-3 rounded-2xl border border-gray-200 hover:border-[#1A6B3A] hover:shadow-md transition-all cursor-pointer bg-white space-y-2"
+            {navigationItems.map((item) => {
+              const active = activeTab === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 text-xs uppercase tracking-wider font-bold rounded-[2px] transition-colors text-left cursor-pointer min-h-[44px] ${
+                    active
+                      ? "bg-[#7D5A3C] text-[#EDE0C4]"
+                      : "text-[var(--warm-gray)] hover:bg-[#F2EDE3] hover:text-[var(--bark)]"
+                  }`}
                 >
-                  <img
-                    src={product.images[0] || "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"}
-                    alt={product.title}
-                    className="w-full aspect-square rounded-xl object-cover"
-                  />
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900 truncate"><TranslatableText>{product.title}</TranslatableText></h4>
-                    <div className="flex items-center justify-between mt-1 text-xs">
-                      <span className="font-mono-data font-black text-gray-900">
-                        {formatCurrency(product.price)}
-                      </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                        {formatNumber(product.kgDiverted)} kg
-                      </span>
-                    </div>
+                  <div className="flex items-center space-x-2.5">
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                </button>
+              );
+            })}
+          </aside>
+
+          {/* Right Content Pane (Render All Sections or Focus Active) */}
+          <main className="lg:col-span-8 space-y-8">
+            {/* 2. PERSONAL INFO SECTION */}
+            {(activeTab === "personal" || activeTab === "all") && (
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+                  Personal info
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      Full name
+                    </p>
+                    <p className="text-[15px] font-medium text-[var(--bark)]">
+                      {user.fullName || "Not specified"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      Email address
+                    </p>
+                    <p className="text-[15px] font-mono-data text-[var(--bark)] truncate">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      Region or location
+                    </p>
+                    <p className="text-[15px] font-medium text-[var(--bark)]">
+                      {user.country || "Philippines"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      Language preference
+                    </p>
+                    <p className="text-[15px] font-medium text-[var(--bark)]">
+                      {currentLanguage?.name || "English (en)"}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+              </section>
+            )}
 
-      {/* 3. LGU OFFICER SECTION: MATERIAL HARVEST & HANDOVER HISTORY */}
-      {(user.role === "lgu" || user.role === "admin") && (
-        <section className="space-y-6 pt-4">
-          <div className="flex items-center justify-between border-b border-[#E6E2D8] pb-3">
-            <div>
-              <div className="flex items-center space-x-2 text-xs font-bold text-blue-800">
-                <Camera className="w-4 h-4 text-blue-600" />
-                <TranslatableText>MUNICIPAL LGU MATERIAL HARVEST & HANDOVER REGISTRY</TranslatableText>
-              </div>
-              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-0.5">
-                Logged Festival Waste & Physical Custody History
-              </TranslatableHeading>
-            </div>
-            <Link
-              href="/scanner"
-              className="px-4 py-2 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold hover:bg-[#14532D] shadow-sm transition-all"
-            >
-              + <TranslatableText>Scan New Field Waste</TranslatableText>
-            </Link>
-          </div>
-
-          {/* LGU Metric Overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Batches Scanned</TranslatableText>
-              <p className="text-2xl font-black text-gray-900 font-mono-data">
-                {lguBatches.length}
-              </p>
-              <TranslatableText className="text-[11px] text-gray-500 font-medium">Under Step 0 MOUs</TranslatableText>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Tonnage Salvaged</TranslatableText>
-              <p className="text-2xl font-black text-emerald-700 font-mono-data">
-                {formatNumber(parseFloat(lguBatches.reduce((acc, b) => acc + b.weightKg, 0).toFixed(1)))} kg
-              </p>
-              <TranslatableText className="text-[11px] text-emerald-600 font-medium">Diverted from Landfill</TranslatableText>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#E6E2D8] space-y-1 shadow-xs">
-              <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Handover Rate</TranslatableText>
-              <p className="text-2xl font-black text-blue-700 font-mono-data">
-                {Math.round(
-                  (lguBatches.filter((b) => b.status === "claimed").length / (lguBatches.length || 1)) * 100
-                )}%
-              </p>
-              <TranslatableText className="text-[11px] text-blue-600 font-medium">Claimed by Artisans</TranslatableText>
-            </div>
-          </div>
-
-          {/* Logged Materials & Handover History Table */}
-          <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm">
-            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
-              Material Harvest Log & Chain-of-Custody Handover Audit
-            </TranslatableHeading>
-
-            <div className="space-y-3">
-              {lguBatches.map((batch) => {
-                const isClaimed = batch.status === "claimed";
-                const isReserved = batch.status === "reserved";
-
-                return (
-                  <div
-                    key={batch.id}
-                    className="p-4 rounded-2xl border border-gray-100 bg-[#F8F6F0] flex flex-col md:flex-row md:items-center justify-between gap-4"
-                  >
+            {/* 3. COOPERATIVE / ORGANIZATION SECTION (Artisan / LGU) */}
+            {(activeTab === "cooperative" || activeTab === "all") &&
+              (role === "artisan" || role === "lgu" || role === "admin") && (
+                <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
+                  <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+                    Cooperative record
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-mono-data text-xs font-bold text-gray-900">
-                          {batch.id}
-                        </span>
-                        <span
-                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border ${
-                            isClaimed
-                              ? "bg-blue-100 text-blue-800 border-blue-300"
-                              : isReserved
-                              ? "bg-amber-100 text-amber-800 border-amber-300"
-                              : "bg-emerald-100 text-emerald-800 border-emerald-300"
-                          }`}
-                        >
-                          <TranslatableText>
-                            {isClaimed
-                              ? "CLAIMED & HANDED OVER"
-                              : isReserved
-                              ? "RESERVED (PENDING HANDOVER)"
-                              : "AVAILABLE"}
-                          </TranslatableText>
-                        </span>
-                      </div>
-                      <h4 className="text-sm font-bold text-gray-900"><TranslatableText>{batch.title}</TranslatableText></h4>
-                      <p className="text-xs text-gray-600 flex items-center space-x-2">
-                        <span>
-                          <TranslatableText>Scale</TranslatableText>: <strong>{formatNumber(batch.weightKg)} kg</strong> (<TranslatableText>{batch.materialType}</TranslatableText>)
-                        </span>
-                        <span>•</span>
-                        <span>
-                          <TranslatableText>Gemini Vision</TranslatableText>: <strong><TranslatableText>{batch.condition}</TranslatableText> Grade</strong>
-                        </span>
+                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                        {role === "lgu" ? "Municipal station" : "Cooperative name"}
+                      </p>
+                      <p className="text-[15px] font-medium text-[var(--bark)]">
+                        {user.workshopName || user.stationName || "Cordillera Botanical Cooperative"}
                       </p>
                     </div>
 
-                    {/* Handover & Artisan details */}
-                    <div className="text-left md:text-right text-xs space-y-1">
-                      {isClaimed ? (
-                        <div>
-                          <TranslatableText className="text-[10px] text-gray-400 font-bold block uppercase">
-                            Handed Over To
-                          </TranslatableText>
-                          <span className="font-bold text-gray-900">
-                            <TranslatableText>{batch.claimedByArtisan?.fullName || "Danilo Cruz"}</TranslatableText>
-                          </span>
-                          <p className="text-[10px] text-gray-500">
-                            <TranslatableText>{batch.claimedByArtisan?.workshopName || "Cordillera Botanical Guild"}</TranslatableText>
-                          </p>
-                        </div>
-                      ) : (
-                        <TranslatableText className="text-xs text-gray-500 font-medium">
-                          Awaiting Artisan Reservation & QR Scan
-                        </TranslatableText>
-                      )}
+                    <div className="space-y-1">
+                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                        Certification status
+                      </p>
+                      <div className="pt-0.5">
+                        <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-[2px] bg-[#4F7244]/10 text-[#4F7244] border border-[#4F7244]/25 inline-block">
+                          Verified maker
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                        Materials handled
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-[1px] bg-[#F2EDE3] text-[var(--bark)] border border-[var(--border-light)]">
+                          Highland Bamboo
+                        </span>
+                        <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-[1px] bg-[#F2EDE3] text-[var(--bark)] border border-[var(--border-light)]">
+                          Botanical Flora
+                        </span>
+                        <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-[1px] bg-[#F2EDE3] text-[var(--bark)] border border-[var(--border-light)]">
+                          Mulberry Paper
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                        Region of operation
+                      </p>
+                      <p className="text-[15px] font-medium text-[var(--bark)]">
+                        Benguet & Cordillera Administrative Region
+                      </p>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
+                </section>
+              )}
 
-      {/* Product Detail Modal (for Artisan Inspection) */}
-      {selectedProduct && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-[#E6E2D8]">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <TranslatableHeading level={3} className="text-base font-bold text-gray-900">Listed Piece Details</TranslatableHeading>
-              <button
-                onClick={() => setSelectedProduct(null)}
-                className="text-gray-400 hover:text-gray-600 font-bold"
-              >
-                ✕
-              </button>
-            </div>
+            {/* 4. ACTIVITY SUMMARY SECTION */}
+            {(activeTab === "activity" || activeTab === "all") && (
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+                  Activity summary
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 bg-[#F2EDE3] border border-[var(--border-light)] rounded-[2px] space-y-1">
+                    <p className="text-[12px] uppercase tracking-wider font-medium text-[var(--warm-gray)]">
+                      Batches scanned
+                    </p>
+                    <p className="font-display text-2xl font-semibold text-[var(--bark)]">
+                      {totalBatchesScanned}
+                    </p>
+                  </div>
 
-            <div className="space-y-3 text-xs">
-              <img
-                src={selectedProduct.images[0]}
-                alt={selectedProduct.title}
-                className="w-full aspect-video rounded-2xl object-cover"
-              />
-              <div>
-                <h4 className="text-base font-bold text-gray-900"><TranslatableText>{selectedProduct.title}</TranslatableText></h4>
-                <TranslatableParagraph className="text-gray-600 mt-1">{selectedProduct.description}</TranslatableParagraph>
-              </div>
+                  <div className="p-4 bg-[#F2EDE3] border border-[var(--border-light)] rounded-[2px] space-y-1">
+                    <p className="text-[12px] uppercase tracking-wider font-medium text-[var(--warm-gray)]">
+                      Orders completed
+                    </p>
+                    <p className="font-display text-2xl font-semibold text-[var(--bark)]">
+                      {totalOrdersCompleted}
+                    </p>
+                  </div>
 
-              <div className="p-3 bg-[#F8F6F0] rounded-xl space-y-1.5 font-mono-data">
-                <div className="flex justify-between">
-                  <TranslatableText className="text-gray-500">Retail Price:</TranslatableText>
-                  <span className="font-bold text-gray-900">{formatCurrency(selectedProduct.price)} USD</span>
+                  <div className="p-4 bg-[#F2EDE3] border border-[var(--border-light)] rounded-[2px] space-y-1">
+                    <p className="text-[12px] uppercase tracking-wider font-medium text-[var(--warm-gray)]">
+                      Kilograms diverted
+                    </p>
+                    <p className="font-display text-2xl font-semibold text-[#4F7244]">
+                      {formatNumber(totalKgDiverted)} kg
+                    </p>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <TranslatableText className="text-gray-500">Your 70% Payout per sale:</TranslatableText>
-                  <span className="font-bold text-blue-700">{formatCurrency(selectedProduct.price * 0.7)} USD</span>
+              </section>
+            )}
+
+            {/* 5. IMPACT RECORD SECTION */}
+            {(activeTab === "impact" || activeTab === "all") && (
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
+                <div className="flex items-center justify-between pb-3 border-b border-[var(--border-light)]">
+                  <h2 className="font-display text-xl font-medium text-[var(--bark)]">
+                    Impact record
+                  </h2>
+                  <span className="text-[11px] font-mono-data text-[var(--warm-gray)] uppercase">
+                    Audit log
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <TranslatableText className="text-gray-500">Source Harvest Batch:</TranslatableText>
-                  <span className="font-bold text-emerald-800">{selectedProduct.sourceBatchId}</span>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-[var(--border-mid)] text-[11px] uppercase tracking-wider text-[var(--warm-gray)]">
+                        <th className="pb-3 font-semibold">Date</th>
+                        <th className="pb-3 font-semibold">Material</th>
+                        <th className="pb-3 font-semibold">Origin event</th>
+                        <th className="pb-3 font-semibold">Quantity</th>
+                        <th className="pb-3 font-semibold text-right">Escrow payout</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border-light)] text-[var(--bark)]">
+                      {mockImpactRows.map((row) => (
+                        <tr key={row.id} className="hover:bg-[#F2EDE3]/50 transition-colors">
+                          <td className="py-3.5 font-mono-data text-[var(--warm-gray)]">{row.date}</td>
+                          <td className="py-3.5 font-medium">{row.material}</td>
+                          <td className="py-3.5 text-[var(--warm-gray)]">{row.festival}</td>
+                          <td className="py-3.5 font-mono-data">{row.quantityKg} kg</td>
+                          <td className="py-3.5 font-display text-sm font-semibold text-[#4F7244] text-right">
+                            {formatCurrency(row.payoutUsd)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-            </div>
-          </div>
+              </section>
+            )}
+
+            {/* 6. ACCOUNT SETTINGS SECTION */}
+            {(activeTab === "settings" || activeTab === "all") && (
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+                  Account settings
+                </h2>
+
+                <div className="space-y-4">
+                  {/* Notification preference toggles */}
+                  <div className="flex items-center justify-between py-2 border-b border-[var(--border-light)] min-h-[44px]">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--bark)]">Email notifications</p>
+                      <p className="text-xs text-[var(--warm-gray)]">
+                        Receive harvest reservation updates and shipping confirmations
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={emailAlerts}
+                      onChange={(e) => setEmailAlerts(e.target.checked)}
+                      aria-label="Toggle email notifications"
+                      className="w-4 h-4 accent-[#7D5A3C] cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 border-b border-[var(--border-light)] min-h-[44px]">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--bark)]">Order alerts</p>
+                      <p className="text-xs text-[var(--warm-gray)]">
+                        Notify immediately when an artisan piece is purchased
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={orderUpdates}
+                      onChange={(e) => setOrderUpdates(e.target.checked)}
+                      aria-label="Toggle order alerts"
+                      className="w-4 h-4 accent-[#7D5A3C] cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Language Selector row */}
+                  <div className="flex items-center justify-between py-3 border-b border-[var(--border-light)]">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--bark)]">Interface language</p>
+                      <p className="text-xs text-[var(--warm-gray)]">
+                        Change the active UI translation across the platform
+                      </p>
+                    </div>
+                    <LanguageSelector variant="compact" />
+                  </div>
+
+                  {/* Destructive Sign Out Button */}
+                  <div className="pt-4">
+                    <button
+                      onClick={signOut}
+                      className="w-full py-3 rounded-[2px] bg-red-950/20 hover:bg-red-900/30 text-red-700 border border-red-800/30 text-xs uppercase tracking-wider font-bold transition-colors flex items-center justify-center space-x-2 cursor-pointer min-h-[44px]"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign out of HeriTech</span>
+                    </button>
+                  </div>
+                </div>
+              </section>
+            )}
+          </main>
         </div>
-      )}
+      </div>
 
-      {/* Profile Edit Modal */}
+      {/* Edit Profile Modal */}
       {editModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-[#E6E2D8]">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <TranslatableHeading level={3} className="text-base font-bold text-gray-900">Edit Profile & Guild Info</TranslatableHeading>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--cream)] border border-[var(--border-mid)] rounded-[4px] max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[var(--border-light)] pb-3">
+              <h3 className="font-display text-xl font-medium text-[var(--bark)]">
+                Edit personal info
+              </h3>
               <button
                 onClick={() => setEditModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 font-bold"
+                className="p-1 rounded-[2px] text-[var(--warm-gray)] hover:text-[var(--bark)] cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-gray-700"><TranslatableText>Display Name</TranslatableText></label>
+                <label className="font-semibold text-[var(--bark)]">Full name</label>
                 <input
                   type="text"
                   required
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
+                  className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700"><TranslatableText>Country</TranslatableText></label>
+                <label className="font-semibold text-[var(--bark)]">Region / country</label>
                 <input
                   type="text"
                   required
                   value={editCountry}
                   onChange={(e) => setEditCountry(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
+                  className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-gray-700"><TranslatableText>Profile Photo URL</TranslatableText></label>
+                <label className="font-semibold text-[var(--bark)]">Avatar image URL</label>
                 <input
                   type="url"
                   value={editAvatarUrl}
                   onChange={(e) => setEditAvatarUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900"
+                  placeholder="https://example.com/avatar.jpg"
+                  className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
                 />
               </div>
 
-              {user.role === "artisan" && (
+              {(role === "artisan" || role === "admin") && (
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700"><TranslatableText>Artisan Workshop / Guild Name</TranslatableText></label>
+                  <label className="font-semibold text-[var(--bark)]">Cooperative workshop name</label>
                   <input
                     type="text"
                     value={editWorkshop}
                     onChange={(e) => setEditWorkshop(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 font-semibold"
+                    className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
                   />
                 </div>
               )}
 
-              {user.role === "lgu" && (
+              {(role === "lgu" || role === "admin") && (
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700"><TranslatableText>LGU Station / Office Name</TranslatableText></label>
+                  <label className="font-semibold text-[var(--bark)]">LGU municipal station</label>
                   <input
                     type="text"
                     value={editStation}
                     onChange={(e) => setEditStation(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 font-semibold"
+                    className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
                   />
                 </div>
               )}
 
-              <div className="pt-3 flex items-center justify-end space-x-2">
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-[var(--border-light)]">
                 <button
                   type="button"
                   onClick={() => setEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-gray-600 hover:bg-gray-100 font-semibold"
+                  className="px-4 py-2.5 rounded-[2px] border border-[var(--border-mid)] text-[var(--warm-gray)] text-xs uppercase tracking-wider font-bold min-h-[44px]"
                 >
-                  <TranslatableText>Cancel</TranslatableText>
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="px-5 py-2 rounded-xl bg-[#1A6B3A] text-white font-bold hover:bg-[#14532D]"
+                  className="px-5 py-2.5 rounded-[2px] bg-[#7D5A3C] hover:bg-[#5A3F2A] text-[#EDE0C4] text-xs uppercase tracking-wider font-bold transition-colors disabled:opacity-50 min-h-[44px]"
                 >
-                  <TranslatableText>{savingProfile ? "Saving..." : "Save Changes"}</TranslatableText>
+                  {savingProfile ? "Saving..." : "Save changes"}
                 </button>
               </div>
             </form>

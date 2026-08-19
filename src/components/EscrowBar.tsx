@@ -2,79 +2,74 @@
 
 import React from "react";
 import { useTranslation } from "@/contexts/TranslationContext";
-import {
-  TranslatableText,
-  TranslatableHeading,
-  TranslatableParagraph,
-} from "@/components/translation/TranslatableText";
-import { Scale, Heart, Shield, Leaf } from "lucide-react";
+import { Heart, Scale, Leaf } from "lucide-react";
 
 export function EscrowBar() {
   const { translateSync } = useTranslation();
 
   return (
-    <section className="w-full bg-[var(--cream)] py-14 sm:py-16 px-6 sm:px-12 border-b border-[rgba(107,66,38,0.12)]">
+    <section className="w-full bg-[var(--cream)] bg-linen py-12 sm:py-16 px-6 sm:px-10 lg:px-12 border-b border-[var(--border-light)]">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center space-x-2">
-              <span className="w-5 h-[1.5px] bg-[#6B4226] inline-block" />
-              <span className="text-[11px] uppercase tracking-[0.14em] text-[#6B4226] font-bold">
+              <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
+              <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
                 {translateSync("ECONOMIC FAIR-TRADE STANDARD")}
               </span>
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-medium text-[var(--bark)] tracking-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--bark)] tracking-tight">
               70/20/10 Transparent Escrow Architecture
             </h2>
-            <p className="font-body text-sm text-[#8C7B6B] leading-relaxed">
+            <p className="font-body text-[13px] sm:text-sm text-[var(--warm-gray)] leading-relaxed">
               {translateSync(
                 "Every transaction is divided automatically at checkout through smart financial splits, eliminating middleman markups and guaranteeing fair living wages."
               )}
             </p>
           </div>
 
-          <div className="text-[11px] uppercase tracking-wider font-mono-data text-[#4A6741] bg-[#4A6741]/10 px-3 py-1.5 rounded-[2px] border border-[#4A6741]/20 font-bold self-start md:self-auto">
+          <div className="text-[11px] uppercase tracking-wider font-mono-data text-[#4F7244] bg-[#4F7244]/10 px-3 py-1.5 rounded-[2px] border border-[#4F7244]/20 font-bold self-start md:self-auto">
             100% {translateSync("AUDITABLE ESCROW")}
           </div>
         </div>
 
-        {/* The Seamless Segmented Escrow Bar */}
-        <div className="w-full rounded-[4px] overflow-hidden flex flex-col md:flex-row shadow-xs border border-[#2C1A0E]/30">
+        {/* Escrow Bar (Desktop: Horizontal 3-segment, Mobile: 3 stacked horizontal bars) */}
+        <div className="w-full rounded-[4px] overflow-hidden flex flex-col md:flex-row shadow-xs border border-[#3D2B1F]/30 divide-y md:divide-y-0 md:divide-x divide-[#3D2B1F]/40">
           {/* 70% Segment: Forest */}
-          <div className="w-full md:w-[70%] bg-[var(--forest)] p-6 sm:p-7 text-[var(--linen)] space-y-2 border-b md:border-b-0 md:border-r border-[#2C1A0E]/40">
+          <div className="w-full md:w-[70%] bg-[var(--forest)] p-6 sm:p-7 text-[var(--linen)] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-display text-4xl sm:text-[42px] font-semibold text-[#E8D8B0]">
+              <span className="font-display text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#EDE0C4]">
                 70%
               </span>
-              <div className="w-8 h-8 rounded-[2px] bg-black/20 flex items-center justify-center text-[#E8D8B0]">
+              <div className="w-8 h-8 rounded-[2px] bg-black/20 flex items-center justify-center text-[#EDE0C4]">
                 <Heart className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-[11px] uppercase tracking-[0.14em] text-[#A8BFA3] font-bold">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-[#B0C4AB] font-bold">
               {translateSync("Direct Artisan Floor Price")}
             </p>
-            <p className="text-xs text-[#E8D8B0]/80 leading-relaxed font-light">
+            <p className="text-xs sm:text-[13px] text-[#EDE0C4]/85 leading-relaxed font-light">
               {translateSync(
-                "Paid directly to certified master weavers, joiners, and craft guilds with guaranteed minimum fair-trade floor pricing."
+                "Paid directly to certified master weavers, joiners, and artisan cooperatives with guaranteed minimum fair-trade floor pricing."
               )}
             </p>
           </div>
 
           {/* 20% Segment: Mahogany */}
-          <div className="w-full md:w-[20%] bg-[var(--mahogany)] p-6 sm:p-7 text-[var(--linen)] space-y-2 border-b md:border-b-0 md:border-r border-[#2C1A0E]/40">
+          <div className="w-full md:w-[20%] bg-[var(--mahogany)] p-6 sm:p-7 text-[var(--linen)] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-display text-4xl sm:text-[42px] font-semibold text-[#E8D8B0]">
+              <span className="font-display text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#EDE0C4]">
                 20%
               </span>
-              <div className="w-8 h-8 rounded-[2px] bg-black/20 flex items-center justify-center text-[#E8D8B0]">
+              <div className="w-8 h-8 rounded-[2px] bg-black/20 flex items-center justify-center text-[#EDE0C4]">
                 <Scale className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-[11px] uppercase tracking-[0.14em] text-[#A8BFA3] font-bold">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-[#B0C4AB] font-bold">
               {translateSync("Municipal Logistics & Platform")}
             </p>
-            <p className="text-xs text-[#E8D8B0]/80 leading-relaxed font-light">
+            <p className="text-xs sm:text-[13px] text-[#EDE0C4]/85 leading-relaxed font-light">
               {translateSync(
                 "Covers municipal pickup bins, Gemini AI camera fleet, and GIS routing."
               )}
@@ -84,17 +79,17 @@ export function EscrowBar() {
           {/* 10% Segment: Bark */}
           <div className="w-full md:w-[10%] bg-[var(--bark)] p-6 sm:p-7 text-[var(--linen)] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-display text-4xl sm:text-[42px] font-semibold text-[#C9A96E]">
+              <span className="font-display text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#C8A96A]">
                 10%
               </span>
-              <div className="w-8 h-8 rounded-[2px] bg-black/20 flex items-center justify-center text-[#C9A96E]">
+              <div className="w-8 h-8 rounded-[2px] bg-black/20 flex items-center justify-center text-[#C8A96A]">
                 <Leaf className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-[11px] uppercase tracking-[0.14em] text-[#A8BFA3] font-bold">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-[#B0C4AB] font-bold">
               {translateSync("NGO Trust Fund")}
             </p>
-            <p className="text-xs text-[#E8D8B0]/80 leading-relaxed font-light">
+            <p className="text-xs sm:text-[13px] text-[#EDE0C4]/85 leading-relaxed font-light">
               {translateSync(
                 "Transparent clean water, forest canopy, & conservation funds."
               )}

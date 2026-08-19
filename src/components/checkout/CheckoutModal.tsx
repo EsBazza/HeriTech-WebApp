@@ -68,7 +68,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   const artisanCoords = {
     lat: checkoutItems[0]?.artisanLat || 16.4023,
     lng: checkoutItems[0]?.artisanLng || 120.5960,
-    name: checkoutItems[0]?.artisanWorkshop || "Cordillera Craft Guild",
+    name: checkoutItems[0]?.artisanWorkshop || "Cordillera Artisan Cooperative",
     city: "Baguio City, Philippines",
   };
 
@@ -121,7 +121,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             body: JSON.stringify({
               senderId: user.id,
               receiverId: primaryProduct.artisanId,
-              content: `🎉 Order #${data.data.order.id.substring(0, 8)} confirmed for "${primaryProduct.title}"! Fair-trade payout of $${escrow.artisanPayout.toFixed(2)} (70%) transferred to your guild. Total ${primaryProduct.kgDiverted} kg diverted. Shipping to: ${city}, ${country}.`,
+              content: `Order #${data.data.order.id.substring(0, 8)} confirmed for "${primaryProduct.title}"! Fair-trade payout of $${escrow.artisanPayout.toFixed(2)} (70%) transferred to your cooperative. Total ${primaryProduct.kgDiverted} kg diverted. Shipping to: ${city}, ${country}.`,
               contextType: "order",
               contextId: data.data.order.id,
               isSystem: true,

@@ -174,7 +174,7 @@ export default function MaterialsMapPage() {
         <div>
           <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
             <Sparkles className="w-3.5 h-3.5" />
-            <TranslatableText>ACT 2 — INTERACTIVE HARVEST MAP & REGIONAL PING</TranslatableText>
+            <TranslatableText>ACT 2: INTERACTIVE HARVEST MAP & REGIONAL PING</TranslatableText>
           </div>
           <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
             Regional Material Harvest Registry
@@ -405,7 +405,7 @@ export default function MaterialsMapPage() {
               ) : selectedBatch.status === "reserved" ? (
                 <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex items-center justify-between">
                   <div>
-                    <TranslatableText className="font-bold">Reserved by Artisan Guild</TranslatableText>
+                    <TranslatableText className="font-bold">Reserved by Artisan Cooperative</TranslatableText>
                     <TranslatableParagraph className="text-[11px] text-amber-700">
                       Open Handover to present your Scannable QR Token at the collection depot.
                     </TranslatableParagraph>
@@ -452,7 +452,7 @@ export default function MaterialsMapPage() {
             <div className="border-b border-gray-100 pb-3">
               <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
                 <QrCode className="w-4 h-4" />
-                <TranslatableText>ACT 3 — PHYSICAL ON-SITE QR HANDOVER AUDIT</TranslatableText>
+                <TranslatableText>ACT 3: PHYSICAL ON-SITE QR HANDOVER AUDIT</TranslatableText>
               </div>
               <TranslatableHeading level={3} className="text-xl font-black text-gray-900 mt-1">
                 Chain-of-Custody Handover: {selectedBatch.id}
@@ -507,7 +507,7 @@ export default function MaterialsMapPage() {
                   sublabel={translateSync("Present to Municipal LGU Officer at festival salvage depot")}
                 />
                 <div className="text-xs text-center text-gray-500 font-mono-data">
-                  <TranslatableText>Artisan Guild</TranslatableText>: <strong><TranslatableText>{user?.fullName || "Danilo Cruz"}</TranslatableText></strong>
+                  <TranslatableText>Artisan Cooperative</TranslatableText>: <strong><TranslatableText>{user?.fullName || "Danilo Cruz"}</TranslatableText></strong>
                 </div>
               </div>
             ) : (

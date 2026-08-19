@@ -49,7 +49,7 @@ export default function HandoverPage() {
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
           <QrCode className="w-3.5 h-3.5" />
-          <TranslatableText>ACT 3 — ON-SITE PHYSICAL QR CUSTODY HANDOVER (STRICTLY NO NFC)</TranslatableText>
+          <TranslatableText>ACT 3: ON-SITE PHYSICAL QR CUSTODY HANDOVER (STRICTLY NO NFC)</TranslatableText>
         </div>
         <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
           QR Handover & Chain-of-Custody Audit
@@ -119,7 +119,7 @@ export default function HandoverPage() {
                   <TranslatableText>Artisan</TranslatableText>: <strong><TranslatableText>{user?.fullName || "Danilo Cruz"}</TranslatableText></strong>
                 </p>
                 <p className="text-gray-500">
-                  <TranslatableText>Guild</TranslatableText>: <strong><TranslatableText>{user?.workshopName || "Cordillera Botanical Guild"}</TranslatableText></strong>
+                  <TranslatableText>Cooperative</TranslatableText>: <strong><TranslatableText>{user?.workshopName || "Cordillera Botanical Cooperative"}</TranslatableText></strong>
                 </p>
               </div>
             </div>

@@ -256,7 +256,7 @@ export default function AdminDashboardPage() {
             <p className="text-3xl font-black text-blue-700 font-mono-data">
               {formatCurrency(stats?.kpis?.artisanPayoutTotal || 113.40)}
             </p>
-            <TranslatableText className="text-[11px] text-blue-600 font-medium">To Certified Guilds</TranslatableText>
+            <TranslatableText className="text-[11px] text-blue-600 font-medium">To Certified Maker Cooperatives</TranslatableText>
           </div>
 
           <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">

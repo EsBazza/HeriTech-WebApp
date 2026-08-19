@@ -10,7 +10,7 @@ import { MaterialCard, MaterialProduct } from "@/components/MaterialCard";
 import { FeaturesGrid } from "@/components/FeaturesGrid";
 import { EscrowBar } from "@/components/EscrowBar";
 import { ImpactBadges } from "@/components/ImpactBadges";
-import { Search, Tag, Sparkles, Filter, Loader2, ArrowRight } from "lucide-react";
+import { Search, Sparkles, Loader2 } from "lucide-react";
 
 // Curated High-Fidelity Fallback Products for Demo Resilience
 const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
@@ -26,11 +26,11 @@ const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
     ngoFundName: "Cordillera Ancestral Watershed Trust",
     artisan: {
       fullName: "Danilo Cruz",
-      workshopName: "Cordillera Botanical Guild",
+      workshopName: "Cordillera Botanical Cooperative",
       country: "Philippines",
     },
     sourceBatch: {
-      id: "HT-2026-0101",
+      id: "HT-BATCH-0101",
       materialType: "Highland Bolo Bamboo & Strawflower",
       condition: "Pristine & Dry",
       agreement: {
@@ -55,7 +55,7 @@ const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
       country: "Thailand",
     },
     sourceBatch: {
-      id: "HT-2026-0102",
+      id: "HT-BATCH-0102",
       materialType: "Split Bamboo & Mulberry Paper",
       condition: "Intact & Wire-Free",
       agreement: {
@@ -80,7 +80,7 @@ const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
       country: "India",
     },
     sourceBatch: {
-      id: "HT-2026-0103",
+      id: "HT-BATCH-0103",
       materialType: "Temple Nirmalaya Floral Biomass",
       condition: "Organic Rich Pigment",
       agreement: {
@@ -105,7 +105,7 @@ const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
       country: "Taiwan",
     },
     sourceBatch: {
-      id: "HT-2026-0104",
+      id: "HT-BATCH-0104",
       materialType: "Mulberry Lantern Paper",
       condition: "Clean & Sun-Dried",
       agreement: {
@@ -180,31 +180,31 @@ export default function MarketplacePage() {
   });
 
   return (
-    <div className="w-full bg-[var(--cream)] flex flex-col">
+    <div className="w-full bg-[var(--cream)] bg-linen flex flex-col">
       {/* 1. Hero Section */}
       <HeroSection />
 
       {/* 2. Signature Weave Divider */}
-      <WeaveDivider height={24} bgColor="#2C1A0E" />
+      <WeaveDivider height={24} bgColor="#3D2B1F" />
 
       {/* 3. Marketplace & Certified Goods Grid */}
       <section
         id="marketplace-grid"
-        className="w-full py-14 sm:py-16 px-6 sm:px-12 max-w-7xl mx-auto space-y-10"
+        className="w-full py-12 sm:py-16 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto space-y-8 sm:space-y-10"
       >
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center space-x-2">
-              <span className="w-5 h-[1.5px] bg-[#6B4226] inline-block" />
-              <span className="text-[11px] uppercase tracking-[0.14em] text-[#6B4226] font-bold">
+              <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
+              <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
                 {translateSync("AUTHENTICATED HERITAGE GOODS")}
               </span>
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-medium text-[var(--bark)] tracking-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--bark)] tracking-tight">
               Circulated Masterpiece Catalog
             </h2>
-            <p className="font-body text-sm text-[#8C7B6B] leading-relaxed">
+            <p className="font-body text-[13px] sm:text-sm text-[var(--warm-gray)] leading-relaxed">
               {translateSync(
                 "Every piece is handcrafted from verified ceremonial festival salvage, permanently linked to its harvest Batch ID, and sold with a 70% direct artisan payout."
               )}
@@ -212,8 +212,8 @@ export default function MarketplacePage() {
           </div>
 
           {/* Quick Stats Pill */}
-          <div className="flex items-center space-x-2 text-xs text-[#6B4226] font-mono-data bg-[#EDE8DF] px-3 py-1.5 rounded-[2px] border border-[rgba(107,66,38,0.15)] self-start md:self-auto font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-[#C9A96E]" />
+          <div className="flex items-center space-x-2 text-xs text-[#7D5A3C] font-mono-data bg-[#F2EDE3] px-3 py-2 rounded-[2px] border border-[var(--border-light)] self-start md:self-auto font-bold min-h-[44px]">
+            <Sparkles className="w-4 h-4 text-[#C8A96A]" />
             <span>
               {filteredProducts.length} {translateSync("Authenticated Pieces")}
             </span>
@@ -224,28 +224,28 @@ export default function MarketplacePage() {
         <div className="space-y-4 pt-2">
           {/* Search Input */}
           <div className="relative max-w-md">
-            <Search className="w-4 h-4 text-[#8C7B6B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-[var(--warm-gray)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={translateSync("Search by festival, material fiber, or master artisan...")}
-              className="w-full pl-10 pr-4 py-2.5 rounded-[2px] bg-[var(--cream)] border border-[rgba(107,66,38,0.2)] text-xs text-[var(--bark)] placeholder-[#8C7B6B] focus:outline-none focus:border-[#6B4226] transition-colors"
+              className="w-full pl-10 pr-4 py-3 rounded-[2px] bg-[var(--cream)] border border-[var(--border-mid)] text-sm text-[var(--bark)] placeholder-[var(--warm-gray)] focus:outline-none focus:border-[#7D5A3C] transition-colors min-h-[44px]"
             />
           </div>
 
           {/* Filter Tags */}
-          <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 scrollbar-none">
+          <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
             {allTags.map((tag) => {
               const active = selectedTag === tag;
               return (
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
-                  className={`px-3 py-1.5 rounded-[2px] text-[11px] uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  className={`px-3.5 py-2 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[44px] ${
                     active
-                      ? "bg-[#6B4226] text-[#E8D8B0] border border-[#6B4226]"
-                      : "bg-[#EDE8DF] text-[#8C7B6B] hover:text-[#6B4226] hover:bg-[#EDE8DF]/80 border border-[rgba(107,66,38,0.1)]"
+                      ? "bg-[#7D5A3C] text-[#EDE0C4] border border-[#7D5A3C]"
+                      : "bg-[#F2EDE3] text-[var(--warm-gray)] hover:text-[#7D5A3C] hover:bg-[#F2EDE3]/80 border border-[var(--border-light)]"
                   }`}
                 >
                   {translateSync(tag)}
@@ -258,17 +258,17 @@ export default function MarketplacePage() {
         {/* Product Cards Grid: 3-Col Desktop, 2-Col Tablet, 1-Col Mobile */}
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 text-[#6B4226] animate-spin" />
-            <p className="text-xs uppercase tracking-widest text-[#8C7B6B] font-mono-data">
+            <Loader2 className="w-8 h-8 text-[#7D5A3C] animate-spin" />
+            <p className="text-xs uppercase tracking-widest text-[var(--warm-gray)] font-mono-data">
               {translateSync("Loading circular material catalog...")}
             </p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-12 text-center border border-[rgba(107,66,38,0.15)] rounded-[4px] bg-[#EDE8DF]/50 space-y-3">
+          <div className="p-12 text-center border border-[var(--border-light)] rounded-[4px] bg-[#F2EDE3]/50 space-y-3">
             <p className="font-display text-xl text-[var(--bark)] font-medium">
               {translateSync("No matching heritage goods found")}
             </p>
-            <p className="text-xs text-[#8C7B6B] max-w-sm mx-auto">
+            <p className="text-[13px] text-[var(--warm-gray)] max-w-sm mx-auto">
               {translateSync("Try clearing your search query or selecting a different festival tag above.")}
             </p>
             <button
@@ -276,7 +276,7 @@ export default function MarketplacePage() {
                 setSelectedTag("All");
                 setSearchQuery("");
               }}
-              className="px-4 py-2 rounded-[2px] bg-[#6B4226] text-[#E8D8B0] text-xs font-bold uppercase tracking-wider"
+              className="px-4 py-2.5 rounded-[2px] bg-[#7D5A3C] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider min-h-[44px]"
             >
               {translateSync("Reset filters")}
             </button>
@@ -291,25 +291,25 @@ export default function MarketplacePage() {
       </section>
 
       {/* 4. Weave Divider */}
-      <WeaveDivider height={24} bgColor="#2C1A0E" />
+      <WeaveDivider height={24} bgColor="#3D2B1F" />
 
       {/* 5. Features Grid Section */}
       <FeaturesGrid />
 
       {/* 6. Weave Divider */}
-      <WeaveDivider height={24} bgColor="#2C1A0E" />
+      <WeaveDivider height={24} bgColor="#3D2B1F" />
 
       {/* 7. 70/20/10 Escrow Section */}
       <EscrowBar />
 
       {/* 8. Weave Divider */}
-      <WeaveDivider height={24} bgColor="#2C1A0E" />
+      <WeaveDivider height={24} bgColor="#3D2B1F" />
 
       {/* 9. Impact Badges Section */}
       <ImpactBadges />
 
       {/* 10. Weave Divider before Footer */}
-      <WeaveDivider height={24} bgColor="#2C1A0E" />
+      <WeaveDivider height={24} bgColor="#3D2B1F" />
     </div>
   );
 }

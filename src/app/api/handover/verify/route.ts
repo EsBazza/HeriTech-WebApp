@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Custody of Batch ${batchId} officially transferred to ${artisan.fullName} (${artisan.workshopName || "Verified Guild"}).`,
+      message: `Custody of Batch ${batchId} officially transferred to ${artisan.fullName} (${artisan.workshopName || "Verified Cooperative"}).`,
       data: {
         batchId: updatedBatch.id,
         status: updatedBatch.status,

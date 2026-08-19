@@ -80,7 +80,7 @@ export default function ArtisanStudioPage() {
           festival: selectedBatch.agreement?.festival || "Pan-Asian Festival",
           country: selectedBatch.agreement?.country || "Asia",
           craftTypology: selectedBatch.aiInferredMaterial || "Traditional Joinery & Weaving",
-          artisanWorkshop: user?.workshopName || "Master Heritage Guild",
+          artisanWorkshop: user?.workshopName || "Master Heritage Cooperative",
           divertedKg: kgDiverted || selectedBatch.weightKg,
           title: title || `${selectedBatch.materialType} Upcycled Creation`,
         }),
@@ -139,7 +139,7 @@ export default function ArtisanStudioPage() {
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
           <Palette className="w-3.5 h-3.5" />
-          <TranslatableText>ACT 4 — CRAFT, SELL, & PROVE (ARTISAN STUDIO)</TranslatableText>
+          <TranslatableText>ACT 4: CRAFT, SELL, & PROVE (ARTISAN STUDIO)</TranslatableText>
         </div>
         <TranslatableHeading
           level={1}

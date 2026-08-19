@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 - Material Condition: ${condition || "Pristine"}
 - Material Diverted from Landfill: ${divertedKg || "1.0"} kg
 - Upcycling Craft Method / Typology: ${craftTypology || "Traditional Heritage Joinery & Weaving"}
-- Artisan Guild / Workshop: ${artisanWorkshop || "Certified Master Artisan"}
+- Artisan Cooperative / Workshop: ${artisanWorkshop || "Certified Master Artisan"}
 
 Guidelines:
 1. Tell the journey from ceremonial festival salvage to handcrafted art.

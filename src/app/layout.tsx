@@ -8,7 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "HeriTech V4 — Pan-Asian Circular Origin Ledger",
+  title: "HeriTech: Pan-Asian Circular Origin Ledger",
   description:
     "Intercepting festival waste across Asia with Google Gemini AI, coordinating with certified artisans, and issuing verifiable Google Wallet Impact Passes.",
 };

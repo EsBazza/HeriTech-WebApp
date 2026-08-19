@@ -73,7 +73,7 @@ export default function AgreementsPage() {
         <div>
           <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
             <FileCheck2 className="w-3.5 h-3.5" />
-            <TranslatableText>STEP 0 — MUNICIPAL PARTNERSHIPS & DIGITAL CONSENT</TranslatableText>
+            <TranslatableText>STEP 0: MUNICIPAL PARTNERSHIPS & DIGITAL CONSENT</TranslatableText>
           </div>
           <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
             Material Release Agreements & Quotas

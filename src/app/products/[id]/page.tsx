@@ -87,7 +87,7 @@ export default function ProductDetailPage() {
     image: product.images[0] || "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
     artisanId: product.artisanId || "usr_art_05",
     artisanName: product.artisan?.fullName || "Danilo Cruz",
-    artisanWorkshop: product.artisan?.workshopName || "Cordillera Botanical Guild",
+    artisanWorkshop: product.artisan?.workshopName || "Cordillera Botanical Cooperative",
     artisanCountry: product.sourceBatch?.agreement?.country || "Philippines",
     kgDiverted: product.kgDiverted,
     ngoFundName: product.ngoFundName,
@@ -162,7 +162,7 @@ export default function ProductDetailPage() {
                   <TranslatableText>Certified Master Maker</TranslatableText>
                 </span>
                 <span className="text-sm font-bold text-gray-900"><TranslatableText>{product.artisan.fullName}</TranslatableText></span>
-                <p className="text-xs text-gray-500"><TranslatableText>{product.artisan.workshopName || "Heritage Guild"}</TranslatableText></p>
+                <p className="text-xs text-gray-500"><TranslatableText>{product.artisan.workshopName || "Heritage Cooperative"}</TranslatableText></p>
               </div>
             </div>
 

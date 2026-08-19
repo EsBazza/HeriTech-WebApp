@@ -140,7 +140,7 @@ export default function PublicVerificationPage() {
             <p className="text-xs text-gray-500"><TranslatableText>{data.maker.workshop}</TranslatableText></p>
           </div>
           <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold">
-            <TranslatableText>VERIFIED GUILD</TranslatableText>
+            <TranslatableText>VERIFIED COOPERATIVE</TranslatableText>
           </span>
         </div>
 

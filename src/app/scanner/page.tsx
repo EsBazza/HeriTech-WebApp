@@ -235,7 +235,7 @@ export default function WasteScannerPage() {
       <div>
         <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
           <Camera className="w-3.5 h-3.5" />
-          <TranslatableText>ACT 1 — FIELD LOGGING & MULTIMODAL INFERENCE</TranslatableText>
+          <TranslatableText>ACT 1: FIELD LOGGING & MULTIMODAL INFERENCE</TranslatableText>
         </div>
         <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
           Google Gemini Multimodal Waste Scanner
