@@ -102,7 +102,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // Generate SHA-256 tamper-evident provenance hash
+    // Generate SHA-256 tamper-evident origin hash
     const txHash = generateHarvestTxHash({
       batchId,
       gpsLat: Number(gpsLat),

@@ -3,8 +3,20 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
-import { Palette, CheckCircle2, Link2, PlusCircle } from "lucide-react";
+import {
+  TranslatableText,
+  TranslatableHeading,
+  TranslatableParagraph,
+} from "@/components/translation/TranslatableText";
+import {
+  Palette,
+  CheckCircle2,
+  Link2,
+  PlusCircle,
+  Sparkles,
+  Loader2,
+  RotateCcw,
+} from "lucide-react";
 
 export default function ArtisanStudioPage() {
   const { user } = useAuth();
@@ -19,9 +31,14 @@ export default function ArtisanStudioPage() {
   const [selectedBatchId, setSelectedBatchId] = useState("");
   const [kgDiverted, setKgDiverted] = useState("1.5");
   const [materialTags, setMaterialTags] = useState("Bamboo, Heritage Loom");
-  const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800");
-  const [ngoFundName, setNgoFundName] = useState("Cordillera Ancestral Watershed Fund");
+  const [imageUrl, setImageUrl] = useState(
+    "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800"
+  );
+  const [ngoFundName, setNgoFundName] = useState(
+    "Cordillera Ancestral Watershed Fund"
+  );
 
+  const [generatingStory, setGeneratingStory] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<any>(null);
 
@@ -44,6 +61,44 @@ export default function ArtisanStudioPage() {
     }
     loadBatches();
   }, []);
+
+  const selectedBatch = claimedBatches.find((b) => b.id === selectedBatchId);
+
+  // AI Origin Story Generator
+  const handleGenerateAIStory = async () => {
+    if (!selectedBatch) return;
+
+    setGeneratingStory(true);
+    try {
+      const res = await fetch("/api/ai/story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          batchId: selectedBatch.id,
+          materialType: selectedBatch.materialType,
+          condition: selectedBatch.condition,
+          festival: selectedBatch.agreement?.festival || "Pan-Asian Festival",
+          country: selectedBatch.agreement?.country || "Asia",
+          craftTypology: selectedBatch.aiInferredMaterial || "Traditional Joinery & Weaving",
+          artisanWorkshop: user?.workshopName || "Master Heritage Guild",
+          divertedKg: kgDiverted || selectedBatch.weightKg,
+          title: title || `${selectedBatch.materialType} Upcycled Creation`,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.data?.story) {
+        setDescription(data.data.story);
+        if (data.data.suggestedTags && Array.isArray(data.data.suggestedTags)) {
+          setMaterialTags(data.data.suggestedTags.join(", "));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to generate AI origin story:", err);
+    } finally {
+      setGeneratingStory(false);
+    }
+  };
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,8 +141,11 @@ export default function ArtisanStudioPage() {
           <Palette className="w-3.5 h-3.5" />
           <TranslatableText>ACT 4 — CRAFT, SELL, & PROVE (ARTISAN STUDIO)</TranslatableText>
         </div>
-        <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-          Artisan Craft Minting & Provenance Linker
+        <TranslatableHeading
+          level={1}
+          className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1"
+        >
+          Artisan Craft Minting & Origin Linker
         </TranslatableHeading>
         <TranslatableParagraph className="text-xs text-gray-500 mt-1">
           Transform claimed festival material into authenticated heritage goods. Every listed craft piece is permanently bound to its source harvest Batch ID.
@@ -151,7 +209,9 @@ export default function ArtisanStudioPage() {
                   className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
                 />
                 <span className="text-[10px] text-gray-400">
-                  <TranslatableText>You will receive</TranslatableText> <strong>70% (${(parseFloat(price || "0") * 0.7).toFixed(2)})</strong> <TranslatableText>instantly upon sale.</TranslatableText>
+                  <TranslatableText>You will receive</TranslatableText>{" "}
+                  <strong>70% (${(parseFloat(price || "0") * 0.7).toFixed(2)})</strong>{" "}
+                  <TranslatableText>instantly upon sale.</TranslatableText>
                 </span>
               </div>
             </div>
@@ -175,18 +235,45 @@ export default function ArtisanStudioPage() {
               </select>
             </div>
 
-            {/* Description */}
+            {/* Description / AI Origin Story */}
             <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-gray-700">
-                <TranslatableText>Artisan Craft & Material Story</TranslatableText>
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-gray-700">
+                  <TranslatableText>Product Bio & Material Origin Story</TranslatableText>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGenerateAIStory}
+                  disabled={generatingStory || !selectedBatch}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-[#1A6B3A] text-[11px] font-bold hover:bg-emerald-100 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  {generatingStory ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#1A6B3A]" />
+                      <TranslatableText>Drafting Origin Bio...</TranslatableText>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <TranslatableText>✨ Auto-Generate AI Origin Story with Gemini</TranslatableText>
+                    </>
+                  )}
+                </button>
+              </div>
               <textarea
-                rows={3}
+                rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={translateSync("Describe your upcycling technique, natural dyes, or traditional joinery...")}
+                placeholder={translateSync(
+                  "Describe your upcycling technique, natural dyes, or click the Gemini button above to auto-generate the cultural origin story..."
+                )}
                 className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 leading-relaxed"
               />
+              <p className="text-[10px] text-gray-500 italic">
+                <TranslatableText>
+                  The AI Origin Story synthesizes the harvest telemetry, festival origin, and artisan techniques into the public product bio.
+                </TranslatableText>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -239,7 +326,7 @@ export default function ArtisanStudioPage() {
               className="w-full py-4 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {submitting ? (
-                <TranslatableText>Minting Heritage Provenance Link...</TranslatableText>
+                <TranslatableText>Minting Heritage Origin Link...</TranslatableText>
               ) : (
                 <>
                   <PlusCircle className="w-4 h-4" />

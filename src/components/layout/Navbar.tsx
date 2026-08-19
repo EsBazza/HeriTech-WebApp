@@ -7,8 +7,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/components/cart/CartContext";
 import { LanguageSelector, MobileLanguageSelector } from "@/components/language/LanguageSelector";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { WeaveDivider } from "@/components/WeaveDivider";
 import {
-  Sparkles,
   ShoppingBag,
   MapPin,
   Camera,
@@ -79,34 +79,36 @@ export function Navbar() {
   const getRoleBadge = (r: string) => {
     switch (r) {
       case "admin":
-        return { label: translateSync("ADMIN"), bg: "bg-red-100 text-red-800 border-red-200" };
+        return { label: translateSync("ADMIN"), bg: "bg-red-900/60 text-red-300 border-red-700/50" };
       case "lgu":
-        return { label: translateSync("LGU OFFICER"), bg: "bg-blue-100 text-blue-800 border-blue-200" };
+        return { label: translateSync("LGU OFFICER"), bg: "bg-blue-900/60 text-blue-300 border-blue-700/50" };
       case "artisan":
-        return { label: translateSync("VERIFIED ARTISAN"), bg: "bg-amber-100 text-amber-800 border-amber-200" };
+        return { label: translateSync("VERIFIED ARTISAN"), bg: "bg-[#6B4226]/80 text-[#E8D8B0] border-[#C9A96E]/40" };
       default:
-        return { label: translateSync("HERITAGE BUYER"), bg: "bg-emerald-100 text-emerald-800 border-emerald-200" };
+        return { label: translateSync("HERITAGE BUYER"), bg: "bg-[#4A6741]/80 text-[#E8D8B0] border-[#6B8F62]/40" };
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#F8F6F0]/95 backdrop-blur-md border-b border-[#E6E2D8]">
+    <header className="sticky top-0 z-50 bg-[var(--bark)] shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo Brand */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-[#1A6B3A] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-[2px] bg-[#6B4226] border border-[#C9A96E]/40 flex items-center justify-center shadow-xs group-hover:border-[#C9A96E] transition-colors">
+              <span className="font-display text-base font-bold text-[#C9A96E]">H</span>
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-xl tracking-tight text-[#141312]">HeriTech</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#1A6B3A]/10 text-[#1A6B3A] border border-[#1A6B3A]/20">
+              <div className="flex items-baseline space-x-1.5">
+                <span className="font-display text-2xl font-semibold tracking-tight text-[#C9A96E]">
+                  Heri<span className="font-normal text-[#E8D8B0]">Tech</span>
+                </span>
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-[1px] bg-[#6B4226]/50 text-[#C9A96E] border border-[#C9A96E]/30">
                   V4
                 </span>
               </div>
-              <p className="text-[10px] text-gray-500 font-medium tracking-wide">
-                {translateSync("PAN-ASIAN CIRCULAR PROVENANCE")}
+              <p className="text-[9px] uppercase tracking-[0.14em] text-[#A8BFA3] font-medium hidden sm:block">
+                {translateSync("PAN-ASIAN CIRCULAR ORIGIN")}
               </p>
             </div>
           </Link>
@@ -116,28 +118,26 @@ export function Navbar() {
             {navLinks
               .filter((l) => l.show)
               .map((link) => {
-                const Icon = link.icon;
                 const active = pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`px-3 py-1.5 text-[13px] uppercase tracking-[0.05em] font-medium transition-all rounded-[2px] ${
                       active
-                        ? "bg-[#1A6B3A] text-white shadow-sm"
+                        ? "text-[#C9A96E] border-b-2 border-[#C9A96E] bg-[#6B4226]/20 font-semibold"
                         : link.adminBadge
-                        ? "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200"
-                        : "text-gray-700 hover:bg-black/5 hover:text-[#141312]"
+                        ? "text-red-300 hover:text-red-200 border border-red-800/60 bg-red-950/40"
+                        : "text-[#E8D8B0]/80 hover:text-[#C9A96E] hover:bg-[#6B4226]/15"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${active ? "text-white" : ""}`} />
                     <span>{link.name}</span>
                   </Link>
                 );
               })}
           </nav>
 
-          {/* Right Action: Language Selector + Cart Drawer Button + Auth Button */}
+          {/* Right Actions: Language Selector + Cart Drawer + Auth Button */}
           <div className="flex items-center space-x-3">
             {/* Language Selector - Desktop */}
             <div className="hidden md:block">
@@ -147,95 +147,84 @@ export function Navbar() {
             {/* Cart Drawer Trigger */}
             <button
               onClick={openCart}
-              className="relative p-2.5 rounded-xl border border-[#E6E2D8] bg-white hover:border-[#1A6B3A] text-gray-800 transition-all shadow-xs flex items-center justify-center"
+              className="relative p-2 rounded-[2px] border border-[#6B4226] bg-[#2C1A0E] hover:border-[#C9A96E] text-[#E8D8B0] transition-colors cursor-pointer"
               title={translateSync("View Cart")}
             >
-              <ShoppingBag className="w-5 h-5 text-gray-700" />
+              <ShoppingBag className="w-4 h-4 text-[#E8D8B0]" />
               {itemCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#D9532F] text-white text-[10px] font-black flex items-center justify-center shadow-xs">
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-[1px] bg-[#C9A96E] text-[#2C1A0E] text-[9px] font-bold flex items-center justify-center">
                   {itemCount}
                 </span>
               )}
             </button>
 
             {loading ? (
-              <div className="w-8 h-8 rounded-full border-2 border-[#1A6B3A] border-t-transparent animate-spin" />
+              <div className="w-7 h-7 rounded-[2px] border-2 border-[#C9A96E] border-t-transparent animate-spin" />
             ) : user ? (
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-2.5 p-1.5 pl-3 rounded-full border border-[#E6E2D8] bg-white hover:border-[#1A6B3A]/40 transition-all shadow-sm"
+                  className="flex items-center space-x-2 p-1.5 rounded-[2px] border border-[#6B4226] bg-[#2C1A0E] hover:border-[#C9A96E]/60 transition-all cursor-pointer"
                 >
                   <div className="flex flex-col text-left">
-                    <span className="text-xs font-semibold text-[#141312] truncate max-w-[120px]">
+                    <span className="text-xs font-semibold text-[#E8D8B0] truncate max-w-[110px]">
                       {user.fullName}
                     </span>
                     <span
-                      className={`text-[9px] font-bold px-1 py-0.2 rounded border self-start ${
+                      className={`text-[8px] font-bold uppercase tracking-wider px-1 py-0.2 rounded-[1px] border self-start ${
                         getRoleBadge(user.role).bg
                       }`}
                     >
                       {getRoleBadge(user.role).label}
                     </span>
                   </div>
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.fullName}
-                      className="w-8 h-8 rounded-full object-cover border border-gray-200"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-[#1A6B3A] text-white flex items-center justify-center font-bold text-xs">
-                      {user.fullName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[#A8BFA3]" />
                 </button>
 
                 {/* Profile Dropdown Menu */}
                 {dropdownOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-[#E6E2D8] py-2 z-50"
+                    className="absolute right-0 mt-2 w-60 bg-[var(--bark)] rounded-[2px] shadow-2xl border border-[#6B4226] py-2 z-50 text-xs"
                     onClick={() => setDropdownOpen(false)}
                   >
-                    <div className="px-4 py-2.5 border-b border-gray-100">
-                      <p className="text-xs text-gray-500">{translateSync("Signed in as")}</p>
-                      <p className="text-sm font-semibold text-gray-900 truncate">{user.email}</p>
+                    <div className="px-3 py-2 border-b border-[#6B4226]/50">
+                      <p className="text-[10px] text-[#A8BFA3] uppercase tracking-wider">{translateSync("Signed in as")}</p>
+                      <p className="text-xs font-semibold text-[#E8D8B0] truncate">{user.email}</p>
                     </div>
 
                     <Link
                       href="/profile"
-                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 space-x-2.5"
+                      className="flex items-center px-3 py-2 text-[#E8D8B0] hover:bg-[#6B4226]/30 hover:text-[#C9A96E] space-x-2"
                     >
-                      <User className="w-4 h-4 text-gray-500" />
+                      <User className="w-3.5 h-3.5 text-[#C9A96E]" />
                       <span>{translateSync("Profile, Badges & Guild Sales")}</span>
                     </Link>
 
                     <Link
                       href="/messages"
-                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 space-x-2.5"
+                      className="flex items-center px-3 py-2 text-[#E8D8B0] hover:bg-[#6B4226]/30 hover:text-[#C9A96E] space-x-2"
                     >
-                      <MessageSquare className="w-4 h-4 text-gray-500" />
+                      <MessageSquare className="w-3.5 h-3.5 text-[#C9A96E]" />
                       <span>{translateSync("Messages & Logistics")}</span>
                     </Link>
 
                     {user.role === "admin" && (
                       <Link
                         href="/admin"
-                        className="flex items-center px-4 py-2.5 text-sm font-semibold text-red-700 bg-red-50/50 hover:bg-red-50 space-x-2.5"
+                        className="flex items-center px-3 py-2 font-semibold text-red-300 bg-red-950/40 hover:bg-red-900/30 space-x-2 border-t border-[#6B4226]/30"
                       >
-                        <ShieldCheck className="w-4 h-4 text-red-600" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-red-400" />
                         <span>{translateSync("Admin Control Dashboard")}</span>
                       </Link>
                     )}
 
-                    <div className="border-t border-gray-100 my-1"></div>
+                    <div className="border-t border-[#6B4226]/50 my-1"></div>
 
                     <button
                       onClick={signOut}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 space-x-2.5"
+                      className="flex items-center w-full px-3 py-2 text-red-400 hover:bg-red-950/30 space-x-2 cursor-pointer text-left"
                     >
-                      <LogOut className="w-4 h-4" />
+                      <LogOut className="w-3.5 h-3.5" />
                       <span>{translateSync("Sign Out")}</span>
                     </button>
                   </div>
@@ -244,74 +233,57 @@ export function Navbar() {
             ) : (
               <button
                 onClick={signInWithGoogle}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-white border border-[#E6E2D8] hover:border-[#1A6B3A] text-sm font-medium text-gray-800 shadow-sm transition-all hover:bg-gray-50"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-[2px] bg-[#C9A96E] hover:bg-[#E0C48A] text-[#2C1A0E] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span>{translateSync("Sign In with Google")}</span>
+                <span>{translateSync("Sign In")}</span>
               </button>
             )}
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-black/5"
+              className="p-1.5 rounded-[2px] text-[#E8D8B0] hover:text-[#C9A96E] hover:bg-[#6B4226]/30 lg:hidden cursor-pointer"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden py-3 border-t border-[#E6E2D8] space-y-1">
-            {/* Mobile Language Selector */}
-            <div className="px-3 py-2 border-b border-[#E6E2D8] mb-2">
-              <MobileLanguageSelector />
-            </div>
+      {/* Embedded WeaveDivider as bottom border */}
+      <WeaveDivider height={8} bgColor="#2C1A0E" />
 
+      {/* Mobile Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-[#6B4226] bg-[var(--bark)] px-4 pt-2 pb-5 space-y-2">
+          <nav className="flex flex-col space-y-1">
             {navLinks
               .filter((l) => l.show)
               .map((link) => {
-                const Icon = link.icon;
                 const active = pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                    className={`px-3 py-2 text-xs uppercase tracking-[0.05em] font-medium rounded-[2px] transition-colors ${
                       active
-                        ? "bg-[#1A6B3A] text-white"
-                        : link.adminBadge
-                        ? "bg-red-50 text-red-700"
-                        : "text-gray-700 hover:bg-black/5"
+                        ? "bg-[#6B4226] text-[#C9A96E] font-bold"
+                        : "text-[#E8D8B0] hover:bg-[#6B4226]/30 hover:text-[#C9A96E]"
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{link.name}</span>
+                    {link.name}
                   </Link>
                 );
               })}
+          </nav>
+          <div className="pt-2 border-t border-[#6B4226]/50">
+            <MobileLanguageSelector />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </header>
   );
 }
+
+export default Navbar;

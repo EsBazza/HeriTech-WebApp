@@ -241,7 +241,7 @@ export default function WasteScannerPage() {
           Google Gemini Multimodal Waste Scanner
         </TranslatableHeading>
         <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-          LGU field officers photograph waste on-site, select or pin the exact pickup depot location, and log AI-graded batches with cryptographic provenance.
+          LGU field officers photograph waste on-site, select or pin the exact pickup depot location, and log AI-graded batches with cryptographic origin.
         </TranslatableParagraph>
       </div>
 

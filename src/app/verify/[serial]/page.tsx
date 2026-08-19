@@ -43,7 +43,7 @@ export default function PublicVerificationPage() {
     return (
       <div className="max-w-md mx-auto px-4 py-24 text-center">
         <div className="w-10 h-10 border-4 border-[#1A6B3A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-xs text-gray-500 mt-4"><TranslatableText>Auditing cryptographic provenance record...</TranslatableText></p>
+        <p className="text-xs text-gray-500 mt-4"><TranslatableText>Auditing cryptographic origin record...</TranslatableText></p>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function PublicVerificationPage() {
             GOOGLE WALLET AUDITED IMPACT PASS
           </TranslatableText>
           <TranslatableHeading level={1} className="text-2xl font-extrabold text-gray-900 tracking-tight mt-2">
-            Provenance Record Verified
+            Origin Record Verified
           </TranslatableHeading>
           <p className="text-xs text-emerald-900 font-mono-data font-semibold mt-1">
             SERIAL: <strong>{data.serial}</strong>
@@ -183,7 +183,7 @@ export default function PublicVerificationPage() {
         {/* SHA-256 Hash */}
         <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 font-mono-data text-xs space-y-1">
           <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase">
-            Tamper-Evident SHA-256 Provenance Hash
+            Tamper-Evident SHA-256 Origin Hash
           </TranslatableText>
           <p className="text-gray-700 text-[10px] break-all">{data.tamperEvidentHarvestHash}</p>
         </div>

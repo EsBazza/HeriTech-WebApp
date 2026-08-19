@@ -157,7 +157,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
           </div>
           <TranslatableHeading level={2} className="text-xl font-extrabold text-gray-900 mt-1">
             {step === 1 && "Step 1: Delivery & Shipping Address"}
-            {step === 2 && "Step 2: Provenance Route & Escrow Breakdown"}
+            {step === 2 && "Step 2: Origin Route & Escrow Breakdown"}
             {step === 3 && "Order Confirmed & Google Impact Badge Earned!"}
           </TranslatableHeading>
         </div>
@@ -255,20 +255,20 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
               type="submit"
               className="w-full mt-4 py-3.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
             >
-              <TranslatableText>Inspect Provenance Route & Escrow</TranslatableText>
+              <TranslatableText>Inspect Origin Route & Escrow</TranslatableText>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         )}
 
-        {/* STEP 2: Provenance Map & 70/20/10 Escrow Breakdown */}
+        {/* STEP 2: Origin Map & 70/20/10 Escrow Breakdown */}
         {step === 2 && (
           <div className="space-y-5 text-xs">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-gray-800">
                 <span className="flex items-center space-x-1.5">
                   <Truck className="w-4 h-4 text-[#1A6B3A]" />
-                  <TranslatableText>Pan-Asian Provenance Shipping Route</TranslatableText>
+                  <TranslatableText>Pan-Asian Origin Shipping Route</TranslatableText>
                 </span>
                 <span className="font-mono-data text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold">
                   <TranslatableText>Distance</TranslatableText>: ~{buyerCoords.distance}
@@ -409,7 +409,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   value={`https://heritech.app/verify/${orderResult.walletPass?.serial || "HT-519-PH"}`}
                   size={140}
                   label={`PASS SERIAL: ${orderResult.walletPass?.serial || "HT-519-PH"}`}
-                  sublabel={translateSync("Scan with standard phone camera to audit cryptographic provenance")}
+                  sublabel={translateSync("Scan with standard phone camera to audit cryptographic origin")}
                 />
               </div>
             </div>

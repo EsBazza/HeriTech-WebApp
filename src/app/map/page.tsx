@@ -291,7 +291,7 @@ export default function MaterialsMapPage() {
                     />
                   </div>
                   <TranslatableText className="text-[10px] text-gray-400 font-medium block text-center">
-                    Field Provenance Photograph
+                    Field Origin Photograph
                   </TranslatableText>
                 </div>
 

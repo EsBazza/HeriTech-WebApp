@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
     if (!title || !price || !artisanId || !sourceBatchId || !kgDiverted || !ngoFundName) {
       return NextResponse.json(
-        { success: false, error: "Missing required product or provenance fields" },
+        { success: false, error: "Missing required product or origin fields" },
         { status: 400 }
       );
     }
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        message: "Product listed successfully with immutable source batch provenance link.",
+        message: "Product listed successfully with immutable source batch origin link.",
         data: {
           ...product,
           images: JSON.parse(product.images),

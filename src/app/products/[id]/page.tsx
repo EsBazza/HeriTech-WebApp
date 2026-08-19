@@ -56,7 +56,7 @@ export default function ProductDetailPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-20 text-center">
         <div className="w-10 h-10 border-4 border-[#1A6B3A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-xs text-gray-500 mt-4"><TranslatableText>Loading provenance passport...</TranslatableText></p>
+        <p className="text-xs text-gray-500 mt-4"><TranslatableText>Loading origin passport...</TranslatableText></p>
       </div>
     );
   }

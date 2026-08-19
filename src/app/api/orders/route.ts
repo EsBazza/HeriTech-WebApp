@@ -89,6 +89,12 @@ export async function POST(request: Request) {
           harvestHash: walletPass.harvestHash,
           googleWalletSaveUrl: `https://pay.google.com/gp/v/save/${walletPass.googleWalletObjectId}`,
         },
+        origin: {
+          divertedKg: product.kgDiverted,
+          sourceBatchId: product.sourceBatch.id,
+          festival: product.sourceBatch.agreement?.festival || "Regional Festival",
+          country: product.sourceBatch.agreement?.country || "Asia",
+        },
         provenance: {
           divertedKg: product.kgDiverted,
           sourceBatchId: product.sourceBatch.id,
