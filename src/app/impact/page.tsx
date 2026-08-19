@@ -186,7 +186,7 @@ export default function ImpactLeaderboardPage() {
         {/* Header */}
         <div className="space-y-1.5 border-b border-[rgba(125,90,60,0.12)] pb-6">
           <h1 className="font-display text-3xl sm:text-4xl lg:text-[36px] font-medium text-[#2E1E12] tracking-tight">
-            {translateSync("Impact ledger")}
+            {translateSync("Global Impact")}
           </h1>
           <p className="font-body text-sm text-[rgba(92,74,56,0.7)]">
             {translateSync("Ranked by verified material diverted")}

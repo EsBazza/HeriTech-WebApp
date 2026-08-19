@@ -27,13 +27,13 @@ export function Navbar() {
   // Navbar navigation links including Home
   const navLinks = [
     { name: translateSync("Home"), href: "/", show: true },
-    { name: translateSync("Impact Ledger"), href: "/impact", show: true },
+    { name: translateSync("Global Impact"), href: "/impact", show: true },
     { name: translateSync("Harvest Map"), href: "/map", show: canAccessMap },
     { name: translateSync("Artisan Studio"), href: "/studio", show: canAccessStudio },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#F4F8F5]/95 backdrop-blur-md border-b border-[#D8E6DC] shadow-xs">
+    <header className="sticky top-0 z-50 bg-[#F4F8F5]/95 backdrop-blur-md border-b border-[#D8E6DC] shadow-xs hidden md:block">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-18">
           

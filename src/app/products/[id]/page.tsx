@@ -286,13 +286,14 @@ const FALLBACK_PRODUCTS: Record<string, any> = {
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
   const { addToCart } = useCart();
   const { formatCurrency, formatNumber, translateSync, currentCurrency } = useTranslation();
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
 
   const productId = params?.id as string;
 
@@ -462,87 +463,41 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            <Link
-              href="/messages"
-              className="p-2.5 rounded-[2px] border border-[rgba(125,90,60,0.2)] hover:border-[#7D5A3C] text-[#2E1E12] flex items-center space-x-1.5 text-xs font-semibold"
+            <button
+              type="button"
+              onClick={() => {
+                const artisanId =
+                  product.artisanId ||
+                  `artisan_${(product.artisan?.fullName || "maker")
+                    .toLowerCase()
+                    .replace(/\s+/g, "_")}`;
+                const artisanName = product.artisan?.fullName || "Certified Maker";
+                const workshopName =
+                  product.artisan?.workshopName || "Heritage Cooperative";
+
+                window.dispatchEvent(
+                  new CustomEvent("open-messages", {
+                    detail: {
+                      threadId: artisanId,
+                      name: artisanName,
+                      subtitle: workshopName,
+                      avatarText: artisanName.slice(0, 2).toUpperCase(),
+                      productTitle: product.title,
+                      initialGreeting: `Hello! I am ${artisanName} from ${workshopName}. How can I assist you with "${product.title}"?`,
+                    },
+                  })
+                );
+              }}
+              className="p-2.5 rounded-[2px] border border-[rgba(125,90,60,0.2)] hover:border-[#7D5A3C] text-[#2E1E12] flex items-center space-x-1.5 text-xs font-semibold cursor-pointer transition-colors"
             >
               <MessageSquare className="w-4 h-4 text-[#3E7B5C]" />
               <span className="hidden sm:inline">
                 {translateSync("Ask Question")}
               </span>
-            </Link>
+            </button>
           </div>
 
-          {/* 70/20/10 Escrow Split Visualizer */}
-          <div className="p-5 rounded-[6px] bg-white border border-[rgba(46,90,68,0.16)] space-y-4 shadow-[0_2px_10px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)]">
-            <div className="flex items-center justify-between border-b border-[rgba(125,90,60,0.08)] pb-3">
-              <span className="text-xs font-bold text-[#2E1E12] uppercase tracking-wide">
-                {translateSync("Transparent 70/20/10 Escrow Split")}
-              </span>
-              <span className="text-[10px] font-mono-data text-[#3E7B5C] bg-[#A3D9B5]/30 px-2 py-0.5 rounded-[1px] font-bold">
-                100% {translateSync("AUDITABLE")}
-              </span>
-            </div>
-
-            <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center space-x-2 text-[#5C4A38]">
-                  <Heart className="w-3.5 h-3.5 text-[#3E7B5C]" />
-                  <span>
-                    {translateSync("70% Direct Artisan Fair-Trade Payout")}
-                  </span>
-                </span>
-                <span className="font-mono-data font-bold text-[#3E7B5C]">
-                  {formatCurrency(escrow.artisanPayout)}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="flex items-center space-x-2 text-[#5C4A38]">
-                  <Scale className="w-3.5 h-3.5 text-[#7D5A3C]" />
-                  <span>
-                    {translateSync("20% Municipal Salvage Logistics & Platform")}
-                  </span>
-                </span>
-                <span className="font-mono-data font-bold text-[#7D5A3C]">
-                  {formatCurrency(escrow.platformFee)}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="flex items-center space-x-2 text-[#5C4A38]">
-                  <Leaf className="w-3.5 h-3.5 text-[#183324]" />
-                  <span>
-                    10% NGO: {product.ngoFundName || "Regional Watershed Trust"}
-                  </span>
-                </span>
-                <span className="font-mono-data font-bold text-[#183324]">
-                  {formatCurrency(escrow.ngoContribution)}
-                </span>
-              </div>
-            </div>
-
-            {/* Visual Bar */}
-            <div className="w-full h-2.5 rounded-[2px] overflow-hidden flex bg-[rgba(125,90,60,0.1)]">
-              <div
-                style={{ width: "70%" }}
-                className="bg-[#3E7B5C] h-full"
-                title="70% Artisan"
-              />
-              <div
-                style={{ width: "20%" }}
-                className="bg-[#7D5A3C] h-full"
-                title="20% Logistics & Platform"
-              />
-              <div
-                style={{ width: "10%" }}
-                className="bg-[#183324] h-full"
-                title="10% NGO Trust Fund"
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons: Add to Cart & Buy with Escrow */}
+          {/* Action Buttons: Add to Cart & Buy Now */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <button
               onClick={() => addToCart(cartProduct)}
@@ -554,10 +509,10 @@ export default function ProductDetailPage() {
 
             <button
               onClick={() => setCheckoutModalOpen(true)}
-              className="py-3.5 rounded-[2px] bg-[#3D2B1F] hover:bg-[#5A3F2A] text-[#EDE0C4] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 min-h-[44px] cursor-pointer"
+              className="py-3.5 rounded-[2px] bg-[#1E4D34] hover:bg-[#143826] text-[#F4F7F4] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 min-h-[44px] cursor-pointer shadow-sm"
             >
               <Lock className="w-4 h-4" />
-              <span>{translateSync("Buy with 70/20/10 Escrow")}</span>
+              <span>{translateSync("Buy Now")}</span>
             </button>
           </div>
         </div>

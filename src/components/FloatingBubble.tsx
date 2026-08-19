@@ -17,18 +17,16 @@ export function FloatingBubble() {
     setMounted(true);
   }, []);
 
-  // Close child bubbles on outside click
+  // Listen for global open-messages event (e.g. from Product Detail page)
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsExpanded(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    const handleOpenMessages = () => {
+      setIsMessagesOpen(true);
+      setIsCartOpen(false);
+      setIsExpanded(false);
+    };
+
+    window.addEventListener("open-messages", handleOpenMessages);
+    return () => window.removeEventListener("open-messages", handleOpenMessages);
   }, []);
 
   if (!mounted) return null;

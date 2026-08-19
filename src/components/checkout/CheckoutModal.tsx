@@ -418,13 +418,18 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   {checkoutItems[0]?.artisanName} was notified to begin preparation and shipping.
                 </TranslatableParagraph>
               </div>
-              <Link
-                href="/messages"
-                onClick={onClose}
-                className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-[11px] whitespace-nowrap hover:bg-blue-700 ml-3"
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent("open-messages"));
+                  }, 200);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-[11px] whitespace-nowrap hover:bg-blue-700 ml-3 cursor-pointer"
               >
                 <TranslatableText>Open messages</TranslatableText>
-              </Link>
+              </button>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">

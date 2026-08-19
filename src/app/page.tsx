@@ -264,61 +264,61 @@ export default function FeedHomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6">
-              
-              {/* Botanical Heritage Pill Badge */}
-              <div className="inline-flex items-center space-x-2.5 bg-[#1E4D34] px-4 py-1.5 rounded-full border border-[#3A7B59]/40 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-[#8FBC8F] animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#F4F8F5]">
-                  PAN-ASIAN CIRCULAR ORIGIN LEDGER
-                </span>
-              </div>
+            <div className="lg:col-span-7 space-y-6 text-center lg:text-left flex flex-col items-center lg:items-start">
 
-              {/* Light Sage Hero Title with HeriTech Logo Emblem and Partnered By Badges */}
-              <div className="space-y-6">
+              {/* Light Sage Hero Title with HeriTech Logo Emblem and Partnered By Logos */}
+              <div className="space-y-6 w-full flex flex-col items-center lg:items-start">
                 
-                {/* Hero Title + Clean Background-Free HeriTech Logo Emblem */}
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 flex items-center justify-center">
-                    <Image
-                      src="/logo heritech.png"
-                      alt="HeriTech Emblem"
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-contain filter drop-shadow-xs"
-                      priority
-                    />
-                  </div>
-                  <div>
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#143826] uppercase leading-[0.95] font-display">
-                      HERITECH <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2E6B4A] via-[#3A7B59] to-[#C49B48]">2026</span>
+                {/* Hero HeriTech Logo Emblem (Positioned above 'IT' of HERITECH) */}
+                <div className="space-y-2 flex flex-col items-center lg:items-start">
+                  <div className="relative inline-block text-center">
+                    {/* Logo centered directly above the symmetrical 'IT' of HERITECH */}
+                    <div className="w-full flex justify-center mb-4 sm:mb-6">
+                      <div className="w-36 h-36 sm:w-44 sm:h-44 lg:w-52 lg:h-52 flex items-center justify-center">
+                        <Image
+                          src="/logo_heritech-removebg-preview.png"
+                          alt="HeriTech Emblem"
+                          width={220}
+                          height={220}
+                          className="w-full h-full object-contain filter drop-shadow-xl"
+                          priority
+                        />
+                      </div>
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#143826] uppercase leading-[0.95] font-display text-center">
+                      HERITECH
                     </h1>
-                    <p className="text-xs uppercase tracking-[0.18em] font-extrabold text-[#2E6B4A] pt-1">
-                      CIRCULAR ORIGIN & PROVENANCE PROTOCOL
-                    </p>
                   </div>
+                  <p className="text-xs sm:text-sm uppercase tracking-[0.18em] font-extrabold text-[#2E6B4A] pt-1 text-center lg:text-left">
+                    Preserving Culture Through Circular Innovation
+                  </p>
                 </div>
 
-                <p className="text-sm sm:text-base text-[#2B523E] max-w-xl leading-relaxed font-body font-medium pt-1">
-                  Transforming post-festival organic biomass into immutable heritage artifacts. Verified 70/15/15 financial escrow splits, Google Gemini AI material auditing, and digital provenance passes.
-                </p>
+                <div className="space-y-1.5 pt-1 max-w-xl text-center lg:text-left mx-auto lg:mx-0">
+                  <p className="text-sm sm:text-base font-bold text-[#143826]">
+                    Authentic Upcycled Goods Across Pan-Asia, Powered by Google
+                  </p>
+                  <p className="text-sm sm:text-base text-[#2B523E] leading-relaxed font-body font-medium">
+                    We upcycle post-festival materials into certified heritage crafts throughout the Pan-Asian region. Every item features digital proof of origin and automated financial splits to ensure artisans and partners are paid fairly.
+                  </p>
+                </div>
 
-                {/* Partnered By Section with 2 Clean Background-Free Partner Logos */}
-                <div className="pt-4 border-t border-[#D5E6DC] max-w-lg">
-                  <span className="text-[10px] uppercase font-extrabold tracking-[0.2em] text-[#5B8870] block mb-3">
-                    PARTNERED BY
+                {/* Partnered With Section with Clean Background-Free Partner Logos */}
+                <div className="pt-5 border-t border-[#D5E6DC] max-w-xl w-full text-center lg:text-left">
+                  <span className="text-[10px] uppercase font-extrabold tracking-[0.2em] text-[#5B8870] block mb-3 text-center lg:text-left">
+                    PARTNERED WITH
                   </span>
-                  <div className="flex items-center space-x-6 flex-wrap gap-y-3">
+                  <div className="flex items-center justify-center lg:justify-start space-x-6 sm:space-x-8 flex-wrap gap-y-4">
                     
-                    {/* Partner 1: EDUtech Asia (Clean background-free vector logo) */}
-                    <div className="flex items-center space-x-2.5">
-                      <div className="h-10 w-auto flex items-center justify-center">
+                    {/* Partner 1: EDUtech Asia (WebP Logo) */}
+                    <div className="flex items-center justify-center">
+                      <div className="h-14 sm:h-16 w-auto flex items-center justify-center">
                         <Image
-                          src="/edutech-asia-clean.png"
+                          src="/EDUtech_asia-REV1200.webp"
                           alt="EDUtech Asia"
-                          width={150}
-                          height={40}
-                          className="h-10 w-auto object-contain filter drop-shadow-xs"
+                          width={240}
+                          height={70}
+                          className="h-14 sm:h-16 w-auto object-contain filter drop-shadow-xs"
                         />
                       </div>
                     </div>
@@ -326,22 +326,22 @@ export default function FeedHomePage() {
                     {/* Divider dot */}
                     <span className="w-1.5 h-1.5 rounded-full bg-[#3A7B59]/40 hidden sm:inline-block" />
 
-                    {/* Partner 2: University of the Assumption (Clean background-free emblem) */}
-                    <div className="flex items-center space-x-2.5">
-                      <div className="h-11 w-auto flex items-center justify-center">
+                    {/* Partner 2: University of the Assumption */}
+                    <div className="flex items-center space-x-3.5 justify-center">
+                      <div className="h-16 sm:h-20 w-auto flex items-center justify-center shrink-0">
                         <Image
                           src="/university-of-assumption.png"
                           alt="University of the Assumption"
-                          width={44}
-                          height={44}
-                          className="h-11 w-auto object-contain filter drop-shadow-xs"
+                          width={76}
+                          height={76}
+                          className="h-16 sm:h-20 w-auto object-contain filter drop-shadow-xs"
                         />
                       </div>
                       <div className="text-left">
-                        <span className="text-[11px] font-extrabold uppercase text-[#1E4D34] block leading-none">
+                        <span className="text-sm sm:text-base font-extrabold uppercase text-[#1E4D34] block leading-tight tracking-wide">
                           University of the Assumption
                         </span>
-                        <span className="text-[9px] font-bold text-[#5B8870] block pt-0.5">
+                        <span className="text-xs font-bold text-[#5B8870] block pt-1">
                           City of San Fernando, Pampanga
                         </span>
                       </div>
@@ -360,14 +360,8 @@ export default function FeedHomePage() {
                 
                 {/* Card Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-[#E4EFE7]">
-                  <div className="flex items-center space-x-2.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#2E6B4A] animate-ping" />
-                    <span className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#1E4D34]">
-                      LIVE PROVENANCE LEDGER
-                    </span>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full bg-[#E8F3ED] text-[9px] font-bold uppercase tracking-wider text-[#2E6B4A] border border-[#C5DCD0]">
-                    VERIFIED SHA-256
+                  <span className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#1E4D34]">
+                    LIVE PROVENANCE LEDGER
                   </span>
                 </div>
 
@@ -465,10 +459,10 @@ export default function FeedHomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <h2 className="font-display text-2xl font-semibold text-[#122B1E]">
-                {translateSync("Curated Festival Material Batches")}
+                {translateSync("Sourced from Festivals. Crafted by Artisans.")}
               </h2>
               <p className="text-xs text-[var(--text-muted)]">
-                {translateSync("Discover authenticated post-festival raw materials and upcycled artisan crafts.")}
+                {translateSync("Discover unique artisan products crafted from post-festival materials.")}
               </p>
             </div>
 
@@ -550,7 +544,7 @@ export default function FeedHomePage() {
               onClick={() => setVisibleCount((prev) => prev + 4)}
               className="px-8 py-3.5 bg-white border border-[rgba(46,90,68,0.25)] hover:border-[#2E5A44] text-[#122B1E] hover:text-[#2E5A44] text-xs uppercase tracking-wider font-bold rounded-[2px] transition-all shadow-xs cursor-pointer"
             >
-              {translateSync("Load more material batches")}
+              {translateSync("Load more artisan products")}
             </button>
           </div>
         )}

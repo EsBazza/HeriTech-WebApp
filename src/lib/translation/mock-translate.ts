@@ -5,6 +5,7 @@ import { TranslationRequest, TranslationResponse, BatchTranslationRequest, Batch
 const MOCK_TRANSLATIONS: Record<string, Record<string, string>> = {
   'zh-CN': {
     'Marketplace': '集市',
+    'Global Impact': '全球影响力',
     'Impact Ledger': '影响账本',
     'Impact ledger': '影响账本',
     'Harvest Map': '收获地图',
@@ -312,6 +313,7 @@ const MOCK_TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   'zh-TW': {
     'Marketplace': '集市',
+    'Global Impact': '全球影響力',
     'Impact Ledger': '影響賬本',
     'Harvest Map': '收穫地圖',
     'Artisan Studio': '工匠工作室',
@@ -578,6 +580,7 @@ const MOCK_TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   'ja': {
     'Marketplace': 'マーケットプレイス',
+    'Global Impact': 'グローバルインパクト',
     'Impact Ledger': 'インパクト台帳',
     'Harvest Map': '回収マップ',
     'Artisan Studio': '職人スタジオ',
@@ -844,6 +847,7 @@ const MOCK_TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   'ko': {
     'Marketplace': '마켓플레이스',
+    'Global Impact': '글로벌 임팩트',
     'Impact Ledger': '임팩트 장부',
     'Harvest Map': '수확 지도',
     'Artisan Studio': '장인 스튜디오',
@@ -1341,6 +1345,7 @@ function getMockFallback(text: string, targetLanguage: string): string {
     },
     'th': {
       'Marketplace': 'ตลาดกลาง',
+      'Global Impact': 'ผลกระทบระดับโลก',
       'Impact Ledger': 'สมุดบัญชีผลกระทบ',
       'Impact ledger': 'สมุดบัญชีผลกระทบ',
       'Harvest Map': 'แผนที่การเก็บเกี่ยว',
@@ -1380,6 +1385,7 @@ function getMockFallback(text: string, targetLanguage: string): string {
     },
     'hi': {
       'Marketplace': 'बाज़ार',
+      'Global Impact': 'वैश्विक प्रभाव',
       'Impact Ledger': 'प्रभाव बहीखाता',
       'Impact ledger': 'प्रभाव बहीखाता',
       'Harvest Map': 'कटाई मानचित्र',
@@ -1419,6 +1425,7 @@ function getMockFallback(text: string, targetLanguage: string): string {
     },
     'id': {
       'Marketplace': 'Pasar Utama',
+      'Global Impact': 'Dampak Global',
       'Impact Ledger': 'Buku Besar Dampak',
       'Impact ledger': 'Buku Besar Dampak',
       'Harvest Map': 'Peta Panen',
@@ -1458,6 +1465,7 @@ function getMockFallback(text: string, targetLanguage: string): string {
     },
     'tl': {
       'Marketplace': 'Pamilihan',
+      'Global Impact': 'Pandaigdigang Epekto',
       'Impact Ledger': 'Talaan ng Epekto',
       'Impact ledger': 'Talaan ng Epekto',
       'Harvest Map': 'Mapa ng Ani',
