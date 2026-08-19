@@ -107,7 +107,7 @@ export default function MaterialsMapPage() {
             body: JSON.stringify({
               senderId: user.id,
               receiverId: selectedBatch?.scannedByOfficer?.fullName ? "usr_lgu_04" : "usr_lgu_01",
-              content: `📍 Artisan ${user.fullName} reserved Batch #${batchId} (${selectedBatch?.weightKg} kg ${selectedBatch?.materialType}) for ${selectedBatch?.agreement?.festival || "Festival"} pickup. Please coordinate depot schedule.`,
+              content: `Artisan ${user.fullName} reserved Batch #${batchId} (${selectedBatch?.weightKg} kg ${selectedBatch?.materialType}) for ${selectedBatch?.agreement?.festival || "Festival"} pickup. Please coordinate depot schedule.`,
               contextType: "batch_reservation",
               contextId: batchId,
               isSystem: true,
@@ -154,7 +154,7 @@ export default function MaterialsMapPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusPill = (status: string) => {
     switch (status) {
       case "available":
         return { label: translateSync("AVAILABLE FOR ARTISANS"), bg: "bg-emerald-100 text-emerald-800 border-emerald-300" };
@@ -231,10 +231,10 @@ export default function MaterialsMapPage() {
                     </div>
                     <span
                       className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
-                        getStatusBadge(batch.status).bg
+                        getStatusPill(batch.status).bg
                       }`}
                     >
-                      {getStatusBadge(batch.status).label}
+                      {getStatusPill(batch.status).label}
                     </span>
                   </div>
 
@@ -273,10 +273,10 @@ export default function MaterialsMapPage() {
 
                 <span
                   className={`text-xs font-bold px-3 py-1 rounded-full border self-start ${
-                    getStatusBadge(selectedBatch.status).bg
+                    getStatusPill(selectedBatch.status).bg
                   }`}
                 >
-                  {getStatusBadge(selectedBatch.status).label}
+                  {getStatusPill(selectedBatch.status).label}
                 </span>
               </div>
 

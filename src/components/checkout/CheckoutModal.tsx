@@ -156,9 +156,9 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             <TranslatableText>HERITECH 70/20/10 ESCROW CHECKOUT</TranslatableText>
           </div>
           <TranslatableHeading level={2} className="text-xl font-extrabold text-gray-900 mt-1">
-            {step === 1 && "Step 1: Delivery & Shipping Address"}
-            {step === 2 && "Step 2: Origin Route & Escrow Breakdown"}
-            {step === 3 && "Order Confirmed & Google Impact Badge Earned!"}
+            {step === 1 && "Step 1: Delivery address"}
+            {step === 2 && "Step 2: Payment breakdown"}
+            {step === 3 && "Order confirmed"}
           </TranslatableHeading>
         </div>
 
@@ -393,14 +393,11 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
               </div>
 
               <div>
-                <TranslatableText className="text-[10px] font-mono-data font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                  NEW GOOGLE IMPACT BADGE UNLOCKED!
-                </TranslatableText>
-                <TranslatableHeading level={3} className="text-xl font-black text-gray-900 mt-2">
-                  🏅 Panagbenga Festival Patron (Bronze Tier)
+                <TranslatableHeading level={3} className="text-xl font-bold text-gray-900 mt-2">
+                  Order confirmed
                 </TranslatableHeading>
                 <TranslatableParagraph className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                  You successfully diverted {formatNumber(totalKg)} kg of raw floral festival waste and directly supported master artisan {checkoutItems[0]?.artisanName}.
+                  You successfully diverted {formatNumber(totalKg)} kg of festival material and directly supported artisan {checkoutItems[0]?.artisanName}.
                 </TranslatableParagraph>
               </div>
 
@@ -409,14 +406,14 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   value={`https://heritech.app/verify/${orderResult.walletPass?.serial || "HT-519-PH"}`}
                   size={140}
                   label={`PASS SERIAL: ${orderResult.walletPass?.serial || "HT-519-PH"}`}
-                  sublabel={translateSync("Scan with standard phone camera to audit cryptographic origin")}
+                  sublabel={translateSync("Scan with standard phone camera to view origin record")}
                 />
               </div>
             </div>
 
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center justify-between text-left">
               <div>
-                <TranslatableText className="font-bold">Automated Message Sent to Artisan:</TranslatableText>
+                <TranslatableText className="font-bold">Notification sent to artisan:</TranslatableText>
                 <TranslatableParagraph className="text-[11px] text-blue-700">
                   {checkoutItems[0]?.artisanName} was notified to begin preparation and shipping.
                 </TranslatableParagraph>
@@ -426,7 +423,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 onClick={onClose}
                 className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-[11px] whitespace-nowrap hover:bg-blue-700 ml-3"
               >
-                <TranslatableText>Open Messages</TranslatableText>
+                <TranslatableText>Open messages</TranslatableText>
               </Link>
             </div>
 
@@ -436,7 +433,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 onClick={onClose}
                 className="px-5 py-2.5 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold shadow-md hover:bg-[#14532D]"
               >
-                <TranslatableText>View Badges in Profile</TranslatableText>
+                <TranslatableText>View order in profile</TranslatableText>
               </Link>
 
               <Link

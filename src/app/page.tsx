@@ -9,15 +9,14 @@ import { HeroSection } from "@/components/HeroSection";
 import { MaterialCard, MaterialProduct } from "@/components/MaterialCard";
 import { FeaturesGrid } from "@/components/FeaturesGrid";
 import { EscrowBar } from "@/components/EscrowBar";
-import { ImpactBadges } from "@/components/ImpactBadges";
 import { Search, Sparkles, Loader2 } from "lucide-react";
 
-// Curated High-Fidelity Fallback Products for Demo Resilience
+// Curated Fallback Products for Demo Resilience
 const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
   {
     id: "prod_demo_01",
     title: "Panagbenga Botanical Loom Wall Tapestry",
-    description: "Handcrafted from structural highland Bolo bamboo culms and sun-dried Everlasting floral clusters salvaged from float sculptures in Baguio City.",
+    description: "Handcrafted from highland bamboo and sun-dried floral clusters salvaged from float sculptures in Baguio City.",
     price: 68.0,
     images: ["https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800"],
     materialTags: ["Bamboo", "Botanical Flora", "Highland Loom"],
@@ -42,7 +41,7 @@ const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
   {
     id: "prod_demo_02",
     title: "Yi Peng Luminary Ambient Table Lamp",
-    description: "Constructed with non-combusted split bamboo frames and raw mulberry rice paper recovered post-celebration along the Ping River in Chiang Mai.",
+    description: "Constructed with split bamboo frames and mulberry rice paper recovered post-celebration in Chiang Mai.",
     price: 85.0,
     images: ["https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"],
     materialTags: ["Bamboo", "Rice Paper", "Mulberry Fiber"],
@@ -67,7 +66,7 @@ const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
   {
     id: "prod_demo_03",
     title: "Temple Nirmalaya Artisanal Watercolor Pigment Set",
-    description: "Extracted from sacred post-ceremonial marigolds and rose garland biomass. Solar-dried and milled into rich, archival-grade natural watercolor pans.",
+    description: "Extracted from ceremonial marigolds and rose garland biomass. Solar-dried and milled into archival watercolor pans.",
     price: 45.0,
     images: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800"],
     materialTags: ["Botanical Flora", "Natural Pigment", "Organic Marigold"],
@@ -92,7 +91,7 @@ const CURATED_DEMO_PRODUCTS: MaterialProduct[] = [
   {
     id: "prod_demo_04",
     title: "Pingxi Repulped Botanical Accordion Journal",
-    description: "Recycled long-fiber lantern sheets reconstituted with indigenous fern inclusions. Bound with unbleached cotton cord and beeswaxed spine.",
+    description: "Recycled long-fiber lantern sheets reconstituted with indigenous fern inclusions and unbleached cotton cord.",
     price: 38.0,
     images: ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800"],
     materialTags: ["Rice Paper", "Mulberry Paper", "Recycled Fiber"],
@@ -135,7 +134,7 @@ export default function MarketplacePage() {
           setProducts(CURATED_DEMO_PRODUCTS);
         }
       } catch (err) {
-        console.warn("Using curated fallback products:", err);
+        console.warn("Using fallback products:", err);
         setProducts(CURATED_DEMO_PRODUCTS);
       } finally {
         setLoading(false);
@@ -158,7 +157,6 @@ export default function MarketplacePage() {
   const displayProducts = products.length > 0 ? products : CURATED_DEMO_PRODUCTS;
 
   const filteredProducts = displayProducts.filter((p) => {
-    // Search query filter
     if (searchQuery.trim().length > 0) {
       const q = searchQuery.toLowerCase();
       const matchTitle = p.title.toLowerCase().includes(q);
@@ -168,7 +166,6 @@ export default function MarketplacePage() {
       if (!matchTitle && !matchDesc && !matchArtisan && !matchFestival) return false;
     }
 
-    // Tag filter
     if (selectedTag === "All") return true;
     if (selectedTag === "Philippines") return p.sourceBatch?.agreement?.country === "Philippines";
     if (selectedTag === "Thailand") return p.sourceBatch?.agreement?.country === "Thailand";
@@ -198,15 +195,15 @@ export default function MarketplacePage() {
             <div className="flex items-center space-x-2">
               <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
               <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
-                {translateSync("AUTHENTICATED HERITAGE GOODS")}
+                {translateSync("AVAILABLE CRAFT PIECES")}
               </span>
             </div>
             <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--bark)] tracking-tight">
-              Circulated Masterpiece Catalog
+              Handmade from festival salvage
             </h2>
             <p className="font-body text-[13px] sm:text-sm text-[var(--warm-gray)] leading-relaxed">
               {translateSync(
-                "Every piece is handcrafted from verified ceremonial festival salvage, permanently linked to its harvest Batch ID, and sold with a 70% direct artisan payout."
+                "Each piece is made by local artisan cooperatives using salvaged ceremonial materials."
               )}
             </p>
           </div>
@@ -215,7 +212,7 @@ export default function MarketplacePage() {
           <div className="flex items-center space-x-2 text-xs text-[#7D5A3C] font-mono-data bg-[#F2EDE3] px-3 py-2 rounded-[2px] border border-[var(--border-light)] self-start md:self-auto font-bold min-h-[44px]">
             <Sparkles className="w-4 h-4 text-[#C8A96A]" />
             <span>
-              {filteredProducts.length} {translateSync("Authenticated Pieces")}
+              {filteredProducts.length} {translateSync("Pieces available")}
             </span>
           </div>
         </div>
@@ -229,7 +226,7 @@ export default function MarketplacePage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={translateSync("Search by festival, material fiber, or master artisan...")}
+              placeholder={translateSync("Search by festival, material, or artisan...")}
               className="w-full pl-10 pr-4 py-3 rounded-[2px] bg-[var(--cream)] border border-[var(--border-mid)] text-sm text-[var(--bark)] placeholder-[var(--warm-gray)] focus:outline-none focus:border-[#7D5A3C] transition-colors min-h-[44px]"
             />
           </div>
@@ -260,16 +257,16 @@ export default function MarketplacePage() {
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
             <Loader2 className="w-8 h-8 text-[#7D5A3C] animate-spin" />
             <p className="text-xs uppercase tracking-widest text-[var(--warm-gray)] font-mono-data">
-              {translateSync("Loading circular material catalog...")}
+              {translateSync("Loading material catalog...")}
             </p>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="p-12 text-center border border-[var(--border-light)] rounded-[4px] bg-[#F2EDE3]/50 space-y-3">
             <p className="font-display text-xl text-[var(--bark)] font-medium">
-              {translateSync("No matching heritage goods found")}
+              {translateSync("No matching items found")}
             </p>
             <p className="text-[13px] text-[var(--warm-gray)] max-w-sm mx-auto">
-              {translateSync("Try clearing your search query or selecting a different festival tag above.")}
+              {translateSync("Try clearing your search query or selecting a different tag above.")}
             </p>
             <button
               onClick={() => {
@@ -299,16 +296,10 @@ export default function MarketplacePage() {
       {/* 6. Weave Divider */}
       <WeaveDivider height={24} bgColor="#3D2B1F" />
 
-      {/* 7. 70/20/10 Escrow Section */}
+      {/* 7. How payments work Section */}
       <EscrowBar />
 
-      {/* 8. Weave Divider */}
-      <WeaveDivider height={24} bgColor="#3D2B1F" />
-
-      {/* 9. Impact Badges Section */}
-      <ImpactBadges />
-
-      {/* 10. Weave Divider before Footer */}
+      {/* 8. Weave Divider before Footer */}
       <WeaveDivider height={24} bgColor="#3D2B1F" />
     </div>
   );

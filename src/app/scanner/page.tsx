@@ -283,10 +283,10 @@ export default function WasteScannerPage() {
               onChange={(e) => setFestivalHint(e.target.value)}
               className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-white text-xs font-semibold text-gray-800"
             >
-              <option value="panagbenga">Panagbenga Flower Festival 🇵🇭 (Baguio, Philippines)</option>
-              <option value="yipeng">Yi Peng Sky Lantern Festival 🇹🇭 (Chiang Mai, Thailand)</option>
-              <option value="nirmalaya">Ganesh Chaturthi Nirmalaya 🇮🇳 (Thane, India)</option>
-              <option value="pingxi">Pingxi Lantern Paper 🇹🇼 (New Taipei, Taiwan)</option>
+              <option value="panagbenga">Panagbenga Flower Festival (Baguio, Philippines)</option>
+              <option value="yipeng">Yi Peng Sky Lantern Festival (Chiang Mai, Thailand)</option>
+              <option value="nirmalaya">Ganesh Chaturthi Nirmalaya (Thane, India)</option>
+              <option value="pingxi">Pingxi Lantern Paper (New Taipei, Taiwan)</option>
             </select>
           </div>
 
@@ -431,7 +431,7 @@ export default function WasteScannerPage() {
 
                 {locationSuccess && (
                   <p className="text-[11px] text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200 font-semibold">
-                    ✓ <TranslatableText>{locationSuccess}</TranslatableText>
+                    <TranslatableText>{locationSuccess}</TranslatableText>
                   </p>
                 )}
 

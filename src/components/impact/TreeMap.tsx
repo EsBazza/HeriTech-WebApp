@@ -92,7 +92,7 @@ export function TreeMap() {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isSplitView, setIsSplitView] = useState<boolean>(false);
-  const [splitPos, setSplitPos] = useState<number>(50); // 0–100% curtain position
+  const [splitPos, setSplitPos] = useState<number>(50); // 0-100% curtain position
 
   // Drag state for split curtain
   const isDraggingRef = useRef<boolean>(false);
@@ -165,7 +165,7 @@ export function TreeMap() {
     const isFull = year === 2026;
 
     const iconColor = isBaseline ? "#78350F" : isFull ? "#15803D" : "#1A6B3A";
-    const badgeText = isBaseline
+    const labelText = isBaseline
       ? "Baseline (0 Trees)"
       : `+ ${trees.toLocaleString()} Trees (${year})`;
 
@@ -180,7 +180,7 @@ export function TreeMap() {
             </svg>
           </div>
           <div style="font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.85); color: white; padding: 2px 8px; border-radius: 12px; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">
-            ${proj.location.split(",")[0]} (${badgeText})
+            ${proj.location.split(",")[0]} (${labelText})
           </div>
         </div>
       `,
@@ -196,7 +196,7 @@ export function TreeMap() {
         </div>
         <p style="font-size: 11px; margin: 4px 0; color: #444;">${proj.location}</p>
         <div style="font-size: 11px; font-weight: bold; color: ${isBaseline ? "#b45309" : "#15803d"}; background: ${isBaseline ? "#fef3c7" : "#f0fdf4"}; padding: 4px 6px; border-radius: 6px; border: 1px solid ${isBaseline ? "#fde68a" : "#bbf7d0"};">
-          ${isBaseline ? "🍂 Pre-Planting Baseline (0% Canopy)" : `🌿 Restored: ${trees.toLocaleString()} Trees ($${funds.toFixed(2)})`}
+          ${isBaseline ? "Pre-planting baseline (0% canopy)" : `Restored: ${trees.toLocaleString()} Trees ($${funds.toFixed(2)})`}
         </div>
       </div>
     `;
@@ -447,7 +447,7 @@ export function TreeMap() {
             Active Reforestation & Tree Canopy Growth Ledger
           </TranslatableHeading>
           <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-            Real interactive Google Earth aerial & terrain satellite tiles tracking post-festival tree planting sites across Asia (2020–2026).
+            Real interactive Google Earth aerial & terrain satellite tiles tracking post-festival tree planting sites across Asia (2020-2026).
           </TranslatableParagraph>
         </div>
 
@@ -658,7 +658,7 @@ export function TreeMap() {
             </div>
           )}
 
-          {/* ── ALWAYS-PRESENT Leaflet Map (live satellite tiles of actual site) ── */}
+          {/* -- ALWAYS-PRESENT Leaflet Map (live satellite tiles of actual site) -- */}
           <div
             style={{
               transform: isSplitView ? "none" : `perspective(1000px) rotateX(${pitch}deg) rotateZ(${heading}deg)`,
@@ -669,10 +669,10 @@ export function TreeMap() {
             <div ref={mapContainerRef} className="w-full h-full min-h-[480px]" />
           </div>
 
-          {/* ── SPLIT VIEW OVERLAY: 2020 Baseline image clipped over left portion ── */}
+          {/* -- SPLIT VIEW OVERLAY: 2020 Baseline image clipped over left portion -- */}
           {isSplitView && (
             <>
-              {/* Left pane: 2020 baseline photo clipped to splitPos% — overlaid on live map */}
+              {/* Left pane: 2020 baseline photo clipped to splitPos%, overlaid on live map */}
               <div
                 className="absolute inset-0 z-20 overflow-hidden pointer-events-none"
                 style={{ width: `${splitPos}%` }}
@@ -726,7 +726,7 @@ export function TreeMap() {
             </>
           )}
 
-          {/* ── NORMAL MAP MODE CONTROLS & HUD (hidden in split view) ── */}
+          {/* -- NORMAL MAP MODE CONTROLS & HUD (hidden in split view) -- */}
           {!isSplitView && (
             <>
               {/* Controls Overlay Bar (Zoom, Pitch Tilt, Rotate) */}
@@ -869,7 +869,7 @@ export function TreeMap() {
               <div className="flex flex-wrap gap-1.5">
                 {selectedYear === 2020 ? (
                   <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-lg border border-amber-200">
-                    🍂 Pre-Reforestation Soil Assessment (0 Native Canopy)
+                    Pre-Reforestation Soil Assessment (0 Native Canopy)
                   </span>
                 ) : (
                   activeProject.species.map((s) => (
@@ -877,7 +877,7 @@ export function TreeMap() {
                       key={s}
                       className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-bold rounded-lg border border-emerald-200/60"
                     >
-                      🌿 {s}
+                      {s}
                     </span>
                   ))
                 )}

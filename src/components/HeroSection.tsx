@@ -68,7 +68,7 @@ export function HeroSection({
           {/* Clear, Jargon-Free Core Value Proposition */}
           <p className="font-body text-[15px] sm:text-base leading-relaxed text-[#F5F5F0] max-w-[500px]">
             {translateSync(
-              "Festival materials across Asia are collected, verified, and transformed by local artisans into authentic, certified heritage pieces—with guaranteed direct fair-trade payouts on every purchase."
+              "Festival materials across Asia are collected, verified, and transformed by local artisans into authentic, certified heritage pieces, with guaranteed direct fair-trade payouts on every purchase."
             )}
           </p>
 

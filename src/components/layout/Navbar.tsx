@@ -72,11 +72,11 @@ export function Navbar() {
       href: "/admin",
       icon: ShieldCheck,
       show: role === "admin",
-      adminBadge: true,
+      isAdmin: true,
     },
   ];
 
-  const getRoleBadge = (r: string) => {
+  const getRoleTag = (r: string) => {
     switch (r) {
       case "admin":
         return { label: translateSync("ADMIN"), bg: "bg-red-900/60 text-red-200 border-red-700/50" };
@@ -121,7 +121,7 @@ export function Navbar() {
                     className={`px-3 py-2 text-[13px] uppercase tracking-[0.05em] font-medium transition-all rounded-[2px] min-h-[44px] flex items-center ${
                       active
                         ? "text-[#DFC48E] border-b-2 border-[#DFC48E] bg-[#7D5A3C]/30 font-bold"
-                        : link.adminBadge
+                        : link.isAdmin
                         ? "text-red-200 hover:text-white border border-red-800/80 bg-red-950/60"
                         : "text-[#FAF7F2]/90 hover:text-[#DFC48E] hover:bg-[#7D5A3C]/20"
                     }`}
@@ -167,10 +167,10 @@ export function Navbar() {
                     </span>
                     <span
                       className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[1px] border self-start ${
-                        getRoleBadge(user.role).bg
+                        getRoleTag(user.role).bg
                       }`}
                     >
-                      {getRoleBadge(user.role).label}
+                      {getRoleTag(user.role).label}
                     </span>
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-[#DFC48E]" />

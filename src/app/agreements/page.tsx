@@ -166,7 +166,7 @@ export default function AgreementsPage() {
                 onClick={() => setModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 text-sm font-bold"
               >
-                ✕
+                &times;
               </button>
             </div>
 

@@ -109,7 +109,7 @@ export function MaterialCard({ product, onOpenCheckout }: MaterialCardProps) {
             </span>
           </div>
 
-          {/* Diverted Kilograms Badge Top-Right */}
+          {/* Diverted Kilograms Tag Top-Right */}
           <div className="absolute top-2.5 right-2.5">
             <span className="text-[10px] font-mono-data font-bold text-[#EDE0C4] bg-[#4F7244]/95 px-1.5 py-0.5 rounded-[1px] border border-[#72956A]/40">
               +{formatNumber(product.kgDiverted)} kg

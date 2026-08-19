@@ -10,35 +10,35 @@ export function FeaturesGrid() {
   const features = [
     {
       icon: Camera,
-      title: translateSync("Google Gemini Multimodal AI Scanner"),
+      title: translateSync("Material scanner"),
       description: translateSync(
-        "Real-time visual material classification, degradation grading, and fiber analysis directly from on-site field photos taken by municipal collection officers."
+        "Municipal teams photograph and categorize salvaged festival materials directly on site."
       ),
-      tag: "Gemini Vision AI",
+      tag: "Collection",
     },
     {
       icon: MapPin,
-      title: translateSync("Interactive Harvest Map & Regional Depots"),
+      title: translateSync("Harvest map"),
       description: translateSync(
-        "Live satellite viewfinders with device GPS positioning and SHA-256 tamper-evident telemetry hashes for festival waste pickup points."
+        "Locate active salvage depots and available craft materials across the region in real time."
       ),
-      tag: "Google Maps Platform",
+      tag: "Location",
     },
     {
       icon: QrCode,
-      title: translateSync("Physical Scannable 2D QR Chain-of-Custody"),
+      title: translateSync("QR handover"),
       description: translateSync(
-        "Zero-NFC protocol: standard dynamic 2D QR codes ensure complete cross-device compatibility across emerging Asian craft cooperatives."
+        "Simple QR code scanning confirms physical material transfers from depots to artisan workshops."
       ),
-      tag: "Cross-Device Custody",
+      tag: "Custody",
     },
     {
       icon: ShieldCheck,
-      title: translateSync("70/20/10 Escrow & Google Wallet Passes"),
+      title: translateSync("Direct payouts"),
       description: translateSync(
-        "70% direct artisan fair-trade floor payout, 20% municipal logistics, and 10% NGO trust funds backed by cryptographic Google Wallet passes."
+        "Artisan cooperatives receive guaranteed fair payouts directly on every completed order."
       ),
-      tag: "Google Wallet API",
+      tag: "Fair pay",
     },
   ];
 
@@ -50,20 +50,20 @@ export function FeaturesGrid() {
           <div className="flex items-center space-x-2">
             <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
             <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
-              {translateSync("CORE DIGITAL INFRASTRUCTURE")}
+              {translateSync("THE WORKFLOW")}
             </span>
           </div>
           <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--bark)] tracking-tight">
-            How the circular digital ledger operates.
+            How HeriTech works
           </h2>
           <p className="font-body text-[13px] sm:text-sm text-[var(--warm-gray)] leading-relaxed">
             {translateSync(
-              "Four load-bearing digital layers coordinating municipal cleanup, artisan cooperatives, and verified consumer origin."
+              "Four steps connecting festival collection, artisan cooperatives, and verified craft delivery."
             )}
           </p>
         </div>
 
-        {/* 2-Column Grid (Desktop & Tablet 2-col, Mobile 1-col) */}
+        {/* 2-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 border border-[var(--border-light)] bg-[var(--cream)] rounded-[4px] overflow-hidden divide-y md:divide-y-0 md:divide-x divide-[var(--border-light)]">
           {/* Col 1 */}
           <div className="divide-y divide-[var(--border-light)]">

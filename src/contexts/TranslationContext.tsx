@@ -234,7 +234,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     [batchTranslate, loadCacheFromStorage, saveCacheToStorage]
   );
 
-  /** Synchronous translation lookup — returns cached value or original text */
+  /** Synchronous translation lookup: returns cached value or original text */
   const translateSync = useCallback(
     (text: string): string => {
       if (!text) return text;
@@ -246,7 +246,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     [currentLanguage.code, cacheVersion]
   );
 
-  /** Async translation — checks cache first, falls back to API */
+  /** Async translation: checks cache first, falls back to API */
   const translateText = useCallback(
     async (text: string, targetLang?: string): Promise<string> => {
       const target = targetLang || currentLanguage.code;
@@ -406,7 +406,7 @@ export function useTextTranslation(
     options?.enabled !== false &&
     (options?.targetLanguage || currentLanguage.code) !== "en";
 
-  // First try synchronous cache lookup — this is instant
+  // First try synchronous cache lookup: this is instant
   const cachedResult = shouldTranslate ? translateSync(text) : text;
   const isCached = cachedResult !== text && shouldTranslate;
 

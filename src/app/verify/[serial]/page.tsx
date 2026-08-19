@@ -43,7 +43,7 @@ export default function PublicVerificationPage() {
     return (
       <div className="max-w-md mx-auto px-4 py-24 text-center">
         <div className="w-10 h-10 border-4 border-[#1A6B3A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-xs text-gray-500 mt-4"><TranslatableText>Auditing cryptographic origin record...</TranslatableText></p>
+        <p className="text-xs text-gray-500 mt-4"><TranslatableText>Auditing origin record...</TranslatableText></p>
       </div>
     );
   }
@@ -51,7 +51,7 @@ export default function PublicVerificationPage() {
   if (!data) {
     return (
       <div className="max-w-md mx-auto px-4 py-24 text-center space-y-4">
-        <TranslatableHeading level={2} className="text-lg font-bold text-gray-900">Invalid or Unregistered Impact Pass</TranslatableHeading>
+        <TranslatableHeading level={2} className="text-lg font-bold text-gray-900">Invalid or Unregistered Pass</TranslatableHeading>
         <TranslatableParagraph className="text-xs text-gray-500">
           No verified harvest records found for serial <strong>{serial}</strong>.
         </TranslatableParagraph>
@@ -68,14 +68,14 @@ export default function PublicVerificationPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* Verification Badge */}
+      {/* Verification Header */}
       <div className="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-300 shadow-lg space-y-3 text-center">
         <div className="w-14 h-14 bg-emerald-100 text-[#1A6B3A] rounded-full flex items-center justify-center mx-auto shadow-sm">
           <ShieldCheck className="w-8 h-8" />
         </div>
         <div>
           <TranslatableText className="text-[10px] font-mono-data font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
-            GOOGLE WALLET AUDITED IMPACT PASS
+            GOOGLE WALLET AUDITED PASS
           </TranslatableText>
           <TranslatableHeading level={1} className="text-2xl font-extrabold text-gray-900 tracking-tight mt-2">
             Origin Record Verified

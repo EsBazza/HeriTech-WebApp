@@ -255,7 +255,7 @@ export default function ArtisanStudioPage() {
                   ) : (
                     <>
                       <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      <TranslatableText>✨ Auto-Generate AI Origin Story with Gemini</TranslatableText>
+                      <TranslatableText>Auto-generate origin story with Gemini</TranslatableText>
                     </>
                   )}
                 </button>
