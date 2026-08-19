@@ -255,9 +255,9 @@ export default function FeedHomePage() {
             className="object-cover object-center opacity-85 filter contrast-[1.02] brightness-[0.98]"
             priority
           />
-          {/* Gentle light sage gradient overlay for clear typography */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#EFF6F1] via-[#EFF6F1]/90 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#EFF6F1] via-transparent to-[#EFF6F1]/30" />
+          {/* Gentle light sage gradient overlay with 75% opacity */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#EFF6F1]/75 via-[#EFF6F1]/75 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#EFF6F1]/60 via-transparent to-[#EFF6F1]/20" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
