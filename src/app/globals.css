@@ -2,58 +2,69 @@
 
 @layer base {
   :root {
-    --bark:         #3D2B1F;   /* lighter warm dark for nav/footer */
-    --mahogany:     #7D5A3C;   /* warmer, lighter */
-    --gold:         #C8A96A;   /* primary gold accent */
-    --gold-light:   #DFC48E;   /* hover states */
-    --linen:        #EDE0C4;   /* hero text on dark */
-    --cream:        #FAF7F2;   /* lighter, clean canvas */
-    --cream-alt:    #F2EDE3;   /* alternating section bg */
-    --forest:       #4F7244;   /* artisan / success green */
-    --forest-light: #72956A;
-    --sage:         #B0C4AB;   /* muted text on dark */
-    --warm-gray:    #7A6A5A;   /* legacy reference */
-    --border-light: rgba(125, 90, 60, 0.13); /* all card/section borders */
-    --border-mid:   rgba(125, 90, 60, 0.28); /* stronger borders */
+    /* Botanical Fresh Light Green & Deep Pine Palette */
+    --forest-dark:  #183324;   /* deep rich evergreen for nav/hero/footer */
+    --forest-mid:   #2E5A44;   /* refined botanical mid-tone */
+    --forest-leaf:  #3E7B5C;   /* active buttons and primary accents */
+    --sage-light:   #8FBC8F;   /* light sage accent */
+    --sage-bright:  #6EAA84;   /* vibrant leaf green */
+    --celadon-cream:#F4F7F4;   /* fresh, clean botanical canvas */
+    --celadon-alt:  #EBF2EC;   /* soft alternating light-green/cream section bg */
+    --mint-glow:    #C8E6D0;   /* tag / highlight mint */
 
-    /* High-contrast typography tokens */
-    --text-heading:       #2E1E12;   /* near-black brown */
-    --text-body:          #5C4A38;   /* dark readable warm brown */
-    --text-muted:         #8A7060;   /* readable secondary text */
-    --text-on-dark:       #EDE0C4;   /* linen on dark sections */
-    --text-muted-on-dark: rgba(176, 196, 171, 0.65); /* muted sage */
+    /* Legacy mapping for smooth component backward compatibility */
+    --bark:         var(--forest-dark);
+    --mahogany:     var(--forest-mid);
+    --gold:         #4E8C68;   /* replaced brown-gold with lush evergreen */
+    --gold-light:   #68AA84;   /* hover state */
+    --linen:        #EBF2EC;
+    --cream:        var(--celadon-cream);
+    --cream-alt:    var(--celadon-alt);
+    --forest:       #2E5A44;
+    --forest-light: #4E8C68;
+    --sage:         #8FBC8F;
+    --warm-gray:    #587563;
+    --border-light: rgba(46, 90, 68, 0.12); /* clean botanical borders */
+    --border-mid:   rgba(46, 90, 68, 0.24);
 
-    --background: var(--cream);
+    /* High-contrast typography tokens (Deep pine & crisp botanical text) */
+    --text-heading:       #122B1E;   /* deep pine near-black */
+    --text-body:          #2A4737;   /* dark readable botanical green */
+    --text-muted:         #587563;   /* readable sage muted */
+    --text-on-dark:       #F0F7F2;   /* crisp light celadon on dark sections */
+    --text-muted-on-dark: rgba(200, 230, 208, 0.85); /* clear mint sage */
+
+    --background: var(--celadon-cream);
     --foreground: var(--text-body);
-    --primary: var(--gold);
-    --primary-hover: var(--gold-light);
-    --accent: var(--mahogany);
-    --accent-hover: #5A3F2A;
-    --card: rgba(255, 255, 255, 0.82);
+    --primary: var(--forest-leaf);
+    --primary-hover: var(--forest-mid);
+    --accent: var(--forest-mid);
+    --accent-hover: var(--forest-dark);
+    --card: rgba(255, 255, 255, 0.88);
     --card-foreground: var(--text-body);
     --border: var(--border-light);
     --muted: var(--text-muted);
-    --muted-light: var(--cream-alt);
+    --muted-light: var(--celadon-alt);
   }
 
   body, .page-root {
-    background-color: #FAF7F2;
+    background-color: #F4F7F4;
     background-image:
-      /* warp threads — vertical, thin, gold-tinted */
+      /* warp threads — vertical, thin, sage-tinted */
       repeating-linear-gradient(
         90deg,
         transparent,
         transparent 18px,
-        rgba(180, 140, 80, 0.045) 18px,
-        rgba(180, 140, 80, 0.045) 21px
+        rgba(78, 140, 104, 0.045) 18px,
+        rgba(78, 140, 104, 0.045) 21px
       ),
-      /* weft threads — horizontal, slightly different tone */
+      /* weft threads — horizontal, forest-tinted */
       repeating-linear-gradient(
         0deg,
         transparent,
         transparent 18px,
-        rgba(125, 90, 60, 0.035) 18px,
-        rgba(125, 90, 60, 0.035) 21px
+        rgba(46, 90, 68, 0.038) 18px,
+        rgba(46, 90, 68, 0.038) 21px
       );
     background-size: 21px 21px;
     color: var(--text-body);
@@ -64,27 +75,28 @@
 
 /* Card Elevation: Inset highlight simulates light catching the edge, no drop shadows */
 .card, .material-card, .feat-item, .stat-card {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(125, 90, 60, 0.13);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(46, 90, 68, 0.13);
   border-radius: 4px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  transition: border-color 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .card:hover, .material-card:hover {
-  border-color: rgba(125, 90, 60, 0.28);
+  border-color: rgba(46, 90, 68, 0.32);
 }
 
 /* Main Section letting global weave show through */
 .section-main {
   background: transparent;
-  box-shadow: inset 0 1px 0 rgba(125, 90, 60, 0.08);
+  box-shadow: inset 0 1px 0 rgba(46, 90, 68, 0.08);
 }
 
-/* Alternating Section with subtle semi-transparent cream overlay */
+/* Alternating Section with subtle semi-transparent light green / celadon overlay */
 .section-alt {
-  background: rgba(242, 237, 227, 0.6);
-  border-top: 1px solid rgba(125, 90, 60, 0.1);
+  background: rgba(235, 242, 236, 0.65);
+  border-top: 1px solid rgba(46, 90, 68, 0.1);
+  border-bottom: 1px solid rgba(46, 90, 68, 0.1);
 }
 
 .font-display {
@@ -99,18 +111,18 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-/* Custom Scrollbars */
+/* Custom Scrollbars in Botanical Sage */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--cream-alt);
+  background: var(--celadon-alt);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--mahogany);
+  background: var(--forest-mid);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gold);
+  background: var(--forest-leaf);
 }

@@ -223,7 +223,7 @@ export default function MarketplacePage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={translateSync("Search by festival, material, or artisan...")}
-                className="w-full pl-10 pr-4 py-3 rounded-[2px] bg-[rgba(255,255,255,0.88)] border border-[var(--border-mid)] text-sm text-[var(--text-heading)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#7D5A3C] transition-colors min-h-[44px]"
+                className="w-full pl-10 pr-4 py-3 rounded-[2px] bg-[rgba(255,255,255,0.88)] border border-[var(--border-mid)] text-sm text-[var(--text-heading)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#3E7B5C] transition-colors min-h-[44px]"
               />
             </div>
 
@@ -237,8 +237,8 @@ export default function MarketplacePage() {
                     onClick={() => setSelectedTag(tag)}
                     className={`px-3.5 py-2 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[44px] ${
                       active
-                        ? "bg-[#7D5A3C] text-[#EDE0C4] border border-[#7D5A3C]"
-                        : "bg-[rgba(255,255,255,0.85)] text-[var(--text-body)] hover:text-[#7D5A3C] hover:bg-white border border-[var(--border-light)] shadow-xs"
+                        ? "bg-[#3E7B5C] text-[#F4F7F4] border border-[#3E7B5C]"
+                        : "bg-[rgba(255,255,255,0.85)] text-[var(--text-body)] hover:text-[#3E7B5C] hover:bg-white border border-[var(--border-light)] shadow-xs"
                     }`}
                   >
                     {translateSync(tag)}
@@ -251,7 +251,7 @@ export default function MarketplacePage() {
           {/* Product Cards Grid: 3-Col Desktop, 2-Col Tablet, 1-Col Mobile */}
           {loading ? (
             <div className="py-20 flex flex-col items-center justify-center space-y-3">
-              <Loader2 className="w-8 h-8 text-[#7D5A3C] animate-spin" />
+              <Loader2 className="w-8 h-8 text-[#3E7B5C] animate-spin" />
               <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-mono-data">
                 {translateSync("Loading material catalog...")}
               </p>
@@ -269,7 +269,7 @@ export default function MarketplacePage() {
                   setSelectedTag("All");
                   setSearchQuery("");
                 }}
-                className="px-4 py-2.5 rounded-[2px] bg-[#7D5A3C] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider min-h-[44px]"
+                className="px-4 py-2.5 rounded-[2px] bg-[#3E7B5C] text-[#F4F7F4] text-xs font-bold uppercase tracking-wider min-h-[44px]"
               >
                 {translateSync("Reset filters")}
               </button>

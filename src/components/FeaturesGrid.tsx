@@ -48,8 +48,8 @@ export function FeaturesGrid() {
         {/* Section Header */}
         <div className="space-y-2 max-w-xl">
           <div className="flex items-center space-x-2">
-            <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
-            <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
+            <span className="w-5 h-[1.5px] bg-[#3E7B5C] inline-block" />
+            <span className="text-[11px] uppercase tracking-[0.14em] text-[#3E7B5C] font-bold">
               {translateSync("THE WORKFLOW")}
             </span>
           </div>
@@ -70,13 +70,13 @@ export function FeaturesGrid() {
             return (
               <div
                 key={idx}
-                className="card p-6 sm:p-8 lg:p-9 space-y-4 hover:border-[#7D5A3C]/40 transition-colors"
+                className="card p-6 sm:p-8 lg:p-9 space-y-4 hover:border-[#3E7B5C]/40 transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-[2px] bg-[#4F7244]/15 border border-[#4F7244]/30 flex items-center justify-center text-[#4F7244]">
+                  <div className="w-10 h-10 rounded-[2px] bg-[#3E7B5C]/15 border border-[#3E7B5C]/30 flex items-center justify-center text-[#3E7B5C]">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[11px] uppercase tracking-wider font-bold text-[#7D5A3C] bg-[#7D5A3C]/[0.08] px-2.5 py-0.5 rounded-[2px]">
+                  <span className="text-[11px] uppercase tracking-wider font-bold text-[#3E7B5C] bg-[#3E7B5C]/10 px-2.5 py-0.5 rounded-[2px]">
                     {feature.tag}
                   </span>
                 </div>

@@ -98,17 +98,17 @@ export function MaterialCard({ product }: MaterialCardProps) {
         <div className="p-4 space-y-2.5">
           {/* Tag Pill */}
           <div className="flex flex-wrap gap-1.5">
-            <span className="text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-[2px] text-[#7D5A3C] bg-[#7D5A3C]/[0.08] border border-[#7D5A3C]/15">
+            <span className="text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-[2px] text-[#3E7B5C] bg-[#3E7B5C]/[0.08] border border-[#3E7B5C]/15">
               {primaryTag}
             </span>
-            <span className="text-[11px] uppercase font-medium tracking-wider px-2 py-0.5 rounded-[2px] text-[var(--text-muted)] bg-[rgba(242,237,227,0.7)]">
+            <span className="text-[11px] uppercase font-medium tracking-wider px-2 py-0.5 rounded-[2px] text-[var(--text-muted)] bg-[rgba(235,242,236,0.8)]">
               {country}
             </span>
           </div>
 
           {/* Title */}
           <Link href={`/products/${product.id}`} className="block">
-            <h3 className="font-display text-[19px] leading-snug font-medium text-[var(--text-heading)] hover:text-[#7D5A3C] transition-colors line-clamp-1">
+            <h3 className="font-display text-[19px] leading-snug font-medium text-[var(--text-heading)] hover:text-[#3E7B5C] transition-colors line-clamp-1">
               {product.title}
             </h3>
           </Link>
@@ -124,7 +124,7 @@ export function MaterialCard({ product }: MaterialCardProps) {
               {translateSync("Maker:")}{" "}
               <strong className="text-[var(--text-heading)] font-semibold">{product.artisan?.fullName}</strong>
             </span>
-            <span className="text-xs text-[#4F7244] font-bold">70% {translateSync("Fair Payout")}</span>
+            <span className="text-xs text-[#3E7B5C] font-bold">70% {translateSync("Fair Payout")}</span>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export function MaterialCard({ product }: MaterialCardProps) {
           <span className="text-xs font-mono-data text-[var(--text-muted)]">
             {formatNumber(product.kgDiverted ?? 0)} kg {translateSync("diverted")}
           </span>
-          <span className="font-display text-xl font-semibold text-[#7D5A3C]">
+          <span className="font-display text-xl font-semibold text-[#3E7B5C]">
             {formatCurrency(product.price)}{" "}
             <span className="text-xs font-sans font-normal text-[var(--text-muted)]">USD</span>
           </span>
@@ -146,7 +146,7 @@ export function MaterialCard({ product }: MaterialCardProps) {
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => addToCart(cartItem)}
-            className="py-2.5 px-2.5 rounded-[2px] border border-[#7D5A3C] text-[#7D5A3C] hover:bg-[#7D5A3C] hover:text-[#EDE0C4] text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center space-x-1.5 cursor-pointer min-h-[44px]"
+            className="py-2.5 px-2.5 rounded-[2px] border border-[#3E7B5C] text-[#3E7B5C] hover:bg-[#3E7B5C] hover:text-[#F4F7F4] text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center space-x-1.5 cursor-pointer min-h-[44px]"
           >
             <ShoppingBag className="w-4 h-4" />
             <span>{translateSync("Add to cart")}</span>
@@ -154,7 +154,7 @@ export function MaterialCard({ product }: MaterialCardProps) {
 
           <Link
             href={`/products/${product.id}`}
-            className="py-2.5 px-2.5 rounded-[2px] bg-[#7D5A3C] hover:bg-[#5A3F2A] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center space-x-1.5 text-center min-h-[44px]"
+            className="py-2.5 px-2.5 rounded-[2px] bg-[#3E7B5C] hover:bg-[#2E5A44] text-[#F4F7F4] text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center space-x-1.5 text-center min-h-[44px]"
           >
             <Eye className="w-4 h-4" />
             <span>{translateSync("View Passport")}</span>
