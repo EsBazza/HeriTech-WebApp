@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { HeroSection } from "@/components/HeroSection";
 import { MaterialCard, MaterialProduct } from "@/components/MaterialCard";
 import { Search, Sparkles, Loader2 } from "lucide-react";
 
@@ -174,13 +173,10 @@ export default function MarketplacePage() {
 
   return (
     <div className="w-full flex flex-col">
-      {/* 1. Hero Section (Solid dark anchor) */}
-      <HeroSection />
-
-      {/* 2. Marketplace & Certified Goods Grid */}
+      {/* Marketplace & Certified Goods Grid */}
       <section
         id="marketplace-grid"
-        className="section-main w-full py-12 sm:py-[72px] px-5 sm:px-12"
+        className="section-main w-full py-10 sm:py-14 px-5 sm:px-12"
       >
         <div className="max-w-7xl mx-auto space-y-8 sm:space-y-10">
           {/* Section Header */}
@@ -192,9 +188,9 @@ export default function MarketplacePage() {
                   {translateSync("AVAILABLE CRAFT PIECES")}
                 </span>
               </div>
-              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--text-heading)] tracking-tight">
+              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium text-[var(--text-heading)] tracking-tight">
                 Handmade from festival salvage
-              </h2>
+              </h1>
               <p className="font-body text-[13px] sm:text-sm text-[var(--text-body)] leading-relaxed">
                 {translateSync(
                   "Each piece is made by local artisan cooperatives using salvaged ceremonial materials."
