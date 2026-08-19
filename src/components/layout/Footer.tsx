@@ -2,33 +2,24 @@
 
 import React from "react";
 import Link from "next/link";
-import { WeaveDivider } from "@/components/WeaveDivider";
 
 export function Footer() {
   return (
-    <footer className="bg-[var(--bark)] text-[#FAF7F2]">
-      {/* Full-width weave band as top border (24px tall) */}
-      <WeaveDivider height={24} bgColor="#3D2B1F" />
-
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 pt-12 pb-7">
+    <footer className="bg-[var(--bark)] text-[#FAF7F2] border-t border-[#7D5A3C]/40">
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 pt-14 pb-8">
         {/* 4-Column Grid (Desktop 4-col, Tablet 2-col, Mobile 1-col) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10">
           {/* Column 1 (Wide): Brand */}
-          <div className="sm:col-span-2 lg:col-span-5 space-y-4">
+          <div className="sm:col-span-2 lg:col-span-5 space-y-3.5">
             <Link href="/" className="inline-block">
-              <span className="font-display text-[22px] font-semibold text-[#DFC48E] tracking-tight">
+              <span className="font-display text-[24px] font-semibold text-[#DFC48E] tracking-tight">
                 HeriTech
               </span>
             </Link>
 
-            <p className="text-[13px] text-[#FAF7F2] max-w-sm leading-relaxed">
+            <p className="text-[13px] text-[#FAF7F2]/90 max-w-sm leading-relaxed">
               Recovering festival materials across Asia, one cooperative at a time.
             </p>
-
-            {/* Embedded 12px Hand-Woven SVG Band below tagline */}
-            <div className="pt-1 max-w-[240px]">
-              <WeaveDivider height={12} bgColor="#3D2B1F" />
-            </div>
           </div>
 
           {/* Column 2: Platform Links */}
@@ -125,7 +116,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar Separated by Single 1px Gold Line */}
-        <div className="mt-10 pt-5 border-t border-[#C8A96A]/20 flex flex-col sm:flex-row items-center justify-between text-[12px] text-[#FAF7F2]/75 gap-2">
+        <div className="mt-12 pt-6 border-t border-[#C8A96A]/20 flex flex-col sm:flex-row items-center justify-between text-[12px] text-[#FAF7F2]/75 gap-2">
           <p>2026 HeriTech. All rights reserved.</p>
           <p>Powered by Gemini and Google Maps</p>
         </div>

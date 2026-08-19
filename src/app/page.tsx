@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { WeaveDivider } from "@/components/WeaveDivider";
 import { HeroSection } from "@/components/HeroSection";
 import { MaterialCard, MaterialProduct } from "@/components/MaterialCard";
 import { FeaturesGrid } from "@/components/FeaturesGrid";
@@ -160,8 +158,8 @@ export default function MarketplacePage() {
     if (searchQuery.trim().length > 0) {
       const q = searchQuery.toLowerCase();
       const matchTitle = p.title.toLowerCase().includes(q);
-      const matchDesc = p.description.toLowerCase().includes(q);
-      const matchArtisan = p.artisan?.fullName?.toLowerCase().includes(q);
+      const matchDesc = p.description ? p.description.toLowerCase().includes(q) : false;
+      const matchArtisan = p.artisan?.fullName ? p.artisan.fullName.toLowerCase().includes(q) : false;
       const matchFestival = p.sourceBatch?.agreement?.festival?.toLowerCase().includes(q);
       if (!matchTitle && !matchDesc && !matchArtisan && !matchFestival) return false;
     }
@@ -177,130 +175,120 @@ export default function MarketplacePage() {
   });
 
   return (
-    <div className="w-full bg-[var(--cream)] bg-linen flex flex-col">
-      {/* 1. Hero Section */}
+    <div className="w-full flex flex-col">
+      {/* 1. Hero Section (Solid dark anchor) */}
       <HeroSection />
 
-      {/* 2. Signature Weave Divider */}
-      <WeaveDivider height={24} bgColor="#3D2B1F" />
-
-      {/* 3. Marketplace & Certified Goods Grid */}
+      {/* 2. Marketplace & Certified Goods Grid (Transparent weave shows through) */}
       <section
         id="marketplace-grid"
-        className="w-full py-12 sm:py-16 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto space-y-8 sm:space-y-10"
+        className="section-main w-full py-12 sm:py-[72px] px-5 sm:px-12"
       >
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2 max-w-xl">
-            <div className="flex items-center space-x-2">
-              <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
-              <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
-                {translateSync("AVAILABLE CRAFT PIECES")}
+        <div className="max-w-7xl mx-auto space-y-8 sm:space-y-10">
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-2 max-w-xl">
+              <div className="flex items-center space-x-2">
+                <span className="w-5 h-[1.5px] bg-[#7D5A3C] inline-block" />
+                <span className="text-[11px] uppercase tracking-[0.14em] text-[#7D5A3C] font-bold">
+                  {translateSync("AVAILABLE CRAFT PIECES")}
+                </span>
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--text-heading)] tracking-tight">
+                Handmade from festival salvage
+              </h2>
+              <p className="font-body text-[13px] sm:text-sm text-[var(--text-body)] leading-relaxed">
+                {translateSync(
+                  "Each piece is made by local artisan cooperatives using salvaged ceremonial materials."
+                )}
+              </p>
+            </div>
+
+            {/* Quick Stats Pill */}
+            <div className="flex items-center space-x-2 text-xs text-[#7D5A3C] font-mono-data bg-[rgba(255,255,255,0.85)] px-3.5 py-2 rounded-[2px] border border-[var(--border-light)] self-start md:self-auto font-bold min-h-[44px] shadow-xs">
+              <Sparkles className="w-4 h-4 text-[#C8A96A]" />
+              <span>
+                {filteredProducts.length} {translateSync("Pieces available")}
               </span>
             </div>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--bark)] tracking-tight">
-              Handmade from festival salvage
-            </h2>
-            <p className="font-body text-[13px] sm:text-sm text-[var(--warm-gray)] leading-relaxed">
-              {translateSync(
-                "Each piece is made by local artisan cooperatives using salvaged ceremonial materials."
-              )}
-            </p>
           </div>
 
-          {/* Quick Stats Pill */}
-          <div className="flex items-center space-x-2 text-xs text-[#7D5A3C] font-mono-data bg-[#F2EDE3] px-3 py-2 rounded-[2px] border border-[var(--border-light)] self-start md:self-auto font-bold min-h-[44px]">
-            <Sparkles className="w-4 h-4 text-[#C8A96A]" />
-            <span>
-              {filteredProducts.length} {translateSync("Pieces available")}
-            </span>
+          {/* Search & Tag Filter Bar */}
+          <div className="space-y-4 pt-2">
+            {/* Search Input */}
+            <div className="relative max-w-md">
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={translateSync("Search by festival, material, or artisan...")}
+                className="w-full pl-10 pr-4 py-3 rounded-[2px] bg-[rgba(255,255,255,0.88)] border border-[var(--border-mid)] text-sm text-[var(--text-heading)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#7D5A3C] transition-colors min-h-[44px]"
+              />
+            </div>
+
+            {/* Filter Tags */}
+            <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+              {allTags.map((tag) => {
+                const active = selectedTag === tag;
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTag(tag)}
+                    className={`px-3.5 py-2 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[44px] ${
+                      active
+                        ? "bg-[#7D5A3C] text-[#EDE0C4] border border-[#7D5A3C]"
+                        : "bg-[rgba(255,255,255,0.85)] text-[var(--text-body)] hover:text-[#7D5A3C] hover:bg-white border border-[var(--border-light)] shadow-xs"
+                    }`}
+                  >
+                    {translateSync(tag)}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Product Cards Grid: 3-Col Desktop, 2-Col Tablet, 1-Col Mobile */}
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center space-y-3">
+              <Loader2 className="w-8 h-8 text-[#7D5A3C] animate-spin" />
+              <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-mono-data">
+                {translateSync("Loading material catalog...")}
+              </p>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="p-12 text-center border border-[var(--border-light)] rounded-[4px] bg-[rgba(255,255,255,0.8)] space-y-3">
+              <p className="font-display text-xl text-[var(--text-heading)] font-medium">
+                {translateSync("No matching items found")}
+              </p>
+              <p className="text-[13px] text-[var(--text-body)] max-w-sm mx-auto">
+                {translateSync("Try clearing your search query or selecting a different tag above.")}
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedTag("All");
+                  setSearchQuery("");
+                }}
+                className="px-4 py-2.5 rounded-[2px] bg-[#7D5A3C] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider min-h-[44px]"
+              >
+                {translateSync("Reset filters")}
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <MaterialCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
-
-        {/* Search & Tag Filter Bar */}
-        <div className="space-y-4 pt-2">
-          {/* Search Input */}
-          <div className="relative max-w-md">
-            <Search className="w-4 h-4 text-[var(--warm-gray)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={translateSync("Search by festival, material, or artisan...")}
-              className="w-full pl-10 pr-4 py-3 rounded-[2px] bg-[var(--cream)] border border-[var(--border-mid)] text-sm text-[var(--bark)] placeholder-[var(--warm-gray)] focus:outline-none focus:border-[#7D5A3C] transition-colors min-h-[44px]"
-            />
-          </div>
-
-          {/* Filter Tags */}
-          <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
-            {allTags.map((tag) => {
-              const active = selectedTag === tag;
-              return (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`px-3.5 py-2 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[44px] ${
-                    active
-                      ? "bg-[#7D5A3C] text-[#EDE0C4] border border-[#7D5A3C]"
-                      : "bg-[#F2EDE3] text-[var(--warm-gray)] hover:text-[#7D5A3C] hover:bg-[#F2EDE3]/80 border border-[var(--border-light)]"
-                  }`}
-                >
-                  {translateSync(tag)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Product Cards Grid: 3-Col Desktop, 2-Col Tablet, 1-Col Mobile */}
-        {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 text-[#7D5A3C] animate-spin" />
-            <p className="text-xs uppercase tracking-widest text-[var(--warm-gray)] font-mono-data">
-              {translateSync("Loading material catalog...")}
-            </p>
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="p-12 text-center border border-[var(--border-light)] rounded-[4px] bg-[#F2EDE3]/50 space-y-3">
-            <p className="font-display text-xl text-[var(--bark)] font-medium">
-              {translateSync("No matching items found")}
-            </p>
-            <p className="text-[13px] text-[var(--warm-gray)] max-w-sm mx-auto">
-              {translateSync("Try clearing your search query or selecting a different tag above.")}
-            </p>
-            <button
-              onClick={() => {
-                setSelectedTag("All");
-                setSearchQuery("");
-              }}
-              className="px-4 py-2.5 rounded-[2px] bg-[#7D5A3C] text-[#EDE0C4] text-xs font-bold uppercase tracking-wider min-h-[44px]"
-            >
-              {translateSync("Reset filters")}
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <MaterialCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
       </section>
 
-      {/* 4. Weave Divider */}
-      <WeaveDivider height={24} bgColor="#3D2B1F" />
-
-      {/* 5. Features Grid Section */}
+      {/* 3. Features Grid Section (Alternating cream overlay) */}
       <FeaturesGrid />
 
-      {/* 6. Weave Divider */}
-      <WeaveDivider height={24} bgColor="#3D2B1F" />
-
-      {/* 7. How payments work Section */}
+      {/* 4. How payments work Section (Transparent weave background) */}
       <EscrowBar />
-
-      {/* 8. Weave Divider before Footer */}
-      <WeaveDivider height={24} bgColor="#3D2B1F" />
     </div>
   );
 }

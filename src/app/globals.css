@@ -12,43 +12,79 @@
     --forest:       #4F7244;   /* artisan / success green */
     --forest-light: #72956A;
     --sage:         #B0C4AB;   /* muted text on dark */
-    --warm-gray:    #7A6A5A;   /* body text on light */
-    --border-light: rgba(125, 90, 60, 0.12); /* all card/section borders */
-    --border-mid:   rgba(125, 90, 60, 0.22); /* stronger borders */
+    --warm-gray:    #7A6A5A;   /* legacy reference */
+    --border-light: rgba(125, 90, 60, 0.13); /* all card/section borders */
+    --border-mid:   rgba(125, 90, 60, 0.28); /* stronger borders */
+
+    /* High-contrast typography tokens */
+    --text-heading:       #2E1E12;   /* near-black brown */
+    --text-body:          #5C4A38;   /* dark readable warm brown */
+    --text-muted:         #8A7060;   /* readable secondary text */
+    --text-on-dark:       #EDE0C4;   /* linen on dark sections */
+    --text-muted-on-dark: rgba(176, 196, 171, 0.65); /* muted sage */
 
     --background: var(--cream);
-    --foreground: var(--bark);
+    --foreground: var(--text-body);
     --primary: var(--gold);
     --primary-hover: var(--gold-light);
     --accent: var(--mahogany);
     --accent-hover: #5A3F2A;
-    --card: var(--cream);
-    --card-foreground: var(--bark);
+    --card: rgba(255, 255, 255, 0.82);
+    --card-foreground: var(--text-body);
     --border: var(--border-light);
-    --muted: var(--warm-gray);
+    --muted: var(--text-muted);
     --muted-light: var(--cream-alt);
   }
 
-  body {
-    background-color: var(--cream);
-    color: var(--bark);
+  body, .page-root {
+    background-color: #FAF7F2;
+    background-image:
+      /* warp threads — vertical, thin, gold-tinted */
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 18px,
+        rgba(180, 140, 80, 0.045) 18px,
+        rgba(180, 140, 80, 0.045) 21px
+      ),
+      /* weft threads — horizontal, slightly different tone */
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 18px,
+        rgba(125, 90, 60, 0.035) 18px,
+        rgba(125, 90, 60, 0.035) 21px
+      );
+    background-size: 21px 21px;
+    color: var(--text-body);
     font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-.bg-linen {
-  background-color: var(--cream);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
+/* Card Elevation: Inset highlight simulates light catching the edge, no drop shadows */
+.card, .material-card, .feat-item, .stat-card {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(125, 90, 60, 0.13);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: border-color 0.2s ease;
 }
 
-.bg-cream-alt {
-  background-color: var(--cream-alt);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
+.card:hover, .material-card:hover {
+  border-color: rgba(125, 90, 60, 0.28);
+}
+
+/* Main Section letting global weave show through */
+.section-main {
+  background: transparent;
+  box-shadow: inset 0 1px 0 rgba(125, 90, 60, 0.08);
+}
+
+/* Alternating Section with subtle semi-transparent cream overlay */
+.section-alt {
+  background: rgba(242, 237, 227, 0.6);
+  border-top: 1px solid rgba(125, 90, 60, 0.1);
 }
 
 .font-display {

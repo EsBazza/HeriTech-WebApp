@@ -7,7 +7,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/components/cart/CartContext";
 import { LanguageSelector, MobileLanguageSelector } from "@/components/language/LanguageSelector";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { WeaveDivider } from "@/components/WeaveDivider";
 import {
   ShoppingBag,
   MapPin,
@@ -246,8 +245,7 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Embedded WeaveDivider as bottom border */}
-      <WeaveDivider height={10} bgColor="#3D2B1F" />
+      {/* Clean border on solid dark navbar */}
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (

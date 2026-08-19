@@ -8,7 +8,7 @@ export function EscrowBar() {
   const { translateSync } = useTranslation();
 
   return (
-    <section className="w-full bg-[var(--cream)] bg-linen py-12 sm:py-16 px-6 sm:px-10 lg:px-12 border-b border-[var(--border-light)]">
+    <section className="section-main w-full py-12 sm:py-[72px] px-5 sm:px-12">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -19,10 +19,10 @@ export function EscrowBar() {
                 {translateSync("FAIR TRADE")}
               </span>
             </div>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--bark)] tracking-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-[var(--text-heading)] tracking-tight">
               How payments work
             </h2>
-            <p className="font-body text-[13px] sm:text-sm text-[var(--warm-gray)] leading-relaxed">
+            <p className="font-body text-[13px] sm:text-sm text-[var(--text-body)] leading-relaxed">
               {translateSync(
                 "Every purchase is divided transparently at checkout to ensure fair living wages for artisans."
               )}
@@ -34,10 +34,10 @@ export function EscrowBar() {
           </div>
         </div>
 
-        {/* Escrow Bar */}
-        <div className="w-full rounded-[4px] overflow-hidden flex flex-col md:flex-row shadow-xs border border-[#3D2B1F]/30 divide-y md:divide-y-0 md:divide-x divide-[#3D2B1F]/40">
+        {/* Escrow Bar Floating Container */}
+        <div className="w-full rounded-[4px] overflow-hidden flex flex-col md:flex-row border border-[#3D2B1F]/30 divide-y md:divide-y-0 md:divide-x divide-[#3D2B1F]/40 shadow-xs">
           {/* 70% Segment: Forest */}
-          <div className="w-full md:w-[70%] bg-[var(--forest)] p-6 sm:p-7 text-[#FAF7F2] space-y-2">
+          <div className="w-full md:w-[70%] bg-[var(--forest)] p-6 sm:p-8 text-[#FAF7F2] space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-display text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#FAF7F2]">
                 70%
@@ -57,7 +57,7 @@ export function EscrowBar() {
           </div>
 
           {/* 20% Segment: Mahogany */}
-          <div className="w-full md:w-[20%] bg-[var(--mahogany)] p-6 sm:p-7 text-[#FAF7F2] space-y-2">
+          <div className="w-full md:w-[20%] bg-[var(--mahogany)] p-6 sm:p-8 text-[#FAF7F2] space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-display text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#FAF7F2]">
                 20%
@@ -77,7 +77,7 @@ export function EscrowBar() {
           </div>
 
           {/* 10% Segment: Bark */}
-          <div className="w-full md:w-[10%] bg-[var(--bark)] p-6 sm:p-7 text-[#FAF7F2] space-y-2">
+          <div className="w-full md:w-[10%] bg-[var(--bark)] p-6 sm:p-8 text-[#FAF7F2] space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-display text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#DFC48E]">
                 10%
