@@ -77,6 +77,20 @@ const CURATED_FEED_BATCHES: FeedMaterialBatch[] = [
     materialType: "Abaca Fiber & Banner Textile",
     festival: "Sinulog Festival",
   },
+  {
+    id: "batch_06",
+    title: "Loi Krathong Biodegradable Banana Leaf Wall Plate",
+    description:
+      "Compressed organic banana trunk fibers and natural gum arabic binder forming resilient wall art tiles.",
+    price: 42.0,
+    weightKg: 1.6,
+    image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=800",
+    cooperativeName: "Lanna Eco-Craft Community",
+    region: "Sukhothai",
+    country: "Thailand",
+    materialType: "Organic Banana Fiber",
+    festival: "Loi Krathong",
+  },
 ];
 
 export default function FeedHomePage() {
@@ -85,7 +99,7 @@ export default function FeedHomePage() {
   const [batches, setBatches] = useState<FeedMaterialBatch[]>(CURATED_FEED_BATCHES);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
-  const [visibleCount, setVisibleCount] = useState(4);
+  const [visibleCount, setVisibleCount] = useState(6);
 
   const role = userRole(user);
 
@@ -132,12 +146,12 @@ export default function FeedHomePage() {
   });
 
   return (
-    <div className="w-full min-h-screen py-6 sm:py-10 px-4 sm:px-6">
-      <div className="max-w-[640px] mx-auto space-y-6">
-        {/* Clean Search & Filter Bar on Feed */}
-        <div className="space-y-3">
+    <div className="w-full min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Clean Search & Filter Bar */}
+        <div className="space-y-4">
           {/* Search Input Box */}
-          <div className="relative w-full">
+          <div className="relative w-full max-w-xl mx-auto">
             <svg
               width="18"
               height="18"
@@ -172,14 +186,14 @@ export default function FeedHomePage() {
           </div>
 
           {/* Filter Tags Carousel */}
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center justify-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
             {filterTags.map((tag) => {
               const active = selectedTag === tag;
               return (
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
-                  className={`px-3 py-1.5 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[36px] ${
+                  className={`px-3.5 py-1.5 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer min-h-[36px] ${
                     active
                       ? "bg-[#3D2B1F] text-[#EDE0C4] border border-[#3D2B1F]"
                       : "bg-[rgba(255,255,255,0.85)] text-[#5C4A38] hover:text-[#2E1E12] hover:bg-white border border-[rgba(125,90,60,0.15)]"
@@ -192,9 +206,9 @@ export default function FeedHomePage() {
           </div>
         </div>
 
-        {/* Vertical Stack of Clean Feed Cards */}
+        {/* 2-Column Grid of Feed Cards */}
         {filteredBatches.length === 0 ? (
-          <div className="p-12 text-center border border-[rgba(125,90,60,0.15)] rounded-[6px] bg-[rgba(255,255,255,0.8)] space-y-3">
+          <div className="p-12 text-center border border-[rgba(125,90,60,0.15)] rounded-[6px] bg-[rgba(255,255,255,0.8)] space-y-3 max-w-lg mx-auto">
             <p className="font-display text-xl text-[#2E1E12] font-medium">
               {translateSync("No matching items found")}
             </p>
@@ -212,7 +226,7 @@ export default function FeedHomePage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredBatches.slice(0, visibleCount).map((batch) => (
               <FeedCard key={batch.id} batch={batch} role={role} />
             ))}
@@ -221,9 +235,9 @@ export default function FeedHomePage() {
 
         {/* Load More Action Button */}
         {visibleCount < filteredBatches.length && (
-          <div className="pt-2 text-center">
+          <div className="pt-4 text-center">
             <button
-              onClick={() => setVisibleCount((prev) => prev + 2)}
+              onClick={() => setVisibleCount((prev) => prev + 4)}
               className="px-6 py-3 bg-[rgba(255,255,255,0.85)] border border-[rgba(125,90,60,0.25)] hover:border-[#7D5A3C] text-[#2E1E12] hover:text-[#7D5A3C] text-xs uppercase tracking-wider font-bold rounded-[2px] transition-colors cursor-pointer min-h-[44px]"
             >
               {translateSync("Load more batches")}
