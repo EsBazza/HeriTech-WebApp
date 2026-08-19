@@ -293,7 +293,7 @@ export default function ImpactLeaderboardPage() {
           </div>
 
           {/* Leaderboard Table Container */}
-          <div className="bg-[rgba(255,255,255,0.85)] border border-[rgba(125,90,60,0.12)] rounded-[6px] overflow-hidden shadow-xs">
+          <div className="bg-[rgba(255,255,255,0.94)] border border-[rgba(46,90,68,0.16)] rounded-[8px] overflow-hidden shadow-[0_2px_12px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)]">
             {/* Desktop Table View */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse">

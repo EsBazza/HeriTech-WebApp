@@ -49,7 +49,7 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
   };
 
   return (
-    <article className="w-full bg-[rgba(255,255,255,0.85)] border border-[rgba(125,90,60,0.12)] rounded-[6px] p-4 sm:p-5 space-y-3.5 transition-colors">
+    <article className="w-full bg-[rgba(255,255,255,0.95)] border border-[rgba(46,90,68,0.16)] rounded-[8px] p-4 sm:p-5 space-y-3.5 shadow-[0_2px_10px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)] hover:shadow-[0_8px_22px_-3px_rgba(24,51,36,0.13)] hover:-translate-y-0.5 transition-all duration-200">
       {/* 1. Header Row: Cooperative Name + Region Pill */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -57,12 +57,12 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
             {batch.cooperativeName.slice(0, 2).toUpperCase()}
           </div>
           <span className="text-sm font-medium text-[var(--text-heading)] truncate max-w-[200px] sm:max-w-[280px]">
-            {batch.cooperativeName}
+            {translateSync(batch.cooperativeName)}
           </span>
         </div>
 
         <span className="text-[11px] uppercase tracking-wider font-semibold px-2.5 py-0.5 rounded-[2px] bg-[rgba(125,90,60,0.1)] text-[#7D5A3C]">
-          {batch.region || batch.country}
+          {translateSync(batch.region || batch.country)}
         </span>
       </div>
 
@@ -79,10 +79,10 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
             <span className="text-xs uppercase tracking-widest text-[#7D5A3C] font-mono-data font-bold">
-              {batch.materialType}
+              {translateSync(batch.materialType)}
             </span>
             <span className="text-sm font-display text-[var(--text-heading)] mt-1">
-              {batch.festival}
+              {translateSync(batch.festival)}
             </span>
           </div>
         )}

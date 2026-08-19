@@ -390,7 +390,7 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Left Col: Imagery */}
         <div className="space-y-4">
-          <div className="aspect-square rounded-[6px] bg-white border border-[rgba(125,90,60,0.15)] overflow-hidden shadow-xs">
+          <div className="aspect-square rounded-[8px] bg-white border border-[rgba(46,90,68,0.16)] overflow-hidden shadow-[0_2px_12px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)]">
             <img
               src={
                 product.images?.[0] ||
@@ -402,7 +402,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Provenance Micro-Card */}
-          <div className="p-4 rounded-[4px] bg-[rgba(46,90,68,0.08)] border border-[rgba(46,90,68,0.2)] flex items-center justify-between text-xs">
+          <div className="p-4 rounded-[6px] bg-[rgba(46,90,68,0.08)] border border-[rgba(46,90,68,0.2)] flex items-center justify-between text-xs shadow-xs">
             <div className="flex items-center space-x-2 text-[#183324] font-medium">
               <ShieldCheck className="w-4 h-4 text-[#3E7B5C]" />
               <span>
@@ -444,7 +444,7 @@ export default function ProductDetailPage() {
           </p>
 
           {/* Maker Info */}
-          <div className="p-4 rounded-[4px] bg-white border border-[rgba(125,90,60,0.15)] flex items-center justify-between shadow-xs">
+          <div className="p-4 rounded-[6px] bg-white border border-[rgba(46,90,68,0.16)] flex items-center justify-between shadow-[0_2px_10px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)]">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full bg-[rgba(125,90,60,0.12)] text-[#7D5A3C] font-bold flex items-center justify-center text-sm">
                 {product.artisan?.fullName?.charAt(0) || "M"}
@@ -474,7 +474,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* 70/20/10 Escrow Split Visualizer */}
-          <div className="p-5 rounded-[4px] bg-white border border-[rgba(125,90,60,0.15)] space-y-4 shadow-xs">
+          <div className="p-5 rounded-[6px] bg-white border border-[rgba(46,90,68,0.16)] space-y-4 shadow-[0_2px_10px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)]">
             <div className="flex items-center justify-between border-b border-[rgba(125,90,60,0.08)] pb-3">
               <span className="text-xs font-bold text-[#2E1E12] uppercase tracking-wide">
                 {translateSync("Transparent 70/20/10 Escrow Split")}
