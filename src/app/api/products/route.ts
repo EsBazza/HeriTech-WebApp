@@ -34,10 +34,10 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    const formatted = products.map((p) => ({
+    const formatted = products.map((p: any) => ({
       ...p,
-      images: JSON.parse(p.images || "[]"),
-      materialTags: JSON.parse(p.materialTags || "[]"),
+      images: typeof p.images === "string" ? JSON.parse(p.images || "[]") : (p.images || []),
+      materialTags: typeof p.materialTags === "string" ? JSON.parse(p.materialTags || "[]") : (p.materialTags || []),
     }));
 
     return NextResponse.json({ success: true, count: formatted.length, data: formatted });

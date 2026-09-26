@@ -231,6 +231,89 @@ export default function AdminDashboardPage() {
         )}
       </section>
 
+      {/* User Role Management Table (Prisma Studio Equivalent for Admin) */}
+      <section className="space-y-4 pt-6 border-t border-[#E6E2D8]">
+        <div className="flex items-center justify-between">
+          <div>
+            <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <ShieldCheck className="w-5 h-5 text-red-700" />
+              <span>User Accounts & Role Administration</span>
+            </TranslatableHeading>
+            <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
+              Admin control panel to manage registered user permissions and update roles (Buyer, Artisan, LGU, Admin).
+            </TranslatableParagraph>
+          </div>
+          <span className="text-xs font-bold text-gray-500 font-mono-data">
+            {applications.length} <TranslatableText>TOTAL USERS</TranslatableText>
+          </span>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-[#E6E2D8] overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-[#F8F6F0] border-b border-[#E6E2D8] text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                  <th className="py-3 px-4">User</th>
+                  <th className="py-3 px-4">Email</th>
+                  <th className="py-3 px-4">Current Role</th>
+                  <th className="py-3 px-4 text-right">Change Role</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {applications.map((u) => (
+                  <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-3 px-4 font-bold text-gray-900 flex items-center space-x-2">
+                      <div className="w-7 h-7 rounded-full bg-[#1A6B3A] text-white flex items-center justify-center font-bold text-xs">
+                        {u.fullName?.slice(0, 2).toUpperCase() || "U"}
+                      </div>
+                      <span>{u.fullName}</span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 font-mono-data">{u.email}</td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-[#E8F3ED] text-[#1A6B3A] border border-[#C5DCD0]">
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="inline-flex space-x-1">
+                        {(["buyer", "artisan", "lgu", "admin"] as const).map((r) => (
+                          <button
+                            key={r}
+                            onClick={async () => {
+                              try {
+                                const res = await fetch("/api/admin/applications", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ userId: u.id, action: "change_role", targetRole: r }),
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  setActionMessage(data.message);
+                                  await loadAdminData();
+                                }
+                              } catch (err) {
+                                console.error("Role change error:", err);
+                              }
+                            }}
+                            className={`px-2 py-1 text-[9px] uppercase font-bold rounded-md border transition-all cursor-pointer ${
+                              u.role === r
+                                ? "bg-[#1A6B3A] text-white border-[#1A6B3A]"
+                                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+                            }`}
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Analytics & KPI Dashboard */}
       <section className="space-y-6 pt-6 border-t border-[#E6E2D8]">
         <div>

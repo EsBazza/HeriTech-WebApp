@@ -37,11 +37,11 @@ export async function GET() {
       prisma.walletPass.count(),
     ]);
 
-    const totalKgCollected = batches.reduce((sum, b) => sum + b.weightKg, 0);
-    const totalRevenue = orders.reduce((sum, o) => sum + o.amountPaid, 0);
-    const totalArtisanPayout = orders.reduce((sum, o) => sum + o.artisanPayout, 0);
-    const totalPlatformFee = orders.reduce((sum, o) => sum + o.platformFee, 0);
-    const totalNgoFunds = orders.reduce((sum, o) => sum + o.ngoContribution, 0);
+    const totalKgCollected = batches.reduce((sum: number, b: any) => sum + (b.weightKg || 0), 0);
+    const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.amountPaid || 0), 0);
+    const totalArtisanPayout = orders.reduce((sum: number, o: any) => sum + (o.artisanPayout || 0), 0);
+    const totalPlatformFee = orders.reduce((sum: number, o: any) => sum + (o.platformFee || 0), 0);
+    const totalNgoFunds = orders.reduce((sum: number, o: any) => sum + (o.ngoContribution || 0), 0);
 
     return NextResponse.json({
       success: true,
@@ -57,7 +57,7 @@ export async function GET() {
           lguPlatformFee20: Math.round(totalPlatformFee * 100) / 100,
           ngoTrustFund10: Math.round(totalNgoFunds * 100) / 100,
         },
-        festivals: agreements.map((a) => ({
+        festivals: agreements.map((a: any) => ({
           festival: a.festival,
           country: a.country,
           allocatedKg: a.allocatedKg,

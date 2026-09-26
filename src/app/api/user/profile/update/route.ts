@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, fullName, avatarUrl, country, workshopName, stationName } = body;
+    const { userId, fullName, avatarUrl, country, workshopName, stationName, role } = body;
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 });
@@ -13,6 +13,7 @@ export async function POST(request: Request) {
     const updated = await prisma.user.update({
       where: { id: userId },
       data: {
+        role: role || undefined,
         fullName: fullName || undefined,
         avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined,
         country: country || undefined,

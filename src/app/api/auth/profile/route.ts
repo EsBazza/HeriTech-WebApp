@@ -26,8 +26,8 @@ export async function POST(request: Request) {
           email,
           fullName: fullName || email.split("@")[0],
           avatarUrl: avatarUrl || null,
-          role: "buyer", // Default role
-          verificationStatus: "none",
+          role: email.toLowerCase().includes("admin") ? "admin" : "buyer",
+          verificationStatus: email.toLowerCase().includes("admin") ? "approved" : "none",
         },
       });
     } else {

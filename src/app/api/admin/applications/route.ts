@@ -40,11 +40,27 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, action, adminNotes } = body; // action: 'approve' | 'reject'
+    const { userId, action, targetRole, adminNotes } = body; // action: 'approve' | 'reject' | 'change_role'
+
+    if (action === "change_role" && targetRole) {
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          role: targetRole,
+          artisanVerified: targetRole === "artisan" ? true : false,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Updated role for ${updatedUser.fullName || updatedUser.email} to ${targetRole.toUpperCase()}`,
+        data: updatedUser,
+      });
+    }
 
     if (!userId || !action || (action !== "approve" && action !== "reject")) {
       return NextResponse.json(
-        { success: false, error: "Invalid review action. Must be 'approve' or 'reject'." },
+        { success: false, error: "Invalid review action. Must be 'approve', 'reject', or 'change_role'." },
         { status: 400 }
       );
     }

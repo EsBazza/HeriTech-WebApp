@@ -11,7 +11,7 @@ import { userRole } from "@/lib/roleGuard";
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, signInWithGoogle, signInAsAdmin, signOut, switchRole } = useAuth();
   const { translateSync } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -140,12 +140,22 @@ export function Navbar() {
                 )}
               </div>
             ) : (
-              <button
-                onClick={signInWithGoogle}
-                className="flex items-center space-x-1.5 px-5 py-2.5 rounded-full bg-[#2E6B4A] hover:bg-[#23543A] text-white text-xs font-extrabold uppercase tracking-wider transition-colors cursor-pointer min-h-[40px] shadow-xs"
-              >
-                <span>{translateSync("Sign In")}</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={signInWithGoogle}
+                  className="flex items-center space-x-1.5 px-4 py-2.5 rounded-full bg-[#2E6B4A] hover:bg-[#23543A] text-white text-xs font-extrabold uppercase tracking-wider transition-colors cursor-pointer min-h-[40px] shadow-xs"
+                >
+                  <span>{translateSync("Sign In")}</span>
+                </button>
+
+                <button
+                  onClick={signInAsAdmin}
+                  className="flex items-center space-x-1 px-3 py-2.5 rounded-full bg-red-800 hover:bg-red-900 text-white text-[10px] font-extrabold uppercase tracking-wider transition-colors cursor-pointer min-h-[40px] shadow-xs"
+                  title="Sign in with Admin Governance rights"
+                >
+                  <span>{translateSync("Admin Sign In")}</span>
+                </button>
+              </div>
             )}
 
             {/* Mobile Hamburger Button */}
