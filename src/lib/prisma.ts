@@ -27,12 +27,63 @@ const fallbackStore: Record<string, any[]> = {
   message: [],
 };
 
+// Relation field -> store that holds the related records
+const RELATION_STORE: Record<string, string> = {
+  agreement: "agreement",
+  artisan: "user",
+  buyer: "user",
+  claimedByArtisan: "user",
+  reservedByArtisan: "user",
+  scannedByOfficer: "user",
+  sourceBatch: "materialBatch",
+  product: "product",
+  order: "order",
+  walletPass: "walletPass",
+  products: "product",
+  orders: "order",
+};
+
+/**
+ * Mimics Prisma's `include` / `select` for relations so API routes get the
+ * same nested shape from the in-memory store as from a real database.
+ * Forward relations resolve via `<field>Id`; reverse ones via `<model>Id`.
+ */
+function resolveInclude(item: any, include: any, modelKey: string, depth = 0): any {
+  if (!item || !include || typeof include !== "object" || depth > 4) return item;
+  const out = { ...item };
+  for (const [field, spec] of Object.entries(include)) {
+    if (!spec) continue;
+    const storeKey = RELATION_STORE[field];
+    if (!storeKey) continue;
+    const store = fallbackStore[storeKey] || [];
+    const nested = typeof spec === "object" ? (spec as any).include || (spec as any).select : undefined;
+    const fk = item[`${field}Id`];
+    let related: any;
+    if (fk !== undefined) {
+      related = store.find((r: any) => r.id === fk) || null;
+    } else {
+      const matches = store.filter((r: any) => r[`${modelKey}Id`] === item.id);
+      related = field.endsWith("s") ? matches : matches[0] || null;
+    }
+    if (Array.isArray(related)) {
+      out[field] = related.map((r: any) => resolveInclude(r, nested, storeKey, depth + 1));
+    } else if (related) {
+      out[field] = resolveInclude(related, nested, storeKey, depth + 1);
+    } else if (out[field] === undefined) {
+      out[field] = null;
+    }
+  }
+  return out;
+}
+
 function createModelHandler(modelKey: string) {
   return new Proxy({}, {
     get(target, prop: string) {
       const storeList = fallbackStore[modelKey] || [];
 
       return async (options: any = {}) => {
+        const withRelations = (r: any) => resolveInclude(r, options.include || options.select, modelKey);
+
         if (prop === "aggregate") {
           const sumObj: Record<string, number> = {};
           if (options._sum) {
@@ -52,17 +103,24 @@ function createModelHandler(modelKey: string) {
             if (options.where.status) res = res.filter((item: any) => item.status === options.where.status);
             if (options.where.buyerId) res = res.filter((item: any) => item.buyerId === options.where.buyerId);
           }
-          return res;
+          return res.map(withRelations);
         }
 
         if (prop === "findUnique" || prop === "findFirst") {
           if (options.where) {
-            if (options.where.id) return storeList.find((item: any) => item.id === options.where.id) || null;
-            if (options.where.email) return storeList.find((item: any) => item.email === options.where.email) || null;
-            if (options.where.serial) return storeList.find((item: any) => item.serial === options.where.serial) || null;
-            if (options.where.orderId) return storeList.find((item: any) => item.orderId === options.where.orderId) || null;
+            const w = options.where;
+            const hit = w.id
+              ? storeList.find((item: any) => item.id === w.id)
+              : w.email
+              ? storeList.find((item: any) => item.email === w.email)
+              : w.serial
+              ? storeList.find((item: any) => item.serial === w.serial)
+              : w.orderId
+              ? storeList.find((item: any) => item.orderId === w.orderId)
+              : storeList[0];
+            return hit ? withRelations(hit) : null;
           }
-          return storeList[0] || null;
+          return storeList[0] ? withRelations(storeList[0]) : null;
         }
 
         if (prop === "count") {
@@ -78,14 +136,14 @@ function createModelHandler(modelKey: string) {
         if (prop === "create") {
           const newItem = { id: options.data?.id || `id_${Date.now()}`, ...options.data, createdAt: new Date().toISOString() };
           storeList.push(newItem);
-          return newItem;
+          return withRelations(newItem);
         }
 
         if (prop === "update") {
           const idx = storeList.findIndex((item: any) => item.id === options.where?.id);
           if (idx !== -1) {
             storeList[idx] = { ...storeList[idx], ...options.data };
-            return storeList[idx];
+            return withRelations(storeList[idx]);
           }
           return options.data || {};
         }

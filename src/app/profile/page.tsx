@@ -109,23 +109,39 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="bg-linen min-h-screen py-20 px-6">
-        <div className="max-w-md mx-auto p-8 bg-[var(--cream)] border border-[var(--border-light)] rounded-sm text-center space-y-5">
-          <div className="w-14 h-14 rounded-sm bg-pine-700/10 border border-line-strong/20 flex items-center justify-center mx-auto text-lantern-600">
-            <User className="w-6 h-6" />
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full bg-surface border border-line rounded-md shadow-card p-8 space-y-6">
+          <div className="text-center space-y-3">
+            <span className="w-12 h-12 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center mx-auto">
+              <User className="w-5 h-5" />
+            </span>
+            <h1 className="font-display text-[32px] leading-tight font-semibold text-ink">{translateSync("Your HeriTech account")}</h1>
+            <p className="text-sm text-ink-2">{translateSync("Sign in to keep your impact passes, orders and messages in one place.")}</p>
           </div>
-          <h2 className="font-display text-2xl font-medium text-ink">
-            Account access required
-          </h2>
-          <p className="font-body text-sm text-[var(--warm-gray)] leading-relaxed">
-            {translateSync("Sign in with Google to view your account details, cooperative records, and circular impact metrics.")}
-          </p>
+          <ul className="space-y-2.5 text-sm text-ink-2">
+            {[
+              translateSync("Every Verified Impact Pass you've collected"),
+              translateSync("Order history and delivery updates"),
+              translateSync("Your total kg diverted and donations made"),
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-pine-500 shrink-0 mt-0.5" />
+                {t}
+              </li>
+            ))}
+          </ul>
           <button
             onClick={signInWithGoogle}
-            className="w-full py-3 rounded-sm bg-lantern hover:bg-lantern-100 text-ink text-xs font-bold transition-colors cursor-pointer min-h-[44px]"
+            className="w-full h-12 rounded-md bg-pine-700 hover:bg-pine-600 text-white font-medium transition-colors cursor-pointer"
           >
             {translateSync("Sign in with Google")}
           </button>
+          <p className="text-xs text-ink-3 text-center">
+            {translateSync("Just browsing?")}{" "}
+            <Link href="/" className="text-pine-600 hover:text-pine-700 font-medium">
+              {translateSync("Explore the shop")}
+            </Link>
+          </p>
         </div>
       </div>
     );

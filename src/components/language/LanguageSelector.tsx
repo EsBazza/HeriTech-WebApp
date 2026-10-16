@@ -91,10 +91,12 @@ export function LanguageSelector({
         <button
           onClick={() => setIsOpen(!isOpen)}
           disabled={isLoading || isChanging}
-          className="flex items-center space-x-2 h-10 px-3 rounded-md border border-line-strong hover:border-pine-500 bg-surface transition-colors focus:outline-none focus:ring-2 focus:ring-pine-500/20 focus:border-pine-500"
+          aria-label={`${translateSync("Language")}: ${currentLanguage.name}`}
+          aria-expanded={isOpen}
+          className="flex items-center gap-1.5 h-10 px-2.5 rounded-md text-ink-2 hover:bg-pine-50 hover:text-ink transition-colors cursor-pointer"
         >
-          <span className="text-lg">{currentLanguage.flag}</span>
-          <span className="text-sm font-medium text-ink-2 hidden sm:block">
+          <Globe className="w-[18px] h-[18px]" strokeWidth={1.75} />
+          <span className="text-sm font-medium hidden sm:block">
             {currentLanguage.code.toUpperCase()}
           </span>
           {(isLoading || isChanging) ? (
@@ -133,7 +135,7 @@ export function LanguageSelector({
                           : 'hover:bg-pine-50 text-ink-2'
                       }`}
                     >
-                      <span className="text-lg">{language.flag}</span>
+                      <span className="w-8 h-6 rounded-sm bg-paper-2 text-ink-2 text-xs font-semibold flex items-center justify-center shrink-0 uppercase">{language.code.split("-")[0]}</span>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">
                           {language.nativeName}

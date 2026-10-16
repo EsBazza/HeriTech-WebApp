@@ -82,7 +82,7 @@ export function Footer() {
               </span>
             ))}
           </div>
-          <p className="text-white/60">
+          <p className="text-white/60 md:mr-40">
             © 2026 HeriTech · {translateSync("University of the Assumption")} · EDUtech Asia 2026
           </p>
         </div>

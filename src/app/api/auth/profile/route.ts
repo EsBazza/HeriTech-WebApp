@@ -32,13 +32,16 @@ export async function POST(request: Request) {
       });
     } else {
       // Update existing user with latest Google avatar / name if provided
-      user = await prisma.user.update({
-        where: { email },
+      // Update by id (the data helper matches updates on id) and keep the full
+      // record, so role and id survive a repeat sign-in.
+      const updated = await prisma.user.update({
+        where: { id: user.id },
         data: {
           fullName: fullName || user.fullName,
           avatarUrl: avatarUrl || user.avatarUrl,
         },
       });
+      user = { ...user, ...updated };
     }
 
     return NextResponse.json({ success: true, data: user });

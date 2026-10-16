@@ -474,7 +474,7 @@ export default function FeedHomePage() {
           </Reveal>
 
           {/* Filter bar */}
-          <div className="sticky top-16 z-30 -mx-4 px-4 sm:mx-0 sm:px-0 py-3 bg-paper/95 backdrop-blur-md sm:bg-transparent sm:backdrop-blur-none sm:static space-y-3">
+          <div className="space-y-3">
             <div className="flex flex-col md:flex-row md:items-center gap-3">
               <div className="relative md:w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />

@@ -224,15 +224,15 @@ export default function MaterialsMapPage() {
                       : "bg-surface/80 border-line hover:border-line-strong"
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className="text-xs font-mono-data font-bold text-ink-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className="text-xs font-mono-data text-ink-3">
                         {batch.id}
                       </span>
                       <h3 className="text-sm font-bold text-ink mt-0.5"><TranslatableText>{batch.title}</TranslatableText></h3>
                     </div>
                     <span
-                      className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                      className={`shrink-0 whitespace-nowrap text-xs font-medium px-2 py-0.5 rounded-full border ${
                         getStatusPill(batch.status).bg
                       }`}
                     >
@@ -244,10 +244,11 @@ export default function MaterialsMapPage() {
                     <span className="flex items-center space-x-1">
                       <MapPin className="w-3.5 h-3.5 text-pine-600" />
                       <span>
-                        <TranslatableText>{batch.agreement?.festival || "Festival"}</TranslatableText> (<TranslatableText>{batch.agreement?.country}</TranslatableText>)
+                        <TranslatableText>{batch.agreement?.festival || "Festival"}</TranslatableText>
+                        {batch.agreement?.country && <> · <TranslatableText>{batch.agreement.country}</TranslatableText></>}
                       </span>
                     </span>
-                    <span className="font-mono-data font-bold text-ink">
+                    <span className="tabular font-semibold text-ink">
                       {formatNumber(batch.weightKg)} kg
                     </span>
                   </div>
@@ -264,11 +265,9 @@ export default function MaterialsMapPage() {
               {/* Batch Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
                 <div>
-                  <span className="text-xs font-mono-data text-pine-700 bg-pine-50 px-2 py-0.5 rounded font-bold">
-                    BATCH ID: {selectedBatch.id}
-                  </span>
-                  <h2 className="text-xl font-bold text-ink mt-1"><TranslatableText>{selectedBatch.title}</TranslatableText></h2>
-                  <p className="text-xs text-ink-3">
+                  <span className="text-xs font-mono-data text-ink-3">{selectedBatch.id}</span>
+                  <h2 className="font-display text-[28px] leading-tight font-semibold text-ink mt-1"><TranslatableText>{selectedBatch.title}</TranslatableText></h2>
+                  <p className="text-sm text-ink-3 mt-0.5">
                     <TranslatableText>{selectedBatch.agreement?.festival}</TranslatableText> • <TranslatableText>{selectedBatch.agreement?.country}</TranslatableText>
                   </p>
                 </div>

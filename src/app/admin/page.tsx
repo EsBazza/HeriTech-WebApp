@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
     (a) => a.verificationStatus === "pending_artisan" || a.verificationStatus === "pending_lgu"
   );
 
-  const escrowColors = ["#2563EB", "#10B981", "#F59E0B"];
+  const escrowColors = ["#1f3a2b", "#8fb09c", "#c2602f"]; // split-artisan, split-platform, split-ngo
 
   return (
     <AccessGuard allowedRoles={["admin"]} pageTitle="System Administration">
@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="px-3 py-1 rounded-full bg-danger-100 text-danger font-mono-data text-xs font-bold border border-danger/20">
+          <span className={pendingApps.length ? "px-3 py-1 rounded-full bg-warn-100 text-warn text-sm font-medium border border-warn/20" : "px-3 py-1 rounded-full bg-paper-2 text-ink-3 text-sm font-medium border border-line"}>
             {pendingApps.length} <TranslatableText>pending applications</TranslatableText>
           </span>
         </div>
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <TranslatableHeading level={2} className="text-lg font-bold text-ink flex items-center space-x-2">
-            <Clock className="w-5 h-5 text-warn" />
+            <Clock className="w-5 h-5 text-pine-500" />
             <span>Artisan & LGU Verification Applications Queue</span>
           </TranslatableHeading>
           <span className="text-xs text-ink-3">
@@ -236,7 +236,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <TranslatableHeading level={2} className="text-lg font-bold text-ink flex items-center space-x-2">
-              <ShieldCheck className="w-5 h-5 text-danger" />
+              <ShieldCheck className="w-5 h-5 text-pine-500" />
               <span>User Accounts & Role Administration</span>
             </TranslatableHeading>
             <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
@@ -330,7 +330,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
             <TranslatableText className="text-xs font-bold text-ink-3">Gross Volume</TranslatableText>
-            <p className="text-3xl font-semibold text-ink font-mono-data">
+            <p className="font-display text-[34px] leading-none font-semibold text-ink tabular">
               {formatCurrency(stats?.kpis?.grossVolume || 162.00)}
             </p>
             <TranslatableText className="text-xs text-ink-3 font-medium">100% Escrow Transacted</TranslatableText>
@@ -338,7 +338,7 @@ export default function AdminDashboardPage() {
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
             <TranslatableText className="text-xs font-bold text-ink-3">70% Artisan Payouts</TranslatableText>
-            <p className="text-3xl font-semibold text-pine-600 font-mono-data">
+            <p className="font-display text-[34px] leading-none font-semibold text-ink tabular">
               {formatCurrency(stats?.kpis?.artisanPayoutTotal || 113.40)}
             </p>
             <TranslatableText className="text-xs text-pine-500 font-medium">To Certified Maker Cooperatives</TranslatableText>
@@ -346,15 +346,15 @@ export default function AdminDashboardPage() {
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
             <TranslatableText className="text-xs font-bold text-ink-3">10% NGO Trust Funds</TranslatableText>
-            <p className="text-3xl font-semibold text-warn font-mono-data">
+            <p className="font-display text-[34px] leading-none font-semibold text-lantern-600 tabular">
               {formatCurrency(stats?.kpis?.ngoFundTotal || 16.20)}
             </p>
-            <TranslatableText className="text-xs text-warn font-medium">Clean Air & River Trusts</TranslatableText>
+            <TranslatableText className="text-xs text-ink-3">Clean Air & River Trusts</TranslatableText>
           </div>
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
             <TranslatableText className="text-xs font-bold text-ink-3">Total Diverted</TranslatableText>
-            <p className="text-3xl font-semibold text-pine-600 font-mono-data">
+            <p className="font-display text-[34px] leading-none font-semibold text-ink tabular">
               {formatNumber(stats?.kpis?.totalKgCollected || 303.2)} <span className="text-xs font-normal">kg</span>
             </p>
             <TranslatableText className="text-xs text-pine-600 font-medium">From Asian Landfills</TranslatableText>
@@ -371,12 +371,12 @@ export default function AdminDashboardPage() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats?.festivals || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F0EFEA" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e4ded3" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip />
-                  <Bar dataKey="collected" fill="#1A6B3A" name="Collected (kg)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="allocated" fill="#E6E2D8" name="Target Quota (kg)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="collected" fill="#3c6b52" name="Collected (kg)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="allocated" fill="#e4ded3" name="Target Quota (kg)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -414,17 +414,17 @@ export default function AdminDashboardPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono-data pt-2 border-t border-line">
+            <div className="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-line">
               <div>
-                <span className="block text-pine-600 font-bold">70%</span>
+                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-artisan" aria-hidden />70%</span>
                 <TranslatableText className="text-xs text-ink-3">Artisan Payout</TranslatableText>
               </div>
               <div>
-                <span className="block text-pine-600 font-bold">20%</span>
+                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-platform" aria-hidden />20%</span>
                 <TranslatableText className="text-xs text-ink-3">LGU & Platform</TranslatableText>
               </div>
               <div>
-                <span className="block text-warn font-bold">10%</span>
+                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-ngo" aria-hidden />10%</span>
                 <TranslatableText className="text-xs text-ink-3">NGO Fund</TranslatableText>
               </div>
             </div>
