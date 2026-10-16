@@ -49,29 +49,29 @@ export default function HandoverPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <div>
-        <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
           <QrCode className="w-3.5 h-3.5" />
-          <TranslatableText>ACT 3: ON-SITE PHYSICAL QR CUSTODY HANDOVER (STRICTLY NO NFC)</TranslatableText>
+          <TranslatableText>Chain of custody</TranslatableText>
         </div>
-        <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-          QR Handover & Chain-of-Custody Audit
+        <TranslatableHeading level={1} className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
+          QR custody handover
         </TranslatableHeading>
-        <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-          Zero-NFC cross-device verification protocol. Artisans present their HeriTech Verified QR Token; LGU officers scan on-site to release physical custody.
+        <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
+          The artisan shows their verified QR token and the LGU officer scans it on site to release the material. Every handover is logged.
         </TranslatableParagraph>
       </div>
 
       {/* Mode Switcher Tabs */}
-      <div className="flex p-1 bg-white rounded-2xl border border-[#E6E2D8] max-w-sm">
+      <div className="flex p-1 bg-surface rounded-lg border border-line max-w-sm">
         <button
           onClick={() => {
             setActiveTab("artisan");
             setAuditResult(null);
           }}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 py-2.5 rounded-md text-xs font-bold transition-all ${
             activeTab === "artisan"
-              ? "bg-[#1A6B3A] text-white shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
+              ? "bg-pine-700 text-white shadow-card"
+              : "text-ink-2 hover:text-ink"
           }`}
         >
           <TranslatableText>Artisan: Show QR Token</TranslatableText>
@@ -81,10 +81,10 @@ export default function HandoverPage() {
             setActiveTab("lgu");
             setAuditResult(null);
           }}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 py-2.5 rounded-md text-xs font-bold transition-all ${
             activeTab === "lgu"
-              ? "bg-[#1A6B3A] text-white shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
+              ? "bg-pine-700 text-white shadow-card"
+              : "text-ink-2 hover:text-ink"
           }`}
         >
           <TranslatableText>LGU: Audit & Release</TranslatableText>
@@ -92,35 +92,35 @@ export default function HandoverPage() {
       </div>
 
       {/* Main Content Container */}
-      <div className="bg-white rounded-3xl border border-[#E6E2D8] p-8 shadow-sm">
+      <div className="bg-surface rounded-lg border border-line p-8 shadow-card">
         {activeTab === "artisan" ? (
           <div className="flex flex-col items-center text-center space-y-6 max-w-md mx-auto py-4">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                <TranslatableText>HERITECH VERIFIED ARTISAN TOKEN</TranslatableText>
+              <span className="text-xs font-bold text-pine-700 bg-pine-50 px-2.5 py-1 rounded-full border border-pine-200">
+                <TranslatableText>Verified artisan token</TranslatableText>
               </span>
-              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 mt-2">
+              <TranslatableHeading level={2} className="text-lg font-bold text-ink mt-2">
                 Present to LGU Officer at Collection Depot
               </TranslatableHeading>
-              <TranslatableParagraph className="text-xs text-gray-500">
+              <TranslatableParagraph className="text-xs text-ink-3">
                 Scan using standard mobile camera to unlock custody transfer.
               </TranslatableParagraph>
             </div>
 
             {/* Generated QR Card */}
-            <div className="p-6 bg-white rounded-3xl border-2 border-[#1A6B3A] shadow-xl space-y-4">
-              <div className="w-56 h-56 bg-gray-50 rounded-2xl border border-gray-200 flex flex-col items-center justify-center p-4">
-                <QrCode className="w-40 h-40 text-gray-900" />
-                <span className="font-mono-data text-[10px] text-gray-500 mt-2 font-bold">
+            <div className="p-6 bg-surface rounded-lg border-2 border-pine-500 shadow-card space-y-4">
+              <div className="w-56 h-56 bg-paper rounded-lg border border-line flex flex-col items-center justify-center p-4">
+                <QrCode className="w-40 h-40 text-ink" />
+                <span className="font-mono-data text-xs text-ink-3 mt-2 font-bold">
                   {artisanToken}
                 </span>
               </div>
 
               <div className="text-left font-mono-data text-xs space-y-0.5">
-                <p className="text-gray-500">
+                <p className="text-ink-3">
                   <TranslatableText>Artisan</TranslatableText>: <strong><TranslatableText>{user?.fullName || "Danilo Cruz"}</TranslatableText></strong>
                 </p>
-                <p className="text-gray-500">
+                <p className="text-ink-3">
                   <TranslatableText>Cooperative</TranslatableText>: <strong><TranslatableText>{user?.workshopName || "Cordillera Botanical Cooperative"}</TranslatableText></strong>
                 </p>
               </div>
@@ -129,41 +129,41 @@ export default function HandoverPage() {
         ) : (
           <div className="space-y-6 max-w-lg mx-auto py-4">
             <div className="space-y-1 text-center">
-              <TranslatableHeading level={2} className="text-lg font-bold text-gray-900">
+              <TranslatableHeading level={2} className="text-lg font-bold text-ink">
                 LGU Field Custody Release Scanner
               </TranslatableHeading>
-              <TranslatableParagraph className="text-xs text-gray-500">
+              <TranslatableParagraph className="text-xs text-ink-3">
                 Verify artisan registration and transition batch status to "Claimed".
               </TranslatableParagraph>
             </div>
 
             {auditResult ? (
-              <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-4 text-center">
-                <div className="w-12 h-12 bg-emerald-100 text-[#1A6B3A] rounded-full flex items-center justify-center mx-auto">
+              <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg space-y-4 text-center">
+                <div className="w-12 h-12 bg-pine-100 text-pine-600 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <TranslatableHeading level={3} className="text-base font-bold text-gray-900">
+                  <TranslatableHeading level={3} className="text-base font-bold text-ink">
                     Physical Custody Transferred!
                   </TranslatableHeading>
-                  <p className="text-xs text-emerald-800 font-semibold mt-1">
+                  <p className="text-xs text-pine-700 font-semibold mt-1">
                     <TranslatableText>{auditResult.message}</TranslatableText>
                   </p>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-emerald-200 text-left font-mono-data text-xs space-y-1">
-                  <p className="text-gray-500">
+                <div className="p-3 bg-surface rounded-md border border-pine-200 text-left font-mono-data text-xs space-y-1">
+                  <p className="text-ink-3">
                     <TranslatableText>Batch</TranslatableText>: <strong>{auditResult.data.batchId}</strong>
                   </p>
-                  <p className="text-gray-500">
-                    <TranslatableText>Status</TranslatableText>: <strong className="text-emerald-700"><TranslatableText>CLAIMED & TRANSFERRED</TranslatableText></strong>
+                  <p className="text-ink-3">
+                    <TranslatableText>Status</TranslatableText>: <strong className="text-pine-600"><TranslatableText>Claimed & transferred</TranslatableText></strong>
                   </p>
-                  <p className="text-gray-500">
+                  <p className="text-ink-3">
                     <TranslatableText>Timestamp</TranslatableText>: {auditResult.data.verifiedAt}
                   </p>
                 </div>
                 <button
                   onClick={() => setAuditResult(null)}
-                  className="px-5 py-2.5 bg-[#1A6B3A] text-white rounded-xl text-xs font-bold hover:bg-[#14532D]"
+                  className="px-5 py-2.5 bg-pine-700 text-white rounded-md text-xs font-bold hover:bg-pine-600"
                 >
                   <TranslatableText>Audit Another Handover</TranslatableText>
                 </button>
@@ -171,8 +171,8 @@ export default function HandoverPage() {
             ) : (
               <form onSubmit={handleVerifyHandover} className="space-y-4 text-xs">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-700 flex items-center space-x-1.5">
-                    <Package className="w-3.5 h-3.5 text-[#1A6B3A]" />
+                  <label className="font-bold text-ink-2 flex items-center space-x-1.5">
+                    <Package className="w-3.5 h-3.5 text-pine-600" />
                     <TranslatableText>Material Batch ID</TranslatableText>
                   </label>
                   <input
@@ -181,13 +181,13 @@ export default function HandoverPage() {
                     value={batchId}
                     onChange={(e) => setBatchId(e.target.value)}
                     placeholder="e.g. HT-2026-0102"
-                    className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
+                    className="w-full p-3 rounded-md border border-line bg-paper font-mono-data font-bold text-ink"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-700 flex items-center space-x-1.5">
-                    <User className="w-3.5 h-3.5 text-[#1A6B3A]" />
+                  <label className="font-bold text-ink-2 flex items-center space-x-1.5">
+                    <User className="w-3.5 h-3.5 text-pine-600" />
                     <TranslatableText>Scanned Artisan QR Token Payload</TranslatableText>
                   </label>
                   <input
@@ -196,14 +196,14 @@ export default function HandoverPage() {
                     value={scannedArtisanId}
                     onChange={(e) => setScannedArtisanId(e.target.value)}
                     placeholder="e.g. usr_art_01"
-                    className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
+                    className="w-full p-3 rounded-md border border-line bg-paper font-mono-data font-bold text-ink"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={verifying}
-                  className="w-full py-4 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
+                  className="w-full py-4 rounded-md bg-pine-700 hover:bg-pine-600 text-white font-bold text-xs shadow-card transition-all flex items-center justify-center space-x-2"
                 >
                   {verifying ? (
                     <TranslatableText>Verifying Handover Token...</TranslatableText>

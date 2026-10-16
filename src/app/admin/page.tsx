@@ -85,30 +85,30 @@ export default function AdminDashboardPage() {
     <AccessGuard allowedRoles={["admin"]} pageTitle="System Administration">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
       {/* Admin Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E6E2D8] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-6">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-bold text-red-700">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
             <ShieldCheck className="w-4 h-4" />
-            <TranslatableText>CENTRAL GOVERNANCE & CONTROL PORTAL</TranslatableText>
+            <TranslatableText>Admin</TranslatableText>
           </div>
-          <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-            HeriTech System Administration
+          <TranslatableHeading level={1} className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
+            Admin console
           </TranslatableHeading>
-          <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-            Review and approve Artisan & LGU applications, inspect live escrow distributions, and monitor continent-wide festival waste quotas.
+          <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
+            Approve artisan and LGU applications, review payment splits and track festival collection quotas.
           </TranslatableParagraph>
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 font-mono-data text-xs font-bold border border-red-300">
-            {pendingApps.length} <TranslatableText>PENDING APPLICATIONS</TranslatableText>
+          <span className="px-3 py-1 rounded-full bg-danger-100 text-danger font-mono-data text-xs font-bold border border-danger/20">
+            {pendingApps.length} <TranslatableText>pending applications</TranslatableText>
           </span>
         </div>
       </div>
 
       {actionMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-900 flex items-center space-x-2">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+        <div className="p-4 rounded-lg bg-pine-50 border border-pine-200 text-xs font-bold text-pine-700 flex items-center space-x-2">
+          <CheckCircle2 className="w-5 h-5 text-pine-500 flex-shrink-0" />
           <span><TranslatableText>{actionMessage}</TranslatableText></span>
         </div>
       )}
@@ -116,11 +116,11 @@ export default function AdminDashboardPage() {
       {/* Verification Applications Review Queue */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-            <Clock className="w-5 h-5 text-amber-600" />
+          <TranslatableHeading level={2} className="text-lg font-bold text-ink flex items-center space-x-2">
+            <Clock className="w-5 h-5 text-warn" />
             <span>Artisan & LGU Verification Applications Queue</span>
           </TranslatableHeading>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-ink-3">
             <TranslatableText>
               {pendingApps.length === 0 ? "All applications reviewed" : "Requires manual approval"}
             </TranslatableText>
@@ -128,12 +128,12 @@ export default function AdminDashboardPage() {
         </div>
 
         {pendingApps.length === 0 ? (
-          <div className="p-8 bg-white rounded-3xl border border-[#E6E2D8] text-center space-y-2">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
+          <div className="p-8 bg-surface rounded-lg border border-line text-center space-y-2">
+            <CheckCircle2 className="w-10 h-10 text-pine-500 mx-auto" />
+            <TranslatableHeading level={3} className="text-sm font-bold text-ink">
               Application Queue is Clear
             </TranslatableHeading>
-            <TranslatableParagraph className="text-xs text-gray-500">
+            <TranslatableParagraph className="text-xs text-ink-3">
               There are no pending verification requests awaiting administrative review.
             </TranslatableParagraph>
           </div>
@@ -144,31 +144,31 @@ export default function AdminDashboardPage() {
               return (
                 <div
                   key={applicant.id}
-                  className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm hover:border-[#1A6B3A] transition-all flex flex-col justify-between"
+                  className="bg-surface rounded-lg border border-line p-6 space-y-4 shadow-card hover:border-pine-500 transition-all flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
                         <div
-                          className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
                             isArtisan
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-blue-100 text-blue-800"
+                              ? "bg-warn-100 text-warn"
+                              : "bg-pine-100 text-pine-700"
                           }`}
                         >
                           {isArtisan ? <Palette className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-gray-900">{applicant.fullName}</h3>
-                          <p className="text-xs text-gray-500 font-mono-data">{applicant.email}</p>
+                          <h3 className="text-sm font-bold text-ink">{applicant.fullName}</h3>
+                          <p className="text-xs text-ink-3 font-mono-data">{applicant.email}</p>
                         </div>
                       </div>
 
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
                           isArtisan
-                            ? "bg-amber-50 text-amber-800 border-amber-300"
-                            : "bg-blue-50 text-blue-800 border-blue-300"
+                            ? "bg-warn-100 text-warn border-warn/20"
+                            : "bg-pine-50 text-pine-700 border-pine-300"
                         }`}
                       >
                         <TranslatableText>
@@ -178,28 +178,28 @@ export default function AdminDashboardPage() {
                     </div>
 
                     {/* Applicant Details */}
-                    <div className="p-3.5 bg-[#F8F6F0] rounded-2xl space-y-1 text-xs">
+                    <div className="p-3.5 bg-paper rounded-lg space-y-1 text-xs">
                       {isArtisan ? (
                         <>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-ink">
                             <TranslatableText>Workshop</TranslatableText>: <strong>{applicant.workshopName || translateSync("Not specified")}</strong>
                           </p>
-                          <p className="text-gray-600">
+                          <p className="text-ink-2">
                             <TranslatableText>Craft</TranslatableText>: <TranslatableText>{applicant.applicationDetails?.craftTypology || "Bamboo/Paper"}</TranslatableText>
                           </p>
                         </>
                       ) : (
                         <>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-ink">
                             <TranslatableText>Station</TranslatableText>: <strong>{applicant.stationName || translateSync("Not specified")}</strong>
                           </p>
-                          <p className="text-gray-600">
+                          <p className="text-ink-2">
                             <TranslatableText>Country</TranslatableText>: <TranslatableText>{applicant.country || "Philippines"}</TranslatableText>
                           </p>
                         </>
                       )}
                       {applicant.applicationDetails?.bio && (
-                        <p className="text-[11px] text-gray-500 italic mt-1">
+                        <p className="text-xs text-ink-3 italic mt-1">
                           "{applicant.applicationDetails.bio}"
                         </p>
                       )}
@@ -207,10 +207,10 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* Approve / Reject Actions */}
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-line">
                     <button
                       onClick={() => handleReview(applicant.id, "reject")}
-                      className="py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 font-bold text-xs hover:bg-red-100 transition-all flex items-center justify-center space-x-1.5"
+                      className="py-2.5 rounded-md border border-danger/20 bg-danger-100 text-danger font-bold text-xs hover:bg-danger-100 transition-all flex items-center justify-center space-x-1.5"
                     >
                       <XCircle className="w-4 h-4" />
                       <TranslatableText>Reject</TranslatableText>
@@ -218,7 +218,7 @@ export default function AdminDashboardPage() {
 
                     <button
                       onClick={() => handleReview(applicant.id, "approve")}
-                      className="py-2.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-1.5"
+                      className="py-2.5 rounded-md bg-pine-700 hover:bg-pine-600 text-white font-bold text-xs shadow-card transition-all flex items-center justify-center space-x-1.5"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <TranslatableText>Approve Role</TranslatableText>
@@ -232,45 +232,45 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* User Role Management Table (Prisma Studio Equivalent for Admin) */}
-      <section className="space-y-4 pt-6 border-t border-[#E6E2D8]">
+      <section className="space-y-4 pt-6 border-t border-line">
         <div className="flex items-center justify-between">
           <div>
-            <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-              <ShieldCheck className="w-5 h-5 text-red-700" />
+            <TranslatableHeading level={2} className="text-lg font-bold text-ink flex items-center space-x-2">
+              <ShieldCheck className="w-5 h-5 text-danger" />
               <span>User Accounts & Role Administration</span>
             </TranslatableHeading>
-            <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
+            <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
               Admin control panel to manage registered user permissions and update roles (Buyer, Artisan, LGU, Admin).
             </TranslatableParagraph>
           </div>
-          <span className="text-xs font-bold text-gray-500 font-mono-data">
-            {applications.length} <TranslatableText>TOTAL USERS</TranslatableText>
+          <span className="text-xs font-bold text-ink-3 font-mono-data">
+            {applications.length} <TranslatableText>Total users</TranslatableText>
           </span>
         </div>
 
-        <div className="bg-white rounded-3xl border border-[#E6E2D8] overflow-hidden shadow-sm">
+        <div className="bg-surface rounded-lg border border-line overflow-hidden shadow-card">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#F8F6F0] border-b border-[#E6E2D8] text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                <tr className="bg-paper border-b border-line text-xs font-bold text-ink-3">
                   <th className="py-3 px-4">User</th>
                   <th className="py-3 px-4">Email</th>
                   <th className="py-3 px-4">Current Role</th>
                   <th className="py-3 px-4 text-right">Change Role</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-line">
                 {applications.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3 px-4 font-bold text-gray-900 flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-full bg-[#1A6B3A] text-white flex items-center justify-center font-bold text-xs">
+                  <tr key={u.id} className="hover:bg-paper/50 transition-colors">
+                    <td className="py-3 px-4 font-bold text-ink flex items-center space-x-2">
+                      <div className="w-7 h-7 rounded-full bg-pine-700 text-white flex items-center justify-center font-bold text-xs">
                         {u.fullName?.slice(0, 2).toUpperCase() || "U"}
                       </div>
                       <span>{u.fullName}</span>
                     </td>
-                    <td className="py-3 px-4 text-gray-600 font-mono-data">{u.email}</td>
+                    <td className="py-3 px-4 text-ink-2 font-mono-data">{u.email}</td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-[#E8F3ED] text-[#1A6B3A] border border-[#C5DCD0]">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-pine-50 text-pine-600 border border-pine-200">
                         {u.role}
                       </span>
                     </td>
@@ -295,10 +295,10 @@ export default function AdminDashboardPage() {
                                 console.error("Role change error:", err);
                               }
                             }}
-                            className={`px-2 py-1 text-[9px] uppercase font-bold rounded-md border transition-all cursor-pointer ${
+                            className={`px-2 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
                               u.role === r
-                                ? "bg-[#1A6B3A] text-white border-[#1A6B3A]"
-                                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+                                ? "bg-pine-700 text-white border-pine-500"
+                                : "bg-surface text-ink-2 border-line hover:bg-paper-2"
                             }`}
                           >
                             {r}
@@ -315,57 +315,57 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Analytics & KPI Dashboard */}
-      <section className="space-y-6 pt-6 border-t border-[#E6E2D8]">
+      <section className="space-y-6 pt-6 border-t border-line">
         <div>
-          <TranslatableHeading level={2} className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-[#1A6B3A]" />
-            <span>Platform Financial & Material Telemetry</span>
+          <TranslatableHeading level={2} className="text-lg font-bold text-ink flex items-center space-x-2">
+            <TrendingUp className="w-5 h-5 text-pine-600" />
+            <span>Payments & material overview</span>
           </TranslatableHeading>
-          <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
+          <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
             Aggregated gross volume, automated 70/20/10 disbursements, and festival diversion metrics.
           </TranslatableParagraph>
         </div>
 
         {/* 4 Key Admin Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Gross Volume</TranslatableText>
-            <p className="text-3xl font-black text-gray-900 font-mono-data">
+          <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
+            <TranslatableText className="text-xs font-bold text-ink-3">Gross Volume</TranslatableText>
+            <p className="text-3xl font-semibold text-ink font-mono-data">
               {formatCurrency(stats?.kpis?.grossVolume || 162.00)}
             </p>
-            <TranslatableText className="text-[11px] text-gray-500 font-medium">100% Escrow Transacted</TranslatableText>
+            <TranslatableText className="text-xs text-ink-3 font-medium">100% Escrow Transacted</TranslatableText>
           </div>
 
-          <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">70% Artisan Payouts</TranslatableText>
-            <p className="text-3xl font-black text-blue-700 font-mono-data">
+          <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
+            <TranslatableText className="text-xs font-bold text-ink-3">70% Artisan Payouts</TranslatableText>
+            <p className="text-3xl font-semibold text-pine-600 font-mono-data">
               {formatCurrency(stats?.kpis?.artisanPayoutTotal || 113.40)}
             </p>
-            <TranslatableText className="text-[11px] text-blue-600 font-medium">To Certified Maker Cooperatives</TranslatableText>
+            <TranslatableText className="text-xs text-pine-500 font-medium">To Certified Maker Cooperatives</TranslatableText>
           </div>
 
-          <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">10% NGO Trust Funds</TranslatableText>
-            <p className="text-3xl font-black text-amber-700 font-mono-data">
+          <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
+            <TranslatableText className="text-xs font-bold text-ink-3">10% NGO Trust Funds</TranslatableText>
+            <p className="text-3xl font-semibold text-warn font-mono-data">
               {formatCurrency(stats?.kpis?.ngoFundTotal || 16.20)}
             </p>
-            <TranslatableText className="text-[11px] text-amber-600 font-medium">Clean Air & River Trusts</TranslatableText>
+            <TranslatableText className="text-xs text-warn font-medium">Clean Air & River Trusts</TranslatableText>
           </div>
 
-          <div className="p-6 rounded-3xl bg-white border border-[#E6E2D8] shadow-sm space-y-1">
-            <TranslatableText className="text-[10px] font-bold text-gray-400 uppercase">Total Diverted</TranslatableText>
-            <p className="text-3xl font-black text-[#1A6B3A] font-mono-data">
+          <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
+            <TranslatableText className="text-xs font-bold text-ink-3">Total Diverted</TranslatableText>
+            <p className="text-3xl font-semibold text-pine-600 font-mono-data">
               {formatNumber(stats?.kpis?.totalKgCollected || 303.2)} <span className="text-xs font-normal">kg</span>
             </p>
-            <TranslatableText className="text-[11px] text-emerald-700 font-medium">From Asian Landfills</TranslatableText>
+            <TranslatableText className="text-xs text-pine-600 font-medium">From Asian Landfills</TranslatableText>
           </div>
         </div>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Chart 1: Festival Quota Progress */}
-          <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm">
-            <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
+          <div className="bg-surface rounded-lg border border-line p-6 space-y-4 shadow-card">
+            <TranslatableHeading level={3} className="text-sm font-bold text-ink">
               Pan-Asian Festival Waste Quotas (kg Collected vs Target)
             </TranslatableHeading>
             <div className="h-64 w-full">
@@ -383,12 +383,12 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Chart 2: 70/20/10 Escrow Breakdown */}
-          <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-4 shadow-sm flex flex-col justify-between">
+          <div className="bg-surface rounded-lg border border-line p-6 space-y-4 shadow-card flex flex-col justify-between">
             <div>
-              <TranslatableHeading level={3} className="text-sm font-bold text-gray-900">
+              <TranslatableHeading level={3} className="text-sm font-bold text-ink">
                 Fixed 70/20/10 Escrow Distribution
               </TranslatableHeading>
-              <TranslatableParagraph className="text-xs text-gray-500 mt-0.5">
+              <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
                 Direct economic routing across artisans, infrastructure, and clean-up funds.
               </TranslatableParagraph>
             </div>
@@ -414,18 +414,18 @@ export default function AdminDashboardPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono-data pt-2 border-t border-gray-100">
+            <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono-data pt-2 border-t border-line">
               <div>
-                <span className="block text-blue-700 font-bold">70%</span>
-                <TranslatableText className="text-[10px] text-gray-500">Artisan Payout</TranslatableText>
+                <span className="block text-pine-600 font-bold">70%</span>
+                <TranslatableText className="text-xs text-ink-3">Artisan Payout</TranslatableText>
               </div>
               <div>
-                <span className="block text-emerald-700 font-bold">20%</span>
-                <TranslatableText className="text-[10px] text-gray-500">LGU & Platform</TranslatableText>
+                <span className="block text-pine-600 font-bold">20%</span>
+                <TranslatableText className="text-xs text-ink-3">LGU & Platform</TranslatableText>
               </div>
               <div>
-                <span className="block text-amber-700 font-bold">10%</span>
-                <TranslatableText className="text-[10px] text-gray-500">NGO Fund</TranslatableText>
+                <span className="block text-warn font-bold">10%</span>
+                <TranslatableText className="text-xs text-ink-3">NGO Fund</TranslatableText>
               </div>
             </div>
           </div>

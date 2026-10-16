@@ -158,13 +158,13 @@ export default function MaterialsMapPage() {
   const getStatusPill = (status: string) => {
     switch (status) {
       case "available":
-        return { label: translateSync("AVAILABLE FOR ARTISANS"), bg: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+        return { label: translateSync("Available for artisans"), bg: "bg-pine-100 text-pine-700 border-pine-300" };
       case "reserved":
-        return { label: translateSync("RESERVED (PENDING QR HANDOVER)"), bg: "bg-amber-100 text-amber-800 border-amber-300" };
+        return { label: translateSync("Reserved, awaiting QR handover"), bg: "bg-warn-100 text-warn border-warn/20" };
       case "claimed":
-        return { label: translateSync("CLAIMED & IN CRAFTING"), bg: "bg-blue-100 text-blue-800 border-blue-300" };
+        return { label: translateSync("Claimed, in crafting"), bg: "bg-pine-100 text-pine-700 border-pine-300" };
       default:
-        return { label: translateSync(status.toUpperCase()), bg: "bg-gray-100 text-gray-800" };
+        return { label: translateSync(status.toUpperCase()), bg: "bg-paper-2 text-ink" };
     }
   };
 
@@ -172,27 +172,27 @@ export default function MaterialsMapPage() {
     <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Harvest Map">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E2D8] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-6">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
             <Sparkles className="w-3.5 h-3.5" />
-            <TranslatableText>ACT 2: INTERACTIVE HARVEST MAP & REGIONAL PING</TranslatableText>
+            <TranslatableText>Harvest map</TranslatableText>
           </div>
-          <TranslatableHeading level={1} className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-            Regional Material Harvest Registry
+          <TranslatableHeading level={1} className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
+            Material harvest registry
           </TranslatableHeading>
-          <TranslatableParagraph className="text-xs text-gray-500 mt-1">
+          <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
             Inspect raw festival waste logged across Asia with GPS and AI confidence scores. Artisans can reserve batches for pickup.
           </TranslatableParagraph>
         </div>
 
         <div className="flex items-center space-x-3 text-xs font-semibold">
-          <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-pine-50 text-pine-700 border border-pine-200">
+            <span className="w-2 h-2 rounded-full bg-pine-500"></span>
             <TranslatableText>Available</TranslatableText>
           </span>
-          <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-warn-100 text-warn border border-warn/20">
+            <span className="w-2 h-2 rounded-full bg-warn"></span>
             <TranslatableText>Reserved (QR Pending)</TranslatableText>
           </span>
         </div>
@@ -205,7 +205,7 @@ export default function MaterialsMapPage() {
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-2xl animate-pulse" />
+                <div key={i} className="h-32 bg-line rounded-lg animate-pulse" />
               ))}
             </div>
           ) : (
@@ -218,21 +218,21 @@ export default function MaterialsMapPage() {
                     setSelectedBatch(batch);
                     setReserveSuccess(null);
                   }}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                  className={`p-4 rounded-lg border transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-white border-[#1A6B3A] shadow-md ring-1 ring-[#1A6B3A]"
-                      : "bg-white/80 border-[#E6E2D8] hover:border-gray-400"
+                      ? "bg-surface border-pine-500 shadow-card ring-1 ring-pine-500"
+                      : "bg-surface/80 border-line hover:border-line-strong"
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-[10px] font-mono-data font-bold text-gray-500">
+                      <span className="text-xs font-mono-data font-bold text-ink-3">
                         {batch.id}
                       </span>
-                      <h3 className="text-sm font-bold text-gray-900 mt-0.5"><TranslatableText>{batch.title}</TranslatableText></h3>
+                      <h3 className="text-sm font-bold text-ink mt-0.5"><TranslatableText>{batch.title}</TranslatableText></h3>
                     </div>
                     <span
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                      className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
                         getStatusPill(batch.status).bg
                       }`}
                     >
@@ -240,14 +240,14 @@ export default function MaterialsMapPage() {
                     </span>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between text-xs text-gray-600">
+                  <div className="mt-3 flex items-center justify-between text-xs text-ink-2">
                     <span className="flex items-center space-x-1">
-                      <MapPin className="w-3.5 h-3.5 text-[#1A6B3A]" />
+                      <MapPin className="w-3.5 h-3.5 text-pine-600" />
                       <span>
                         <TranslatableText>{batch.agreement?.festival || "Festival"}</TranslatableText> (<TranslatableText>{batch.agreement?.country}</TranslatableText>)
                       </span>
                     </span>
-                    <span className="font-mono-data font-bold text-gray-900">
+                    <span className="font-mono-data font-bold text-ink">
                       {formatNumber(batch.weightKg)} kg
                     </span>
                   </div>
@@ -260,15 +260,15 @@ export default function MaterialsMapPage() {
         {/* Right Col: Batch Detail & Map Telemetry (7 cols) */}
         <div className="lg:col-span-7">
           {selectedBatch ? (
-            <div className="bg-white rounded-3xl border border-[#E6E2D8] p-6 space-y-6 shadow-sm sticky top-24">
+            <div className="bg-surface rounded-lg border border-line p-6 space-y-6 shadow-card sticky top-24">
               {/* Batch Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
                 <div>
-                  <span className="text-xs font-mono-data text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold">
+                  <span className="text-xs font-mono-data text-pine-700 bg-pine-50 px-2 py-0.5 rounded font-bold">
                     BATCH ID: {selectedBatch.id}
                   </span>
-                  <h2 className="text-xl font-bold text-gray-900 mt-1"><TranslatableText>{selectedBatch.title}</TranslatableText></h2>
-                  <p className="text-xs text-gray-500">
+                  <h2 className="text-xl font-bold text-ink mt-1"><TranslatableText>{selectedBatch.title}</TranslatableText></h2>
+                  <p className="text-xs text-ink-3">
                     <TranslatableText>{selectedBatch.agreement?.festival}</TranslatableText> • <TranslatableText>{selectedBatch.agreement?.country}</TranslatableText>
                   </p>
                 </div>
@@ -285,20 +285,20 @@ export default function MaterialsMapPage() {
               {/* Harvest Photo & Live Google Maps View */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <div className="aspect-video sm:aspect-square rounded-2xl bg-gray-100 overflow-hidden border border-gray-200">
+                  <div className="aspect-video sm:aspect-square rounded-lg bg-paper-2 overflow-hidden border border-line">
                     <img
                       src={selectedBatch.imageUrl}
                       alt={selectedBatch.title}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <TranslatableText className="text-[10px] text-gray-400 font-medium block text-center">
+                  <TranslatableText className="text-xs text-ink-3 font-medium block text-center">
                     Field Origin Photograph
                   </TranslatableText>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="aspect-video sm:aspect-square rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 relative">
+                  <div className="aspect-video sm:aspect-square rounded-lg overflow-hidden border border-line bg-paper relative">
                     <iframe
                       width="100%"
                       height="100%"
@@ -311,8 +311,8 @@ export default function MaterialsMapPage() {
                       }&q=${selectedBatch.gpsLat},${selectedBatch.gpsLng}&zoom=14`}
                     />
                   </div>
-                  <span className="text-[10px] text-emerald-800 font-medium block text-center flex items-center justify-center space-x-1">
-                    <MapPin className="w-3 h-3 text-[#1A6B3A]" />
+                  <span className="text-xs text-pine-700 font-medium block text-center flex items-center justify-center space-x-1">
+                    <MapPin className="w-3 h-3 text-pine-600" />
                     <TranslatableText>Live Google Maps GPS Satellite Pin</TranslatableText>
                   </span>
                 </div>
@@ -320,26 +320,26 @@ export default function MaterialsMapPage() {
 
               {/* Harvest Telemetry Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 bg-[#F8F6F0] rounded-xl space-y-1">
-                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase">
+                <div className="p-3 bg-paper rounded-md space-y-1">
+                  <TranslatableText className="text-xs text-ink-3 font-bold">
                     Scale Measurement
                   </TranslatableText>
-                  <p className="text-base font-black text-gray-900 font-mono-data">
+                  <p className="text-base font-semibold text-ink font-mono-data">
                     {formatNumber(selectedBatch.weightKg)} <span className="text-xs font-normal">kg</span>
                   </p>
-                  <span className="text-[10px] text-gray-500 block">
+                  <span className="text-xs text-ink-3 block">
                     <TranslatableText>Condition</TranslatableText>: <strong><TranslatableText>{selectedBatch.condition}</TranslatableText></strong>
                   </span>
                 </div>
 
-                <div className="p-3 bg-[#F8F6F0] rounded-xl space-y-1">
-                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase">
+                <div className="p-3 bg-paper rounded-md space-y-1">
+                  <TranslatableText className="text-xs text-ink-3 font-bold">
                     Gemini AI Vision
                   </TranslatableText>
-                  <p className="font-semibold text-gray-800 truncate">
+                  <p className="font-semibold text-ink truncate">
                     <TranslatableText>{selectedBatch.aiInferredMaterial || selectedBatch.materialType}</TranslatableText>
                   </p>
-                  <div className="flex items-center space-x-1 text-emerald-700">
+                  <div className="flex items-center space-x-1 text-pine-600">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>
                       <TranslatableText>Confidence</TranslatableText>:{" "}
@@ -350,31 +350,31 @@ export default function MaterialsMapPage() {
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#F8F6F0] rounded-xl space-y-1">
-                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase">
+                <div className="p-3 bg-paper rounded-md space-y-1">
+                  <TranslatableText className="text-xs text-ink-3 font-bold">
                     GPS Coordinates
                   </TranslatableText>
-                  <p className="font-mono-data text-xs text-gray-800">
+                  <p className="font-mono-data text-xs text-ink">
                     {selectedBatch.gpsLat.toFixed(4)}° N, {selectedBatch.gpsLng.toFixed(4)}° E
                   </p>
-                  <span className="text-[10px] text-gray-500 block truncate">
+                  <span className="text-xs text-ink-3 block truncate">
                     <TranslatableText>Officer</TranslatableText>: <TranslatableText>{selectedBatch.scannedByOfficer?.fullName || "Field Officer"}</TranslatableText>
                   </span>
                 </div>
               </div>
 
               {/* SHA-256 Provenance Hash */}
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 font-mono-data text-xs space-y-1">
-                <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase">
+              <div className="p-3 bg-paper rounded-md border border-line font-mono-data text-xs space-y-1">
+                <TranslatableText className="text-xs text-ink-3 font-bold">
                   SHA-256 Harvest Cryptographic Hash
                 </TranslatableText>
-                <p className="text-gray-700 text-[10px] break-all">{selectedBatch.txHash}</p>
+                <p className="text-ink-2 text-xs break-all">{selectedBatch.txHash}</p>
               </div>
 
               {/* Success Notification */}
               {reserveSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="p-3 bg-pine-50 border border-pine-200 rounded-md text-xs font-semibold text-pine-700 flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-pine-500" />
                   <span><TranslatableText>{reserveSuccess}</TranslatableText></span>
                 </div>
               )}
@@ -385,7 +385,7 @@ export default function MaterialsMapPage() {
                   <button
                     onClick={() => handleReserve(selectedBatch.id)}
                     disabled={reserving}
-                    className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                    className="w-full py-3.5 rounded-md bg-pine-700 hover:bg-pine-600 text-white font-bold text-xs shadow-card transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
                   >
                     {reserving ? (
                       <TranslatableText>Reserving Batch for Pickup...</TranslatableText>
@@ -397,32 +397,32 @@ export default function MaterialsMapPage() {
                     )}
                   </button>
                 ) : (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
+                  <div className="p-3 bg-pine-50 border border-pine-200 rounded-md text-xs text-pine-700">
                     <TranslatableParagraph className="font-semibold">Want to claim this material?</TranslatableParagraph>
-                    <TranslatableParagraph className="text-[11px] text-blue-700 mt-0.5">
+                    <TranslatableParagraph className="text-xs text-pine-600 mt-0.5">
                       Sign in as a Verified Artisan to reserve festival waste batches.
                     </TranslatableParagraph>
                   </div>
                 )
               ) : selectedBatch.status === "reserved" ? (
-                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex items-center justify-between">
+                <div className="p-3.5 bg-warn-100 border border-warn/20 rounded-lg text-xs text-warn flex items-center justify-between">
                   <div>
                     <TranslatableText className="font-bold">Reserved by Artisan Cooperative</TranslatableText>
-                    <TranslatableParagraph className="text-[11px] text-amber-700">
+                    <TranslatableParagraph className="text-xs text-warn">
                       Open Handover to present your Scannable QR Token at the collection depot.
                     </TranslatableParagraph>
                   </div>
                   <button
                     onClick={() => setHandoverModalOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition-all flex items-center space-x-1.5 whitespace-nowrap ml-3"
+                    className="px-4 py-2 rounded-md bg-warn hover:bg-warn text-white text-xs font-bold shadow-card transition-all flex items-center space-x-1.5 whitespace-nowrap ml-3"
                   >
                     <QrCode className="w-4 h-4" />
                     <TranslatableText>Open Handover</TranslatableText>
                   </button>
                 </div>
               ) : (
-                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-600 flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="p-3 bg-paper border border-line rounded-md text-xs text-ink-2 flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-pine-500" />
                   <TranslatableText>
                     Batch claimed and in production. View finished items in the Marketplace.
                   </TranslatableText>
@@ -430,8 +430,8 @@ export default function MaterialsMapPage() {
               )}
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center p-12 bg-white rounded-3xl border border-[#E6E2D8] text-center text-gray-400">
-              <TranslatableText>Select a batch on the left to inspect harvest telemetry</TranslatableText>
+            <div className="h-full flex items-center justify-center p-12 bg-surface rounded-lg border border-line text-center text-ink-3">
+              <TranslatableText>Select a batch to see its details</TranslatableText>
             </div>
           )}
         </div>
@@ -440,45 +440,45 @@ export default function MaterialsMapPage() {
       {/* CONTEXTUAL REAL SCANNABLE QR HANDOVER MODAL */}
       {handoverModalOpen && selectedBatch && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-[#E6E2D8] relative">
+          <div className="bg-surface rounded-lg max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-pop border border-line relative">
             <button
               onClick={() => {
                 setHandoverModalOpen(false);
                 setHandoverSuccess(null);
               }}
-              className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+              className="absolute top-6 right-6 p-2 rounded-full text-ink-3 hover:text-ink-2 hover:bg-paper-2"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="border-b border-gray-100 pb-3">
-              <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
+            <div className="border-b border-line pb-3">
+              <div className="flex items-center space-x-2 text-xs font-bold text-pine-600">
                 <QrCode className="w-4 h-4" />
-                <TranslatableText>ACT 3: PHYSICAL ON-SITE QR HANDOVER AUDIT</TranslatableText>
+                <TranslatableText>QR handover</TranslatableText>
               </div>
-              <TranslatableHeading level={3} className="text-xl font-black text-gray-900 mt-1">
+              <TranslatableHeading level={3} className="text-xl font-semibold text-ink mt-1">
                 Chain-of-Custody Handover: {selectedBatch.id}
               </TranslatableHeading>
             </div>
 
             {/* Mode Switcher */}
-            <div className="flex p-1 bg-[#F8F6F0] rounded-2xl border border-gray-200">
+            <div className="flex p-1 bg-paper rounded-lg border border-line">
               <button
                 onClick={() => setHandoverTab("artisan")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${
                   handoverTab === "artisan"
-                    ? "bg-[#1A6B3A] text-white shadow-xs"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-pine-700 text-white shadow-card"
+                    : "text-ink-2 hover:text-ink"
                 }`}
               >
                 <TranslatableText>Artisan: Show Scannable QR</TranslatableText>
               </button>
               <button
                 onClick={() => setHandoverTab("lgu")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${
                   handoverTab === "lgu"
-                    ? "bg-[#1A6B3A] text-white shadow-xs"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-pine-700 text-white shadow-card"
+                    : "text-ink-2 hover:text-ink"
                 }`}
               >
                 <TranslatableText>LGU: Audit & Release</TranslatableText>
@@ -486,16 +486,16 @@ export default function MaterialsMapPage() {
             </div>
 
             {handoverSuccess ? (
-              <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <TranslatableHeading level={4} className="text-base font-bold text-gray-900">Custody Confirmed!</TranslatableHeading>
-                <p className="text-xs text-emerald-800"><TranslatableText>{handoverSuccess}</TranslatableText></p>
+              <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg text-center space-y-3">
+                <CheckCircle2 className="w-10 h-10 text-pine-500 mx-auto" />
+                <TranslatableHeading level={4} className="text-base font-bold text-ink">Custody Confirmed!</TranslatableHeading>
+                <p className="text-xs text-pine-700"><TranslatableText>{handoverSuccess}</TranslatableText></p>
                 <button
                   onClick={() => {
                     setHandoverModalOpen(false);
                     setHandoverSuccess(null);
                   }}
-                  className="px-5 py-2 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold"
+                  className="px-5 py-2 rounded-md bg-pine-700 text-white text-xs font-bold"
                 >
                   <TranslatableText>Done</TranslatableText>
                 </button>
@@ -508,33 +508,33 @@ export default function MaterialsMapPage() {
                   label={`TOKEN: ${selectedBatch.id}`}
                   sublabel={translateSync("Present to Municipal LGU Officer at festival salvage depot")}
                 />
-                <div className="text-xs text-center text-gray-500 font-mono-data">
+                <div className="text-xs text-center text-ink-3 font-mono-data">
                   <TranslatableText>Artisan Cooperative</TranslatableText>: <strong><TranslatableText>{user?.fullName || "Danilo Cruz"}</TranslatableText></strong>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleVerifyHandover} className="space-y-4 text-xs">
-                <div className="p-3 bg-[#F8F6F0] rounded-xl space-y-1">
-                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase">Batch in Custody</TranslatableText>
-                  <p className="font-bold text-gray-900"><TranslatableText>{selectedBatch.title}</TranslatableText></p>
-                  <p className="font-mono-data text-gray-500">{formatNumber(selectedBatch.weightKg)} kg <TranslatableText>{selectedBatch.materialType}</TranslatableText></p>
+                <div className="p-3 bg-paper rounded-md space-y-1">
+                  <TranslatableText className="text-xs text-ink-3 font-bold">Batch in Custody</TranslatableText>
+                  <p className="font-bold text-ink"><TranslatableText>{selectedBatch.title}</TranslatableText></p>
+                  <p className="font-mono-data text-ink-3">{formatNumber(selectedBatch.weightKg)} kg <TranslatableText>{selectedBatch.materialType}</TranslatableText></p>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700"><TranslatableText>Scanned Artisan Token / User ID</TranslatableText></label>
+                  <label className="font-bold text-ink-2"><TranslatableText>Scanned Artisan Token / User ID</TranslatableText></label>
                   <input
                     type="text"
                     required
                     value={scannedArtisanId}
                     onChange={(e) => setScannedArtisanId(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
+                    className="w-full p-3 rounded-md border border-line bg-paper font-mono-data font-bold text-ink"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={verifyingHandover}
-                  className="w-full py-3.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
+                  className="w-full py-3.5 rounded-md bg-pine-700 hover:bg-pine-600 text-white font-bold text-xs shadow-card transition-all flex items-center justify-center space-x-2"
                 >
                   {verifyingHandover ? (
                     <TranslatableText>Verifying Token & Transferring Custody...</TranslatableText>

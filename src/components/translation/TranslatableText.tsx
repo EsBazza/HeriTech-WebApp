@@ -48,8 +48,8 @@ export function TranslatableText({
   if (showLoading && isTranslating) {
     return (
       <Component className={`${className} inline-flex items-center space-x-2`}>
-        <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
-        <span className="text-gray-400">{children}</span>
+        <Loader2 className="w-3 h-3 animate-spin text-ink-3" />
+        <span className="text-ink-3">{children}</span>
       </Component>
     );
   }

@@ -1,12 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { ArrowRight, Camera, Check, Handshake, Hammer, QrCode, Search, X, ShieldCheck, PackageOpen } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, FeedMaterialBatch } from "@/components/FeedCard";
+import { EscrowBar } from "@/components/EscrowBar";
 import { userRole } from "@/lib/roleGuard";
+import { Button, EmptyState, Eyebrow, SectionHeader, Stat, cn, controlClass } from "@/components/ui";
+import { Reveal } from "@/components/motion/Reveal";
+import { CountUp } from "@/components/motion/CountUp";
 
 const CURATED_FEED_BATCHES: FeedMaterialBatch[] = [
   {
@@ -95,58 +100,51 @@ const CURATED_FEED_BATCHES: FeedMaterialBatch[] = [
   },
 ];
 
+const MATERIAL_TAGS = ["Bamboo", "Rice Paper", "Botanical Flora", "Abaca"];
+const COUNTRY_TAGS = ["Philippines", "Thailand", "India"];
+
+interface HomeStats {
+  kg: number;
+  artisans: number;
+  passes: number;
+  ngo: number;
+  live: boolean;
+}
+
 export default function FeedHomePage() {
   const { user } = useAuth();
-  const { translateSync, formatNumber } = useTranslation();
+  const router = useRouter();
+  const { translateSync, formatNumber, formatCurrency } = useTranslation();
   const [batches, setBatches] = useState<FeedMaterialBatch[]>(CURATED_FEED_BATCHES);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
   const [visibleCount, setVisibleCount] = useState(6);
+  const [serial, setSerial] = useState("");
 
-  // Live Countdown state inspired by reference card element
-  const [timeLeft, setTimeLeft] = useState({ days: 22, hours: 23, mins: 5, secs: 36 });
-
-  // Live kg upcycled from /api/stats
-  const [totalKgUpcycled, setTotalKgUpcycled] = useState<number | null>(null);
-  const [displayedKg, setDisplayedKg] = useState(0);
-  const animFrameRef = useRef<number | null>(null);
-
-  // Animated count-up: smoothly counts from 0 → target over ~1.5 s
-  const animateCounter = useCallback((target: number) => {
-    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    const duration = 1500;
-    const start = performance.now();
-    const step = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      // Ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayedKg(Math.round(eased * target * 10) / 10);
-      if (progress < 1) animFrameRef.current = requestAnimationFrame(step);
-    };
-    animFrameRef.current = requestAnimationFrame(step);
-  }, []);
-
+  const [stats, setStats] = useState<HomeStats | null>(null);
   useEffect(() => {
+    const applyFallback = () => {
+      // Sample totals from the curated feed when the ledger is unreachable
+      const kg = CURATED_FEED_BATCHES.reduce((s, b) => s + b.weightKg, 0);
+      setStats({ kg, artisans: CURATED_FEED_BATCHES.length, passes: 3, ngo: 16.2, live: false });
+    };
     fetch("/api/stats")
       .then((r) => r.json())
       .then((data) => {
         if (data.success && data.data?.totalKgCollected != null) {
-          const kg = data.data.totalKgCollected;
-          setTotalKgUpcycled(kg);
-          animateCounter(kg);
+          const d = data.data;
+          setStats({
+            kg: d.totalKgCollected,
+            artisans: d.verifiedArtisansCount ?? 0,
+            passes: d.totalPassesIssued ?? 0,
+            ngo: d.escrowSplitSummary?.ngoTrustFund10 ?? 0,
+            live: true,
+          });
+        } else {
+          applyFallback();
         }
       })
-      .catch(() => {
-        // Fallback: sum weightKg from the curated feed
-        const fallback = CURATED_FEED_BATCHES.reduce((s, b) => s + b.weightKg, 0);
-        setTotalKgUpcycled(fallback);
-        animateCounter(fallback);
-      });
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch(applyFallback);
   }, []);
 
   // Fetch live products from /api/products to display in the global marketplace feed
@@ -157,8 +155,11 @@ export default function FeedHomePage() {
         const data = await res.json();
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           const liveBatches: FeedMaterialBatch[] = data.data.map((p: any) => {
-            const firstImg = Array.isArray(p.images) && p.images[0] ? p.images[0] : (typeof p.images === "string" ? p.images : undefined);
-            const tags = Array.isArray(p.materialTags) && p.materialTags.length > 0 ? p.materialTags.join(", ") : (p.sourceBatch?.materialType || "Upcycled Heritage Piece");
+            const firstImg = Array.isArray(p.images) && p.images[0] ? p.images[0] : typeof p.images === "string" ? p.images : undefined;
+            const tags =
+              Array.isArray(p.materialTags) && p.materialTags.length > 0
+                ? p.materialTags.join(", ")
+                : p.sourceBatch?.materialType || "Upcycled Heritage Piece";
             return {
               id: p.id,
               title: p.title,
@@ -186,371 +187,386 @@ export default function FeedHomePage() {
     loadMarketplaceProducts();
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.secs > 0) return { ...prev, secs: prev.secs - 1 };
-        return { ...prev, secs: 59, mins: prev.mins > 0 ? prev.mins - 1 : 59 };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   const role = userRole(user);
-
-  const filterTags = [
-    "All",
-    "Bamboo",
-    "Rice Paper",
-    "Botanical Flora",
-    "Abaca",
-    "Philippines",
-    "Thailand",
-    "India",
-  ];
 
   const filteredBatches = batches.filter((b) => {
     if (searchQuery.trim().length > 0) {
       const q = searchQuery.toLowerCase();
-      const matchTitle = b.title.toLowerCase().includes(q);
-      const matchDesc = b.description.toLowerCase().includes(q);
-      const matchCoop = b.cooperativeName.toLowerCase().includes(q);
-      const matchFestival = b.festival.toLowerCase().includes(q);
-      const matchMat = b.materialType.toLowerCase().includes(q);
-      const matchRegion = b.region.toLowerCase().includes(q);
-      if (
-        !matchTitle &&
-        !matchDesc &&
-        !matchCoop &&
-        !matchFestival &&
-        !matchMat &&
-        !matchRegion
-      ) {
-        return false;
-      }
+      const hit = [b.title, b.description, b.cooperativeName, b.festival, b.materialType, b.region].some((f) => f.toLowerCase().includes(q));
+      if (!hit) return false;
     }
 
     if (selectedTag === "All") return true;
-    if (selectedTag === "Philippines") return b.country === "Philippines";
-    if (selectedTag === "Thailand") return b.country === "Thailand";
-    if (selectedTag === "India") return b.country === "India";
-    return (
-      b.materialType.toLowerCase().includes(selectedTag.toLowerCase()) ||
-      b.title.toLowerCase().includes(selectedTag.toLowerCase())
-    );
+    if (COUNTRY_TAGS.includes(selectedTag)) return b.country === selectedTag;
+    return b.materialType.toLowerCase().includes(selectedTag.toLowerCase()) || b.title.toLowerCase().includes(selectedTag.toLowerCase());
   });
 
+  const hasFilters = selectedTag !== "All" || searchQuery.trim().length > 0;
+  const resetFilters = () => {
+    setSelectedTag("All");
+    setSearchQuery("");
+  };
+
+  const submitSerial = (e: React.FormEvent) => {
+    e.preventDefault();
+    const s = serial.trim();
+    if (s) router.push(`/verify/${encodeURIComponent(s)}`);
+  };
+
+  const steps = [
+    {
+      icon: Camera,
+      title: translateSync("Collect & classify"),
+      body: translateSync("Collectors photograph festival waste on refurbished Chromebooks. Gemini identifies the material and flags contamination."),
+      tech: "Gemini · ChromeOS",
+    },
+    {
+      icon: Handshake,
+      title: translateSync("Match to artisans"),
+      body: translateSync("Safe material is logged with GPS and offered to verified cooperatives nearby, under a signed release agreement."),
+      tech: "Maps Platform · Firebase",
+    },
+    {
+      icon: Hammer,
+      title: translateSync("Craft & tag provenance"),
+      body: translateSync("Artisans link each finished piece to its material ID. Gemini drafts the material story for the artisan to review."),
+      tech: "Gemini · Cloud Translation",
+    },
+    {
+      icon: QrCode,
+      title: translateSync("Buy & verify"),
+      body: translateSync("Buyers see the 70/20/10 split at checkout and receive a Verified Impact Pass that anyone can check."),
+      tech: "Google Wallet",
+    },
+  ];
+
+  const chip = (tag: string) => {
+    const active = selectedTag === tag;
+    return (
+      <button
+        key={tag}
+        onClick={() => setSelectedTag(active ? "All" : tag)}
+        aria-pressed={active}
+        className={cn(
+          "h-9 px-3.5 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer border",
+          active ? "bg-pine-700 border-pine-700 text-white" : "bg-surface border-line text-ink-2 hover:border-pine-300"
+        )}
+      >
+        {translateSync(tag)}
+      </button>
+    );
+  };
+
+  const problems = [
+    {
+      figure: translateSync("1 night"),
+      label: translateSync("is all it takes for tens of thousands of paper-and-bamboo lanterns to be released at Yi Peng and Loy Krathong, Chiang Mai."),
+      note: translateSync("Many carry wire and wax that never break down."),
+    },
+    {
+      figure: "150+ t",
+      label: translateSync("of floral offering waste (nirmalaya) collected by Thane Municipal Corporation in one Ganesh Chaturthi season."),
+      note: translateSync("Only about 40 t of it was composted."),
+    },
+    {
+      figure: translateSync("18 months"),
+      label: translateSync("for Phool.co to earn a temple's trust before it would hand over its flower waste."),
+      note: translateSync("Consent, not craft, is the bottleneck."),
+    },
+  ];
+
+  const passRows = [
+    { label: translateSync("Collected"), value: "Yi Peng · Chiang Mai" },
+    { label: translateSync("Classified by Gemini"), value: translateSync("Mulberry paper, wire-free") },
+    { label: translateSync("Crafted by"), value: "Lanna Heritage Joinery" },
+  ];
+
   return (
-    <div className="w-full min-h-screen text-[#2A4737] pb-20">
-      
-      {/* HERO SECTION - Fresh Soft Botanical Light Sage Canvas */}
-      <section className="relative w-full overflow-hidden bg-[#EFF6F1] border-b border-[#D2E4D7] text-[#1E4D34]">
-        
-        {/* Background Image: Sunlit Asian botanical craft studio with bamboo & tropical greens */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/fresh-botanical-hero-bg.png"
-            alt="Sunlit Southeast Asian Botanical Craft Studio with Bamboo"
-            fill
-            className="object-cover object-center opacity-85 filter contrast-[1.02] brightness-[0.98]"
-            priority
-          />
-          {/* Gentle light sage gradient overlay with 75% opacity */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#EFF6F1]/75 via-[#EFF6F1]/75 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#EFF6F1]/60 via-transparent to-[#EFF6F1]/20" />
+    <div className="w-full">
+      {/* HERO */}
+      <section className="relative overflow-hidden border-b border-line">
+        {/* Lantern-light glow on paper — slow, decorative */}
+        <div aria-hidden className="absolute inset-0 -z-0">
+          <div className="glow w-[520px] h-[520px] -top-40 -left-40 bg-pine-100/70" />
+          <div className="glow w-[420px] h-[420px] top-1/3 right-[-120px] bg-lantern-100/80" style={{ animationDelay: "-8s" }} />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left flex flex-col items-center lg:items-start">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14 lg:pt-16 lg:pb-24 grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          <div className="lg:col-span-6 space-y-7">
+            <div className="rise" style={{ ["--rise-delay" as string]: "0ms" }}>
+              <Eyebrow>{translateSync("EDUtech Asia 2026 · Planet Protectors Challenge")}</Eyebrow>
+            </div>
+            <h1
+              className="rise font-display text-[44px] sm:text-[56px] lg:text-[64px] leading-[1.02] font-semibold text-ink tracking-[-0.01em]"
+              style={{ ["--rise-delay" as string]: "80ms" }}
+            >
+              {translateSync("Festival waste,")} <span className="italic text-pine-600">{translateSync("traced")}</span> {translateSync("into heritage craft.")}
+            </h1>
+            <p className="rise text-lg text-ink-2 max-w-xl leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
+              {translateSync(
+                "HeriTech is a circular digital system that logs festival materials at collection, routes them to local artisans, and gives every finished piece a public record of where it came from and who got paid."
+              )}
+            </p>
 
-              {/* Light Sage Hero Title with HeriTech Logo Emblem and Partnered By Logos */}
-              <div className="space-y-6 w-full flex flex-col items-center lg:items-start">
-                
-                {/* Hero HeriTech Logo Emblem (Positioned above 'IT' of HERITECH) */}
-                <div className="space-y-2 flex flex-col items-center lg:items-start">
-                  <div className="relative inline-block text-center">
-                    {/* Logo centered directly above the symmetrical 'IT' of HERITECH */}
-                    <div className="w-full flex justify-center mb-4 sm:mb-6">
-                      <div className="w-36 h-36 sm:w-44 sm:h-44 lg:w-52 lg:h-52 flex items-center justify-center">
-                        <Image
-                          src="/logo_heritech-removebg-preview.png"
-                          alt="HeriTech Emblem"
-                          width={220}
-                          height={220}
-                          className="w-full h-full object-contain filter drop-shadow-xl"
-                          priority
-                        />
-                      </div>
-                    </div>
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#143826] uppercase leading-[0.95] font-display text-center">
-                      HERITECH
-                    </h1>
-                  </div>
-                  <p className="text-xs sm:text-sm uppercase tracking-[0.18em] font-extrabold text-[#2E6B4A] pt-1 text-center lg:text-left">
-                    {translateSync("Preserving Culture Through Circular Innovation")}
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 pt-1 max-w-xl text-center lg:text-left mx-auto lg:mx-0">
-                  <p className="text-sm sm:text-base font-bold text-[#143826]">
-                    {translateSync("Authentic Upcycled Goods Across Pan-Asia, Powered by Google")}
-                  </p>
-                  <p className="text-sm sm:text-base text-[#2B523E] leading-relaxed font-body font-medium">
-                    {translateSync("We upcycle post-festival materials into certified heritage crafts throughout the Pan-Asian region. Every item features digital proof of origin and automated financial splits to ensure artisans and partners are paid fairly.")}
-                  </p>
-                </div>
-
-                {/* Partnered With Section with Clean Background-Free Partner Logos */}
-                <div className="pt-5 border-t border-[#D5E6DC] max-w-xl w-full text-center lg:text-left">
-                  <span className="text-[10px] uppercase font-extrabold tracking-[0.2em] text-[#5B8870] block mb-3 text-center lg:text-left">
-                    {translateSync("PARTNERED WITH")}
-                  </span>
-                  <div className="flex items-center justify-center lg:justify-start space-x-6 sm:space-x-8 flex-wrap gap-y-4">
-                    
-                    {/* Partner 1: EDUtech Asia (WebP Logo) */}
-                    <div className="flex items-center justify-center">
-                      <div className="h-14 sm:h-16 w-auto flex items-center justify-center">
-                        <Image
-                          src="/EDUtech_asia-REV1200.webp"
-                          alt="EDUtech Asia"
-                          width={240}
-                          height={70}
-                          className="h-14 sm:h-16 w-auto object-contain filter drop-shadow-xs"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Divider dot */}
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#3A7B59]/40 hidden sm:inline-block" />
-
-                    {/* Partner 2: University of the Assumption */}
-                    <div className="flex items-center space-x-3.5 justify-center">
-                      <div className="h-16 sm:h-20 w-auto flex items-center justify-center shrink-0">
-                        <Image
-                          src="/university-of-assumption.png"
-                          alt="University of the Assumption"
-                          width={76}
-                          height={76}
-                          className="h-16 sm:h-20 w-auto object-contain filter drop-shadow-xs"
-                        />
-                      </div>
-                      <div className="text-left">
-                        <span className="text-sm sm:text-base font-extrabold uppercase text-[#1E4D34] block leading-tight tracking-wide">
-                          {translateSync("University of the Assumption")}
-                        </span>
-                        <span className="text-xs font-bold text-[#5B8870] block pt-1">
-                          {translateSync("City of San Fernando, Pampanga")}
-                        </span>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-              </div>
-
+            <div className="rise flex flex-col sm:flex-row gap-3" style={{ ["--rise-delay" as string]: "240ms" }}>
+              <a href="#shop" className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md bg-pine-700 text-white font-medium hover:bg-pine-600 transition-colors">
+                {translateSync("Browse crafts")}
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </a>
+              <form onSubmit={submitSerial} className="flex flex-1 max-w-sm">
+                <label htmlFor="hero-serial" className="sr-only">
+                  {translateSync("Pass serial number")}
+                </label>
+                <input
+                  id="hero-serial"
+                  value={serial}
+                  onChange={(e) => setSerial(e.target.value)}
+                  placeholder={translateSync("Pass serial, e.g. HT-519-PH")}
+                  className={cn(controlClass, "h-12 rounded-r-none border-r-0 font-mono-data text-sm")}
+                />
+                <button type="submit" className="h-12 px-4 rounded-r-md border border-line-strong bg-surface text-ink font-medium hover:border-pine-500 hover:text-pine-700 transition-colors cursor-pointer whitespace-nowrap">
+                  {translateSync("Verify")}
+                </button>
+              </form>
             </div>
 
-            {/* Right Column - Light Sage Telemetry Card */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="w-full max-w-md bg-white/90 backdrop-blur-xl border border-[#C5DCD0] p-7 rounded-2xl shadow-xl space-y-6 text-left text-[#1E4D34]">
-                
-                {/* Card Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-[#E4EFE7]">
-                  <span className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#1E4D34]">
-                    {translateSync("LIVE PROVENANCE LEDGER")}
+            <ul className="rise flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-3" style={{ ["--rise-delay" as string]: "320ms" }}>
+              {[translateSync("Gemini classification"), translateSync("Google Wallet passes"), translateSync("Public impact ledger")].map((t) => (
+                <li key={t} className="flex items-center gap-1.5">
+                  <Check className="w-4 h-4 text-pine-500" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="lg:col-span-6 relative rise" style={{ ["--rise-delay" as string]: "120ms" }}>
+            <div className="relative aspect-[5/4] rounded-lg overflow-hidden bg-paper-2 shadow-pop">
+              <Image
+                src="/fresh-botanical-hero-bg.png"
+                alt={translateSync("Artisan workshop with recovered bamboo and paper")}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover kenburns"
+              />
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-pine-900/25 via-transparent to-transparent" />
+            </div>
+
+            {/* Sample pass: verifies itself line by line */}
+            <div className="float absolute -bottom-8 left-4 right-4 sm:left-auto sm:right-6 sm:w-[21rem]">
+              <div className="bg-surface rounded-md border border-line shadow-pop p-4">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-success">
+                    <ShieldCheck className="w-4 h-4" />
+                    {translateSync("Verified Impact Pass")}
                   </span>
+                  <span className="font-mono-data text-xs text-ink-3">HT-519-PH</span>
                 </div>
-
-                {/* 70 / 15 / 15 Financial Escrow Breakdown */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-[#2B523E]">
-                    <span>{translateSync("AUTOMATED DISBURSEMENT ENGINE")}</span>
-                    <span className="text-[#2E6B4A]">{translateSync("100% TRANSPARENT")}</span>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="h-2.5 w-full rounded-full bg-[#E4EFE7] overflow-hidden flex border border-[#C5DCD0]">
-                    <div className="h-full bg-[#2E6B4A] w-[70%]" title={translateSync("70% Artisan Direct Payout")} />
-                    <div className="h-full bg-[#3A7B59] w-[15%]" title={translateSync("15% LGU Cleanup Trust")} />
-                    <div className="h-full bg-[#C49B48] w-[15%]" title={translateSync("15% Protocol")} />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 pt-1 text-center">
-                    <div className="bg-[#E8F3ED]/80 p-2.5 rounded-lg border border-[#C5DCD0]">
-                      <span className="block text-sm font-bold text-[#1E4D34] font-mono-data">70%</span>
-                      <span className="text-[9px] uppercase font-semibold text-[#2B523E]">{translateSync("Artisans")}</span>
-                    </div>
-                    <div className="bg-[#E4F2E9]/80 p-2.5 rounded-lg border border-[#BDE0CB]">
-                      <span className="block text-sm font-bold text-[#2E6B4A] font-mono-data">15%</span>
-                      <span className="text-[9px] uppercase font-semibold text-[#2B523E]">{translateSync("Municipal NGO")}</span>
-                    </div>
-                    <div className="bg-[#FAF3E6]/80 p-2.5 rounded-lg border border-[#EADBBD]">
-                      <span className="block text-sm font-bold text-[#A67E2E] font-mono-data">15%</span>
-                      <span className="text-[9px] uppercase font-semibold text-[#664D18]">{translateSync("Protocol")}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Metrics */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
-                  <div className="bg-[#F4F8F5] p-3.5 rounded-xl border border-[#D8E6DC]">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-[#5B8870] block">
-                      {translateSync("BIOMASS DIVERTED")}
-                    </span>
-                    <span className="text-lg font-bold text-[#1E4D34] font-mono-data">
-                      14.8 <span className="text-xs font-normal text-[#2E6B4A]">{translateSync("TONS")}</span>
-                    </span>
-                  </div>
-
-                  <div className="bg-[#F4F8F5] p-3.5 rounded-xl border border-[#D8E6DC]">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-[#5B8870] block">
-                      {translateSync("ACTIVE COOPERATIVES")}
-                    </span>
-                    <span className="text-lg font-bold text-[#1E4D34] font-mono-data">
-                      48 <span className="text-xs font-normal text-[#2E6B4A]">{translateSync("UNITS")}</span>
-                    </span>
-                  </div>
-
-                  {/* Live Total KG Upcycled counter */}
-                  <div className="col-span-2 sm:col-span-1 bg-[#E8F3ED] p-3.5 rounded-xl border border-[#BDE0CB] relative overflow-hidden">
-                    {/* live pulse dot */}
-                    <div className="flex items-center space-x-1.5 mb-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#2E6B4A] animate-ping flex-shrink-0" />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-[#2E6B4A] block">
-                        {translateSync("KG UPCYCLED")}
+                <p className="mt-2 text-sm text-ink-2">{translateSync("This lamp was once a Yi Peng sky lantern released in Chiang Mai.")}</p>
+                <ul className="mt-3 space-y-1.5 border-t border-line pt-3">
+                  {passRows.map((r, i) => (
+                    <li key={r.label} className="confirm flex items-center gap-2 text-xs" style={{ ["--confirm-delay" as string]: `${900 + i * 350}ms` }}>
+                      <span className="w-4 h-4 rounded-full bg-success-100 text-success flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3" strokeWidth={2.5} />
                       </span>
-                    </div>
-                    <span className="text-lg font-bold text-[#1E4D34] font-mono-data tabular-nums">
-                      {totalKgUpcycled === null ? (
-                        <span className="animate-pulse text-[#5B8870]">—</span>
-                      ) : (
-                        <>
-                          {formatNumber(displayedKg)}
-                          <span className="text-xs font-normal text-[#2E6B4A] ml-1">KG</span>
-                        </>
-                      )}
-                    </span>
+                      <span className="text-ink-3">{r.label}</span>
+                      <span className="ml-auto font-medium text-ink truncate">{r.value}</span>
+                    </li>
+                  ))}
+                </ul>
+                <dl className="confirm mt-3 grid grid-cols-3 gap-2 text-xs" style={{ ["--confirm-delay" as string]: "1950ms" }}>
+                  <div>
+                    <dt className="text-ink-3">{translateSync("Diverted")}</dt>
+                    <dd className="tabular font-medium text-ink">1.8 kg</dd>
                   </div>
-                </div>
-
-                {/* Subtext */}
-                <div className="pt-2 border-t border-[#E4EFE7] flex items-center justify-between text-[9px] font-bold text-[#5B8870] uppercase tracking-widest">
-                  <span>{translateSync("GOOGLE WALLET COMPATIBLE")}</span>
-                  <span className="text-[#2E6B4A]">{translateSync("100% VERIFIED")}</span>
-                </div>
-
+                  <div>
+                    <dt className="text-ink-3">{translateSync("To artisan")}</dt>
+                    <dd className="tabular font-medium text-ink">{formatCurrency(59.5)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-ink-3">{translateSync("To NGO")}</dt>
+                    <dd className="tabular font-medium text-lantern-600">{formatCurrency(8.5)}</dd>
+                  </div>
+                </dl>
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* FEED CONTENT SECTION - Warm Alabaster Container Matching Impact Ledger */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 space-y-8">
-        
-        {/* Search & Filter Component matching Impact Ledger Card styling */}
-        <div className="bg-[rgba(255,255,255,0.94)] border border-[rgba(46,90,68,0.16)] p-6 rounded-[8px] shadow-[0_2px_12px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)] space-y-4">
-          
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h2 className="font-display text-2xl font-semibold text-[#122B1E]">
-                {translateSync("Sourced from Festivals. Crafted by Artisans.")}
-              </h2>
-              <p className="text-xs text-[var(--text-muted)]">
-                {translateSync("Discover unique artisan products crafted from post-festival materials.")}
-              </p>
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative w-full sm:w-80">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#587563] pointer-events-none"
-              >
-                <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.75" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={translateSync("Search materials or crafts...")}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[rgba(46,90,68,0.2)] rounded-[4px] text-xs text-[#122B1E] placeholder-[#587563]/60 focus:outline-none focus:border-[#2E5A44] transition-colors shadow-xs"
-              />
-            </div>
-          </div>
-
-          {/* Filter Tags */}
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none pt-2 border-t border-[rgba(46,90,68,0.1)]">
-            {filterTags.map((tag) => {
-              const active = selectedTag === tag;
-              return (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`px-3.5 py-1.5 rounded-[2px] text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    active
-                      ? "bg-[#2E5A44] text-[#F4F7F4] shadow-xs"
-                      : "bg-white text-[#587563] hover:bg-slate-50 border border-[rgba(46,90,68,0.15)]"
-                  }`}
-                >
-                  {translateSync(tag)}
-                </button>
-              );
-            })}
-          </div>
-
+      {/* PROOF STRIP */}
+      <section className="bg-pine-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <Stat tone="dark" label={translateSync("Material diverted")} value={stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—"} unit="kg" />
+          <Stat tone="dark" label={translateSync("Verified artisans")} value={stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—"} />
+          <Stat tone="dark" label={translateSync("Impact passes issued")} value={stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—"} />
+          <Stat tone="dark" label={translateSync("Donated to NGO partners")} value={stats ? <CountUp value={stats.ngo} decimals={2} format={formatCurrency} /> : "—"} />
+          <p className="col-span-2 lg:col-span-4 text-xs text-white/60 -mt-2 flex items-center gap-2">
+            <span className={cn("w-1.5 h-1.5 rounded-full", stats?.live === false ? "bg-warn" : "bg-pine-300")} aria-hidden />
+            {stats?.live === false ? translateSync("Showing sample figures — the ledger is offline.") : translateSync("Figures read live from the HeriTech ledger.")}
+          </p>
         </div>
+      </section>
 
-        {/* Feed Cards Grid */}
-        {filteredBatches.length === 0 ? (
-          <div className="p-12 text-center border border-[rgba(46,90,68,0.16)] rounded-[8px] bg-[rgba(255,255,255,0.9)] space-y-3 max-w-lg mx-auto">
-            <p className="font-display text-xl text-[#122B1E] font-bold">
-              {translateSync("No matching items found")}
-            </p>
-            <p className="text-xs text-[#587563] max-w-sm mx-auto">
-              {translateSync("Try clearing your search query or selecting a different tag above.")}
-            </p>
-            <button
-              onClick={() => {
-                setSelectedTag("All");
-                setSearchQuery("");
-              }}
-              className="px-5 py-2.5 bg-[#2E5A44] text-[#F4F7F4] text-xs font-bold uppercase tracking-wider rounded-[2px] cursor-pointer"
-            >
-              {translateSync("Reset filters")}
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredBatches.slice(0, visibleCount).map((batch) => (
-              <FeedCard key={batch.id} batch={batch} role={role} />
-            ))}
-          </div>
-        )}
+      {/* THE PROBLEM */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 lg:pt-24 grid lg:grid-cols-12 gap-10">
+        <Reveal className="lg:col-span-4">
+          <SectionHeader
+            eyebrow={translateSync("The problem")}
+            title={translateSync("Asia's festivals leave a trail no one is tracking")}
+            description={translateSync(
+              "The material is beautiful and reusable. What's missing is a trusted record of who may collect it, where it went and who was paid."
+            )}
+          />
+        </Reveal>
+        <div className="lg:col-span-8 grid sm:grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden self-start">
+          {problems.map((p, i) => (
+            <Reveal key={p.figure} delay={i * 90} className="bg-surface p-6">
+              <p className="font-display text-[40px] leading-none font-semibold text-lantern-600">{p.figure}</p>
+              <p className="mt-3 text-sm text-ink-2 leading-relaxed">{p.label}</p>
+              <p className="mt-3 text-xs text-ink-3">{p.note}</p>
+            </Reveal>
+          ))}
+        </div>
+      </section>
 
-        {/* Load More Button */}
-        {visibleCount < filteredBatches.length && (
-          <div className="pt-4 text-center">
-            <button
-              onClick={() => setVisibleCount((prev) => prev + 4)}
-              className="px-8 py-3.5 bg-white border border-[rgba(46,90,68,0.25)] hover:border-[#2E5A44] text-[#122B1E] hover:text-[#2E5A44] text-xs uppercase tracking-wider font-bold rounded-[2px] transition-all shadow-xs cursor-pointer"
-            >
-              {translateSync("Load more artisan products")}
-            </button>
-          </div>
-        )}
+      {/* HOW IT WORKS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 space-y-10">
+        <Reveal>
+          <SectionHeader
+            eyebrow={translateSync("How HeriTech works")}
+            title={translateSync("One record, from riverbank to your shelf")}
+            description={translateSync("Every step writes to the same ledger, so the claim on the tag can be checked by anyone.")}
+          />
+        </Reveal>
+        <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-md overflow-hidden">
+          {steps.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <li key={s.title} className="bg-surface">
+                <Reveal delay={i * 90} className="group h-full p-6 flex flex-col">
+                  <div className="flex items-center justify-between">
+                    <span className="w-10 h-10 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center transition-colors duration-200 group-hover:bg-pine-700 group-hover:text-white">
+                      <Icon className="w-5 h-5" strokeWidth={1.75} />
+                    </span>
+                    <span className="font-display text-3xl text-line-strong tabular">{String(i + 1).padStart(2, "0")}</span>
+                  </div>
+                  <h3 className="mt-5 text-base font-semibold text-ink font-sans">{s.title}</h3>
+                  <p className="mt-2 text-sm text-ink-2 leading-relaxed flex-1">{s.body}</p>
+                  <p className="mt-4 text-xs text-pine-500 font-medium">{s.tech}</p>
+                </Reveal>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
 
-      </div>
+      {/* SHOP */}
+      <section id="shop" className="scroll-mt-20 border-t border-line bg-paper-2/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-8">
+          <Reveal>
+          <SectionHeader
+            eyebrow={translateSync("Shop")}
+            title={translateSync("Sourced from festivals, crafted by artisans")}
+            description={translateSync("Each piece links back to the batch of material it was made from.")}
+          />
+          </Reveal>
+
+          {/* Filter bar */}
+          <div className="sticky top-16 z-30 -mx-4 px-4 sm:mx-0 sm:px-0 py-3 bg-paper/95 backdrop-blur-md sm:bg-transparent sm:backdrop-blur-none sm:static space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <div className="relative md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={translateSync("Search crafts, festivals, materials")}
+                  aria-label={translateSync("Search crafts")}
+                  className={cn(controlClass, "h-10 pl-9 pr-9")}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-sm text-ink-3 hover:text-ink cursor-pointer" aria-label={translateSync("Clear search")}>
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none md:flex-1">
+                {MATERIAL_TAGS.map(chip)}
+                <span className="w-px h-5 bg-line-strong shrink-0 mx-1" aria-hidden />
+                {COUNTRY_TAGS.map(chip)}
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm text-ink-3">
+              <span aria-live="polite">
+                {filteredBatches.length} {filteredBatches.length === 1 ? translateSync("piece") : translateSync("pieces")}
+              </span>
+              {hasFilters && (
+                <button onClick={resetFilters} className="text-pine-600 hover:text-pine-700 font-medium cursor-pointer">
+                  {translateSync("Clear filters")}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {filteredBatches.length === 0 ? (
+            <EmptyState
+              icon={<PackageOpen className="w-5 h-5" />}
+              title={translateSync("No pieces match")}
+              description={translateSync("Try a different search or clear the filters.")}
+              action={
+                <Button variant="secondary" onClick={resetFilters}>
+                  {translateSync("Clear filters")}
+                </Button>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredBatches.slice(0, visibleCount).map((batch) => (
+                <FeedCard key={batch.id} batch={batch} role={role} />
+              ))}
+            </div>
+          )}
+
+          {visibleCount < filteredBatches.length && (
+            <div className="text-center">
+              <Button variant="secondary" size="lg" onClick={() => setVisibleCount((prev) => prev + 6)}>
+                {translateSync("Show more pieces")}
+              </Button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* WHERE THE MONEY GOES */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-center">
+        <Reveal>
+        <SectionHeader
+          eyebrow={translateSync("Transparent checkout")}
+          title={translateSync("Not “a portion goes to charity.” The exact split, every sale.")}
+          description={translateSync("The breakdown is shown before you pay and written to the public ledger after. Your pass links to the entry.")}
+        />
+        </Reveal>
+        <Reveal delay={120} className="bg-surface border border-line rounded-md p-6 shadow-card">
+          <div className="flex items-baseline justify-between mb-5">
+            <span className="text-sm text-ink-3">{translateSync("Example: a lamp sold for")}</span>
+            <span className="tabular font-display text-3xl font-semibold text-ink">{formatCurrency(85)}</span>
+          </div>
+          <EscrowBar amount={85} />
+        </Reveal>
+      </section>
+
+      {/* PARTNERS */}
+      <section className="border-t border-line">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-sm text-ink-3">{translateSync("Developed at University of the Assumption, Pampanga, for EDUtech Asia 2026")}</p>
+          <div className="flex items-center gap-8">
+            <Image src="/university-of-assumption.png" alt="University of the Assumption" width={56} height={56} className="h-12 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" />
+            <Image src="/EDUtech_asia-REV1200.webp" alt="EDUtech Asia" width={160} height={48} className="h-10 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
-

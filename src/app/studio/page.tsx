@@ -347,35 +347,35 @@ export default function ArtisanStudioPage() {
 
       {/* ── Header ── */}
       <div>
-        <div className="flex items-center space-x-2 text-xs font-bold text-[#7D5A3C]">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
           <Palette className="w-3.5 h-3.5" />
-          <span className="uppercase tracking-wider">Artisan Studio</span>
+          <span>Studio</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-          {translateSync("Craft, Enlist & Manage Your Upcycled Pieces")}
+        <h1 className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
+          {translateSync("Artisan studio")}
         </h1>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-base text-ink-2 mt-2 max-w-2xl">
           {translateSync(
-            "Transform claimed festival material into authenticated heritage goods. Every piece is permanently bound to its source harvest Batch ID."
+            "Turn claimed festival material into listed pieces. Each piece stays linked to the batch it was made from."
           )}
         </p>
       </div>
 
       {/* ── Global success / error banners ── */}
       {successMessage && (
-        <div className="flex items-start space-x-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
-          <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-emerald-600" />
+        <div className="flex items-start space-x-3 p-4 bg-pine-50 border border-pine-200 rounded-md text-sm text-pine-700">
+          <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-pine-500" />
           <span>{successMessage}</span>
-          <button onClick={() => setSuccessMessage(null)} className="ml-auto text-emerald-500 hover:text-emerald-700">
+          <button onClick={() => setSuccessMessage(null)} className="ml-auto text-pine-500 hover:text-pine-600">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
       {errorMessage && (
-        <div className="flex items-start space-x-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
-          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" />
+        <div className="flex items-start space-x-3 p-4 bg-danger-100 border border-danger/20 rounded-md text-sm text-danger">
+          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-danger" />
           <span>{errorMessage}</span>
-          <button onClick={() => setErrorMessage(null)} className="ml-auto text-red-400 hover:text-red-600">
+          <button onClick={() => setErrorMessage(null)} className="ml-auto text-danger hover:text-danger">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -384,16 +384,16 @@ export default function ArtisanStudioPage() {
       {/* ════════════════════════════════════════
           SECTION 1 — LISTING FORM
       ════════════════════════════════════════ */}
-      <div ref={formRef} className="bg-white rounded-2xl border border-[#E6E2D8] shadow-sm overflow-hidden">
+      <div ref={formRef} className="bg-surface rounded-lg border border-line shadow-card overflow-hidden">
         {/* Form header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0EDE6] bg-[#FDFCF9]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface">
           <div className="flex items-center space-x-2">
             {editingId ? (
-              <Pencil className="w-4 h-4 text-[#7D5A3C]" />
+              <Pencil className="w-4 h-4 text-lantern-600" />
             ) : (
-              <PlusCircle className="w-4 h-4 text-[#1A6B3A]" />
+              <PlusCircle className="w-4 h-4 text-pine-600" />
             )}
-            <span className="text-sm font-bold text-gray-800">
+            <span className="text-sm font-bold text-ink">
               {editingId
                 ? translateSync("Edit Upcycled Piece")
                 : translateSync("List a New Upcycled Piece")}
@@ -402,7 +402,7 @@ export default function ArtisanStudioPage() {
           {editingId && (
             <button
               onClick={resetForm}
-              className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700"
+              className="flex items-center space-x-1 text-xs text-ink-3 hover:text-ink-2"
             >
               <X className="w-3.5 h-3.5" />
               <span>{translateSync("Cancel Edit")}</span>
@@ -415,8 +415,8 @@ export default function ArtisanStudioPage() {
           {/* Row 1 — Title + Price */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-gray-700">
-                {translateSync("Product Title")} <span className="text-red-400">*</span>
+              <label className="font-bold text-ink-2">
+                {translateSync("Product Title")} <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -424,12 +424,12 @@ export default function ArtisanStudioPage() {
                 value={form.title}
                 onChange={(e) => setField("title", e.target.value)}
                 placeholder={translateSync("e.g. Panagbenga Botanical Loom Wall Tapestry")}
-                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30"
+                className="w-full p-3 rounded-md border border-line bg-paper font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
               />
             </div>
             <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-gray-700">
-                {translateSync("Fair-Trade Retail Price (USD)")} <span className="text-red-400">*</span>
+              <label className="font-bold text-ink-2">
+                {translateSync("Fair-Trade Retail Price (USD)")} <span className="text-danger">*</span>
               </label>
               <input
                 type="number"
@@ -438,9 +438,9 @@ export default function ArtisanStudioPage() {
                 required
                 value={form.price}
                 onChange={(e) => setField("price", e.target.value)}
-                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30"
+                className="w-full p-3 rounded-md border border-line bg-paper font-mono-data font-bold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
               />
-              <span className="text-[10px] text-gray-400">
+              <span className="text-xs text-ink-3">
                 {translateSync("You receive")}{" "}
                 <strong>70% (${(parseFloat(form.price || "0") * 0.7).toFixed(2)})</strong>{" "}
                 {translateSync("upon sale.")}
@@ -451,23 +451,23 @@ export default function ArtisanStudioPage() {
           {/* ── IMAGE SECTION (DUAL OPTION: FILE UPLOAD OR URL) ── */}
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <label className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
-                <ImagePlus className="w-3.5 h-3.5 text-[#7D5A3C]" />
+              <label className="text-xs font-bold text-ink-2 flex items-center space-x-1.5">
+                <ImagePlus className="w-3.5 h-3.5 text-lantern-600" />
                 <span>{translateSync("Product Image")}</span>
-                <span className="text-[10px] text-gray-400 font-normal">
+                <span className="text-xs text-ink-3 font-normal">
                   ({translateSync("Choose Upload or URL")})
                 </span>
               </label>
 
               {/* Segmented Mode Selector */}
-              <div className="inline-flex p-0.5 rounded-lg bg-[#F0EDE6] border border-[#E6E2D8] text-xs">
+              <div className="inline-flex p-0.5 rounded-lg bg-paper-2 border border-line text-xs">
                 <button
                   type="button"
                   onClick={() => setImageMode("file")}
-                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-[11px] ${
+                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-xs ${
                     imageMode === "file"
-                      ? "bg-white text-[#7D5A3C] shadow-xs"
-                      : "text-gray-500 hover:text-gray-800"
+                      ? "bg-surface text-lantern-600 shadow-card"
+                      : "text-ink-3 hover:text-ink"
                   }`}
                 >
                   <Upload className="w-3 h-3" />
@@ -476,10 +476,10 @@ export default function ArtisanStudioPage() {
                 <button
                   type="button"
                   onClick={() => setImageMode("url")}
-                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-[11px] ${
+                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-xs ${
                     imageMode === "url"
-                      ? "bg-white text-[#7D5A3C] shadow-xs"
-                      : "text-gray-500 hover:text-gray-800"
+                      ? "bg-surface text-lantern-600 shadow-card"
+                      : "text-ink-3 hover:text-ink"
                   }`}
                 >
                   <LinkIcon className="w-3 h-3" />
@@ -504,10 +504,10 @@ export default function ArtisanStudioPage() {
                       handleFileChange(e.dataTransfer.files?.[0]);
                     }}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`relative aspect-auto h-44 rounded-xl border-2 border-dashed p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                    className={`relative aspect-auto h-44 rounded-md border-2 border-dashed p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
                       isDragging
-                        ? "border-[#7D5A3C] bg-[#F5EDE4]"
-                        : "border-[#E6E2D8] bg-[#F8F6F0] hover:bg-[#F2ECE3] hover:border-[#C8B89A]"
+                        ? "border-line-strong bg-paper-2"
+                        : "border-line bg-paper hover:bg-paper-2 hover:border-line-strong"
                     }`}
                   >
                     <input
@@ -517,23 +517,23 @@ export default function ArtisanStudioPage() {
                       onChange={(e) => handleFileChange(e.target.files?.[0])}
                       className="hidden"
                     />
-                    <div className="w-10 h-10 rounded-full bg-[#EADCCF] text-[#7D5A3C] flex items-center justify-center mb-2 shadow-xs">
+                    <div className="w-10 h-10 rounded-full bg-paper-2 text-lantern-600 flex items-center justify-center mb-2 shadow-card">
                       <Upload className="w-5 h-5" />
                     </div>
-                    <p className="text-xs font-bold text-gray-800">
+                    <p className="text-xs font-bold text-ink">
                       {translateSync("Click to upload or drag & drop")}
                     </p>
-                    <p className="text-[10px] text-gray-500 mt-1">
+                    <p className="text-xs text-ink-3 mt-1">
                       {translateSync("Supports .JPG, .JPEG, or .PNG files")}
                     </p>
                     {fileName && (
-                      <div className="mt-2 inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white border border-[#E6E2D8] text-[10px] font-semibold text-[#7D5A3C]">
+                      <div className="mt-2 inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-surface border border-line text-xs font-semibold text-lantern-600">
                         <FileImage className="w-3 h-3" />
                         <span className="truncate max-w-[150px]">{fileName}</span>
                       </div>
                     )}
                   </div>
-                  <p className="text-[10px] text-gray-400">
+                  <p className="text-xs text-ink-3">
                     {translateSync("Images are automatically optimized and embedded for the marketplace.")}
                   </p>
                 </div>
@@ -548,9 +548,9 @@ export default function ArtisanStudioPage() {
                       setFileName(null);
                     }}
                     placeholder="https://example.com/your-craft-photo.jpg"
-                    className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#7D5A3C]/30"
+                    className="w-full p-3 rounded-md border border-line bg-paper text-xs text-ink focus:outline-none focus:ring-2 focus:ring-line-strong/30"
                   />
-                  <p className="text-[10px] text-gray-400 leading-relaxed">
+                  <p className="text-xs text-ink-3 leading-relaxed">
                     {translateSync(
                       "Paste a direct image URL (.jpg, .png, Unsplash, CDN). Visible to all buyers."
                     )}
@@ -569,7 +569,7 @@ export default function ArtisanStudioPage() {
                           setField("imageUrl", s.url);
                           setFileName(null);
                         }}
-                        className="px-2 py-1 rounded-full border border-[#E6E2D8] bg-[#F8F6F0] text-[10px] font-semibold text-[#7D5A3C] hover:bg-[#F0E8DF] transition-colors"
+                        className="px-2 py-1 rounded-full border border-line bg-paper text-xs font-semibold text-lantern-600 hover:bg-paper-2 transition-colors"
                       >
                         {s.label}
                       </button>
@@ -579,14 +579,14 @@ export default function ArtisanStudioPage() {
               )}
 
               {/* Live Preview Box */}
-              <div className="relative aspect-square sm:aspect-auto sm:h-44 rounded-xl overflow-hidden border-2 border-dashed border-[#E6E2D8] bg-[#F8F6F0] flex items-center justify-center">
+              <div className="relative aspect-square sm:aspect-auto sm:h-44 rounded-md overflow-hidden border-2 border-dashed border-line bg-paper flex items-center justify-center">
                 {form.imageUrl && !imagePreviewError ? (
                   <>
                     <Image
                       src={form.imageUrl}
                       alt="Product preview"
                       fill
-                      className="object-cover rounded-xl"
+                      className="object-cover rounded-md"
                       onError={() => setImagePreviewError(true)}
                       unoptimized
                     />
@@ -606,8 +606,8 @@ export default function ArtisanStudioPage() {
                   </>
                 ) : (
                   <div className="text-center p-4 space-y-1.5">
-                    <ImagePlus className="w-8 h-8 text-[#C8B89A] mx-auto" />
-                    <p className="text-[10px] text-gray-400">
+                    <ImagePlus className="w-8 h-8 text-ink-3 mx-auto" />
+                    <p className="text-xs text-ink-3">
                       {imagePreviewError
                         ? translateSync("Image could not be loaded. Try a different file or URL.")
                         : translateSync("Live preview will appear here")}
@@ -620,19 +620,19 @@ export default function ArtisanStudioPage() {
 
           {/* Source Batch */}
           <div className="space-y-1.5 text-xs">
-            <label className="font-bold text-gray-700 flex items-center space-x-1.5">
-              <Link2 className="w-3.5 h-3.5 text-[#1A6B3A]" />
+            <label className="font-bold text-ink-2 flex items-center space-x-1.5">
+              <Link2 className="w-3.5 h-3.5 text-pine-600" />
               <span>
-                {translateSync("Link to Source Material Batch")} <span className="text-red-400">*</span>
+                {translateSync("Link to Source Material Batch")} <span className="text-danger">*</span>
               </span>
             </label>
             {batchesLoading ? (
-              <div className="flex items-center space-x-2 text-gray-400 p-3">
+              <div className="flex items-center space-x-2 text-ink-3 p-3">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>{translateSync("Loading batches...")}</span>
               </div>
             ) : claimedBatches.length === 0 ? (
-              <p className="text-gray-400 p-3 bg-[#F8F6F0] rounded-xl border border-[#E6E2D8]">
+              <p className="text-ink-3 p-3 bg-paper rounded-md border border-line">
                 {translateSync("No material batches claimed yet. Claim a batch on the map to get started.")}
               </p>
             ) : (
@@ -640,7 +640,7 @@ export default function ArtisanStudioPage() {
                 value={form.selectedBatchId}
                 onChange={(e) => setField("selectedBatchId", e.target.value)}
                 disabled={!!editingId}
-                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-white font-mono-data text-xs font-semibold text-gray-800 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30"
+                className="w-full p-3 rounded-md border border-line bg-surface font-mono-data text-xs font-semibold text-ink disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-pine-500/30"
               >
                 {claimedBatches.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -650,7 +650,7 @@ export default function ArtisanStudioPage() {
               </select>
             )}
             {editingId && (
-              <p className="text-[10px] text-amber-600">
+              <p className="text-xs text-warn">
                 {translateSync("Source batch cannot be changed after publishing.")}
               </p>
             )}
@@ -659,14 +659,14 @@ export default function ArtisanStudioPage() {
           {/* Description / AI */}
           <div className="space-y-1.5 text-xs">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-gray-700">
+              <label className="font-bold text-ink-2">
                 {translateSync("Product Bio & Material Origin Story")}
               </label>
               <button
                 type="button"
                 onClick={handleGenerateAIStory}
                 disabled={generatingStory || !selectedBatch}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-[#1A6B3A] text-[11px] font-bold hover:bg-emerald-100 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-pine-50 border border-pine-300 text-pine-600 text-xs font-bold hover:bg-pine-100 transition-colors disabled:opacity-50 cursor-pointer shadow-card"
               >
                 {generatingStory ? (
                   <>
@@ -675,7 +675,7 @@ export default function ArtisanStudioPage() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <Sparkles className="w-3.5 h-3.5 text-warn" />
                     <span>{translateSync("Auto-generate with Gemini")}</span>
                   </>
                 )}
@@ -688,14 +688,14 @@ export default function ArtisanStudioPage() {
               placeholder={translateSync(
                 "Describe your upcycling technique, natural dyes, or click the Gemini button above to auto-generate the cultural origin story..."
               )}
-              className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30"
+              className="w-full p-3 rounded-md border border-line bg-paper text-ink leading-relaxed focus:outline-none focus:ring-2 focus:ring-pine-500/30"
             />
           </div>
 
           {/* Row — kg + NGO */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-gray-700">
+              <label className="font-bold text-ink-2">
                 {translateSync("Kilograms Diverted per Item")}
               </label>
               <input
@@ -704,25 +704,25 @@ export default function ArtisanStudioPage() {
                 min="0"
                 value={form.kgDiverted}
                 onChange={(e) => setField("kgDiverted", e.target.value)}
-                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30"
+                className="w-full p-3 rounded-md border border-line bg-paper font-mono-data font-bold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
               />
             </div>
             <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-gray-700">
+              <label className="font-bold text-ink-2">
                 {translateSync("10% Designated NGO Fund")}
               </label>
               <input
                 type="text"
                 value={form.ngoFundName}
                 onChange={(e) => setField("ngoFundName", e.target.value)}
-                className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30"
+                className="w-full p-3 rounded-md border border-line bg-paper font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
               />
             </div>
           </div>
 
           {/* Material Tags */}
           <div className="space-y-1.5 text-xs">
-            <label className="font-bold text-gray-700">
+            <label className="font-bold text-ink-2">
               {translateSync("Material Tags (comma-separated)")}
             </label>
             <input
@@ -730,7 +730,7 @@ export default function ArtisanStudioPage() {
               value={form.materialTags}
               onChange={(e) => setField("materialTags", e.target.value)}
               placeholder={translateSync("Bamboo, Natural Dyes, Rice Paper")}
-              className="w-full p-3 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30"
+              className="w-full p-3 rounded-md border border-line bg-paper text-ink font-medium focus:outline-none focus:ring-2 focus:ring-pine-500/30"
             />
           </div>
 
@@ -738,10 +738,10 @@ export default function ArtisanStudioPage() {
           <button
             type="submit"
             disabled={submitting}
-            className={`w-full py-4 rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50 ${
+            className={`w-full py-4 rounded-md font-bold text-xs shadow-card transition-all flex items-center justify-center space-x-2 disabled:opacity-50 ${
               editingId
-                ? "bg-[#7D5A3C] hover:bg-[#5C3D20] text-white"
-                : "bg-[#1A6B3A] hover:bg-[#14532D] text-white"
+                ? "bg-pine-700 hover:bg-pine-800 text-white"
+                : "bg-pine-700 hover:bg-pine-600 text-white"
             }`}
           >
             {submitting ? (
@@ -771,19 +771,19 @@ export default function ArtisanStudioPage() {
         {/* Section header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Package className="w-4 h-4 text-[#7D5A3C]" />
-            <h2 className="text-base font-extrabold text-gray-900">
+            <Package className="w-4 h-4 text-lantern-600" />
+            <h2 className="text-base font-semibold text-ink">
               {translateSync("My Published Pieces")}
             </h2>
             {!productsLoading && (
-              <span className="text-xs font-bold text-[#7D5A3C] bg-[#F5EDE4] px-2 py-0.5 rounded-full border border-[#E8D5C4]">
+              <span className="text-xs font-bold text-lantern-600 bg-paper-2 px-2 py-0.5 rounded-full border border-line-strong">
                 {myProducts.length}
               </span>
             )}
           </div>
           <button
             onClick={loadMyProducts}
-            className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center space-x-1 text-xs text-ink-3 hover:text-ink-2 transition-colors"
             title="Refresh"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -795,19 +795,19 @@ export default function ArtisanStudioPage() {
         {productsLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2].map((i) => (
-              <div key={i} className="h-48 rounded-2xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-48 rounded-lg bg-paper-2 animate-pulse" />
             ))}
           </div>
         )}
 
         {/* Empty state */}
         {!productsLoading && myProducts.length === 0 && (
-          <div className="text-center py-16 border-2 border-dashed border-[#E6E2D8] rounded-2xl space-y-3">
-            <Package className="w-10 h-10 text-[#C8B89A] mx-auto" />
-            <p className="text-sm font-semibold text-gray-500">
+          <div className="text-center py-16 border-2 border-dashed border-line rounded-lg space-y-3">
+            <Package className="w-10 h-10 text-ink-3 mx-auto" />
+            <p className="text-sm font-semibold text-ink-3">
               {translateSync("No pieces published yet")}
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-ink-3">
               {translateSync("Fill in the form above to list your first upcycled craft.")}
             </p>
           </div>
@@ -819,14 +819,14 @@ export default function ArtisanStudioPage() {
             {myProducts.map((product) => (
               <div
                 key={product.id}
-                className={`bg-white rounded-2xl border overflow-hidden shadow-sm transition-shadow hover:shadow-md ${
+                className={`bg-surface rounded-lg border overflow-hidden shadow-card transition-shadow hover:shadow-card ${
                   editingId === product.id
-                    ? "border-[#7D5A3C] ring-2 ring-[#7D5A3C]/20"
-                    : "border-[#E6E2D8]"
+                    ? "border-line-strong ring-2 ring-line-strong/20"
+                    : "border-line"
                 }`}
               >
                 {/* Product image */}
-                <div className="relative aspect-video w-full bg-[#F8F6F0]">
+                <div className="relative aspect-video w-full bg-paper">
                   {product.images?.[0] ? (
                     <Image
                       src={product.images[0]}
@@ -837,12 +837,12 @@ export default function ArtisanStudioPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <ImagePlus className="w-10 h-10 text-[#C8B89A]" />
+                      <ImagePlus className="w-10 h-10 text-ink-3" />
                     </div>
                   )}
                   {/* Price badge */}
-                  <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-[#E6E2D8]">
-                    <span className="text-xs font-bold text-[#7D5A3C]">
+                  <div className="absolute top-2.5 right-2.5 bg-surface/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-card border border-line">
+                    <span className="text-xs font-bold text-lantern-600">
                       {formatCurrency(product.price)}
                     </span>
                   </div>
@@ -851,10 +851,10 @@ export default function ArtisanStudioPage() {
                 {/* Card body */}
                 <div className="p-4 space-y-3">
                   <div>
-                    <h3 className="font-bold text-sm text-gray-900 leading-snug line-clamp-1">
+                    <h3 className="font-bold text-sm text-ink leading-snug line-clamp-1">
                       {product.title}
                     </h3>
-                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-ink-3 mt-0.5 line-clamp-2 leading-relaxed">
                       {product.description || translateSync("No description.")}
                     </p>
                   </div>
@@ -865,7 +865,7 @@ export default function ArtisanStudioPage() {
                       {product.materialTags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-0.5 rounded-full bg-[#F0EDE6] text-[9px] font-semibold text-[#7D5A3C] uppercase tracking-wide"
+                          className="px-2 py-0.5 rounded-full bg-paper-2 text-xs font-semibold text-lantern-600 tracking-wide"
                         >
                           {tag}
                         </span>
@@ -874,7 +874,7 @@ export default function ArtisanStudioPage() {
                   )}
 
                   {/* Meta row */}
-                  <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-[#F0EDE6]">
+                  <div className="flex items-center justify-between text-xs text-ink-3 pt-1 border-t border-line">
                     <span>{product.kgDiverted} kg {translateSync("diverted")}</span>
                     <span className="font-mono-data">
                       {product.sourceBatch?.agreement?.festival ?? product.sourceBatchId}
@@ -886,7 +886,7 @@ export default function ArtisanStudioPage() {
                     <Link
                       href={`/products/${product.id}`}
                       target="_blank"
-                      className="flex items-center space-x-1 px-3 py-2 rounded-lg border border-[#E6E2D8] text-[11px] font-semibold text-gray-600 hover:bg-[#F8F6F0] transition-colors"
+                      className="flex items-center space-x-1 px-3 py-2 rounded-lg border border-line text-xs font-semibold text-ink-2 hover:bg-paper transition-colors"
                     >
                       <ExternalLink className="w-3 h-3" />
                       <span>{translateSync("View")}</span>
@@ -895,7 +895,7 @@ export default function ArtisanStudioPage() {
                     <button
                       onClick={() => startEdit(product)}
                       disabled={editingId === product.id}
-                      className="flex items-center space-x-1 px-3 py-2 rounded-lg bg-[#F0EDE6] text-[11px] font-bold text-[#7D5A3C] hover:bg-[#E8D5C4] transition-colors disabled:opacity-50"
+                      className="flex items-center space-x-1 px-3 py-2 rounded-lg bg-paper-2 text-xs font-bold text-lantern-600 hover:bg-paper-2 transition-colors disabled:opacity-50"
                     >
                       <Pencil className="w-3 h-3" />
                       <span>{translateSync("Edit")}</span>
@@ -903,7 +903,7 @@ export default function ArtisanStudioPage() {
 
                     <button
                       onClick={() => confirmDelete(product)}
-                      className="flex items-center space-x-1 px-3 py-2 rounded-lg bg-red-50 text-[11px] font-bold text-red-600 hover:bg-red-100 transition-colors ml-auto"
+                      className="flex items-center space-x-1 px-3 py-2 rounded-lg bg-danger-100 text-xs font-bold text-danger hover:bg-danger-100 transition-colors ml-auto"
                     >
                       <Trash2 className="w-3 h-3" />
                       <span>{translateSync("Delete")}</span>
@@ -921,16 +921,16 @@ export default function ArtisanStudioPage() {
       ════════════════════════════════════════ */}
       {deletingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
-            <div className="w-12 h-12 bg-red-50 border border-red-200 rounded-full flex items-center justify-center mx-auto">
-              <Trash2 className="w-5 h-5 text-red-500" />
+          <div className="bg-surface rounded-lg shadow-pop max-w-sm w-full p-6 space-y-4">
+            <div className="w-12 h-12 bg-danger-100 border border-danger/20 rounded-full flex items-center justify-center mx-auto">
+              <Trash2 className="w-5 h-5 text-danger" />
             </div>
             <div className="text-center space-y-1.5">
-              <h3 className="font-bold text-gray-900 text-base">
+              <h3 className="font-bold text-ink text-base">
                 {translateSync("Remove this piece?")}
               </h3>
-              <p className="text-sm text-gray-500">
-                <strong className="text-gray-700">&ldquo;{deleteConfirmTitle}&rdquo;</strong>{" "}
+              <p className="text-sm text-ink-3">
+                <strong className="text-ink-2">&ldquo;{deleteConfirmTitle}&rdquo;</strong>{" "}
                 {translateSync("will be removed from the marketplace. This cannot be undone.")}
               </p>
             </div>
@@ -938,14 +938,14 @@ export default function ArtisanStudioPage() {
               <button
                 onClick={() => setDeletingId(null)}
                 disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-md border border-line text-sm font-semibold text-ink-2 hover:bg-paper transition-colors"
               >
                 {translateSync("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-md bg-danger hover:bg-danger text-white text-sm font-bold transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-60"
               >
                 {deleting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

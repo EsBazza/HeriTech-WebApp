@@ -65,7 +65,7 @@ const YEARS = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
 const TILE_LAYERS = {
   googleSatellite: {
     url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-    attribution: "&copy; Google Earth / Satellite Telemetry",
+    attribution: "&copy; Google",
   },
   esriSatellite: {
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -378,9 +378,9 @@ export function TreeMap() {
 
   if (loading) {
     return (
-      <div className="bg-white border border-[#E6E2D8] rounded-3xl p-8 flex flex-col items-center justify-center min-h-[400px] space-y-3">
-        <Loader2 className="w-8 h-8 text-[#1A6B3A] animate-spin" />
-        <TranslatableText className="text-sm font-medium text-gray-500">
+      <div className="bg-surface border border-line rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px] space-y-3">
+        <Loader2 className="w-8 h-8 text-pine-600 animate-spin" />
+        <TranslatableText className="text-sm font-medium text-ink-3">
           Initializing Embedded 3D Google Earth Satellite Map...
         </TranslatableText>
       </div>
@@ -389,9 +389,9 @@ export function TreeMap() {
 
   if (error || !activeProject) {
     return (
-      <div className="bg-white border border-[#E6E2D8] rounded-3xl p-8 text-center text-red-600 space-y-2">
+      <div className="bg-surface border border-line rounded-lg p-8 text-center text-danger space-y-2">
         <TranslatableText className="font-semibold">
-          {error || "Unable to display tree projects telemetry."}
+          {error || "Tree projects could not be loaded."}
         </TranslatableText>
       </div>
     );
@@ -432,34 +432,34 @@ export function TreeMap() {
   const mapFilterStyle = `sepia(${sepiaVal}%) saturate(${saturateVal}%) contrast(${contrastVal}%) brightness(${brightnessVal}%) hue-rotate(${hueRotateVal}deg)`;
 
   return (
-    <div className="bg-white border border-[#E6E2D8] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+    <div className="bg-surface border border-line rounded-lg p-6 sm:p-8 space-y-6 shadow-card">
       {/* 1. Header */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-line pb-5">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-extrabold text-[#1A6B3A] tracking-wider uppercase">
-            <Globe className="w-4 h-4 text-[#1A6B3A] animate-pulse" />
-            <TranslatableText>LIVE INTERACTIVE GOOGLE EARTH SATELLITE MAP</TranslatableText>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
+            <Globe className="w-4 h-4 text-pine-500" />
+            <TranslatableText>Google Earth imagery</TranslatableText>
           </div>
           <TranslatableHeading
             level={2}
-            className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight mt-1"
+            className="font-display text-[28px] leading-tight font-semibold text-ink mt-1"
           >
-            Active Reforestation & Tree Canopy Growth Ledger
+            Tree planting funded by sales
           </TranslatableHeading>
-          <TranslatableParagraph className="text-xs text-gray-500 mt-1">
-            Real interactive Google Earth aerial & terrain satellite tiles tracking post-festival tree planting sites across Asia (2020-2026).
+          <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
+            Satellite and terrain imagery of tree-planting sites funded by the NGO share of each sale, 2020–2026.
           </TranslatableParagraph>
         </div>
 
         {/* Tile Layer Switcher: Google Satellite vs Esri vs Google Terrain */}
-        <div className="bg-[#F8F6F0] p-1 rounded-2xl border border-[#E6E2D8] inline-flex items-center space-x-1 text-xs font-semibold self-start xl:self-auto">
+        <div className="bg-paper p-1 rounded-lg border border-line inline-flex items-center space-x-1 text-xs font-semibold self-start xl:self-auto">
           <button
             type="button"
             onClick={() => setViewMode("satellite")}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
+            className={`px-3 py-1.5 rounded-md transition-all ${
               viewMode === "satellite"
-                ? "bg-[#1A6B3A] text-white shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-pine-700 text-white shadow-card"
+                : "text-ink-2 hover:text-ink"
             }`}
           >
             <TranslatableText>Google Satellite</TranslatableText>
@@ -467,10 +467,10 @@ export function TreeMap() {
           <button
             type="button"
             onClick={() => setViewMode("esri")}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
+            className={`px-3 py-1.5 rounded-md transition-all ${
               viewMode === "esri"
-                ? "bg-[#1A6B3A] text-white shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-pine-700 text-white shadow-card"
+                : "text-ink-2 hover:text-ink"
             }`}
           >
             <TranslatableText>Esri Aerial</TranslatableText>
@@ -478,10 +478,10 @@ export function TreeMap() {
           <button
             type="button"
             onClick={() => setViewMode("terrain")}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
+            className={`px-3 py-1.5 rounded-md transition-all ${
               viewMode === "terrain"
-                ? "bg-[#1A6B3A] text-white shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-pine-700 text-white shadow-card"
+                : "text-ink-2 hover:text-ink"
             }`}
           >
             <TranslatableText>3D Terrain</TranslatableText>
@@ -492,10 +492,10 @@ export function TreeMap() {
         <button
           type="button"
           onClick={() => { setIsSplitView((prev) => !prev); setSplitPos(50); }}
-          className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border self-start xl:self-auto ${
+          className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-md text-xs font-bold transition-all border self-start xl:self-auto ${
             isSplitView
-              ? "bg-emerald-800 text-white border-emerald-700 shadow-md ring-2 ring-emerald-500/30"
-              : "bg-[#F8F6F0] text-gray-700 border-[#E6E2D8] hover:bg-gray-100"
+              ? "bg-pine-700 text-white border-pine-600 shadow-card ring-2 ring-pine-500/30"
+              : "bg-paper text-ink-2 border-line hover:bg-paper-2"
           }`}
         >
           <Columns2 className="w-3.5 h-3.5" />
@@ -504,7 +504,7 @@ export function TreeMap() {
       </div>
 
       {/* 2. Annual Multi-Year Timeline Slider UI (2020 - 2026) */}
-      <div className="bg-gradient-to-r from-[#F8F6F0] via-white to-[#F8F6F0] rounded-2xl p-4 sm:p-5 border border-[#E6E2D8] shadow-xs space-y-3">
+      <div className="bg-gradient-to-r from-paper via-white to-paper rounded-lg p-4 sm:p-5 border border-line shadow-card space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-3">
             {/* Play / Pause Toggle Button */}
@@ -512,10 +512,10 @@ export function TreeMap() {
               type="button"
               onClick={() => setIsPlaying((prev) => !prev)}
               aria-label={isPlaying ? "Pause Timeline Auto-Play" : "Start Timeline Auto-Play"}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-md text-xs font-bold transition-all shadow-card ${
                 isPlaying
-                  ? "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-500/20 animate-pulse"
-                  : "bg-[#1A6B3A] hover:bg-emerald-800 text-white shadow-emerald-700/20"
+                  ? "bg-warn hover:bg-warn text-white shadow-warn/20 animate-pulse"
+                  : "bg-pine-700 hover:bg-pine-700 text-white shadow-pine-600/20"
               }`}
             >
               {isPlaying ? (
@@ -531,10 +531,10 @@ export function TreeMap() {
               )}
             </button>
 
-            <div className="flex items-center space-x-1.5 text-xs text-gray-700 font-semibold">
-              <Calendar className="w-3.5 h-3.5 text-[#1A6B3A]" />
+            <div className="flex items-center space-x-1.5 text-xs text-ink-2 font-semibold">
+              <Calendar className="w-3.5 h-3.5 text-pine-600" />
               <span>Timeline Year:</span>
-              <span className="font-extrabold font-mono text-[#1A6B3A] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+              <span className="font-semibold font-mono text-pine-600 bg-pine-50 px-2 py-0.5 rounded-md border border-pine-200">
                 {selectedYear === 2020
                   ? "2020 (Baseline)"
                   : selectedYear === 2026
@@ -544,8 +544,8 @@ export function TreeMap() {
             </div>
           </div>
 
-          <div className="text-[11px] font-medium text-gray-600 flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#1A6B3A] animate-ping" />
+          <div className="text-xs font-medium text-ink-2 flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-pine-700 " />
             <span>{currentProgress.statusLabel}</span>
           </div>
         </div>
@@ -559,7 +559,7 @@ export function TreeMap() {
             step={1}
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1A6B3A] focus:outline-none focus:ring-2 focus:ring-[#1A6B3A]/30 transition-all"
+            className="w-full h-2.5 bg-line rounded-lg appearance-none cursor-pointer accent-pine-700 focus:outline-none focus:ring-2 focus:ring-pine-500/30 transition-all"
           />
         </div>
 
@@ -574,18 +574,18 @@ export function TreeMap() {
                 key={year}
                 type="button"
                 onClick={() => setSelectedYear(year)}
-                className={`py-1.5 px-1 sm:px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center ${
+                className={`py-1.5 px-1 sm:px-2 rounded-md text-xs font-bold transition-all flex flex-col items-center justify-center ${
                   isSelected
                     ? isBase
-                      ? "bg-amber-800 text-white shadow-md ring-2 ring-amber-700/30"
-                      : "bg-[#1A6B3A] text-white shadow-md ring-2 ring-emerald-600/30"
-                    : "bg-white/80 hover:bg-gray-100 text-gray-700 border border-[#E6E2D8]"
+                      ? "bg-warn text-white shadow-card ring-2 ring-warn/30"
+                      : "bg-pine-700 text-white shadow-card ring-2 ring-pine-500/30"
+                    : "bg-surface/80 hover:bg-paper-2 text-ink-2 border border-line"
                 }`}
               >
                 <span className="font-mono">{year}</span>
                 <span
-                  className={`text-[9px] font-semibold hidden sm:inline-block ${
-                    isSelected ? "text-white/90" : "text-gray-400"
+                  className={`text-xs font-semibold hidden sm:inline-block ${
+                    isSelected ? "text-white/90" : "text-ink-3"
                   }`}
                 >
                   {isBase ? "Baseline" : isCurrentYr ? "Live" : `Yr +${year - 2020}`}
@@ -598,7 +598,7 @@ export function TreeMap() {
 
       {/* 3. Interactive Location Pill Selector */}
       <div className="space-y-2">
-        <TranslatableText className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+        <TranslatableText className="text-xs font-bold text-ink-3">
           Select Reforestation Site (Triggers Real Satellite Orbit Fly-To)
         </TranslatableText>
         <div className="flex flex-wrap gap-2">
@@ -609,20 +609,20 @@ export function TreeMap() {
                 key={proj.id}
                 type="button"
                 onClick={() => handleSelectProject(proj.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all border ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
                   isSelected
-                    ? "bg-[#1A6B3A] text-white border-[#1A6B3A] shadow-md ring-2 ring-[#1A6B3A]/20"
-                    : "bg-[#F8F6F0] text-gray-700 border-[#E6E2D8] hover:bg-gray-100"
+                    ? "bg-pine-700 text-white border-pine-500 shadow-card ring-2 ring-pine-500/20"
+                    : "bg-paper text-ink-2 border-line hover:bg-paper-2"
                 }`}
               >
                 <MapPin
                   className={`w-3.5 h-3.5 ${
-                    isSelected ? "text-white animate-bounce" : "text-[#1A6B3A]"
+                    isSelected ? "text-white animate-bounce" : "text-pine-600"
                   }`}
                 />
                 <span>{proj.location}</span>
                 {isSelected && (
-                  <span className="ml-1 text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full uppercase tracking-widest font-mono">
+                  <span className="ml-1 text-xs bg-surface/20 px-1.5 py-0.5 rounded-full font-mono">
                     Active Target
                   </span>
                 )}
@@ -637,7 +637,7 @@ export function TreeMap() {
         {/* Interactive Satellite Map Viewport */}
         <div
           ref={splitContainerRef}
-          className="lg:col-span-7 relative group rounded-3xl overflow-hidden border border-[#E6E2D8] shadow-md bg-gray-950 min-h-[480px]"
+          className="lg:col-span-7 relative group rounded-lg overflow-hidden border border-line shadow-card bg-ink min-h-[480px]"
           onMouseMove={isSplitView ? handleSplitMouseMove : undefined}
           onMouseUp={isSplitView ? handleSplitMouseUp : undefined}
           onMouseLeave={isSplitView ? handleSplitMouseUp : undefined}
@@ -647,12 +647,12 @@ export function TreeMap() {
           {/* Fly-to Animation HUD Overlay */}
           {isAnimating && !isSplitView && (
             <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 pointer-events-none transition-opacity duration-300">
-              <Compass className="w-10 h-10 text-emerald-400 animate-spin" />
-              <div className="text-white text-xs font-mono font-bold uppercase tracking-widest flex items-center space-x-2">
+              <Compass className="w-10 h-10 text-pine-500 animate-spin" />
+              <div className="text-white text-xs font-mono font-bold flex items-center space-x-2">
                 <span>Orbiting Satellite Camera Fly-To</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-pine-300 " />
               </div>
-              <p className="text-emerald-300/80 text-[11px] font-mono">
+              <p className="text-pine-500/80 text-xs font-mono">
                 Target Lock: {activeProject.lat.toFixed(4)}°, {activeProject.lng.toFixed(4)}°
               </p>
             </div>
@@ -690,14 +690,14 @@ export function TreeMap() {
               </div>
 
               {/* Left label */}
-              <div className="absolute top-4 left-4 z-30 bg-amber-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-amber-600/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <div className="absolute top-4 left-4 z-30 bg-warn/90 backdrop-blur-md text-white text-xs font-semibold font-mono px-3 py-1.5 rounded-full border border-warn/40 flex items-center space-x-1.5 shadow-card pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-warn" />
                 <span>2020 BASELINE PHOTO</span>
               </div>
 
               {/* Right label */}
-              <div className="absolute top-4 right-4 z-30 bg-emerald-900/90 backdrop-blur-md text-white text-[10px] font-extrabold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-emerald-500/40 flex items-center space-x-1.5 shadow-lg pointer-events-none">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="absolute top-4 right-4 z-30 bg-pine-900/90 backdrop-blur-md text-white text-xs font-semibold font-mono px-3 py-1.5 rounded-full border border-pine-500/40 flex items-center space-x-1.5 shadow-card pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-pine-300 animate-pulse" />
                 <span>{selectedYear === 2026 ? "2026 LIVE MAP" : `${selectedYear} LIVE MAP`}</span>
               </div>
 
@@ -708,9 +708,9 @@ export function TreeMap() {
                 onMouseDown={handleSplitMouseDown}
                 onTouchStart={handleSplitMouseDown}
               >
-                <div className="w-0.5 h-full bg-white shadow-2xl" />
-                <div className="absolute w-9 h-9 rounded-full bg-white shadow-xl border-2 border-[#1A6B3A] flex items-center justify-center cursor-col-resize select-none">
-                  <Columns2 className="w-4 h-4 text-[#1A6B3A]" />
+                <div className="w-0.5 h-full bg-surface shadow-pop" />
+                <div className="absolute w-9 h-9 rounded-full bg-surface shadow-card border-2 border-pine-500 flex items-center justify-center cursor-col-resize select-none">
+                  <Columns2 className="w-4 h-4 text-pine-600" />
                 </div>
               </div>
 
@@ -718,7 +718,7 @@ export function TreeMap() {
               <button
                 type="button"
                 onClick={() => setIsSplitView(false)}
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 bg-black/80 hover:bg-black text-white text-[10px] font-bold font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md shadow-lg transition-all"
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 bg-black/80 hover:bg-black text-white text-xs font-bold font-mono px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md shadow-card transition-all"
               >
                 <X className="w-3 h-3" />
                 <span>Exit Before / After</span>
@@ -730,13 +730,13 @@ export function TreeMap() {
           {!isSplitView && (
             <>
               {/* Controls Overlay Bar (Zoom, Pitch Tilt, Rotate) */}
-              <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2 bg-black/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 shadow-2xl">
+              <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2 bg-black/80 backdrop-blur-md p-1.5 rounded-lg border border-white/20 shadow-pop">
                 <button
                   type="button"
                   onClick={handleTogglePitch}
                   title="Toggle 3D Perspective Tilt"
-                  className={`p-2 rounded-xl text-xs flex items-center justify-center transition-all ${
-                    pitch > 0 ? "bg-emerald-700 text-white" : "bg-gray-800 text-gray-300 hover:text-white"
+                  className={`p-2 rounded-md text-xs flex items-center justify-center transition-all ${
+                    pitch > 0 ? "bg-pine-600 text-white" : "bg-ink text-line-strong hover:text-white"
                   }`}
                 >
                   <Compass className="w-4 h-4" />
@@ -745,7 +745,7 @@ export function TreeMap() {
                   type="button"
                   onClick={handleRotateHeading}
                   title="Rotate 360° Orientation"
-                  className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+                  className="p-2 bg-ink hover:bg-pine-600 text-white rounded-md text-xs flex items-center justify-center transition-all"
                 >
                   <RotateCw className="w-4 h-4" />
                 </button>
@@ -753,7 +753,7 @@ export function TreeMap() {
                   type="button"
                   onClick={handleZoomIn}
                   title="Zoom In Satellite"
-                  className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+                  className="p-2 bg-ink hover:bg-pine-600 text-white rounded-md text-xs flex items-center justify-center transition-all"
                 >
                   <ZoomIn className="w-4 h-4" />
                 </button>
@@ -761,21 +761,21 @@ export function TreeMap() {
                   type="button"
                   onClick={handleZoomOut}
                   title="Zoom Out Satellite"
-                  className="p-2 bg-gray-800 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center justify-center transition-all"
+                  className="p-2 bg-ink hover:bg-pine-600 text-white rounded-md text-xs flex items-center justify-center transition-all"
                 >
                   <ZoomOut className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Target Location Header Tag */}
-              <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white text-xs font-mono font-semibold flex items-center space-x-2 shadow-lg pointer-events-none">
+              <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white text-xs font-mono font-semibold flex items-center space-x-2 shadow-card pointer-events-none">
                 <span
                   className={`w-2.5 h-2.5 rounded-full ${
                     selectedYear === 2020
-                      ? "bg-amber-500"
+                      ? "bg-warn"
                       : selectedYear === 2026
-                      ? "bg-emerald-400 animate-pulse"
-                      : "bg-emerald-400"
+                      ? "bg-pine-300 animate-pulse"
+                      : "bg-pine-300"
                   }`}
                 />
                 <span>
@@ -791,52 +791,52 @@ export function TreeMap() {
         </div>
 
         {/* 5. GIS Dynamic Telemetry Panel */}
-        <div className="lg:col-span-5 bg-[#F8F6F0] rounded-3xl p-6 border border-[#E6E2D8] flex flex-col justify-between space-y-6">
+        <div className="lg:col-span-5 bg-paper rounded-lg p-6 border border-line flex flex-col justify-between space-y-6">
           <div className="space-y-4">
-            <div className="border-b border-[#E6E2D8] pb-3">
+            <div className="border-b border-line pb-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-bold text-ink-3">
                   {selectedYear === 2020
                     ? "PRE-PLANTING HISTORICAL BASELINE (2020)"
                     : `${selectedYear} REFORESTATION TELEMETRY`}
                 </p>
                 {selectedYear === 2020 ? (
-                  <span className="text-[10px] font-extrabold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full flex items-center space-x-1">
-                    <AlertCircle className="w-3 h-3 text-amber-700" />
+                  <span className="text-xs font-semibold text-warn bg-warn-100 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                    <AlertCircle className="w-3 h-3 text-warn" />
                     <span>Unforested Year 0</span>
                   </span>
                 ) : (
-                  <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center space-x-1">
-                    <TrendingUp className="w-3 h-3 text-emerald-700" />
+                  <span className="text-xs font-semibold text-pine-700 bg-pine-100 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                    <TrendingUp className="w-3 h-3 text-pine-600" />
                     <span>{currentProgress.statusLabel}</span>
                   </span>
                 )}
               </div>
 
-              <h4 className="text-base font-bold text-gray-900 mt-1">
+              <h4 className="text-base font-bold text-ink mt-1">
                 {activeProject.location}
               </h4>
-              <p className="text-xs text-emerald-800 font-semibold flex items-center space-x-1 mt-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <p className="text-xs text-pine-700 font-semibold flex items-center space-x-1 mt-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-pine-500" />
                 <span>{activeProject.ngoName}</span>
               </p>
             </div>
 
             {/* Dynamic Metrics Grid (Derived dynamically from activeProject.yearlyProgress?.[selectedYear]) */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white p-3.5 rounded-2xl border border-gray-200 space-y-0.5 shadow-xs">
-                <p className="text-[10px] font-bold text-gray-400 uppercase">
+              <div className="bg-surface p-3.5 rounded-lg border border-line space-y-0.5 shadow-card">
+                <p className="text-xs font-bold text-ink-3">
                   {selectedYear === 2020 ? "BASELINE FUNDS" : `FUNDS ALLOCATED (${selectedYear})`}
                 </p>
-                <p className="text-xl font-black text-amber-700 font-mono-data">
+                <p className="text-xl font-semibold text-warn font-mono-data">
                   {formatCurrency(currentProgress.allocatedFundsUsd)}
                 </p>
               </div>
-              <div className="bg-white p-3.5 rounded-2xl border border-gray-200 space-y-0.5 shadow-xs">
-                <p className="text-[10px] font-bold text-gray-400 uppercase">
+              <div className="bg-surface p-3.5 rounded-lg border border-line space-y-0.5 shadow-card">
+                <p className="text-xs font-bold text-ink-3">
                   {selectedYear === 2020 ? "BASELINE TREES" : `TREES PLANTED (${selectedYear})`}
                 </p>
-                <p className="text-xl font-black text-[#1A6B3A] font-mono-data">
+                <p className="text-xl font-semibold text-pine-600 font-mono-data">
                   {formatNumber(currentProgress.treesPlanted)}{" "}
                   <span className="text-xs font-normal">trees</span>
                 </p>
@@ -844,38 +844,38 @@ export function TreeMap() {
             </div>
 
             {/* Canopy Survival Rate / Coverage Progress Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-2 shadow-xs">
+            <div className="bg-surface p-4 rounded-lg border border-line space-y-2 shadow-card">
               <div className="flex justify-between text-xs font-semibold">
-                <span className="text-gray-600">Canopy Density & Growth</span>
-                <span className="text-emerald-700 font-bold">
+                <span className="text-ink-2">Canopy Density & Growth</span>
+                <span className="text-pine-600 font-bold">
                   {selectedYear === 2020
                     ? "0% (Bare Soil)"
                     : `${currentProgress.survivalRate}% (${currentProgress.statusLabel})`}
                 </span>
               </div>
-              <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <div className="w-full h-2.5 rounded-full bg-paper-2 overflow-hidden">
                 <div
                   style={{ width: `${currentProgress.survivalRate}%` }}
-                  className="h-full bg-[#1A6B3A] rounded-full transition-all duration-700"
+                  className="h-full bg-pine-700 rounded-full transition-all duration-700"
                 />
               </div>
             </div>
 
             {/* Restored Native Species Tags */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-2 shadow-xs">
-              <p className="text-[10px] font-bold text-gray-400 uppercase">
+            <div className="bg-surface p-4 rounded-lg border border-line space-y-2 shadow-card">
+              <p className="text-xs font-bold text-ink-3">
                 {selectedYear === 2020 ? "SPECIES STATUS" : "RESTORED NATIVE SPECIES"}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {selectedYear === 2020 ? (
-                  <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-lg border border-amber-200">
+                  <span className="px-2.5 py-1 bg-warn-100 text-warn text-xs font-bold rounded-lg border border-warn/20">
                     Pre-Reforestation Soil Assessment (0 Native Canopy)
                   </span>
                 ) : (
                   activeProject.species.map((s) => (
                     <span
                       key={s}
-                      className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-bold rounded-lg border border-emerald-200/60"
+                      className="px-2.5 py-1 bg-pine-50 text-pine-700 text-xs font-bold rounded-lg border border-pine-200/60"
                     >
                       {s}
                     </span>
@@ -886,13 +886,13 @@ export function TreeMap() {
           </div>
 
           {/* Footer Audited Metric */}
-          <div className="pt-3 border-t border-[#E6E2D8] text-[11px] text-gray-500 flex items-center justify-between">
+          <div className="pt-3 border-t border-line text-xs text-ink-3 flex items-center justify-between">
             <span>
               Hectares Restored:{" "}
-              <strong className="text-gray-800">{currentProgress.hectaresRestored} ha</strong>
-              <span className="text-gray-400 ml-1">/ {activeProject.hectaresRestored} ha target</span>
+              <strong className="text-ink">{currentProgress.hectaresRestored} ha</strong>
+              <span className="text-ink-3 ml-1">/ {activeProject.hectaresRestored} ha target</span>
             </span>
-            <span className="text-emerald-700 font-medium flex items-center space-x-1">
+            <span className="text-pine-600 font-medium flex items-center space-x-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Audited via Step 0 Trust</span>
             </span>

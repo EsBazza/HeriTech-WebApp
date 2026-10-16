@@ -1,26 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { X, CheckCircle2, Lock, ArrowRight, ArrowLeft, Truck, ExternalLink, MessageSquare, AlertCircle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart, CartProduct } from "@/components/cart/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
-import {
-  X,
-  Heart,
-  Scale,
-  Leaf,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
-  ArrowLeft,
-  Truck,
-  Sparkles,
-  ExternalLink,
-} from "lucide-react";
 import { calculateEscrowSplit } from "@/lib/escrow";
 import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
-import Link from "next/link";
+import { EscrowBar } from "@/components/EscrowBar";
+import { Button, Input, Select, cn, buttonClass } from "@/components/ui";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -33,7 +22,10 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   const { items, clearCart } = useCart();
   const { formatCurrency, formatNumber, translateSync } = useTranslation();
 
-  const checkoutItems = directProduct ? [directProduct] : items;
+  const liveItems = directProduct ? [directProduct] : items;
+  // Snapshot of what was bought, so the confirmation survives clearCart().
+  const [purchased, setPurchased] = useState<CartProduct[] | null>(null);
+  const checkoutItems = purchased ?? liveItems;
   const totalPrice = checkoutItems.reduce((acc, item) => acc + item.price, 0);
   const totalKg = checkoutItems.reduce((acc, item) => acc + (item.kgDiverted || 0), 0);
   const escrow = calculateEscrowSplit(totalPrice);
@@ -67,13 +59,31 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   const buyerCoords = getCityCoordinates(city);
   const artisanCoords = {
     lat: checkoutItems[0]?.artisanLat || 16.4023,
-    lng: checkoutItems[0]?.artisanLng || 120.5960,
+    lng: checkoutItems[0]?.artisanLng || 120.596,
     name: checkoutItems[0]?.artisanWorkshop || "Cordillera Artisan Cooperative",
     city: "Baguio City, Philippines",
   };
 
   const [processing, setProcessing] = useState(false);
   const [orderResult, setOrderResult] = useState<any>(null);
+  const [orderError, setOrderError] = useState<string | null>(null);
+
+  // Start fresh each time the modal is reopened after a completed order.
+  useEffect(() => {
+    if (isOpen && step === 3) {
+      setStep(1);
+      setPurchased(null);
+      setOrderResult(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -90,6 +100,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
     }
 
     setProcessing(true);
+    setOrderError(null);
     try {
       const primaryProduct = checkoutItems[0];
       const res = await fetch("/api/orders", {
@@ -110,6 +121,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
       const data = await res.json();
       if (data.success) {
+        setPurchased(checkoutItems);
         setOrderResult(data.data);
         clearCart();
         setStep(3);
@@ -130,328 +142,221 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
         } catch (msgErr) {
           console.warn("Could not trigger automated message:", msgErr);
         }
+      } else {
+        setOrderError(data.error || "We couldn't place this order. Please try again.");
       }
     } catch (err) {
       console.error("Checkout execution error:", err);
+      setOrderError("We couldn't reach the server. Check your connection and try again.");
     } finally {
       setProcessing(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-[#E6E2D8] relative my-8">
-        {/* Modal Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  const serial = orderResult?.walletPass?.serial || "HT-519-PH";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const steps = [translateSync("Delivery"), translateSync("Review & pay"), translateSync("Your pass")];
 
-        {/* Step Indicator Header */}
-        <div className="border-b border-gray-100 pb-4">
-          <div className="flex items-center space-x-2 text-xs font-bold text-[#1A6B3A]">
-            <Sparkles className="w-3.5 h-3.5" />
-            <TranslatableText>HERITECH 70/20/10 ESCROW CHECKOUT</TranslatableText>
+  return (
+    <div className="fixed inset-0 z-50 bg-pine-900/50 backdrop-blur-sm flex items-start sm:items-center justify-center p-0 sm:p-4 overflow-y-auto" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkout-title"
+        onClick={(e) => e.stopPropagation()}
+        className="bg-surface w-full sm:max-w-xl min-h-full sm:min-h-0 sm:rounded-lg shadow-pop relative sm:my-8"
+      >
+        {/* Header with step indicator */}
+        <div className="px-5 sm:px-6 pt-5 pb-4 border-b border-line">
+          <div className="flex items-start justify-between gap-4">
+            <h2 id="checkout-title" className="font-display text-[28px] leading-tight font-semibold text-ink">
+              {step === 3 ? translateSync("Order confirmed") : translateSync("Checkout")}
+            </h2>
+            <button onClick={onClose} className="-mr-2 w-10 h-10 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer" aria-label={translateSync("Close")}>
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <TranslatableHeading level={2} className="text-xl font-extrabold text-gray-900 mt-1">
-            {step === 1 && "Step 1: Delivery address"}
-            {step === 2 && "Step 2: Payment breakdown"}
-            {step === 3 && "Order confirmed"}
-          </TranslatableHeading>
+          <ol className="mt-4 grid grid-cols-3 gap-2">
+            {steps.map((label, i) => {
+              const n = i + 1;
+              const done = step > n;
+              const current = step === n;
+              return (
+                <li key={label} className="space-y-1.5">
+                  <div className={cn("h-1 rounded-full", done || current ? "bg-pine-700" : "bg-paper-2")} />
+                  <span className={cn("text-xs", current ? "text-ink font-medium" : "text-ink-3")}>
+                    {n}. {label}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
         </div>
 
-        {/* STEP 1: Shipping Form */}
-        {step === 1 && (
-          <form onSubmit={handleNextToRoute} className="space-y-4 text-xs">
-            {/* Order Items Snapshot */}
-            <div className="p-3 bg-[#F8F6F0] rounded-2xl space-y-2">
-              <div className="flex items-center justify-between font-bold text-gray-800">
-                <span><TranslatableText>Selected Pieces</TranslatableText> ({checkoutItems.length})</span>
-                <span className="font-mono-data text-emerald-800 font-extrabold">
-                  {formatCurrency(totalPrice)} USD • {formatNumber(totalKg)} <TranslatableText>kg diverted</TranslatableText>
-                </span>
-              </div>
-              <div className="space-y-1">
+        <div className="px-5 sm:px-6 py-5">
+          {/* STEP 1: Shipping Form */}
+          {step === 1 && (
+            <form onSubmit={handleNextToRoute} className="space-y-5">
+              <div className="rounded-md bg-paper border border-line divide-y divide-line">
                 {checkoutItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-[11px] text-gray-600">
-                    <span className="truncate max-w-[280px]">
-                      • <TranslatableText>{item.title}</TranslatableText> (<TranslatableText>by</TranslatableText> <TranslatableText>{item.artisanName}</TranslatableText>)
-                    </span>
-                    <span className="font-mono-data font-bold">{formatCurrency(item.price)}</span>
+                  <div key={item.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-ink truncate">{translateSync(item.title)}</p>
+                      {item.artisanName && <p className="text-xs text-ink-3 truncate">{translateSync("by")} {translateSync(item.artisanName)}</p>}
+                    </div>
+                    <span className="tabular text-sm font-medium text-ink">{formatCurrency(item.price)}</span>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="font-bold text-gray-700"><TranslatableText>Recipient Full Name</TranslatableText></label>
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder={translateSync("e.g. Maria Clara Santos")}
-                  className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
-                />
+                <div className="flex items-center justify-between px-4 py-3 text-sm">
+                  <span className="text-ink-3">
+                    {formatNumber(totalKg)} {translateSync("kg of festival material diverted")}
+                  </span>
+                  <span className="tabular font-semibold text-ink">{formatCurrency(totalPrice)}</span>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-bold text-gray-700"><TranslatableText>Destination City</TranslatableText></label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-white font-semibold text-gray-900"
-                >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label={translateSync("Recipient name")} required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={translateSync("e.g. Maria Clara Santos")} autoComplete="name" />
+                <Select label={translateSync("City")} value={city} onChange={(e) => setCity(e.target.value)}>
                   <option value="Manila">Manila, Philippines</option>
                   <option value="Cebu">Cebu City, Philippines</option>
                   <option value="Bangkok">Bangkok, Thailand</option>
                   <option value="Singapore">Singapore</option>
                   <option value="Tokyo">Tokyo, Japan</option>
-                </select>
+                </Select>
               </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="font-bold text-gray-700"><TranslatableText>Street Address</TranslatableText></label>
-              <input
-                type="text"
-                required
-                value={streetAddress}
-                onChange={(e) => setStreetAddress(e.target.value)}
-                placeholder={translateSync("e.g. Unit 402 Heritage Tower, Ayala Avenue")}
-                className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="font-bold text-gray-700"><TranslatableText>Country</TranslatableText></label>
-                <input
-                  type="text"
-                  required
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-semibold text-gray-900"
-                />
+              <Input label={translateSync("Street address")} required value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} placeholder={translateSync("e.g. Unit 402 Heritage Tower, Ayala Avenue")} autoComplete="street-address" />
+              <div className="grid grid-cols-2 gap-4">
+                <Input label={translateSync("Country")} required value={country} onChange={(e) => setCountry(e.target.value)} autoComplete="country-name" />
+                <Input label={translateSync("Postal code")} required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="1000" autoComplete="postal-code" />
               </div>
 
-              <div className="space-y-1">
-                <label className="font-bold text-gray-700"><TranslatableText>Postal / ZIP Code</TranslatableText></label>
-                <input
-                  type="text"
-                  required
-                  value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value)}
-                  placeholder="1000"
-                  className="w-full p-2.5 rounded-xl border border-[#E6E2D8] bg-[#F8F6F0] font-mono-data font-bold text-gray-900"
-                />
-              </div>
-            </div>
+              <Button type="submit" size="lg" className="w-full">
+                {translateSync("Continue to review")}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </form>
+          )}
 
-            <button
-              type="submit"
-              className="w-full mt-4 py-3.5 rounded-xl bg-[#1A6B3A] hover:bg-[#14532D] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
-            >
-              <TranslatableText>Inspect Origin Route & Escrow</TranslatableText>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </form>
-        )}
-
-        {/* STEP 2: Origin Map & 70/20/10 Escrow Breakdown */}
-        {step === 2 && (
-          <div className="space-y-5 text-xs">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-gray-800">
-                <span className="flex items-center space-x-1.5">
-                  <Truck className="w-4 h-4 text-[#1A6B3A]" />
-                  <TranslatableText>Pan-Asian Origin Shipping Route</TranslatableText>
-                </span>
-                <span className="font-mono-data text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold">
-                  <TranslatableText>Distance</TranslatableText>: ~{buyerCoords.distance}
-                </span>
-              </div>
-
-              <div className="h-48 rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 relative">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  src={`https://www.google.com/maps/embed/v1/directions?key=${
-                    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
-                  }&origin=${artisanCoords.lat},${artisanCoords.lng}&destination=${buyerCoords.lat},${buyerCoords.lng}&mode=transit`}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px] p-3 bg-[#F8F6F0] rounded-xl">
-                <div>
-                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase block">
-                    Origin (Artisan Workshop)
-                  </TranslatableText>
-                  <p className="font-bold text-gray-900"><TranslatableText>{artisanCoords.name}</TranslatableText></p>
-                  <p className="text-gray-500 text-[10px]"><TranslatableText>{artisanCoords.city}</TranslatableText></p>
+          {/* STEP 2: Route + 70/20/10 breakdown */}
+          {step === 2 && (
+            <div className="space-y-6">
+              <section className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2 font-medium text-ink">
+                    <Truck className="w-4 h-4 text-pine-500" />
+                    {translateSync("Shipping route")}
+                  </span>
+                  <span className="text-ink-3 tabular">~{buyerCoords.distance}</span>
                 </div>
-                <div>
-                  <TranslatableText className="text-[10px] text-gray-400 font-bold uppercase block">
-                    Destination (Your Delivery)
-                  </TranslatableText>
-                  <p className="font-bold text-gray-900">{fullName}</p>
-                  <p className="text-gray-500 text-[10px]">{city}, {country}</p>
+                <div className="h-44 rounded-md overflow-hidden border border-line bg-paper-2">
+                  <iframe
+                    title={translateSync("Shipping route map")}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}&origin=${artisanCoords.lat},${artisanCoords.lng}&destination=${buyerCoords.lat},${buyerCoords.lng}&mode=transit`}
+                  />
                 </div>
+                <dl className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <dt className="text-xs text-ink-3">{translateSync("From")}</dt>
+                    <dd className="font-medium text-ink">{translateSync(artisanCoords.name)}</dd>
+                    <dd className="text-xs text-ink-3">{translateSync(artisanCoords.city)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-ink-3">{translateSync("To")}</dt>
+                    <dd className="font-medium text-ink">{fullName}</dd>
+                    <dd className="text-xs text-ink-3">
+                      {city}, {country}
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section className="rounded-md border border-line p-4 space-y-4">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-sm font-semibold text-ink font-sans">{translateSync("Where your money goes")}</h3>
+                  <span className="tabular text-lg font-semibold text-ink">{formatCurrency(totalPrice)}</span>
+                </div>
+                <EscrowBar amount={totalPrice} ngoName={checkoutItems[0]?.ngoFundName} compact />
+              </section>
+
+              {orderError && (
+                <div className="flex items-start gap-2 rounded-md bg-danger-100 border border-danger/20 px-3 py-2.5 text-sm text-danger" role="alert">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  {translateSync(orderError)}
+                </div>
+              )}
+
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <Button variant="secondary" size="lg" type="button" onClick={() => setStep(1)}>
+                  <ArrowLeft className="w-4 h-4" />
+                  {translateSync("Back")}
+                </Button>
+                <Button variant="primary" size="lg" className="flex-1" onClick={handleExecutePayment} loading={processing}>
+                  {!processing && <Lock className="w-4 h-4" />}
+                  {processing
+                    ? translateSync("Placing order and issuing pass…")
+                    : user
+                    ? `${translateSync("Pay")} ${formatCurrency(totalPrice)} ${translateSync("with Google Wallet")}`
+                    : translateSync("Sign in with Google to pay")}
+                </Button>
               </div>
             </div>
+          )}
 
-            {/* 70/20/10 Escrow Split Details */}
-            <div className="p-4 rounded-2xl bg-white border border-[#E6E2D8] space-y-2.5 shadow-sm">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                <TranslatableText className="font-bold text-gray-900 uppercase">
-                  Audited 70/20/10 Escrow Distribution
-                </TranslatableText>
-                <span className="font-mono-data font-black text-gray-900 text-sm">
-                  {formatCurrency(totalPrice)} USD
-                </span>
+          {/* STEP 3: Order Completed */}
+          {step === 3 && orderResult && (
+            <div className="space-y-6">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 text-success shrink-0 mt-0.5" />
+                <p className="text-[15px] text-ink-2">
+                  {translateSync("You diverted")} <strong className="text-ink">{formatNumber(totalKg)} kg</strong>{" "}
+                  {translateSync("of festival material and supported")} <strong className="text-ink">{translateSync(checkoutItems[0]?.artisanName || "the artisan")}</strong>.{" "}
+                  {translateSync("Your Verified Impact Pass is ready.")}
+                </p>
               </div>
 
-              <div className="space-y-1.5 text-[11px]">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center space-x-1.5 text-gray-700">
-                    <Heart className="w-3.5 h-3.5 text-blue-600" />
-                    <TranslatableText>70% Direct Fair-Trade Artisan Payout</TranslatableText>
-                  </span>
-                  <span className="font-mono-data font-bold text-blue-700">
-                    {formatCurrency(escrow.artisanPayout)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center space-x-1.5 text-gray-700">
-                    <Scale className="w-3.5 h-3.5 text-emerald-600" />
-                    <TranslatableText>20% Municipal Collection Logistics & Platform</TranslatableText>
-                  </span>
-                  <span className="font-mono-data font-bold text-emerald-700">
-                    {formatCurrency(escrow.platformFee)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center space-x-1.5 text-gray-700">
-                    <Leaf className="w-3.5 h-3.5 text-amber-600" />
-                    <TranslatableText>10% Environmental NGO Trust Fund</TranslatableText>
-                  </span>
-                  <span className="font-mono-data font-bold text-amber-700">
-                    {formatCurrency(escrow.ngoContribution)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-4 py-3.5 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 flex items-center space-x-1.5"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <TranslatableText>Edit Address</TranslatableText>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleExecutePayment}
-                disabled={processing}
-                className="flex-1 py-3.5 rounded-xl bg-[#D9532F] hover:bg-[#B84223] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-              >
-                {processing ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <TranslatableText>Executing Escrow & Minting Google Wallet Pass...</TranslatableText>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <TranslatableText>
-                      {user ? `Pay with Google Wallet (${formatCurrency(totalPrice)})` : "Sign In with Google to Complete"}
-                    </TranslatableText>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Order Completed */}
-        {step === 3 && orderResult && (
-          <div className="space-y-6 text-center">
-            <div className="p-6 bg-gradient-to-br from-amber-50 to-emerald-50 rounded-3xl border-2 border-emerald-300 space-y-4 shadow-lg">
-              <div className="w-20 h-20 bg-emerald-100 text-[#1A6B3A] rounded-full flex items-center justify-center mx-auto shadow-md ring-4 ring-emerald-200">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
-
-              <div>
-                <TranslatableHeading level={3} className="text-xl font-bold text-gray-900 mt-2">
-                  Order confirmed
-                </TranslatableHeading>
-                <TranslatableParagraph className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                  You successfully diverted {formatNumber(totalKg)} kg of festival material and directly supported artisan {checkoutItems[0]?.artisanName}.
-                </TranslatableParagraph>
-              </div>
-
-              <div className="flex flex-col items-center justify-center pt-2">
+              <div className="flex justify-center rounded-md bg-paper border border-line py-6">
                 <QRCodeViewer
-                  value={`https://heritech.app/verify/${orderResult.walletPass?.serial || "HT-519-PH"}`}
-                  size={140}
-                  label={`PASS SERIAL: ${orderResult.walletPass?.serial || "HT-519-PH"}`}
-                  sublabel={translateSync("Scan with standard phone camera to view origin record")}
+                  value={`${origin}/verify/${serial}`}
+                  size={148}
+                  label={`${translateSync("Pass")} ${serial}`}
+                  sublabel={translateSync("Scan with a phone camera to view the full origin record")}
                 />
               </div>
-            </div>
 
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center justify-between text-left">
-              <div>
-                <TranslatableText className="font-bold">Notification sent to artisan:</TranslatableText>
-                <TranslatableParagraph className="text-[11px] text-blue-700">
-                  {checkoutItems[0]?.artisanName} was notified to begin preparation and shipping.
-                </TranslatableParagraph>
+              <div className="flex items-center justify-between gap-3 rounded-md border border-line px-4 py-3 text-sm">
+                <p className="text-ink-2">
+                  {translateSync(checkoutItems[0]?.artisanName || "The artisan")} {translateSync("has been notified to prepare your order.")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    setTimeout(() => window.dispatchEvent(new CustomEvent("open-messages")), 200);
+                  }}
+                  className={buttonClass("ghost", "sm", "shrink-0")}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  {translateSync("Messages")}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent("open-messages"));
-                  }, 200);
-                }}
-                className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-[11px] whitespace-nowrap hover:bg-blue-700 ml-3 cursor-pointer"
-              >
-                <TranslatableText>Open messages</TranslatableText>
-              </button>
-            </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <Link
-                href="/profile"
-                onClick={onClose}
-                className="px-5 py-2.5 rounded-xl bg-[#1A6B3A] text-white text-xs font-bold shadow-md hover:bg-[#14532D]"
-              >
-                <TranslatableText>View order in profile</TranslatableText>
-              </Link>
-
-              <Link
-                href={`/verify/${orderResult.walletPass?.serial || "HT-519-PH"}`}
-                onClick={onClose}
-                className="px-5 py-2.5 rounded-xl bg-white border border-[#E6E2D8] text-gray-800 text-xs font-bold hover:bg-gray-50 flex items-center space-x-1.5"
-              >
-                <TranslatableText>Inspect Public Ledger</TranslatableText>
-                <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
-              </Link>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Link href={`/verify/${serial}`} onClick={onClose} className={buttonClass("primary", "lg")}>
+                  {translateSync("View public record")}
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
+                <Link href="/profile" onClick={onClose} className={buttonClass("secondary", "lg")}>
+                  {translateSync("Go to my passes")}
+                </Link>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

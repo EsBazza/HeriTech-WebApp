@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { ArrowLeft, Send, X } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { Badge, controlClass } from "@/components/ui";
 
 interface Message {
   role: "user" | "assistant";
@@ -286,142 +288,87 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
 
   if (!isOpen) return null;
 
+  const closeAll = () => {
+    handleBackToInbox();
+    onClose();
+  };
+
   return (
     <>
-      {/* Backdrop */}
-      <div
-        onClick={() => {
-          handleBackToInbox();
-          onClose();
-        }}
-        className="fixed inset-0 bg-black/35 backdrop-blur-[2px] z-50 transition-opacity duration-300"
-        aria-hidden="true"
-      />
+      <div onClick={closeAll} className="fixed inset-0 bg-pine-900/40 backdrop-blur-[2px] z-50" aria-hidden="true" />
 
-      <div
+      <aside
         role="dialog"
         aria-modal="true"
-        className="fixed inset-y-0 right-0 w-full sm:w-[380px] bg-[#FAF7F2] border-l border-[rgba(125,90,60,0.15)] shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-out animate-in slide-in-from-right duration-200"
+        aria-labelledby="messages-title"
+        className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-surface shadow-pop z-50 flex flex-col"
       >
-        {/* Top Header Bar */}
-        <div className="h-16 px-4 border-b border-[rgba(125,90,60,0.12)] flex items-center justify-between bg-[#FAF7F2] shrink-0">
-          <div className="flex items-center space-x-2.5">
+        <div className="h-16 px-4 border-b border-line flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-1 min-w-0">
             {activeThreadId && (
               <button
                 onClick={handleBackToInbox}
-                className="p-1 -ml-1 text-[#3D2B1F] hover:text-[#7D5A3C] transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
-                aria-label="Back to inbox"
+                className="w-10 h-10 -ml-2 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer"
+                aria-label={translateSync("Back to inbox")}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M19 12H5M12 19l-7-7 7-7"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ArrowLeft className="w-5 h-5" />
               </button>
             )}
-            <h2 className="font-display text-xl font-semibold text-[#2E1E12]">
-              {activeThread ? activeThread.name : translateSync("Inbox")}
-            </h2>
+            <div className="min-w-0">
+              <h2 id="messages-title" className="font-display text-2xl font-semibold text-ink truncate leading-tight">
+                {activeThread ? translateSync(activeThread.name) : translateSync("Messages")}
+              </h2>
+              {activeThread?.isBot && <p className="text-xs text-ink-3 leading-tight">{translateSync("Powered by Gemini")}</p>}
+            </div>
           </div>
 
           <button
-            onClick={() => {
-              handleBackToInbox();
-              onClose();
-            }}
-            className="p-2 text-[#3D2B1F] hover:text-[#7D5A3C] transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="Close messages panel"
+            onClick={closeAll}
+            className="w-10 h-10 -mr-2 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer"
+            aria-label={translateSync("Close messages")}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M18 6L6 18M6 6l12 12"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Main Content Area */}
         {!activeThreadId ? (
-          /* Conversation List View (Inbox) */
-          <div className="flex-1 overflow-y-auto divide-y divide-[rgba(125,90,60,0.08)]">
+          <div className="flex-1 overflow-y-auto divide-y divide-line">
             {threads.map((t) => {
               const hasDraft = Boolean(drafts[t.id]?.trim());
+              const last = t.messages[t.messages.length - 1]?.content;
 
               return (
                 <button
                   key={t.id}
                   onClick={() => handleOpenThread(t.id)}
-                  className={`w-full p-4 flex items-start space-x-3 text-left transition-colors cursor-pointer hover:bg-[rgba(125,90,60,0.04)] ${
-                    t.unread ? "bg-[rgba(125,90,60,0.06)] font-semibold" : ""
-                  } ${t.isBot ? "bg-[rgba(200,169,106,0.06)]" : ""}`}
+                  className="w-full px-4 py-3.5 flex items-start gap-3 text-left transition-colors cursor-pointer hover:bg-pine-50"
                 >
                   {t.isBot ? (
-                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[rgba(125,90,60,0.2)] bg-[#3D2B1F] flex items-center justify-center">
-                      <Image
-                        src="/logo_heritech-removebg-preview.png"
-                        alt="Bot"
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-contain"
-                      />
+                    <div className="w-10 h-10 rounded-full shrink-0 bg-pine-100 flex items-center justify-center">
+                      <Image src="/logo_heritech-removebg-preview.png" alt="" width={28} height={28} className="w-7 h-7 object-contain" />
                     </div>
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-[rgba(125,90,60,0.12)] text-[#7D5A3C] font-bold text-xs flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-paper-2 text-ink-2 font-semibold text-xs flex items-center justify-center shrink-0">
                       {t.avatarText || t.name.slice(0, 2).toUpperCase()}
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1.5 truncate">
-                        <span className="font-semibold text-sm text-[#2E1E12] truncate">
-                          {t.name}
-                        </span>
-                        {t.isBot && (
-                          <span className="text-[9px] uppercase tracking-wider font-bold bg-[#3D2B1F] text-[#EDE0C4] px-1.5 py-0.5 rounded-[1px]">
-                            AI
-                          </span>
-                        )}
-                        {hasDraft && (
-                          <span className="text-[9px] uppercase tracking-wider font-extrabold bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] px-1.5 py-0.2 rounded-[2px]">
-                            Draft
-                          </span>
-                        )}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className={`text-sm text-ink truncate ${t.unread ? "font-semibold" : "font-medium"}`}>{translateSync(t.name)}</span>
+                        {t.isBot && <Badge tone="pine">AI</Badge>}
                       </div>
-                      {t.time && (
-                        <span className="text-[10px] text-[rgba(92,74,56,0.6)] shrink-0 ml-2">
-                          {t.time}
-                        </span>
-                      )}
+                      {t.time && <span className="text-xs text-ink-3 shrink-0">{translateSync(t.time)}</span>}
                     </div>
-
-                    <p className="text-xs text-[rgba(92,74,56,0.8)] truncate mt-0.5">
-                      {t.subtitle}
-                    </p>
-
+                    <p className="text-xs text-ink-3 truncate mt-0.5">{translateSync(t.subtitle)}</p>
                     {hasDraft ? (
-                      <p className="text-xs truncate mt-1 flex items-center space-x-1">
-                        <span className="text-[#DC2626] font-bold text-[11px]">
-                          Draft:
-                        </span>
-                        <span className="text-[rgba(92,74,56,0.85)] italic truncate">
-                          {drafts[t.id]}
-                        </span>
+                      <p className="text-sm truncate mt-1">
+                        <span className="text-lantern-600 font-medium">{translateSync("Draft")}: </span>
+                        <span className="text-ink-2">{drafts[t.id]}</span>
                       </p>
                     ) : (
-                      t.messages.length > 0 && (
-                        <p className="text-xs text-[rgba(92,74,56,0.7)] truncate mt-1">
-                          {t.messages[t.messages.length - 1].content}
-                        </p>
-                      )
+                      last && <p className="text-sm text-ink-2 truncate mt-1">{last}</p>
                     )}
                   </div>
                 </button>
@@ -429,21 +376,13 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
             })}
           </div>
         ) : (
-          /* Conversation Thread View */
-          <div className="flex-1 flex flex-col justify-between overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-paper">
               {activeThread?.messages?.map((m, idx) => (
-                <div
-                  key={idx}
-                  className={`flex flex-col ${
-                    m.role === "user" ? "items-end" : "items-start"
-                  }`}
-                >
+                <div key={idx} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[85%] p-3 rounded-[4px] text-[13px] leading-relaxed ${
-                      m.role === "user"
-                        ? "bg-[rgba(200,169,106,0.2)] border border-[rgba(200,169,106,0.3)] text-[#2E1E12]"
-                        : "bg-[rgba(125,90,60,0.06)] border border-[rgba(125,90,60,0.1)] text-[#3D2B1F]"
+                    className={`max-w-[85%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed whitespace-pre-wrap ${
+                      m.role === "user" ? "bg-pine-700 text-white rounded-br-sm" : "bg-surface border border-line text-ink-2 rounded-bl-sm"
                     }`}
                   >
                     {m.content}
@@ -451,18 +390,21 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
                 </div>
               ))}
 
-              {/* Thinking / Typing State */}
               {isBotThinking && (
-                <div className="text-xs italic text-[rgba(92,74,56,0.65)] pl-1 py-1">
+                <div className="flex items-center gap-2 text-sm text-ink-3 pl-1">
+                  <span className="flex gap-1" aria-hidden>
+                    <span className="w-1.5 h-1.5 rounded-full bg-ink-3 animate-bounce [animation-delay:-0.2s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-ink-3 animate-bounce [animation-delay:-0.1s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-ink-3 animate-bounce" />
+                  </span>
                   {activeThread?.isBot
-                    ? translateSync("HeriTech is thinking...")
-                    : `${activeThread?.name || translateSync("Artisan")} is typing...`}
+                    ? translateSync("HeriTech is thinking")
+                    : `${activeThread?.name || translateSync("Artisan")} ${translateSync("is typing")}`}
                 </div>
               )}
 
-              {/* Chatbot Error State */}
               {botError && (
-                <div className="text-xs text-red-600 pl-1 py-1">
+                <div className="text-sm text-danger bg-danger-100 border border-danger/20 rounded-md px-3 py-2" role="alert">
                   {translateSync(botError)}
                 </div>
               )}
@@ -470,29 +412,27 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Bottom Message Input Form */}
-            <form
-              onSubmit={handleSendMessage}
-              className="p-3 border-t border-[rgba(125,90,60,0.12)] flex items-center space-x-2 bg-[#FAF7F2] shrink-0"
-            >
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-line flex items-center gap-2 shrink-0">
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => handleInputChange(e.target.value)}
-                placeholder={translateSync("Type a message...")}
-                className="flex-1 px-3 py-2 text-xs bg-white border border-[rgba(125,90,60,0.2)] rounded-[2px] text-[#2E1E12] placeholder-[rgba(92,74,56,0.5)] focus:outline-none focus:border-[#7D5A3C] min-h-[40px]"
+                placeholder={activeThread?.isBot ? translateSync("Ask about materials, payouts or passes…") : translateSync("Write a message…")}
+                aria-label={translateSync("Message")}
+                className={`${controlClass} h-11 flex-1`}
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim()}
-                className="px-3.5 py-2 bg-[#3D2B1F] hover:bg-[#5A3F2A] disabled:opacity-50 text-[#EDE0C4] text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors cursor-pointer min-h-[40px]"
+                className="w-11 h-11 rounded-md bg-pine-700 hover:bg-pine-600 disabled:opacity-40 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                aria-label={translateSync("Send")}
               >
-                {translateSync("Send")}
+                <Send className="w-4 h-4" />
               </button>
             </form>
           </div>
         )}
-      </div>
+      </aside>
     </>
   );
 }

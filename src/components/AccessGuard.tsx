@@ -1,11 +1,11 @@
 "use client";
 
-import React, { ReactNode } from "react";
-import Link from "next/link";
-import { ShieldAlert, Lock, ArrowLeft } from "lucide-react";
+import React, { ReactNode, useState } from "react";
+import { Lock, ShieldAlert, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { userRole, UserRole } from "@/lib/roleGuard";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { Button, Card, LinkButton, Spinner } from "@/components/ui";
 
 interface AccessGuardProps {
   children: ReactNode;
@@ -15,100 +15,78 @@ interface AccessGuardProps {
   description?: string;
 }
 
-export function AccessGuard({
-  children,
-  allowedRoles,
-  pageTitle = "Restricted Page",
-  requiredRoleLabel,
-  description,
-}: AccessGuardProps) {
-  const { user, loading, signInWithGoogle } = useAuth();
+const ROLE_NAMES: Record<UserRole, string> = {
+  artisan: "artisan",
+  lgu: "LGU officer",
+  admin: "admin",
+  buyer: "buyer",
+  guest: "guest",
+};
+
+export function AccessGuard({ children, allowedRoles, pageTitle = "this page", requiredRoleLabel, description }: AccessGuardProps) {
+  const { user, loading, signInWithGoogle, switchRole } = useAuth();
   const { translateSync } = useTranslation();
+  const [switching, setSwitching] = useState(false);
   const currentRole = userRole(user);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-[#2E6B4A] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <Spinner className="min-h-[60vh]" />;
   }
 
-  const isAllowed = allowedRoles.includes(currentRole);
+  if (allowedRoles.includes(currentRole)) {
+    return <>{children}</>;
+  }
 
-  if (!isAllowed) {
-    const roleTitle =
-      requiredRoleLabel ||
-      (allowedRoles.includes("artisan") && allowedRoles.length === 1
-        ? "Artisan Access Only"
-        : allowedRoles.includes("lgu") && allowedRoles.length === 1
-        ? "LGU Officer Access Only"
-        : allowedRoles.includes("admin") && allowedRoles.length === 1
-        ? "Administrator Access Only"
-        : "Restricted Access");
+  const isGuest = currentRole === "guest";
+  const needed = allowedRoles.map((r) => translateSync(ROLE_NAMES[r])).join(" / ");
+  // Demo convenience: offer the first non-admin role that can open this page.
+  const demoRole = (allowedRoles.find((r) => r !== "admin") ?? allowedRoles[0]) as "buyer" | "artisan" | "lgu" | "admin";
 
-    const defaultDesc =
-      description ||
-      (currentRole === "guest"
-        ? "You need to be signed in with an authorized account to access this page."
-        : `Your current role (${currentRole.toUpperCase()}) does not have permission to view ${pageTitle}.`);
+  const title = requiredRoleLabel || (isGuest ? translateSync("Sign in to continue") : `${translateSync(pageTitle)} ${translateSync("is for")} ${needed} ${translateSync("accounts")}`);
+  const body =
+    description ||
+    (isGuest
+      ? `${translateSync(pageTitle)} ${translateSync("is available to")} ${needed} ${translateSync("accounts. Sign in to continue.")}`
+      : `${translateSync("You're signed in as")} ${translateSync(ROLE_NAMES[currentRole])} (${user?.email}).`);
 
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4 py-16 bg-[#F8F6F0]">
-        <div className="max-w-md w-full bg-white border border-[#E6E2D8] rounded-3xl p-8 text-center space-y-6 shadow-xl relative overflow-hidden">
-          {/* Decorative Top Accent Bar */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-[#1A6B3A] to-blue-600" />
-
-          {/* Icon Badge */}
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mx-auto shadow-sm">
-            {currentRole === "guest" ? (
-              <Lock className="w-8 h-8 text-amber-600" />
-            ) : (
-              <ShieldAlert className="w-8 h-8 text-amber-600" />
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <span className="text-[10px] font-bold tracking-widest text-amber-800 uppercase bg-amber-100/70 px-3 py-1 rounded-full border border-amber-300 inline-block">
-              {translateSync("RBAC SECURITY PROTECTION")}
-            </span>
-            <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">
-              {translateSync(roleTitle)}
-            </h2>
-            <p className="text-xs text-gray-600 leading-relaxed font-medium">
-              {translateSync(defaultDesc)}
-            </p>
-          </div>
-
-          {/* Action buttons depending on signed in vs signed out */}
-          <div className="pt-2 space-y-3">
-            {currentRole === "guest" ? (
-              <button
-                onClick={signInWithGoogle}
-                className="w-full py-3.5 rounded-xl bg-[#2E6B4A] hover:bg-[#1E4D34] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <span>{translateSync("Sign In with Google")}</span>
-              </button>
-            ) : (
-              <div className="p-3 bg-[#F8F6F0] rounded-xl border border-gray-200 text-[11px] text-gray-500 font-mono-data">
-                {translateSync("Signed in as")}: <strong>{user?.email}</strong> ({currentRole.toUpperCase()})
-              </div>
-            )}
-
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center space-x-2 w-full py-3 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-bold transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>{translateSync("Return to Marketplace")}</span>
-            </Link>
-          </div>
+  return (
+    <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
+      <Card className="max-w-md w-full p-8 text-center space-y-6">
+        <span className="w-12 h-12 rounded-full bg-paper-2 text-ink-2 flex items-center justify-center mx-auto">
+          {isGuest ? <Lock className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+        </span>
+        <div className="space-y-2">
+          <h1 className="font-display text-[28px] leading-tight font-semibold text-ink">{title}</h1>
+          <p className="text-sm text-ink-2">{body}</p>
         </div>
-      </div>
-    );
-  }
 
-  return <>{children}</>;
+        <div className="space-y-3">
+          {isGuest ? (
+            <Button size="lg" className="w-full" onClick={signInWithGoogle}>
+              {translateSync("Sign in with Google")}
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              className="w-full"
+              loading={switching}
+              onClick={async () => {
+                setSwitching(true);
+                await switchRole(demoRole);
+                setSwitching(false);
+              }}
+            >
+              {translateSync("Demo: view as")} {translateSync(ROLE_NAMES[demoRole])}
+            </Button>
+          )}
+          <LinkButton href="/" variant="secondary" size="lg" className="w-full">
+            <ArrowLeft className="w-4 h-4" />
+            {translateSync("Back to shop")}
+          </LinkButton>
+        </div>
+      </Card>
+    </div>
+  );
 }
 
 export default AccessGuard;

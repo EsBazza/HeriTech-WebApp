@@ -4,6 +4,9 @@
  * - 20% -> LGU Logistics + Platform Operations
  * - 10% -> Verified Environmental NGO Trust Fund
  */
+/** Canonical split percentages — every screen must read from here. */
+export const SPLIT = { artisan: 70, platform: 20, ngo: 10 } as const;
+
 export interface EscrowSplit {
   totalAmount: number;
   artisanPayout: number;     // 70%

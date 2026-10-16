@@ -110,11 +110,11 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="bg-linen min-h-screen py-20 px-6">
-        <div className="max-w-md mx-auto p-8 bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] text-center space-y-5">
-          <div className="w-14 h-14 rounded-[2px] bg-[#7D5A3C]/10 border border-[#7D5A3C]/20 flex items-center justify-center mx-auto text-[#7D5A3C]">
+        <div className="max-w-md mx-auto p-8 bg-[var(--cream)] border border-[var(--border-light)] rounded-sm text-center space-y-5">
+          <div className="w-14 h-14 rounded-sm bg-pine-700/10 border border-line-strong/20 flex items-center justify-center mx-auto text-lantern-600">
             <User className="w-6 h-6" />
           </div>
-          <h2 className="font-display text-2xl font-medium text-[var(--bark)]">
+          <h2 className="font-display text-2xl font-medium text-ink">
             Account access required
           </h2>
           <p className="font-body text-sm text-[var(--warm-gray)] leading-relaxed">
@@ -122,7 +122,7 @@ export default function ProfilePage() {
           </p>
           <button
             onClick={signInWithGoogle}
-            className="w-full py-3 rounded-[2px] bg-[#C8A96A] hover:bg-[#DFC48E] text-[#3D2B1F] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer min-h-[44px]"
+            className="w-full py-3 rounded-sm bg-lantern hover:bg-lantern-100 text-ink text-xs font-bold transition-colors cursor-pointer min-h-[44px]"
           >
             {translateSync("Sign in with Google")}
           </button>
@@ -193,31 +193,31 @@ export default function ProfilePage() {
     <div className="bg-linen min-h-screen py-10 sm:py-14 px-4 sm:px-8 lg:px-12">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* 1. PROFILE HEADER */}
-        <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center space-x-4">
             {/* Avatar Circle */}
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
                 alt={user.fullName}
-                className="w-16 h-16 rounded-full object-cover border border-[#7D5A3C]/30"
+                className="w-16 h-16 rounded-full object-cover border border-line-strong/30"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-[#7D5A3C] text-[#EDE0C4] flex items-center justify-center font-display text-2xl font-bold border border-[#C8A96A]/30">
+              <div className="w-16 h-16 rounded-full bg-pine-700 text-white flex items-center justify-center font-display text-2xl font-bold border border-lantern/30">
                 {user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
               </div>
             )}
 
             <div className="space-y-1">
-              <h1 className="font-display text-2xl sm:text-3xl font-medium text-[var(--bark)] leading-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-medium text-ink leading-tight">
                 {user.fullName || "Registered Member"}
               </h1>
               <div className="flex items-center space-x-2">
-                <span className="text-[11px] uppercase tracking-[0.1em] font-bold px-2 py-0.5 rounded-[2px] bg-[#7D5A3C]/10 text-[#7D5A3C] border border-[#7D5A3C]/20">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-sm bg-pine-700/10 text-lantern-600 border border-line-strong/20">
                   {roleLabel}
                 </span>
                 {user.artisanVerified && (
-                  <span className="text-[11px] uppercase tracking-[0.1em] font-bold px-2 py-0.5 rounded-[2px] bg-[#4F7244]/10 text-[#4F7244] border border-[#4F7244]/25">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-sm bg-pine-500/10 text-pine-500 border border-pine-300/25">
                     Certified maker
                   </span>
                 )}
@@ -227,7 +227,7 @@ export default function ProfilePage() {
 
           <button
             onClick={() => setEditModalOpen(true)}
-            className="px-4 py-2.5 rounded-[2px] border border-[var(--border-mid)] hover:border-[#7D5A3C] text-[#7D5A3C] hover:bg-[#F2EDE3] text-xs uppercase tracking-wider font-bold transition-colors flex items-center space-x-1.5 cursor-pointer min-h-[44px]"
+            className="px-4 py-2.5 rounded-sm border border-[var(--border-mid)] hover:border-line-strong text-lantern-600 hover:bg-paper-2 text-xs font-bold transition-colors flex items-center space-x-1.5 cursor-pointer min-h-[44px]"
           >
             <Edit3 className="w-3.5 h-3.5" />
             <span>Edit profile</span>
@@ -237,14 +237,14 @@ export default function ProfilePage() {
         {/* Responsive Navigation Selector */}
         {/* Mobile Dropdown View Switcher (<640px) */}
         <div className="sm:hidden space-y-1">
-          <label className="text-[11px] uppercase tracking-[0.14em] font-bold text-[var(--warm-gray)]">
+          <label className="text-xs font-bold text-[var(--warm-gray)]">
             Select section
           </label>
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value)}
             aria-label="Select profile section"
-            className="w-full p-3 rounded-[2px] bg-[var(--cream)] border border-[var(--border-mid)] text-sm font-medium text-[var(--bark)] min-h-[44px]"
+            className="w-full p-3 rounded-sm bg-[var(--cream)] border border-[var(--border-mid)] text-sm font-medium text-ink min-h-[44px]"
           >
             {navigationItems.map((item) => (
               <option key={item.id} value={item.id}>
@@ -262,10 +262,10 @@ export default function ProfilePage() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`px-4 py-2.5 text-xs uppercase tracking-wider font-bold rounded-[2px] whitespace-nowrap transition-colors min-h-[44px] ${
+                className={`px-4 py-2.5 text-xs font-bold rounded-sm whitespace-nowrap transition-colors min-h-[44px] ${
                   active
-                    ? "bg-[#7D5A3C] text-[#EDE0C4]"
-                    : "text-[var(--warm-gray)] hover:bg-[#F2EDE3] hover:text-[var(--bark)]"
+                    ? "bg-pine-700 text-white"
+                    : "text-[var(--warm-gray)] hover:bg-paper-2 hover:text-ink"
                 }`}
               >
                 {item.label}
@@ -277,8 +277,8 @@ export default function ProfilePage() {
         {/* Desktop Sidebar + Content Layout (>=1024px) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Desktop Left Sidebar */}
-          <aside className="hidden lg:block lg:col-span-4 space-y-1 bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-3 h-fit">
-            <div className="px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-bold text-[var(--warm-gray)] border-b border-[var(--border-light)] mb-2">
+          <aside className="hidden lg:block lg:col-span-4 space-y-1 bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-3 h-fit">
+            <div className="px-3 py-2 text-xs font-bold text-[var(--warm-gray)] border-b border-[var(--border-light)] mb-2">
               Profile sections
             </div>
             {navigationItems.map((item) => {
@@ -288,10 +288,10 @@ export default function ProfilePage() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 text-xs uppercase tracking-wider font-bold rounded-[2px] transition-colors text-left cursor-pointer min-h-[44px] ${
+                  className={`w-full flex items-center justify-between px-3.5 py-3 text-xs font-bold rounded-sm transition-colors text-left cursor-pointer min-h-[44px] ${
                     active
-                      ? "bg-[#7D5A3C] text-[#EDE0C4]"
-                      : "text-[var(--warm-gray)] hover:bg-[#F2EDE3] hover:text-[var(--bark)]"
+                      ? "bg-pine-700 text-white"
+                      : "text-[var(--warm-gray)] hover:bg-paper-2 hover:text-ink"
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
@@ -308,43 +308,43 @@ export default function ProfilePage() {
           <main className="lg:col-span-8 space-y-8">
             {/* 2. PERSONAL INFO SECTION */}
             {(activeTab === "personal" || activeTab === "all") && (
-              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
-                <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-[var(--border-light)]">
                   Personal info
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                    <p className="text-xs font-medium text-[var(--warm-gray)]">
                       Full name
                     </p>
-                    <p className="text-[15px] font-medium text-[var(--bark)]">
+                    <p className="text-[15px] font-medium text-ink">
                       {user.fullName || "Not specified"}
                     </p>
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                    <p className="text-xs font-medium text-[var(--warm-gray)]">
                       Email address
                     </p>
-                    <p className="text-[15px] font-mono-data text-[var(--bark)] truncate">
+                    <p className="text-[15px] font-mono-data text-ink truncate">
                       {user.email}
                     </p>
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                    <p className="text-xs font-medium text-[var(--warm-gray)]">
                       Region or location
                     </p>
-                    <p className="text-[15px] font-medium text-[var(--bark)]">
+                    <p className="text-[15px] font-medium text-ink">
                       {user.country || "Philippines"}
                     </p>
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                    <p className="text-xs font-medium text-[var(--warm-gray)]">
                       Language preference
                     </p>
-                    <p className="text-[15px] font-medium text-[var(--bark)]">
+                    <p className="text-[15px] font-medium text-ink">
                       {currentLanguage?.name || "English (en)"}
                     </p>
                   </div>
@@ -355,53 +355,53 @@ export default function ProfilePage() {
             {/* 3. COOPERATIVE / ORGANIZATION SECTION (Artisan / LGU) */}
             {(activeTab === "cooperative" || activeTab === "all") &&
               (role === "artisan" || role === "lgu" || role === "admin") && (
-                <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
-                  <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+                <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-6 sm:p-8 space-y-6">
+                  <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-[var(--border-light)]">
                     Cooperative record
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      <p className="text-xs font-medium text-[var(--warm-gray)]">
                         {role === "lgu" ? "Municipal station" : "Cooperative name"}
                       </p>
-                      <p className="text-[15px] font-medium text-[var(--bark)]">
+                      <p className="text-[15px] font-medium text-ink">
                         {user.workshopName || user.stationName || "Cordillera Botanical Cooperative"}
                       </p>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      <p className="text-xs font-medium text-[var(--warm-gray)]">
                         Certification status
                       </p>
                       <div className="pt-0.5">
-                        <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-[2px] bg-[#4F7244]/10 text-[#4F7244] border border-[#4F7244]/25 inline-block">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-sm bg-pine-500/10 text-pine-500 border border-pine-300/25 inline-block">
                           Verified maker
                         </span>
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      <p className="text-xs font-medium text-[var(--warm-gray)]">
                         Materials handled
                       </p>
                       <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-[1px] bg-[#F2EDE3] text-[var(--bark)] border border-[var(--border-light)]">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-sm bg-paper-2 text-ink border border-[var(--border-light)]">
                           Highland Bamboo
                         </span>
-                        <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-[1px] bg-[#F2EDE3] text-[var(--bark)] border border-[var(--border-light)]">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-sm bg-paper-2 text-ink border border-[var(--border-light)]">
                           Botanical Flora
                         </span>
-                        <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-[1px] bg-[#F2EDE3] text-[var(--bark)] border border-[var(--border-light)]">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-sm bg-paper-2 text-ink border border-[var(--border-light)]">
                           Mulberry Paper
                         </span>
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-[var(--warm-gray)]">
+                      <p className="text-xs font-medium text-[var(--warm-gray)]">
                         Region of operation
                       </p>
-                      <p className="text-[15px] font-medium text-[var(--bark)]">
+                      <p className="text-[15px] font-medium text-ink">
                         Benguet & Cordillera Administrative Region
                       </p>
                     </div>
@@ -411,34 +411,34 @@ export default function ProfilePage() {
 
             {/* 4. ACTIVITY SUMMARY SECTION */}
             {(activeTab === "activity" || activeTab === "all") && (
-              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
-                <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-[var(--border-light)]">
                   Activity summary
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 bg-[#F2EDE3] border border-[var(--border-light)] rounded-[2px] space-y-1">
-                    <p className="text-[12px] uppercase tracking-wider font-medium text-[var(--warm-gray)]">
+                  <div className="p-4 bg-paper-2 border border-[var(--border-light)] rounded-sm space-y-1">
+                    <p className="text-[12px] font-medium text-[var(--warm-gray)]">
                       Batches scanned
                     </p>
-                    <p className="font-display text-2xl font-semibold text-[var(--bark)]">
+                    <p className="font-display text-2xl font-semibold text-ink">
                       {totalBatchesScanned}
                     </p>
                   </div>
 
-                  <div className="p-4 bg-[#F2EDE3] border border-[var(--border-light)] rounded-[2px] space-y-1">
-                    <p className="text-[12px] uppercase tracking-wider font-medium text-[var(--warm-gray)]">
+                  <div className="p-4 bg-paper-2 border border-[var(--border-light)] rounded-sm space-y-1">
+                    <p className="text-[12px] font-medium text-[var(--warm-gray)]">
                       Orders completed
                     </p>
-                    <p className="font-display text-2xl font-semibold text-[var(--bark)]">
+                    <p className="font-display text-2xl font-semibold text-ink">
                       {totalOrdersCompleted}
                     </p>
                   </div>
 
-                  <div className="p-4 bg-[#F2EDE3] border border-[var(--border-light)] rounded-[2px] space-y-1">
-                    <p className="text-[12px] uppercase tracking-wider font-medium text-[var(--warm-gray)]">
+                  <div className="p-4 bg-paper-2 border border-[var(--border-light)] rounded-sm space-y-1">
+                    <p className="text-[12px] font-medium text-[var(--warm-gray)]">
                       Kilograms diverted
                     </p>
-                    <p className="font-display text-2xl font-semibold text-[#4F7244]">
+                    <p className="font-display text-2xl font-semibold text-pine-500">
                       {formatNumber(totalKgDiverted)} kg
                     </p>
                   </div>
@@ -448,12 +448,12 @@ export default function ProfilePage() {
 
             {/* 5. IMPACT RECORD SECTION */}
             {(activeTab === "impact" || activeTab === "all") && (
-              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-6 sm:p-8 space-y-6">
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--border-light)]">
-                  <h2 className="font-display text-xl font-medium text-[var(--bark)]">
+                  <h2 className="font-display text-xl font-medium text-ink">
                     Impact record
                   </h2>
-                  <span className="text-[11px] font-mono-data text-[var(--warm-gray)] uppercase">
+                  <span className="text-xs font-mono-data text-[var(--warm-gray)]">
                     Audit log
                   </span>
                 </div>
@@ -461,7 +461,7 @@ export default function ProfilePage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-[var(--border-mid)] text-[11px] uppercase tracking-wider text-[var(--warm-gray)]">
+                      <tr className="border-b border-[var(--border-mid)] text-xs text-[var(--warm-gray)]">
                         <th className="pb-3 font-semibold">Date</th>
                         <th className="pb-3 font-semibold">Material</th>
                         <th className="pb-3 font-semibold">Origin event</th>
@@ -469,14 +469,14 @@ export default function ProfilePage() {
                         <th className="pb-3 font-semibold text-right">Escrow payout</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--border-light)] text-[var(--bark)]">
+                    <tbody className="divide-y divide-[var(--border-light)] text-ink">
                       {mockImpactRows.map((row) => (
-                        <tr key={row.id} className="hover:bg-[#F2EDE3]/50 transition-colors">
+                        <tr key={row.id} className="hover:bg-paper-2/50 transition-colors">
                           <td className="py-3.5 font-mono-data text-[var(--warm-gray)]">{row.date}</td>
                           <td className="py-3.5 font-medium">{row.material}</td>
                           <td className="py-3.5 text-[var(--warm-gray)]">{row.festival}</td>
                           <td className="py-3.5 font-mono-data">{row.quantityKg} kg</td>
-                          <td className="py-3.5 font-display text-sm font-semibold text-[#4F7244] text-right">
+                          <td className="py-3.5 font-display text-sm font-semibold text-pine-500 text-right">
                             {formatCurrency(row.payoutUsd)}
                           </td>
                         </tr>
@@ -489,8 +489,8 @@ export default function ProfilePage() {
 
             {/* 6. ACCOUNT SETTINGS SECTION */}
             {(activeTab === "settings" || activeTab === "all") && (
-              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-[4px] p-6 sm:p-8 space-y-6">
-                <h2 className="font-display text-xl font-medium text-[var(--bark)] pb-3 border-b border-[var(--border-light)]">
+              <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-[var(--border-light)]">
                   Account settings
                 </h2>
 
@@ -498,7 +498,7 @@ export default function ProfilePage() {
                   {/* Notification preference toggles */}
                   <div className="flex items-center justify-between py-2 border-b border-[var(--border-light)] min-h-[44px]">
                     <div>
-                      <p className="text-sm font-medium text-[var(--bark)]">Email notifications</p>
+                      <p className="text-sm font-medium text-ink">Email notifications</p>
                       <p className="text-xs text-[var(--warm-gray)]">
                         Receive harvest reservation updates and shipping confirmations
                       </p>
@@ -508,13 +508,13 @@ export default function ProfilePage() {
                       checked={emailAlerts}
                       onChange={(e) => setEmailAlerts(e.target.checked)}
                       aria-label="Toggle email notifications"
-                      className="w-4 h-4 accent-[#7D5A3C] cursor-pointer"
+                      className="w-4 h-4 accent-pine-700 cursor-pointer"
                     />
                   </div>
 
                   <div className="flex items-center justify-between py-2 border-b border-[var(--border-light)] min-h-[44px]">
                     <div>
-                      <p className="text-sm font-medium text-[var(--bark)]">Order alerts</p>
+                      <p className="text-sm font-medium text-ink">Order alerts</p>
                       <p className="text-xs text-[var(--warm-gray)]">
                         Notify immediately when an artisan piece is purchased
                       </p>
@@ -524,14 +524,14 @@ export default function ProfilePage() {
                       checked={orderUpdates}
                       onChange={(e) => setOrderUpdates(e.target.checked)}
                       aria-label="Toggle order alerts"
-                      className="w-4 h-4 accent-[#7D5A3C] cursor-pointer"
+                      className="w-4 h-4 accent-pine-700 cursor-pointer"
                     />
                   </div>
 
                   {/* Language Selector row */}
                   <div className="flex items-center justify-between py-3 border-b border-[var(--border-light)]">
                     <div>
-                      <p className="text-sm font-medium text-[var(--bark)]">Interface language</p>
+                      <p className="text-sm font-medium text-ink">Interface language</p>
                       <p className="text-xs text-[var(--warm-gray)]">
                         Change the active UI translation across the platform
                       </p>
@@ -543,7 +543,7 @@ export default function ProfilePage() {
                   <div className="pt-4">
                     <button
                       onClick={signOut}
-                      className="w-full py-3 rounded-[2px] bg-red-950/20 hover:bg-red-900/30 text-red-700 border border-red-800/30 text-xs uppercase tracking-wider font-bold transition-colors flex items-center justify-center space-x-2 cursor-pointer min-h-[44px]"
+                      className="w-full py-3 rounded-sm bg-danger/20 hover:bg-danger/30 text-danger border border-danger/30 text-xs font-bold transition-colors flex items-center justify-center space-x-2 cursor-pointer min-h-[44px]"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign out of HeriTech</span>
@@ -559,14 +559,14 @@ export default function ProfilePage() {
       {/* Edit Profile Modal */}
       {editModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[var(--cream)] border border-[var(--border-mid)] rounded-[4px] max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="bg-[var(--cream)] border border-[var(--border-mid)] rounded-sm max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-pop">
             <div className="flex items-center justify-between border-b border-[var(--border-light)] pb-3">
-              <h3 className="font-display text-xl font-medium text-[var(--bark)]">
+              <h3 className="font-display text-xl font-medium text-ink">
                 Edit personal info
               </h3>
               <button
                 onClick={() => setEditModalOpen(false)}
-                className="p-1 rounded-[2px] text-[var(--warm-gray)] hover:text-[var(--bark)] cursor-pointer"
+                className="p-1 rounded-sm text-[var(--warm-gray)] hover:text-ink cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -574,58 +574,58 @@ export default function ProfilePage() {
 
             <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-semibold text-[var(--bark)]">Full name</label>
+                <label className="font-semibold text-ink">Full name</label>
                 <input
                   type="text"
                   required
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
-                  className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
+                  className="w-full p-2.5 rounded-sm bg-paper border border-[var(--border-mid)] text-sm text-ink"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold text-[var(--bark)]">Region / country</label>
+                <label className="font-semibold text-ink">Region / country</label>
                 <input
                   type="text"
                   required
                   value={editCountry}
                   onChange={(e) => setEditCountry(e.target.value)}
-                  className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
+                  className="w-full p-2.5 rounded-sm bg-paper border border-[var(--border-mid)] text-sm text-ink"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold text-[var(--bark)]">Avatar image URL</label>
+                <label className="font-semibold text-ink">Avatar image URL</label>
                 <input
                   type="url"
                   value={editAvatarUrl}
                   onChange={(e) => setEditAvatarUrl(e.target.value)}
                   placeholder="https://example.com/avatar.jpg"
-                  className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
+                  className="w-full p-2.5 rounded-sm bg-paper border border-[var(--border-mid)] text-sm text-ink"
                 />
               </div>
 
               {(role === "artisan" || role === "admin") && (
                 <div className="space-y-1">
-                  <label className="font-semibold text-[var(--bark)]">Cooperative workshop name</label>
+                  <label className="font-semibold text-ink">Cooperative workshop name</label>
                   <input
                     type="text"
                     value={editWorkshop}
                     onChange={(e) => setEditWorkshop(e.target.value)}
-                    className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
+                    className="w-full p-2.5 rounded-sm bg-paper border border-[var(--border-mid)] text-sm text-ink"
                   />
                 </div>
               )}
 
               {(role === "lgu" || role === "admin") && (
                 <div className="space-y-1">
-                  <label className="font-semibold text-[var(--bark)]">LGU municipal station</label>
+                  <label className="font-semibold text-ink">LGU municipal station</label>
                   <input
                     type="text"
                     value={editStation}
                     onChange={(e) => setEditStation(e.target.value)}
-                    className="w-full p-2.5 rounded-[2px] bg-[#FAF7F2] border border-[var(--border-mid)] text-sm text-[var(--bark)]"
+                    className="w-full p-2.5 rounded-sm bg-paper border border-[var(--border-mid)] text-sm text-ink"
                   />
                 </div>
               )}
@@ -634,14 +634,14 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setEditModalOpen(false)}
-                  className="px-4 py-2.5 rounded-[2px] border border-[var(--border-mid)] text-[var(--warm-gray)] text-xs uppercase tracking-wider font-bold min-h-[44px]"
+                  className="px-4 py-2.5 rounded-sm border border-[var(--border-mid)] text-[var(--warm-gray)] text-xs font-bold min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="px-5 py-2.5 rounded-[2px] bg-[#7D5A3C] hover:bg-[#5A3F2A] text-[#EDE0C4] text-xs uppercase tracking-wider font-bold transition-colors disabled:opacity-50 min-h-[44px]"
+                  className="px-5 py-2.5 rounded-sm bg-pine-700 hover:bg-pine-600 text-white text-xs font-bold transition-colors disabled:opacity-50 min-h-[44px]"
                 >
                   {savingProfile ? "Saving..." : "Save changes"}
                 </button>

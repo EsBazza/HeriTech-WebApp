@@ -1,24 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import { ShieldCheck, ArrowLeft, Lock, ShoppingBag, MessageSquare, FileSignature, ScanLine, Hammer, QrCode, Check, Leaf } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
-import {
-  Sparkles,
-  ShieldCheck,
-  Heart,
-  Scale,
-  Leaf,
-  ArrowLeft,
-  Lock,
-  ShoppingBag,
-  MessageSquare,
-} from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/context/CartContext";
-import { calculateEscrowSplit } from "@/lib/escrow";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
+import { EscrowBar } from "@/components/EscrowBar";
+import { ProvenanceTimeline } from "@/components/ProvenanceTimeline";
+import { Badge, Button, Card, Spinner, EmptyState, LinkButton } from "@/components/ui";
 
 const FALLBACK_PRODUCTS: Record<string, any> = {
   batch_01: {
@@ -285,15 +276,13 @@ const FALLBACK_PRODUCTS: Record<string, any> = {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const router = useRouter();
-  const { user, signInWithGoogle } = useAuth();
-  const { addToCart } = useCart();
-  const { formatCurrency, formatNumber, translateSync, currentCurrency } = useTranslation();
+  const { addToCart, items } = useCart();
+  const { formatCurrency, formatNumber, translateSync } = useTranslation();
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
 
   const productId = params?.id as string;
 
@@ -325,50 +314,35 @@ export default function ProductDetailPage() {
   }, [productId]);
 
   if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-24 text-center">
-        <div className="w-10 h-10 border-4 border-[#3E7B5C] border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-xs text-[var(--text-muted)] mt-4 font-mono-data">
-          {translateSync("Loading origin passport...")}
-        </p>
-      </div>
-    );
+    return <Spinner label={translateSync("Loading piece…")} className="py-32" />;
   }
 
   if (!product) {
     return (
-      <div className="max-w-md mx-auto px-4 py-24 text-center space-y-3">
-        <h2 className="text-lg font-bold text-[#2E1E12]">
-          {translateSync("Product not found")}
-        </h2>
-        <p className="text-xs text-[#5C4A38]">
-          {translateSync("This piece may have already been claimed.")}
-        </p>
-        <Link
-          href="/"
-          className="mt-4 inline-flex items-center space-x-1.5 text-xs font-semibold text-[#3E7B5C] hover:underline"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{translateSync("Return to Feed")}</span>
-        </Link>
+      <div className="max-w-md mx-auto px-4 py-20">
+        <EmptyState
+          title={translateSync("Piece not found")}
+          description={translateSync("It may already have been sold.")}
+          action={
+            <LinkButton href="/" variant="secondary">
+              <ArrowLeft className="w-4 h-4" />
+              {translateSync("Back to shop")}
+            </LinkButton>
+          }
+        />
       </div>
     );
   }
-
-  const escrow = calculateEscrowSplit(product.price);
 
   const cartProduct = {
     id: product.id,
     title: product.title,
     description: product.description || "",
     price: product.price,
-    image:
-      product.images?.[0] ||
-      "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
+    image: product.images?.[0] || "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
     artisanId: product.artisanId || "usr_art_05",
     artisanName: product.artisan?.fullName || "Danilo Cruz",
-    artisanWorkshop:
-      product.artisan?.workshopName || "Cordillera Botanical Cooperative",
+    artisanWorkshop: product.artisan?.workshopName || "Cordillera Botanical Cooperative",
     artisanCountry: product.sourceBatch?.agreement?.country || "Philippines",
     kgDiverted: product.kgDiverted || 2.0,
     ngoFundName: product.ngoFundName || "Regional Watershed Trust",
@@ -376,154 +350,170 @@ export default function ProductDetailPage() {
     festivalName: product.sourceBatch?.agreement?.festival || "Pan-Asian Harvest",
   };
 
+  const festival = product.sourceBatch?.agreement?.festival || "Pan-Asian Festival";
+  const country = product.sourceBatch?.agreement?.country || product.artisan?.country || "Asia";
+  const makerName = product.artisan?.fullName || "Master Artisan";
+  const workshop = product.artisan?.workshopName || "Heritage Cooperative";
+  const inCart = items.some((i) => i.id === product.id);
+
+  const openArtisanThread = () => {
+    const artisanId = product.artisanId || `artisan_${makerName.toLowerCase().replace(/\s+/g, "_")}`;
+    window.dispatchEvent(
+      new CustomEvent("open-messages", {
+        detail: {
+          threadId: artisanId,
+          name: makerName,
+          subtitle: workshop,
+          avatarText: makerName.slice(0, 2).toUpperCase(),
+          productTitle: product.title,
+          initialGreeting: `Hello! I am ${makerName} from ${workshop}. How can I assist you with "${product.title}"?`,
+        },
+      })
+    );
+  };
+
+  const handleAdd = () => {
+    addToCart(cartProduct);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1600);
+  };
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
-      {/* Back Link */}
-      <Link
-        href="/"
-        className="inline-flex items-center space-x-1.5 text-xs font-semibold text-[#5C4A38] hover:text-[#2E1E12] transition-colors"
-      >
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-10">
+      <Link href="/#shop" className="inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink transition-colors">
         <ArrowLeft className="w-4 h-4" />
-        <span>{translateSync("Back to Feed")}</span>
+        {translateSync("Back to shop")}
       </Link>
 
-      {/* Main Showcase Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Left Col: Imagery */}
-        <div className="space-y-4">
-          <div className="aspect-square rounded-[8px] bg-white border border-[rgba(46,90,68,0.16)] overflow-hidden shadow-[0_2px_12px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)]">
-            <img
-              src={
-                product.images?.[0] ||
-                "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"
-              }
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Provenance Micro-Card */}
-          <div className="p-4 rounded-[6px] bg-[rgba(46,90,68,0.08)] border border-[rgba(46,90,68,0.2)] flex items-center justify-between text-xs shadow-xs">
-            <div className="flex items-center space-x-2 text-[#183324] font-medium">
-              <ShieldCheck className="w-4 h-4 text-[#3E7B5C]" />
-              <span>
-                {translateSync("Origin")}:{" "}
-                <strong>
-                  {product.sourceBatch?.agreement?.festival || "Pan-Asian Festival"}
-                </strong>{" "}
-                ({product.sourceBatch?.agreement?.country || "Asia"})
-              </span>
-            </div>
-            <span className="font-mono-data text-[10px] text-[#183324] bg-[#A3D9B5]/40 px-2 py-0.5 rounded-[2px] font-bold">
-              {formatNumber(product.kgDiverted || 2.0)} {translateSync("kg diverted")}
-            </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        {/* Image */}
+        <div className="lg:sticky lg:top-24 self-start">
+          <div className="aspect-square rounded-lg bg-paper-2 overflow-hidden border border-line">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={cartProduct.image} alt={translateSync(product.title)} className="w-full h-full object-cover" />
           </div>
         </div>
 
-        {/* Right Col: Details & Escrow Breakdown */}
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-center space-x-2 text-xs font-bold text-[#3E7B5C]">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="uppercase tracking-wider">
-                {translateSync("AUTHENTICATED HERITAGE UPCYCLE")}
-              </span>
+        {/* Buy box */}
+        <div className="space-y-7">
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="pine">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {translateSync("Traceable origin")}
+              </Badge>
+              <Badge>
+                {translateSync(festival)} · {translateSync(country)}
+              </Badge>
             </div>
-            <h1 className="font-display text-3xl sm:text-4xl font-medium text-[#2E1E12] tracking-tight mt-1">
-              {product.title}
-            </h1>
-            <p className="text-2xl font-bold font-display text-[#7D5A3C] mt-3">
-              {formatCurrency(product.price)}{" "}
-              <span className="text-xs font-sans font-normal text-[#5C4A38]">
-                {currentCurrency}
-              </span>
-            </p>
+            <h1 className="font-display text-[36px] sm:text-[44px] leading-[1.05] font-semibold text-ink">{translateSync(product.title)}</h1>
+            <p className="tabular font-display text-3xl font-semibold text-ink">{formatCurrency(product.price)}</p>
           </div>
 
-          <p className="text-sm text-[#5C4A38] leading-relaxed">
-            {product.description}
-          </p>
+          <p className="text-base text-ink-2 leading-relaxed">{translateSync(product.description || "")}</p>
 
-          {/* Maker Info */}
-          <div className="p-4 rounded-[6px] bg-white border border-[rgba(46,90,68,0.16)] flex items-center justify-between shadow-[0_2px_10px_-2px_rgba(24,51,36,0.08),0_1px_4px_-1px_rgba(24,51,36,0.04)]">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-[rgba(125,90,60,0.12)] text-[#7D5A3C] font-bold flex items-center justify-center text-sm">
-                {product.artisan?.fullName?.charAt(0) || "M"}
-              </div>
-              <div>
-                <span className="text-[10px] text-[rgba(92,74,56,0.6)] font-bold uppercase tracking-wider block">
-                  {translateSync("Certified Maker")}
-                </span>
-                <span className="text-sm font-bold text-[#2E1E12]">
-                  {product.artisan?.fullName || "Master Artisan"}
-                </span>
-                <p className="text-xs text-[#5C4A38]">
-                  {product.artisan?.workshopName || "Heritage Cooperative"}
-                </p>
-              </div>
+          <dl className="grid grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden text-sm">
+            <div className="bg-surface p-3.5">
+              <dt className="text-xs text-ink-3">{translateSync("Diverted")}</dt>
+              <dd className="tabular mt-0.5 font-medium text-ink flex items-center gap-1">
+                <Leaf className="w-3.5 h-3.5 text-pine-500" />
+                {formatNumber(product.kgDiverted || 2.0)} kg
+              </dd>
             </div>
+            <div className="bg-surface p-3.5">
+              <dt className="text-xs text-ink-3">{translateSync("Material")}</dt>
+              <dd className="mt-0.5 font-medium text-ink line-clamp-2">
+                {translateSync(product.sourceBatch?.materialType || (product.materialTags || []).join(", ") || "—")}
+              </dd>
+            </div>
+            <div className="bg-surface p-3.5">
+              <dt className="text-xs text-ink-3">{translateSync("In stock")}</dt>
+              <dd className="tabular mt-0.5 font-medium text-ink">{product.stock ?? 1}</dd>
+            </div>
+          </dl>
 
-            <button
-              type="button"
-              onClick={() => {
-                const artisanId =
-                  product.artisanId ||
-                  `artisan_${(product.artisan?.fullName || "maker")
-                    .toLowerCase()
-                    .replace(/\s+/g, "_")}`;
-                const artisanName = product.artisan?.fullName || "Certified Maker";
-                const workshopName =
-                  product.artisan?.workshopName || "Heritage Cooperative";
-
-                window.dispatchEvent(
-                  new CustomEvent("open-messages", {
-                    detail: {
-                      threadId: artisanId,
-                      name: artisanName,
-                      subtitle: workshopName,
-                      avatarText: artisanName.slice(0, 2).toUpperCase(),
-                      productTitle: product.title,
-                      initialGreeting: `Hello! I am ${artisanName} from ${workshopName}. How can I assist you with "${product.title}"?`,
-                    },
-                  })
-                );
-              }}
-              className="p-2.5 rounded-[2px] border border-[rgba(125,90,60,0.2)] hover:border-[#7D5A3C] text-[#2E1E12] flex items-center space-x-1.5 text-xs font-semibold cursor-pointer transition-colors"
-            >
-              <MessageSquare className="w-4 h-4 text-[#3E7B5C]" />
-              <span className="hidden sm:inline">
-                {translateSync("Ask Question")}
-              </span>
-            </button>
-          </div>
-
-          {/* Action Buttons: Add to Cart & Buy Now */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <button
-              onClick={() => addToCart(cartProduct)}
-              className="py-3.5 rounded-[2px] border border-[#3E7B5C] text-[#3E7B5C] hover:bg-[#3E7B5C] hover:text-[#F4F7F4] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 min-h-[44px] cursor-pointer"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>{translateSync("Add to Cart")}</span>
-            </button>
-
-            <button
-              onClick={() => setCheckoutModalOpen(true)}
-              className="py-3.5 rounded-[2px] bg-[#1E4D34] hover:bg-[#143826] text-[#F4F7F4] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 min-h-[44px] cursor-pointer shadow-sm"
-            >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button size="lg" onClick={() => setCheckoutModalOpen(true)}>
               <Lock className="w-4 h-4" />
-              <span>{translateSync("Buy Now")}</span>
-            </button>
+              {translateSync("Buy now")}
+            </Button>
+            <Button size="lg" variant="secondary" onClick={handleAdd} className={inCart || justAdded ? "text-pine-700 border-pine-300" : ""}>
+              {inCart || justAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+              {justAdded ? translateSync("Added to cart") : inCart ? translateSync("In cart · add another") : translateSync("Add to cart")}
+            </Button>
           </div>
+
+          <div className="flex items-start gap-3 rounded-md bg-pine-50 border border-pine-100 p-4">
+            <QrCode className="w-5 h-5 text-pine-700 shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-ink">{translateSync("Includes a Verified Impact Pass")}</p>
+              <p className="text-ink-2 mt-0.5">{translateSync("Saved to Google Wallet. Its QR code opens the public record of this piece.")}</p>
+            </div>
+          </div>
+
+          {/* Maker */}
+          <Card className="p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-11 h-11 rounded-full bg-paper-2 text-ink-2 font-semibold text-sm flex items-center justify-center shrink-0">
+                {makerName.slice(0, 2).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-ink-3">{translateSync("Made by")}</p>
+                <p className="font-medium text-ink truncate">{translateSync(makerName)}</p>
+                <p className="text-sm text-ink-3 truncate">{translateSync(workshop)}</p>
+              </div>
+            </div>
+            <Button variant="secondary" size="sm" onClick={openArtisanThread}>
+              <MessageSquare className="w-4 h-4" />
+              {translateSync("Message")}
+            </Button>
+          </Card>
         </div>
       </div>
 
-      {/* 2-Step Checkout Modal with Shipping Location Map */}
-      <CheckoutModal
-        isOpen={checkoutModalOpen}
-        onClose={() => setCheckoutModalOpen(false)}
-        directProduct={cartProduct}
-      />
+      {/* Provenance + split */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card className="p-5 sm:p-7">
+          <h2 className="font-display text-[28px] font-semibold text-ink mb-1">{translateSync("Where it came from")}</h2>
+          <p className="text-sm text-ink-3 mb-6">{translateSync("The journey recorded for this piece's source batch.")}</p>
+          <ProvenanceTimeline
+            events={[
+              {
+                icon: <FileSignature className="w-4 h-4" />,
+                title: translateSync("Collection agreed"),
+                detail: `${translateSync(festival)}, ${translateSync(country)}`,
+              },
+              {
+                icon: <ScanLine className="w-4 h-4" />,
+                title: translateSync("Logged & classified by Gemini"),
+                meta: product.sourceBatch?.id,
+                detail: [product.sourceBatch?.materialType, product.sourceBatch?.condition]
+                  .filter(Boolean)
+                  .map((t: string) => translateSync(t))
+                  .join(" · "),
+              },
+              {
+                icon: <Hammer className="w-4 h-4" />,
+                title: translateSync("Crafted"),
+                detail: `${translateSync(makerName)}, ${translateSync(workshop)}`,
+              },
+              {
+                icon: <QrCode className="w-4 h-4" />,
+                title: translateSync("Your pass is issued at purchase"),
+                pending: true,
+              },
+            ]}
+          />
+        </Card>
+
+        <Card className="p-5 sm:p-7">
+          <h2 className="font-display text-[28px] font-semibold text-ink mb-1">{translateSync("Where your money goes")}</h2>
+          <p className="text-sm text-ink-3 mb-6">{translateSync("Split automatically at checkout and published to the impact ledger.")}</p>
+          <EscrowBar amount={product.price} ngoName={product.ngoFundName} />
+        </Card>
+      </div>
+
+      <CheckoutModal isOpen={checkoutModalOpen} onClose={() => setCheckoutModalOpen(false)} directProduct={cartProduct} />
     </div>
   );
 }
