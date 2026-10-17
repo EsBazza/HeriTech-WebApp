@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { orderTotals } from "@/lib/server/stats";
 
 export interface YearlyProgress {
   year: number;
@@ -106,13 +106,8 @@ function generateYearlyProgress(
 
 export async function GET() {
   try {
-    const orders = await prisma.order.aggregate({
-      _sum: {
-        ngoContribution: true,
-      },
-    });
-
-    const totalNgoFunds = orders._sum.ngoContribution || 16.20;
+    // Projects are funded from the charity & maintenance share of completed sales.
+    const { charityMaintenanceTotal: totalNgoFunds } = await orderTotals();
 
     const baseProjects = [
       {

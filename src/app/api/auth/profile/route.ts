@@ -1,93 +1,58 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { adminDb } from "@/lib/firebase/admin";
+import type { UserDoc } from "@/lib/firebase/types";
+import { getCurrentUser, verifyRequestToken } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { notFound, ok, route, unauthorized } from "@/lib/server/http";
 
-// POST /api/auth/profile - Sync authenticated Google user with Prisma database
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { email, fullName, avatarUrl } = body;
+/**
+ * POST /api/auth/profile
+ * Called after Firebase sign-in. Creates the user's profile on first sign-in
+ * (always as a buyer). Name and avatar come from the verified token and only
+ * fill empty fields, so edits made on the profile page are kept.
+ */
+export const POST = route(async (request: Request) => {
+  const token = await verifyRequestToken(request);
+  if (!token) throw unauthorized();
 
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: "Email is required for authentication sync" },
-        { status: 400 }
-      );
+  const ref = db.users().doc(token.uid);
+  const user = await adminDb().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const existing = snap.data();
+
+    if (existing) {
+      const updates: Partial<UserDoc> = {};
+      if (token.name && !existing.fullName) updates.fullName = token.name;
+      if (token.picture && !existing.avatarUrl) updates.avatarUrl = token.picture;
+      if (Object.keys(updates).length) tx.update(ref, updates);
+      return { ...existing, ...updates };
     }
 
-    // Check if user already exists
-    let user = await prisma.user.findUnique({
-      where: { email },
-    });
+    if (!token.email) throw unauthorized("Your Google account has no email address.");
+    const created: UserDoc = {
+      id: token.uid,
+      email: token.email,
+      role: "buyer",
+      fullName: token.name || token.email.split("@")[0],
+      avatarUrl: token.picture,
+      country: null,
+      workshopName: null,
+      stationName: null,
+      artisanVerified: false,
+      verificationStatus: "none",
+      application: null,
+      preferredLanguage: "en",
+      createdAt: new Date().toISOString(),
+    };
+    tx.create(ref, created);
+    return created;
+  });
 
-    if (!user) {
-      // First-time Google OAuth login -> Default to 'buyer' role
-      user = await prisma.user.create({
-        data: {
-          email,
-          fullName: fullName || email.split("@")[0],
-          avatarUrl: avatarUrl || null,
-          role: email.toLowerCase().includes("admin") ? "admin" : "buyer",
-          verificationStatus: email.toLowerCase().includes("admin") ? "approved" : "none",
-        },
-      });
-    } else {
-      // Update existing user with latest Google avatar / name if provided
-      // Update by id (the data helper matches updates on id) and keep the full
-      // record, so role and id survive a repeat sign-in.
-      const updated = await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          fullName: fullName || user.fullName,
-          avatarUrl: avatarUrl || user.avatarUrl,
-        },
-      });
-      user = { ...user, ...updated };
-    }
+  return ok(user);
+});
 
-    return NextResponse.json({ success: true, data: user });
-  } catch (error) {
-    console.error("Auth profile sync error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error syncing profile" },
-      { status: 500 }
-    );
-  }
-}
-
-// GET /api/auth/profile?email=xxx - Fetch user profile and permissions
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email");
-
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: "Email parameter is required" },
-        { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        products: { take: 5, orderBy: { createdAt: "desc" } },
-        orders: { take: 5, orderBy: { createdAt: "desc" } },
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true, data: user });
-  } catch (error) {
-    console.error("Fetch profile error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch user profile" },
-      { status: 500 }
-    );
-  }
-}
+/** GET /api/auth/profile — the signed-in user's own profile. */
+export const GET = route(async (request: Request) => {
+  const user = await getCurrentUser(request);
+  if (!user) throw notFound("No profile yet. Sign in to create one.");
+  return ok(user);
+});

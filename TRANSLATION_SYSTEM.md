@@ -62,10 +62,6 @@ A comprehensive internationalization (i18n) system for HeriTech V4, supporting 2
 src/
 ├── lib/
 │   ├── languages.ts              # Language definitions and configurations
-│   ├── i18n/
-│   │   └── config.ts              # Next-intl configuration
-│   ├── messages/
-│   │   └── en.json                # Static message translations
 │   └── translation/
 │       ├── google-translate.ts    # Google Translate API integration
 │       ├── mock-translate.ts      # Mock translation service
@@ -78,8 +74,7 @@ src/
 │   └── translation/
 │       └── TranslatableText.tsx   # Translatable React components
 └── app/
-    ├── api/translate/route.ts     # Translation API endpoints
-    └── test-translations/page.tsx # Testing interface
+    └── api/translate/route.ts     # Translation API endpoint (rate limited)
 ```
 
 ## ⚙️ Setup & Configuration
@@ -102,27 +97,9 @@ GOOGLE_CLOUD_PROJECT_ID="your-google-cloud-project-id"
 4. Click "Enable"
 5. Create credentials (API Key) in "APIs & Services" → "Credentials"
 
-### 3. Database Schema
+### 3. Caching
 
-The system includes Prisma models for caching translations:
-
-```prisma
-model Translation {
-  id             String   @id @default(cuid())
-  sourceText     String
-  targetLanguage String
-  translatedText String
-  sourceLanguage String   @default("en")
-  quality        Float?
-  verified       Boolean  @default(false)
-  usageCount     Int      @default(1)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@unique([sourceText, targetLanguage, sourceLanguage])
-  @@map("translations")
-}
-```
+Translations are cached in memory on each server instance for 24 hours, and in the browser. There is no database table for translations.
 
 ## 🎯 Usage Examples
 
@@ -184,29 +161,23 @@ const response = await fetch('/api/translate', {
   })
 });
 
-// Batch translation
+// Several strings at once (up to 500 per request, 5,000 characters each)
 const batchResponse = await fetch('/api/translate', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    type: 'batch',
-    texts: {
-      greeting: 'Hello',
-      goodbye: 'Goodbye'
-    },
+    text: ['Hello', 'Goodbye'],
     targetLanguage: 'ja'
   })
 });
+
+// Supported languages
+const languages = await fetch('/api/translate');
 ```
 
+The endpoint is open to guests and limited to 60 requests per minute per client.
+
 ## 🧪 Testing
-
-### Run the Test Interface
-
-1. Start the development server: `npm run dev`
-2. Navigate to `/test-translations`
-3. Select different Asian languages from the dropdown
-4. Run translation tests to verify functionality
 
 ### Manual Testing Checklist
 
@@ -220,21 +191,10 @@ const batchResponse = await fetch('/api/translate', {
 
 ## 📊 Performance & Monitoring
 
-### Translation Statistics
-
-The system tracks:
-- Total translation requests
-- Cache hit rates
-- Average latency
-- Error rates by language
-- Usage patterns by language
-
-Access statistics via: `GET /api/translate?action=stats`
-
 ### Optimization Features
 
 - **Client-side Caching**: Translations cached in browser for 24 hours
-- **Server-side Caching**: Database caching prevents redundant API calls
+- **Server-side Caching**: An in-memory cache per server instance avoids repeat API calls
 - **Batch Processing**: Multiple translations in single API call
 - **Lazy Loading**: Components only translate when rendered
 - **Smart Fallbacks**: Mock translations when API unavailable
@@ -245,7 +205,7 @@ Access statistics via: `GET /api/translate?action=stats`
 
 1. Update `SUPPORTED_LANGUAGES` in `src/lib/languages.ts`
 2. Add translations to `src/lib/translation/mock-translate.ts`
-3. Test new language in `/test-translations`
+3. Switch to the new language in the navbar picker and check the main pages
 
 ### Custom Translation Components
 
@@ -302,7 +262,7 @@ NEXT_PUBLIC_DEBUG_TRANSLATIONS=true
 
 When adding new features:
 1. Add translations for all supported languages
-2. Update test cases in `/test-translations`
+2. Check the affected pages in a few languages from the navbar picker
 3. Document changes in this README
 4. Test with multiple Asian languages
 5. Verify performance impact

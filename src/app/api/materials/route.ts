@@ -1,164 +1,109 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { FieldValue, type Query } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase/admin";
+import type { MaterialBatchDoc } from "@/lib/firebase/types";
 import { generateHarvestTxHash } from "@/lib/crypto";
+import { getCurrentUser, requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { badRequest, fields, ok, parseBody, route, unauthorized } from "@/lib/server/http";
+import { nextSequence } from "@/lib/server/ids";
+import { storeImage } from "@/lib/server/images";
+import { newestFirst, withBatchRelations } from "@/lib/server/views";
 
-// GET /api/materials - List all batches with optional filtering by status or festival
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const materialType = searchParams.get("materialType");
+const STATUSES = ["available", "reserved", "claimed"] as const;
 
-    const where: Record<string, unknown> = {};
-    if (status) where.status = status;
-    if (materialType) where.materialType = materialType;
+/**
+ * GET /api/materials?status=&materialType=&mine=scanned|claimed|reserved
+ * Batches with their agreement and people attached, newest first.
+ * `mine` limits the list to the signed-in user's own batches.
+ */
+export const GET = route(async (request: Request) => {
+  const params = new URL(request.url).searchParams;
+  let query: Query<MaterialBatchDoc> = db.batches();
 
-    const batches = await prisma.materialBatch.findMany({
-      where,
-      include: {
-        agreement: true,
-        scannedByOfficer: {
-          select: { id: true, fullName: true, stationName: true, country: true },
-        },
-        reservedByArtisan: {
-          select: { id: true, fullName: true, workshopName: true },
-        },
-        claimedByArtisan: {
-          select: { id: true, fullName: true, workshopName: true },
-        },
-        products: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+  const status = params.get("status");
+  if (status && (STATUSES as readonly string[]).includes(status)) query = query.where("status", "==", status);
+  const materialType = params.get("materialType");
+  if (materialType) query = query.where("materialType", "==", materialType);
 
-    return NextResponse.json({ success: true, count: batches.length, data: batches });
-  } catch (error) {
-    console.error("Failed to fetch materials:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error fetching materials" },
-      { status: 500 }
-    );
+  const mine = params.get("mine");
+  if (mine) {
+    const user = await getCurrentUser(request);
+    if (!user) throw unauthorized();
+    const field = { scanned: "scannedByOfficerId", claimed: "claimedByArtisanId", reserved: "reservedByArtisanId" }[mine];
+    if (!field) throw badRequest("mine must be scanned, claimed or reserved.");
+    query = query.where(field, "==", user.id);
   }
-}
 
-// POST /api/materials - Log a new batch (LGU Field Officer)
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const {
-      title,
-      materialType,
-      weightKg,
-      condition,
-      gpsLat = 16.4023,
-      gpsLng = 120.5960,
+  const batches = (await query.get()).docs.map((d) => d.data()).sort(newestFirst);
+  return ok(await withBatchRelations(batches));
+});
+
+const schema = z.object({
+  title: fields.text(200),
+  materialType: fields.text(200),
+  weightKg: fields.kg,
+  condition: fields.text(300),
+  gpsLat: z.coerce.number().min(-90).max(90),
+  gpsLng: z.coerce.number().min(-180).max(180),
+  imageUrl: z.string().min(1).max(8_000_000),
+  agreementId: fields.id,
+  aiInferredMaterial: fields.optionalText(2000),
+  aiInferredCondition: fields.optionalText(300),
+  aiConfidence: z.coerce.number().min(0).max(1).optional(),
+});
+
+/** POST /api/materials — an LGU officer logs a new batch against an active agreement. */
+export const POST = route(async (request: Request) => {
+  const officer = await requireUser(request, ["lgu"]);
+  const input = await parseBody(request, schema);
+  const imageUrl = await storeImage(input.imageUrl, "batches");
+
+  const batch = await adminDb().runTransaction(async (tx) => {
+    const agreementRef = db.agreements().doc(input.agreementId);
+    const agreement = (await tx.get(agreementRef)).data();
+    if (!agreement) throw badRequest("That release agreement does not exist.");
+    if (agreement.status !== "active") throw badRequest("That release agreement is closed.");
+
+    const year = new Date().getFullYear();
+    // Seeded batches use 0101–0999, so live batches start at 1001.
+    const seq = await nextSequence(tx, `batches-${year}`, 1001);
+    const id = `HT-${year}-${String(seq).padStart(4, "0")}`;
+    const createdAt = new Date().toISOString();
+
+    const doc: MaterialBatchDoc = {
+      id,
+      title: input.title,
+      materialType: input.materialType,
+      weightKg: input.weightKg,
+      condition: input.condition,
+      status: "available",
+      gpsLat: input.gpsLat,
+      gpsLng: input.gpsLng,
       imageUrl,
-      agreementId,
-      officerId,
-      aiInferredMaterial,
-      aiInferredCondition,
-      aiConfidence,
-    } = body;
+      agreementId: agreement.id,
+      scannedByOfficerId: officer.id,
+      reservedByArtisanId: null,
+      claimedByArtisanId: null,
+      txHash: generateHarvestTxHash({
+        batchId: id,
+        gpsLat: input.gpsLat,
+        gpsLng: input.gpsLng,
+        weightKg: input.weightKg,
+        officerId: officer.id,
+        timestamp: createdAt,
+      }),
+      aiInferredMaterial: input.aiInferredMaterial,
+      aiInferredCondition: input.aiInferredCondition,
+      aiConfidence: input.aiConfidence ?? null,
+      createdAt,
+    };
 
-    if (!title || !materialType || !weightKg || !condition) {
-      return NextResponse.json(
-        { success: false, error: "Missing required harvest telemetry fields" },
-        { status: 400 }
-      );
-    }
+    tx.create(db.batches().doc(id), doc);
+    tx.update(agreementRef, { collectedKg: FieldValue.increment(input.weightKg) });
+    return doc;
+  });
 
-    // Auto-generate batch ID
-    const batchCount = await prisma.materialBatch.count();
-    const batchId = `HT-2026-${String(batchCount + 101).padStart(4, "0")}`;
-    const timestamp = new Date();
-
-    // Verify if agreement exists in DB to prevent foreign key errors
-    let validAgreementId: string | null = null;
-    if (agreementId) {
-      const agreementExists = await prisma.agreement.findUnique({
-        where: { id: agreementId },
-      });
-      if (agreementExists) {
-        validAgreementId = agreementId;
-      }
-    }
-
-    // If no agreement matched, fallback to default Baguio Panagbenga agreement if available
-    if (!validAgreementId) {
-      const fallbackAgr = await prisma.agreement.findFirst();
-      if (fallbackAgr) {
-        validAgreementId = fallbackAgr.id;
-      }
-    }
-
-    // Verify if officer user exists in DB to prevent foreign key errors
-    let validOfficerId: string | null = null;
-    if (officerId) {
-      const userExists = await prisma.user.findUnique({
-        where: { id: officerId },
-      });
-      if (userExists) {
-        validOfficerId = officerId;
-      }
-    }
-
-    // Generate SHA-256 tamper-evident origin hash
-    const txHash = generateHarvestTxHash({
-      batchId,
-      gpsLat: Number(gpsLat),
-      gpsLng: Number(gpsLng),
-      weightKg: Number(weightKg),
-      officerId: validOfficerId || "system_officer",
-      timestamp,
-    });
-
-    // Provide clean preview image URL if large payload
-    const finalImageUrl = imageUrl && imageUrl.startsWith("data:")
-      ? imageUrl
-      : imageUrl || "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800";
-
-    const newBatch = await prisma.materialBatch.create({
-      data: {
-        id: batchId,
-        title,
-        materialType,
-        weightKg: Number(weightKg),
-        condition,
-        gpsLat: Number(gpsLat),
-        gpsLng: Number(gpsLng),
-        imageUrl: finalImageUrl,
-        agreementId: validAgreementId,
-        scannedByOfficerId: validOfficerId,
-        txHash,
-        aiInferredMaterial: aiInferredMaterial || null,
-        aiInferredCondition: aiInferredCondition || null,
-        aiConfidence: aiConfidence ? Number(aiConfidence) : null,
-        createdAt: timestamp,
-      },
-      include: {
-        agreement: true,
-        scannedByOfficer: true,
-      },
-    });
-
-    // Update agreement collectedKg if valid
-    if (validAgreementId) {
-      try {
-        await prisma.agreement.update({
-          where: { id: validAgreementId },
-          data: { collectedKg: { increment: Number(weightKg) } },
-        });
-      } catch (e) {
-        console.warn("Could not increment agreement collectedKg:", e);
-      }
-    }
-
-    return NextResponse.json({ success: true, data: newBatch }, { status: 201 });
-  } catch (error: any) {
-    console.error("Failed to create material batch:", error);
-    return NextResponse.json(
-      { success: false, error: error.message || "Failed to log material batch" },
-      { status: 500 }
-    );
-  }
-}
+  const [view] = await withBatchRelations([batch]);
+  return ok(view, { status: 201 });
+});

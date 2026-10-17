@@ -24,7 +24,7 @@ const ROLE_NAMES: Record<UserRole, string> = {
 };
 
 export function AccessGuard({ children, allowedRoles, pageTitle = "this page", requiredRoleLabel, description }: AccessGuardProps) {
-  const { user, loading, signInWithGoogle, switchRole } = useAuth();
+  const { user, loading, authError, demoMode, signInWithGoogle, signInAsDemo } = useAuth();
   const { translateSync } = useTranslation();
   const [switching, setSwitching] = useState(false);
   const currentRole = userRole(user);
@@ -39,8 +39,8 @@ export function AccessGuard({ children, allowedRoles, pageTitle = "this page", r
 
   const isGuest = currentRole === "guest";
   const needed = allowedRoles.map((r) => translateSync(ROLE_NAMES[r])).join(" / ");
-  // Demo convenience: offer the first non-admin role that can open this page.
-  const demoRole = (allowedRoles.find((r) => r !== "admin") ?? allowedRoles[0]) as "buyer" | "artisan" | "lgu" | "admin";
+  // Demo deployments offer the showcase account of the first non-admin role that can open this page.
+  const demoRole = (allowedRoles.find((r) => r !== "admin" && r !== "guest") ?? "admin") as Exclude<UserRole, "guest">;
 
   const title = requiredRoleLabel || (isGuest ? translateSync("Sign in to continue") : `${translateSync(pageTitle)} ${translateSync("is for")} ${needed} ${translateSync("accounts")}`);
   const body =
@@ -61,24 +61,27 @@ export function AccessGuard({ children, allowedRoles, pageTitle = "this page", r
         </div>
 
         <div className="space-y-3">
-          {isGuest ? (
+          {isGuest && (
             <Button size="lg" className="w-full" onClick={signInWithGoogle}>
               {translateSync("Sign in with Google")}
             </Button>
-          ) : (
+          )}
+          {demoMode && (
             <Button
               size="lg"
+              variant={isGuest ? "secondary" : "primary"}
               className="w-full"
               loading={switching}
               onClick={async () => {
                 setSwitching(true);
-                await switchRole(demoRole);
+                await signInAsDemo(demoRole);
                 setSwitching(false);
               }}
             >
-              {translateSync("Demo: view as")} {translateSync(ROLE_NAMES[demoRole])}
+              {translateSync("Demo: sign in as")} {translateSync(ROLE_NAMES[demoRole])}
             </Button>
           )}
+          {authError && <p className="text-sm text-danger">{translateSync(authError)}</p>}
           <LinkButton href="/" variant="secondary" size="lg" className="w-full">
             <ArrowLeft className="w-4 h-4" />
             {translateSync("Back to shop")}

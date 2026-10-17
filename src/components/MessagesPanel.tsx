@@ -4,11 +4,44 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { ArrowLeft, Send, X } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Badge, controlClass } from "@/components/ui";
+import { apiJson } from "@/lib/api";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+}
+
+interface ServerMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: string;
+  sender: { id: string; fullName: string; workshopName: string | null; stationName: string | null } | null;
+  receiver: { id: string; fullName: string; workshopName: string | null; stationName: string | null } | null;
+}
+
+/** Groups the signed-in user's messages into one thread per other person. */
+function threadsFromServer(messages: ServerMessage[], myId: string): Thread[] {
+  const byPerson = new Map<string, Thread>();
+  for (const m of messages) {
+    const mine = m.senderId === myId;
+    const other = mine ? m.receiver : m.sender;
+    const otherId = mine ? m.receiverId : m.senderId;
+    const thread = byPerson.get(otherId) ?? {
+      id: otherId,
+      name: other?.fullName ?? "HeriTech member",
+      subtitle: other?.workshopName || other?.stationName || "",
+      avatarText: (other?.fullName ?? "?").slice(0, 2).toUpperCase(),
+      messages: [],
+    };
+    thread.messages.push({ role: mine ? "user" : "assistant", content: m.content });
+    thread.time = new Date(m.createdAt).toLocaleDateString();
+    byPerson.set(otherId, thread);
+  }
+  return [...byPerson.values()];
 }
 
 interface Thread {
@@ -22,7 +55,9 @@ interface Thread {
   time?: string;
 }
 
-const THREADS_STORAGE_KEY = "heritech_chat_threads_v4";
+// Only the assistant conversation is kept in the browser; conversations with
+// people live in Firestore and are loaded from /api/messages.
+const THREADS_STORAGE_KEY = "heritech_assistant_thread_v5";
 const DRAFTS_STORAGE_KEY = "heritech_chat_drafts_v4";
 
 const INITIAL_THREADS: Thread[] = [
@@ -50,8 +85,8 @@ interface MessagesPanelProps {
 
 export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   const { translateSync } = useTranslation();
-  
-  // Persistent threads from localStorage
+  const { user } = useAuth();
+
   const [threads, setThreads] = useState<Thread[]>(INITIAL_THREADS);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -62,14 +97,14 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load threads and drafts from localStorage on mount
+  // Load the assistant thread and drafts from localStorage on mount
   useEffect(() => {
     try {
-      const savedThreads = localStorage.getItem(THREADS_STORAGE_KEY);
-      if (savedThreads) {
-        const parsed = JSON.parse(savedThreads);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setThreads(parsed);
+      const savedAssistant = localStorage.getItem(THREADS_STORAGE_KEY);
+      if (savedAssistant) {
+        const parsed = JSON.parse(savedAssistant);
+        if (parsed?.id === "bot_assistant" && Array.isArray(parsed.messages)) {
+          setThreads((prev) => prev.map((t) => (t.id === "bot_assistant" ? parsed : t)));
         }
       }
 
@@ -87,15 +122,31 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
     }
   }, []);
 
-  // Persist threads to localStorage whenever threads state changes
+  // Persist the assistant thread whenever it changes
   useEffect(() => {
     if (!isLoaded) return;
     try {
-      localStorage.setItem(THREADS_STORAGE_KEY, JSON.stringify(threads));
+      const assistant = threads.find((t) => t.id === "bot_assistant");
+      if (assistant) localStorage.setItem(THREADS_STORAGE_KEY, JSON.stringify(assistant));
     } catch (err) {
       console.warn("Could not save messages to storage:", err);
     }
   }, [threads, isLoaded]);
+
+  // Refresh conversations with people each time the panel opens
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    apiJson<ServerMessage[]>("/api/messages").then((result) => {
+      if (!result.success) return;
+      const serverThreads = threadsFromServer(result.data ?? [], user.id);
+      setThreads((prev) => {
+        const assistant = prev.filter((t) => t.id === "bot_assistant");
+        // Keep threads opened from a product page that have no messages yet.
+        const pending = prev.filter((t) => t.id !== "bot_assistant" && t.messages.length === 0 && !serverThreads.some((s) => s.id === t.id));
+        return [...assistant, ...serverThreads, ...pending];
+      });
+    });
+  }, [isOpen, user]);
 
   // Persist drafts to localStorage whenever drafts state changes
   useEffect(() => {
@@ -126,16 +177,9 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
             subtitle: detail.subtitle || "Heritage Cooperative",
             avatarText: (detail.name || "M").slice(0, 2).toUpperCase(),
             isBot: false,
-            time: "Just now",
+            time: "",
             unread: false,
-            messages: detail.initialGreeting
-              ? [
-                  {
-                    role: "assistant",
-                    content: detail.initialGreeting,
-                  },
-                ]
-              : [],
+            messages: [],
           };
           return [...prev, newThread];
         });
@@ -232,7 +276,8 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
         });
 
         const data = await res.json();
-        if (data.success && data.reply) {
+        const reply: string | undefined = data.data?.reply;
+        if (data.success && reply) {
           setThreads((prev) =>
             prev.map((t) => {
               if (t.id === "bot_assistant") {
@@ -241,7 +286,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
                   time: "Just now",
                   messages: [
                     ...t.messages,
-                    { role: "assistant" as const, content: data.reply },
+                    { role: "assistant" as const, content: reply },
                   ],
                 };
               }
@@ -260,29 +305,16 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
         setIsBotThinking(false);
       }
     } else {
-      // Direct artisan cooperative response
-      setIsBotThinking(true);
-      setTimeout(() => {
-        setIsBotThinking(false);
-        setThreads((prev) =>
-          prev.map((t) => {
-            if (t.id === currentThreadId) {
-              return {
-                ...t,
-                time: "Just now",
-                messages: [
-                  ...t.messages,
-                  {
-                    role: "assistant" as const,
-                    content: `Thank you for your message! We are currently handcrafting our pieces at ${t.subtitle}. We have received your inquiry and will be glad to help.`,
-                  },
-                ],
-              };
-            }
-            return t;
-          })
-        );
-      }, 900);
+      // A real message to another HeriTech member; their reply arrives through /api/messages.
+      const result = await apiJson("/api/messages", {
+        method: "POST",
+        body: JSON.stringify({ receiverId: currentThreadId, content: userText }),
+      });
+      if (!result.success) {
+        setThreads(threads);
+        setInputMessage(userText);
+        setBotError(result.error ?? "Your message wasn't sent. Try again.");
+      }
     }
   };
 

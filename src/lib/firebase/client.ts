@@ -1,7 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
-import { getStorage, FirebaseStorage } from "firebase/storage";
+import { getAuth, connectAuthEmulator, Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,11 +10,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase client
+// Browser Firebase app. Only Auth is used here: all data goes through the API routes.
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
-export const storage: FirebaseStorage = getStorage(app);
+
+// Local development against `npm run emulators` (see README). Never set in production.
+const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST;
+if (authEmulatorHost && !auth.emulatorConfig) {
+  connectAuthEmulator(auth, `http://${authEmulatorHost}`, { disableWarnings: true });
+}
 
 export default app;

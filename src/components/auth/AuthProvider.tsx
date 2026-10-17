@@ -1,189 +1,101 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { signInWithGoogle as firebaseSignInWithGoogle, signOut as firebaseSignOut, subscribeToAuthState } from "@/lib/firebase/auth";
+import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
+import { auth } from "@/lib/firebase/client";
+import { signInWithGoogle as firebaseSignInWithGoogle, signOut as firebaseSignOut } from "@/lib/firebase/auth";
+import type { UserDoc, UserRole } from "@/lib/firebase/types";
+import { apiJson } from "@/lib/api";
+import { DEMO_MODE } from "@/lib/demo";
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  fullName: string;
-  role: "buyer" | "artisan" | "lgu" | "admin";
-  avatarUrl?: string | null;
-  country?: string | null;
-  workshopName?: string | null;
-  artisanVerified?: boolean;
-  stationName?: string | null;
-  verificationStatus: "none" | "pending_artisan" | "pending_lgu" | "approved" | "rejected";
-  applicationNotes?: string | null;
-}
+export type UserProfile = UserDoc;
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
+  authError: string | null;
+  /** True when this deployment offers one-click demo accounts. */
+  demoMode: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInAsAdmin: () => Promise<void>;
+  /** Demo mode only: signs in as the seeded showcase account for a role. */
+  signInAsDemo: (role: UserRole) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-  switchRole: (newRole: "buyer" | "artisan" | "lgu" | "admin") => Promise<void>;
-  authError: string | null;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: false,
-  signInWithGoogle: async () => {},
-  signInAsAdmin: async () => {},
-  signOut: async () => {},
-  refreshProfile: async () => {},
-  switchRole: async () => {},
-  authError: null,
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const syncUserProfile = async (email: string, fullName?: string, avatarUrl?: string) => {
-    try {
-      const res = await fetch("/api/auth/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, fullName, avatarUrl }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUser(data.data);
-        if (typeof document !== "undefined") {
-          document.cookie = `user_role=${data.data.role || "buyer"}; path=/; max-age=604800; SameSite=Lax`;
-        }
-      }
-    } catch (err) {
-      console.error("Failed to sync profile with DB:", err);
-    }
-  };
-
-  const refreshProfile = async () => {
-    if (!user?.email) return;
-    try {
-      const res = await fetch(`/api/auth/profile?email=${encodeURIComponent(user.email)}`);
-      const data = await res.json();
-      if (data.success) {
-        setUser(data.data);
-        if (typeof document !== "undefined") {
-          document.cookie = `user_role=${data.data.role || "buyer"}; path=/; max-age=604800; SameSite=Lax`;
-        }
-      }
-    } catch (err) {
-      console.error("Failed to refresh profile:", err);
-    }
-  };
-
-  const switchRole = async (newRole: "buyer" | "artisan" | "lgu" | "admin") => {
-    if (!user) return;
-    try {
-      const res = await fetch("/api/user/profile/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, role: newRole }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        const updatedUser = { ...user, role: newRole };
-        setUser(updatedUser);
-        if (typeof document !== "undefined") {
-          document.cookie = `user_role=${newRole}; path=/; max-age=604800; SameSite=Lax`;
-        }
-      }
-    } catch (err) {
-      console.error("Failed to switch user role:", err);
-    }
-  };
-
+  // Firebase is the source of truth for who is signed in; the API holds the profile.
   useEffect(() => {
-    let unsubscribe: () => void = () => {};
-
-    try {
-      unsubscribe = subscribeToAuthState(async (firebaseUser) => {
-        if (firebaseUser?.email) {
-          await syncUserProfile(
-            firebaseUser.email,
-            firebaseUser.displayName || firebaseUser.email.split("@")[0],
-            firebaseUser.photoURL || undefined
-          );
-        } else {
-          setUser(null);
-          if (typeof document !== "undefined") {
-            document.cookie = "user_role=guest; path=/; max-age=604800; SameSite=Lax";
-          }
-        }
+    return onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        setUser(null);
         setLoading(false);
-      });
-    } catch (err) {
-      console.warn("Firebase auth listener error, using fallback:", err);
-      setLoading(false);
-    }
-
-    return () => unsubscribe();
-  }, []);
-
-  const signInWithGoogle = async () => {
-    setAuthError(null);
-    try {
-      const { user: fbUser, error } = await firebaseSignInWithGoogle();
-      if (error) {
-        console.warn("Firebase sign in error or missing API key, executing dev login:", error);
-        await syncUserProfile("sarah.j@singapore.sg", "Sarah Jenkins", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80");
         return;
       }
-      if (fbUser?.email) {
-        await syncUserProfile(
-          fbUser.email,
-          fbUser.displayName || fbUser.email.split("@")[0],
-          fbUser.photoURL || undefined
-        );
+      const result = await apiJson<UserProfile>("/api/auth/profile", { method: "POST" });
+      if (result.success && result.data) {
+        setUser(result.data);
+        setAuthError(null);
+      } else {
+        setUser(null);
+        setAuthError(result.error ?? "We couldn't load your profile.");
       }
-    } catch (err: any) {
-      console.error("Google sign in error:", err);
-      setAuthError(err?.message || "Failed to initiate Google sign in");
-      await syncUserProfile("sarah.j@singapore.sg", "Sarah Jenkins", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80");
-    }
-  };
+      setLoading(false);
+    });
+  }, []);
 
-  const signInAsAdmin = async () => {
+  const refreshProfile = useCallback(async () => {
+    const result = await apiJson<UserProfile>("/api/auth/profile");
+    if (result.success && result.data) setUser(result.data);
+  }, []);
+
+  const signInWithGoogle = useCallback(async () => {
     setAuthError(null);
-    await syncUserProfile("admin@heritech.io", "System Administrator", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80");
-  };
+    const { error } = await firebaseSignInWithGoogle();
+    if (error) setAuthError(error);
+  }, []);
 
-  const signOut = async () => {
-    try {
-      await firebaseSignOut();
-    } catch (e) {
-      console.error("Sign out error:", e);
-    } finally {
-      setUser(null);
-      if (typeof document !== "undefined") {
-        document.cookie = "user_role=guest; path=/; max-age=0; SameSite=Lax";
-      }
+  const signInAsDemo = useCallback(async (role: UserRole) => {
+    setAuthError(null);
+    const result = await apiJson<{ token: string }>("/api/auth/demo", {
+      method: "POST",
+      body: JSON.stringify({ role }),
+    });
+    if (!result.success || !result.data) {
+      setAuthError(result.error ?? "Demo sign-in failed.");
+      return;
     }
-  };
+    setLoading(true);
+    try {
+      await signInWithCustomToken(auth, result.data.token);
+    } catch {
+      setLoading(false);
+      setAuthError("Demo sign-in failed.");
+    }
+  }, []);
+
+  const signOut = useCallback(async () => {
+    const { error } = await firebaseSignOut();
+    if (error) setAuthError(error);
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signInWithGoogle,
-        signInAsAdmin,
-        signOut,
-        refreshProfile,
-        switchRole,
-        authError,
-      }}
+      value={{ user, loading, authError, demoMode: DEMO_MODE, signInWithGoogle, signInAsDemo, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used inside <AuthProvider>.");
+  return context;
+}

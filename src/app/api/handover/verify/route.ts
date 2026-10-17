@@ -1,81 +1,50 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { FieldValue } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase/admin";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { verifyHandoverToken } from "@/lib/server/handoverToken";
+import { conflict, notFound, ok, parseBody, route } from "@/lib/server/http";
+
+const schema = z.object({ token: z.string().trim().min(10).max(1000) });
 
 /**
- * Act 3 - Physical QR Handover Verification
- * LGU officer scans Artisan's verified QR token (e.g., "usr_art_01" or "ART-12345")
- * Custody transfers from "reserved" -> "claimed"
+ * POST /api/handover/verify — an LGU officer submits the artisan's QR code.
+ * Custody moves from "reserved" to "claimed" only if the code is genuine,
+ * unexpired, and issued to the artisan who holds the reservation.
  */
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { batchId, artisanId, officerId } = body;
+export const POST = route(async (request: Request) => {
+  const officer = await requireUser(request, ["lgu"]);
+  const { token } = await parseBody(request, schema);
+  const { batchId, artisanId } = verifyHandoverToken(token);
+  const ref = db.batches().doc(batchId);
 
-    if (!batchId || !artisanId) {
-      return NextResponse.json(
-        { success: false, error: "batchId and artisanId are required for QR handover audit" },
-        { status: 400 }
-      );
-    }
+  const artisan = await adminDb().runTransaction(async (tx) => {
+    const [batchSnap, artisanSnap] = await Promise.all([tx.get(ref), tx.get(db.users().doc(artisanId))]);
+    const batch = batchSnap.data();
+    const artisan = artisanSnap.data();
+    if (!batch) throw notFound("Material batch not found.");
+    if (batch.status !== "reserved") throw conflict(`Batch ${batchId} is ${batch.status}, not awaiting pickup.`);
+    if (batch.reservedByArtisanId !== artisanId) throw conflict("This code belongs to an artisan who no longer holds the reservation.");
+    if (!artisan || artisan.role !== "artisan") throw conflict("The artisan's account is no longer verified.");
 
-    const batch = await prisma.materialBatch.findUnique({
-      where: { id: batchId },
-      include: { reservedByArtisan: true },
+    tx.update(ref, {
+      status: "claimed",
+      claimedByArtisanId: artisanId,
+      claimedAt: FieldValue.serverTimestamp(),
+      claimVerifiedById: officer.id,
     });
+    return artisan;
+  });
 
-    if (!batch) {
-      return NextResponse.json(
-        { success: false, error: "Material batch not found" },
-        { status: 404 }
-      );
-    }
-
-    // Verify artisan is verified
-    const artisan = await prisma.user.findUnique({
-      where: { id: artisanId },
-    });
-
-    if (!artisan || artisan.role !== "artisan") {
-      return NextResponse.json(
-        { success: false, error: "Invalid artisan account" },
-        { status: 403 }
-      );
-    }
-
-    // Update custody
-    const updatedBatch = await prisma.materialBatch.update({
-      where: { id: batchId },
-      data: {
-        status: "claimed",
-        claimedByArtisanId: artisanId,
-      },
-      include: {
-        claimedByArtisan: true,
-        scannedByOfficer: true,
-        agreement: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: `Custody of Batch ${batchId} officially transferred to ${artisan.fullName} (${artisan.workshopName || "Verified Cooperative"}).`,
-      data: {
-        batchId: updatedBatch.id,
-        status: updatedBatch.status,
-        artisan: {
-          id: artisan.id,
-          name: artisan.fullName,
-          workshop: artisan.workshopName,
-        },
-        verifiedAt: new Date().toISOString(),
-        officerId: officerId || updatedBatch.scannedByOfficerId,
-      },
-    });
-  } catch (error) {
-    console.error("Failed to process QR handover audit:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error during QR handover" },
-      { status: 500 }
-    );
-  }
-}
+  return ok(
+    {
+      batchId,
+      status: "claimed",
+      artisan: { id: artisan.id, name: artisan.fullName, workshop: artisan.workshopName },
+      verifiedAt: new Date().toISOString(),
+      officerId: officer.id,
+    },
+    { message: `Custody of batch ${batchId} passed to ${artisan.fullName}${artisan.workshopName ? ` (${artisan.workshopName})` : ""}.` }
+  );
+});

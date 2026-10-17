@@ -1,106 +1,61 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/server/firestore";
+import { notFound, ok, route } from "@/lib/server/http";
+import { withProductRelations } from "@/lib/server/views";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ serial: string }> }
-) {
-  try {
-    const { serial } = await params;
+/**
+ * GET /api/verify/:serial — the public impact record behind a pass QR code.
+ * Shows the maker, origin batch and money split. The buyer stays anonymous.
+ */
+export const GET = route(async (_request: Request, { params }: { params: Promise<{ serial: string }> }) => {
+  const { serial } = await params;
+  const pass = (await db.passes().doc(serial.toUpperCase()).get()).data();
+  if (!pass) throw notFound("No impact pass with that serial.");
 
-    const pass = await prisma.walletPass.findUnique({
-      where: { serial },
-      include: {
-        order: {
-          include: {
-            buyer: {
-              select: { fullName: true, country: true },
-            },
-            product: {
-              include: {
-                artisan: {
-                  select: {
-                    fullName: true,
-                    workshopName: true,
-                    country: true,
-                    artisanVerified: true,
-                  },
-                },
-                sourceBatch: {
-                  include: {
-                    agreement: true,
-                    scannedByOfficer: {
-                      select: { fullName: true, stationName: true, country: true },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+  const order = (await db.orders().doc(pass.orderId).get()).data();
+  const product = order && (await db.products().doc(order.productId).get()).data();
+  if (!order || !product) throw notFound("The order behind this pass could not be found.");
+
+  const [{ artisan, sourceBatch }] = await withProductRelations([product]);
+
+  return ok(
+    {
+      serial: pass.serial,
+      issuedAt: pass.issuedAt,
+      tamperEvidentHarvestHash: pass.harvestHash,
+      product: {
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        kgDiverted: product.kgDiverted * order.quantity,
       },
-    });
-
-    if (!pass) {
-      return NextResponse.json(
-        { success: false, error: "Verified Impact Pass not found" },
-        { status: 404 }
-      );
-    }
-
-    const { order } = pass;
-    const { product } = order;
-    const { sourceBatch } = product;
-
-    return NextResponse.json({
-      success: true,
-      verified: true,
-      data: {
-        serial: pass.serial,
-        issuedAt: pass.issuedAt,
-        tamperEvidentHarvestHash: pass.harvestHash || sourceBatch.txHash,
-        product: {
-          id: product.id,
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          kgDiverted: product.kgDiverted,
-        },
-        escrowAudit: {
-          totalAmount: order.amountPaid,
-          artisanPayout: order.artisanPayout,       // 70%
-          platformFee: order.platformFee,           // 20%
-          ngoContribution: order.ngoContribution,   // 10%
-          ngoFundName: product.ngoFundName,
-        },
-        maker: {
-          name: product.artisan.fullName,
-          workshop: product.artisan.workshopName,
-          country: product.artisan.country,
-          verified: product.artisan.artisanVerified,
-        },
-        originHarvest: {
-          batchId: sourceBatch.id,
-          materialType: sourceBatch.materialType,
-          condition: sourceBatch.condition,
-          weightKg: sourceBatch.weightKg,
-          festival: sourceBatch.agreement?.festival,
-          country: sourceBatch.agreement?.country,
-          gpsCoordinates: {
-            lat: sourceBatch.gpsLat,
-            lng: sourceBatch.gpsLng,
-          },
-          harvestLoggedAt: sourceBatch.createdAt,
-          loggedByOfficer: sourceBatch.scannedByOfficer?.fullName,
-          municipalityStation: sourceBatch.scannedByOfficer?.stationName,
-        },
+      escrowAudit: {
+        totalAmount: order.amountPaid,
+        artisanPayout: order.artisanPayout,
+        lguShare: order.lguShare,
+        charityMaintenanceShare: order.charityMaintenanceShare,
+        ngoFundName: product.ngoFundName,
+        paymentMode: order.paymentMode,
       },
-    });
-  } catch (error) {
-    console.error("Failed to verify impact pass:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error verifying impact pass" },
-      { status: 500 }
-    );
-  }
-}
+      maker: {
+        name: artisan?.fullName ?? null,
+        workshop: artisan?.workshopName ?? null,
+        country: artisan?.country ?? null,
+        verified: artisan?.artisanVerified ?? false,
+      },
+      originHarvest: sourceBatch && {
+        batchId: sourceBatch.id,
+        materialType: sourceBatch.materialType,
+        condition: sourceBatch.condition,
+        weightKg: sourceBatch.weightKg,
+        festival: sourceBatch.agreement?.festival ?? null,
+        country: sourceBatch.agreement?.country ?? null,
+        gpsCoordinates: { lat: sourceBatch.gpsLat, lng: sourceBatch.gpsLng },
+        harvestLoggedAt: sourceBatch.createdAt,
+        loggedByOfficer: sourceBatch.scannedByOfficer?.fullName ?? null,
+        municipalityStation: sourceBatch.scannedByOfficer?.stationName ?? null,
+      },
+    },
+    { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" } }
+  );
+});

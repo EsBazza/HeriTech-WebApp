@@ -1,44 +1,49 @@
 /**
- * HeriTech Firestore Type Definitions
- * Directly translated and adapted from prisma/schema.prisma for Cloud Firestore.
+ * Firestore document shapes, shared by the API routes and the client.
+ * Relations are stored as ids only; API routes join the related documents
+ * they need. Dates travel as ISO 8601 strings and are stored as Firestore
+ * Timestamps (see src/lib/server/firestore.ts).
  */
 
 export type UserRole = "buyer" | "artisan" | "lgu" | "admin";
 export type VerificationStatus = "none" | "pending_artisan" | "pending_lgu" | "approved" | "rejected";
-export type MaterialCondition = "Excellent" | "Good" | "Fair";
 export type BatchStatus = "available" | "reserved" | "claimed";
 export type AgreementStatus = "active" | "closed";
 export type OrderStatus = "pending" | "completed" | "refunded";
 export type MessageContextType = "order" | "batch_reservation" | "general";
 
-/**
- * Collection: `users`
- * Represents all user accounts (buyers, artisans, LGU officials, and admins).
- * Document ID: Matches Firebase Auth UID (or custom user ID like 'usr_xxx').
- */
-export interface UserDocument {
+export interface RoleApplication {
+  type: "artisan" | "lgu";
+  appliedAt: string;
+  workshopName: string | null;
+  craftTypology: string | null;
+  stationName: string | null;
+  country: string | null;
+  bio: string | null;
+  notes: string | null;
+}
+
+/** `users/{uid}`. The document id is the Firebase Auth uid. */
+export interface UserDoc {
   id: string;
   email: string;
   role: UserRole;
   fullName: string;
-  avatarUrl?: string | null;
-  country?: string | null;
-  workshopName?: string | null; // Artisan only
-  artisanVerified?: boolean;
-  stationName?: string | null; // LGU only
-  stripeAccountId?: string | null;
+  avatarUrl: string | null;
+  country: string | null;
+  workshopName: string | null;
+  stationName: string | null;
+  artisanVerified: boolean;
   verificationStatus: VerificationStatus;
-  applicationNotes?: string | null; // JSON formatted details submitted during application
-  preferredLanguage?: string;
-  createdAt: string; // ISO 8601 string or Timestamp
+  application: RoleApplication | null;
+  preferredLanguage: string;
+  /** Seeded showcase account that can be signed into when DEMO_MODE is on. */
+  isDemo?: boolean;
+  createdAt: string;
 }
 
-/**
- * Collection: `agreements`
- * Represents festival waste reclamation agreements signed by organizers and LGUs.
- * Document ID: e.g. "RA-2026-001"
- */
-export interface AgreementDocument {
+/** `agreements/{id}`, e.g. "RA-2026-001". */
+export interface AgreementDoc {
   id: string;
   title: string;
   organizerName: string;
@@ -48,156 +53,110 @@ export interface AgreementDocument {
   collectedKg: number;
   status: AgreementStatus;
   signedAt: string;
+  createdById: string | null;
 }
 
-/**
- * Collection: `material_batches`
- * Logged batches of reclaimed materials from festivals/LGUs.
- * Document ID: e.g. "HT-2026-0101"
- */
-export interface MaterialBatchDocument {
+/** `material_batches/{id}`, e.g. "HT-2026-0101". */
+export interface MaterialBatchDoc {
   id: string;
   title: string;
   materialType: string;
   weightKg: number;
-  condition: MaterialCondition | string;
+  condition: string;
   status: BatchStatus;
   gpsLat: number;
   gpsLng: number;
   imageUrl: string;
-  agreementId?: string | null;
-  scannedByOfficerId?: string | null;
-  reservedByArtisanId?: string | null;
-  claimedByArtisanId?: string | null;
-  txHash: string; // SHA-256 telemetry hash
-  aiInferredMaterial?: string | null;
-  aiInferredCondition?: string | null;
-  aiConfidence?: number | null;
+  agreementId: string | null;
+  scannedByOfficerId: string | null;
+  reservedByArtisanId: string | null;
+  claimedByArtisanId: string | null;
+  /** SHA-256 over batch id, GPS, weight, officer and timestamp. */
+  txHash: string;
+  aiInferredMaterial: string | null;
+  aiInferredCondition: string | null;
+  aiConfidence: number | null;
   createdAt: string;
-
-  // Optional embedded / joined relations for convenient client rendering
-  agreement?: AgreementDocument | null;
-  scannedByOfficer?: Pick<UserDocument, "id" | "fullName" | "stationName" | "country"> | null;
-  reservedByArtisan?: Pick<UserDocument, "id" | "fullName" | "workshopName" | "country"> | null;
-  claimedByArtisan?: Pick<UserDocument, "id" | "fullName" | "workshopName" | "country"> | null;
+  reservedAt?: string | null;
+  claimedAt?: string | null;
+  /** LGU officer who checked the artisan's handover code. */
+  claimVerifiedById?: string | null;
 }
 
-/**
- * Collection: `products`
- * Marketplace products upcycled by artisans from reclaimed material batches.
- * Document ID: Auto-generated string
- */
-export interface ProductDocument {
+/** `products/{id}`. */
+export interface ProductDoc {
   id: string;
   title: string;
   description: string;
   price: number;
-  images: string[] | string; // Can be native array in Firestore or JSON string
+  images: string[];
   artisanId: string;
   sourceBatchId: string;
-  materialTags: string[] | string; // Can be native array in Firestore or JSON string
+  materialTags: string[];
   stock: number;
   kgDiverted: number;
+  /** Charity partner that receives part of the charity & maintenance share. */
   ngoFundName: string;
+  /** Removed listings stay stored so existing impact passes keep resolving. */
+  archived?: boolean;
   createdAt: string;
-
-  // Optional embedded / joined relations
-  artisan?: Pick<UserDocument, "id" | "fullName" | "workshopName" | "country" | "avatarUrl"> | null;
-  sourceBatch?: MaterialBatchDocument | null;
 }
 
-/**
- * Collection: `orders`
- * Orders placed by buyers for artisan upcycled goods.
- * Document ID: Auto-generated string
- */
-export interface OrderDocument {
+export interface ShippingAddress {
+  fullName: string;
+  streetAddress: string;
+  city: string;
+  country: string;
+  postalCode: string;
+}
+
+/** `orders/{id}`. One order per product line in a checkout. */
+export interface OrderDoc {
   id: string;
   productId: string;
+  artisanId: string;
   buyerId: string;
+  sourceBatchId: string;
+  quantity: number;
+  unitPrice: number;
   amountPaid: number;
-  artisanPayout: number; // 70% Escrow Split
-  platformFee: number; // 20% LGU & Platform Escrow Split
-  ngoContribution: number; // 10% NGO Trust Fund Escrow Split
-  stripePaymentIntentId?: string | null;
-  shippingAddress?: string | null; // JSON formatted shipping details
+  artisanPayout: number;
+  lguShare: number;
+  charityMaintenanceShare: number;
+  /** No payment provider is connected yet; every order is a simulated payment. */
+  paymentMode: "simulated";
+  shippingAddress: ShippingAddress | null;
   status: OrderStatus;
   createdAt: string;
-
-  // Optional embedded / joined relations
-  product?: ProductDocument | null;
-  buyer?: Pick<UserDocument, "id" | "fullName" | "email"> | null;
-  walletPass?: WalletPassDocument | null;
 }
 
-/**
- * Collection: `wallet_passes`
- * Digital certificates / wallet passes for provenance and ownership verification.
- * Document ID: Auto-generated string
- */
-export interface WalletPassDocument {
+/** `wallet_passes/{serial}`. The public impact record for one order. */
+export interface WalletPassDoc {
   id: string;
   orderId: string;
-  serial: string; // e.g. "HT-492-AX"
-  googleWalletObjectId?: string | null;
+  serial: string;
   qrPayload: string;
-  harvestHash?: string | null;
+  harvestHash: string;
   issuedAt: string;
-
-  // Optional joined relation
-  order?: OrderDocument | null;
 }
 
-/**
- * Collection: `messages`
- * In-app messaging between users (e.g. buyers, artisans, LGUs).
- * Document ID: Auto-generated string
- */
-export interface MessageDocument {
+/** `messages/{id}`. */
+export interface MessageDoc {
   id: string;
   senderId: string;
   receiverId: string;
+  /** [senderId, receiverId], so a user's messages are one array-contains query. */
+  participants: string[];
   content: string;
-  contextType?: MessageContextType | null;
-  contextId?: string | null;
-  isSystem?: boolean;
+  contextType: MessageContextType;
+  contextId: string | null;
+  /** Written by the server for order and reservation events, never by clients. */
+  isSystem: boolean;
   createdAt: string;
-
-  // Optional joined relations
-  sender?: Pick<UserDocument, "id" | "fullName" | "avatarUrl"> | null;
-  receiver?: Pick<UserDocument, "id" | "fullName" | "avatarUrl"> | null;
 }
 
-/**
- * Collection: `translations`
- * Caches automated translations.
- */
-export interface TranslationDocument {
-  id: string;
-  sourceText: string;
-  targetLanguage: string;
-  translatedText: string;
-  sourceLanguage: string;
-  contextHash?: string | null;
-  quality?: number | null;
-  verified?: boolean;
-  usageCount?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Collection: `translation_stats`
- * Aggregate statistics for translation usage.
- */
-export interface TranslationStatsDocument {
-  id: string;
-  languageCode: string;
-  totalRequests: number;
-  cacheHits: number;
-  averageLatency: number;
-  errorCount: number;
-  lastRequestAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
+/** The public subset of a user that other users may see. */
+export type PublicUser = Pick<
+  UserDoc,
+  "id" | "fullName" | "role" | "avatarUrl" | "country" | "workshopName" | "stationName" | "artisanVerified"
+>;

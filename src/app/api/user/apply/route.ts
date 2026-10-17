@@ -1,51 +1,41 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import type { RoleApplication } from "@/lib/firebase/types";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { conflict, fields, ok, parseBody, route } from "@/lib/server/http";
 
-// POST /api/user/apply - Submit role upgrade verification application
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { userId, type, workshopName, craftTypology, stationName, country, bio, notes } = body;
+const schema = z.object({
+  type: z.enum(["artisan", "lgu"]),
+  workshopName: fields.optionalText(160),
+  craftTypology: fields.optionalText(160),
+  stationName: fields.optionalText(160),
+  country: fields.optionalText(80),
+  bio: fields.optionalText(1000),
+  notes: fields.optionalText(1000),
+});
 
-    if (!userId || !type || (type !== "artisan" && type !== "lgu")) {
-      return NextResponse.json(
-        { success: false, error: "Invalid application payload. Type must be 'artisan' or 'lgu'." },
-        { status: 400 }
-      );
-    }
+/** POST /api/user/apply — ask an admin to verify you as an artisan or LGU officer. */
+export const POST = route(async (request: Request) => {
+  const user = await requireUser(request);
+  const input = await parseBody(request, schema);
 
-    const applicationPayload = {
-      appliedAt: new Date().toISOString(),
-      type,
-      workshopName: workshopName || null,
-      craftTypology: craftTypology || null,
-      stationName: stationName || null,
-      country: country || null,
-      bio: bio || null,
-      notes: notes || null,
-    };
-
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        verificationStatus: type === "artisan" ? "pending_artisan" : "pending_lgu",
-        workshopName: workshopName || undefined,
-        stationName: stationName || undefined,
-        country: country || undefined,
-        applicationNotes: JSON.stringify(applicationPayload),
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: `Your application to become a verified ${type.toUpperCase()} has been submitted for Admin review.`,
-      data: updatedUser,
-    });
-  } catch (error) {
-    console.error("Application submission error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to submit verification application" },
-      { status: 500 }
-    );
+  if (user.role === input.type) throw conflict(`You are already verified as ${input.type === "lgu" ? "an LGU officer" : "an artisan"}.`);
+  if (user.verificationStatus === "pending_artisan" || user.verificationStatus === "pending_lgu") {
+    throw conflict("You already have an application waiting for review.");
   }
-}
+
+  const application: RoleApplication = { ...input, appliedAt: new Date().toISOString() };
+  const updates = {
+    verificationStatus: input.type === "artisan" ? ("pending_artisan" as const) : ("pending_lgu" as const),
+    application,
+    ...(input.workshopName ? { workshopName: input.workshopName } : {}),
+    ...(input.stationName ? { stationName: input.stationName } : {}),
+    ...(input.country ? { country: input.country } : {}),
+  };
+  await db.users().doc(user.id).update(updates);
+
+  return ok(
+    { ...user, ...updates },
+    { message: `Your ${input.type === "lgu" ? "LGU officer" : "artisan"} application was sent for admin review.` }
+  );
+});

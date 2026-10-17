@@ -1,69 +1,57 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { adminDb } from "@/lib/firebase/admin";
+import type { AgreementDoc } from "@/lib/firebase/types";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { fields, ok, parseBody, route } from "@/lib/server/http";
+import { nextSequence } from "@/lib/server/ids";
 
-// GET /api/agreements - List all municipal agreements and quota fulfillment
-export async function GET() {
-  try {
-    const agreements = await prisma.agreement.findMany({
-      include: {
-        batches: {
-          select: {
-            id: true,
-            title: true,
-            weightKg: true,
-            status: true,
-            createdAt: true,
-          },
-        },
-      },
-      orderBy: { signedAt: "desc" },
-    });
+/** GET /api/agreements — release agreements with the batches logged against each. */
+export const GET = route(async (request: Request) => {
+  await requireUser(request, ["lgu"]);
 
-    return NextResponse.json({ success: true, count: agreements.length, data: agreements });
-  } catch (error) {
-    console.error("Failed to fetch agreements:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error fetching agreements" },
-      { status: 500 }
-    );
+  const [agreementSnap, batchSnap] = await Promise.all([
+    db.agreements().orderBy("signedAt", "desc").get(),
+    db.batches().select("agreementId", "title", "weightKg", "status", "createdAt").get(),
+  ]);
+
+  const batchesByAgreement = new Map<string, unknown[]>();
+  for (const doc of batchSnap.docs) {
+    const batch = { id: doc.id, ...(doc.data() as object) } as { agreementId?: string };
+    if (!batch.agreementId) continue;
+    batchesByAgreement.set(batch.agreementId, [...(batchesByAgreement.get(batch.agreementId) ?? []), batch]);
   }
-}
 
-// POST /api/agreements - Create a new Step 0 Municipal Consent Agreement
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { title, organizerName, festival, country, allocatedKg } = body;
+  return ok(agreementSnap.docs.map((d) => ({ ...d.data(), batches: batchesByAgreement.get(d.id) ?? [] })));
+});
 
-    if (!title || !organizerName || !festival || !country || !allocatedKg) {
-      return NextResponse.json(
-        { success: false, error: "Missing required agreement fields" },
-        { status: 400 }
-      );
-    }
+const schema = z.object({
+  title: fields.text(200),
+  organizerName: fields.text(200),
+  festival: fields.text(120),
+  country: fields.text(80),
+  allocatedKg: fields.kg,
+});
 
-    const count = await prisma.agreement.count();
-    const id = `RA-2026-${String(count + 1).padStart(3, "0")}`;
+/** POST /api/agreements — record a new municipal material release agreement. */
+export const POST = route(async (request: Request) => {
+  const user = await requireUser(request, ["lgu"]);
+  const input = await parseBody(request, schema);
 
-    const agreement = await prisma.agreement.create({
-      data: {
-        id,
-        title,
-        organizerName,
-        festival,
-        country,
-        allocatedKg: Number(allocatedKg),
-        collectedKg: 0,
-        status: "active",
-      },
-    });
+  const agreement = await adminDb().runTransaction(async (tx) => {
+    const year = new Date().getFullYear();
+    const seq = await nextSequence(tx, `agreements-${year}`, 1);
+    const doc: AgreementDoc = {
+      ...input,
+      id: `RA-${year}-${String(seq).padStart(3, "0")}`,
+      collectedKg: 0,
+      status: "active",
+      signedAt: new Date().toISOString(),
+      createdById: user.id,
+    };
+    tx.create(db.agreements().doc(doc.id), doc);
+    return doc;
+  });
 
-    return NextResponse.json({ success: true, data: agreement }, { status: 201 });
-  } catch (error) {
-    console.error("Failed to create agreement:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to create agreement" },
-      { status: 500 }
-    );
-  }
-}
+  return ok({ ...agreement, batches: [] }, { status: 201 });
+});

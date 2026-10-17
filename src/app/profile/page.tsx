@@ -5,13 +5,12 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
+import { apiJson } from "@/lib/api";
 import {
   User,
-  ShieldCheck,
   CheckCircle2,
   Edit3,
   LogOut,
-  Bell,
   Globe,
   Layers,
   FileText,
@@ -35,6 +34,7 @@ export default function ProfilePage() {
   const [editWorkshop, setEditWorkshop] = useState("");
   const [editStation, setEditStation] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Notification settings toggle state
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -55,56 +55,43 @@ export default function ProfilePage() {
       setEditWorkshop(user.workshopName || "");
       setEditStation(user.stationName || "");
 
-      async function loadProfileData() {
-        try {
-          const [prodRes, batchRes] = await Promise.all([
-            fetch("/api/products"),
-            fetch("/api/materials"),
-          ]);
-          const prodData = await prodRes.json();
-          const batchData = await batchRes.json();
-
-          if (prodData.success && Array.isArray(prodData.data)) {
-            setArtisanProducts(prodData.data);
-          }
-          if (batchData.success && Array.isArray(batchData.data)) {
-            setLguBatches(batchData.data);
-          }
-        } catch (e) {
-          console.warn("Profile data fetch notice:", e);
-        } finally {
-          setLoadingData(false);
-        }
-      }
-      loadProfileData();
+      // Only this user's own records: their purchases, plus listings or batches for their role.
+      const userId = user.id;
+      const role = user.role;
+      Promise.all([
+        apiJson<any[]>("/api/orders"),
+        role === "artisan" ? apiJson<any[]>(`/api/products?artisanId=${encodeURIComponent(userId)}`) : null,
+        role === "lgu" ? apiJson<any[]>("/api/materials?mine=scanned") : null,
+      ]).then(([orderRes, productRes, batchRes]) => {
+        if (orderRes.success) setOrders(orderRes.data ?? []);
+        if (productRes?.success) setArtisanProducts(productRes.data ?? []);
+        if (batchRes?.success) setLguBatches(batchRes.data ?? []);
+        setLoadingData(false);
+      });
     }
   }, [user]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingProfile(true);
-    try {
-      const res = await fetch("/api/user/profile/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: editFullName,
-          country: editCountry,
-          avatarUrl: editAvatarUrl,
-          workshopName: editWorkshop,
-          stationName: editStation,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && refreshProfile) {
-        await refreshProfile();
-        setEditModalOpen(false);
-      }
-    } catch (err) {
-      console.error("Failed to update profile:", err);
-    } finally {
-      setSavingProfile(false);
+    setSaveError(null);
+    const result = await apiJson("/api/user/profile/update", {
+      method: "POST",
+      body: JSON.stringify({
+        fullName: editFullName,
+        country: editCountry,
+        avatarUrl: editAvatarUrl,
+        workshopName: editWorkshop,
+        stationName: editStation,
+      }),
+    });
+    if (result.success) {
+      await refreshProfile();
+      setEditModalOpen(false);
+    } else {
+      setSaveError(result.error ?? "Couldn't save your profile.");
     }
+    setSavingProfile(false);
   };
 
   if (!user) {
@@ -157,43 +144,12 @@ export default function ProfilePage() {
       ? "Administrator"
       : "Buyer";
 
-  // Compute activity stats
-  const totalBatchesScanned = lguBatches.length || 6;
-  const totalOrdersCompleted = 3;
+  // Activity stats from this user's own records
+  const totalBatchesScanned = lguBatches.length;
+  const totalOrdersCompleted = orders.length;
+  const purchasedKg = orders.reduce((acc, o) => acc + (o.product?.kgDiverted ?? 0) * (o.quantity ?? 1), 0);
   const totalKgDiverted =
-    role === "artisan"
-      ? artisanProducts.reduce((acc, p) => acc + (p.kgDiverted || 1.5), 0) || 12.8
-      : 8.5;
-
-  const mockImpactRows = [
-    {
-      id: "tx-01",
-      date: "2026-08-14",
-      material: "Highland Bolo Bamboo",
-      festival: "Panagbenga Festival",
-      quantityKg: 2.4,
-      payoutUsd: 47.6,
-      status: "Settled",
-    },
-    {
-      id: "tx-02",
-      date: "2026-08-09",
-      material: "Split Bamboo & Mulberry Paper",
-      festival: "Yi Peng Festival",
-      quantityKg: 1.8,
-      payoutUsd: 59.5,
-      status: "Settled",
-    },
-    {
-      id: "tx-03",
-      date: "2026-07-28",
-      material: "Temple Nirmalaya Marigold",
-      festival: "Ganesh Chaturthi",
-      quantityKg: 3.5,
-      payoutUsd: 31.5,
-      status: "Settled",
-    },
-  ];
+    role === "artisan" ? artisanProducts.reduce((acc, p) => acc + (p.kgDiverted ?? 0), 0) : role === "lgu" ? lguBatches.reduce((acc, b) => acc + (b.weightKg ?? 0), 0) : purchasedKg;
 
   const navigationItems = [
     { id: "personal", label: "Personal info", icon: User },
@@ -470,36 +426,50 @@ export default function ProfilePage() {
                     Impact record
                   </h2>
                   <span className="text-xs font-mono-data text-[var(--warm-gray)]">
-                    Audit log
+                    {translateSync("Your purchases")}
                   </span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-[var(--border-mid)] text-xs text-[var(--warm-gray)]">
-                        <th className="pb-3 font-semibold">Date</th>
-                        <th className="pb-3 font-semibold">Material</th>
-                        <th className="pb-3 font-semibold">Origin event</th>
-                        <th className="pb-3 font-semibold">Quantity</th>
-                        <th className="pb-3 font-semibold text-right">Escrow payout</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border-light)] text-ink">
-                      {mockImpactRows.map((row) => (
-                        <tr key={row.id} className="hover:bg-paper-2/50 transition-colors">
-                          <td className="py-3.5 font-mono-data text-[var(--warm-gray)]">{row.date}</td>
-                          <td className="py-3.5 font-medium">{row.material}</td>
-                          <td className="py-3.5 text-[var(--warm-gray)]">{row.festival}</td>
-                          <td className="py-3.5 font-mono-data">{row.quantityKg} kg</td>
-                          <td className="py-3.5 font-display text-sm font-semibold text-pine-500 text-right">
-                            {formatCurrency(row.payoutUsd)}
-                          </td>
+                {loadingData ? (
+                  <p className="text-xs text-[var(--warm-gray)]">{translateSync("Loading…")}</p>
+                ) : orders.length === 0 ? (
+                  <p className="text-sm text-ink-2">
+                    {translateSync("No purchases yet. Each piece you buy comes with a Verified Impact Pass, listed here.")}
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-[var(--border-mid)] text-xs text-[var(--warm-gray)]">
+                          <th className="pb-3 font-semibold">{translateSync("Date")}</th>
+                          <th className="pb-3 font-semibold">{translateSync("Piece")}</th>
+                          <th className="pb-3 font-semibold">{translateSync("Quantity")}</th>
+                          <th className="pb-3 font-semibold">{translateSync("Paid")}</th>
+                          <th className="pb-3 font-semibold text-right">{translateSync("Impact pass")}</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-light)] text-ink">
+                        {orders.map((order) => (
+                          <tr key={order.id} className="hover:bg-paper-2/50 transition-colors">
+                            <td className="py-3.5 font-mono-data text-[var(--warm-gray)]">{new Date(order.createdAt).toLocaleDateString()}</td>
+                            <td className="py-3.5 font-medium">{order.product?.title ?? translateSync("Removed listing")}</td>
+                            <td className="py-3.5 font-mono-data">{order.quantity}</td>
+                            <td className="py-3.5 font-display text-sm font-semibold text-pine-500">{formatCurrency(order.amountPaid)}</td>
+                            <td className="py-3.5 text-right">
+                              {order.pass ? (
+                                <Link href={`/verify/${order.pass.serial}`} className="font-mono-data text-pine-700 underline">
+                                  {order.pass.serial}
+                                </Link>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </section>
             )}
 
@@ -644,6 +614,12 @@ export default function ProfilePage() {
                     className="w-full p-2.5 rounded-sm bg-paper border border-[var(--border-mid)] text-sm text-ink"
                   />
                 </div>
+              )}
+
+              {saveError && (
+                <p role="alert" className="text-sm text-danger">
+                  {translateSync(saveError)}
+                </p>
               )}
 
               <div className="flex items-center justify-end space-x-3 pt-4 border-t border-[var(--border-light)]">

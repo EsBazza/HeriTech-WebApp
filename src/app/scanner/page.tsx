@@ -2,13 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, CheckCircle2, RefreshCw, Crosshair } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { AccessGuard } from "@/components/AccessGuard";
 import { Badge, Button, Card, EmptyState, Input, PageHeader, Select, cn, controlClass } from "@/components/ui";
+import { apiJson } from "@/lib/api";
 
-export default function WasteScannerPage() {
-  const { user } = useAuth();
+/** Words that identify each festival preset's agreement by its festival name. */
+const FESTIVAL_KEYWORDS: Record<string, string> = {
+  panagbenga: "panagbenga",
+  yipeng: "yi peng",
+  nirmalaya: "ganesh",
+  pingxi: "pingxi",
+};
+
+function WasteScannerPageContent() {
   const { translateSync } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -49,7 +56,19 @@ export default function WasteScannerPage() {
     ],
   };
 
-  // Sync default depot when festival changes
+  // Active release agreements the batch can be logged against.
+  const [agreements, setAgreements] = useState<Array<{ id: string; title: string; festival: string; status: string }>>([]);
+  const [agreementId, setAgreementId] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiJson<typeof agreements>("/api/agreements").then((result) => {
+      if (result.success) setAgreements((result.data ?? []).filter((a) => a.status === "active"));
+      else setError(result.error ?? "Couldn't load release agreements.");
+    });
+  }, []);
+
+  // Sync default depot and matching agreement when festival changes
   useEffect(() => {
     const presets = depotPresets[festivalHint] || depotPresets.panagbenga;
     if (presets.length > 0) {
@@ -57,7 +76,11 @@ export default function WasteScannerPage() {
       setPickupLat(presets[0].lat);
       setPickupLng(presets[0].lng);
     }
-  }, [festivalHint]);
+    const keyword = FESTIVAL_KEYWORDS[festivalHint];
+    const match = agreements.find((a) => a.festival.toLowerCase().includes(keyword));
+    setAgreementId((current) => match?.id ?? (agreements.some((a) => a.id === current) ? current : agreements[0]?.id ?? ""));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [festivalHint, agreements]);
 
   // Real-time GPS Location Handler
   const handleUseRealtimeLocation = () => {
@@ -149,71 +172,40 @@ export default function WasteScannerPage() {
   const handleAnalyzeAI = async () => {
     if (!previewUrl) return;
     setAnalyzing(true);
-    try {
-      const res = await fetch("/api/ai/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: previewUrl,
-          festivalHint,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAnalysisResult(data.data);
-        // Automatically autofill the physical scale weight based on what the AI said!
-        if (data.data.estimatedWeightKg?.bestEstimate !== undefined) {
-          setWeightKg(data.data.estimatedWeightKg.bestEstimate.toString());
-        }
-      }
-    } catch (err) {
-      console.error("AI analysis failed:", err);
-    } finally {
-      setAnalyzing(false);
-    }
+    setError(null);
+    const result = await apiJson<any>("/api/ai/scan", {
+      method: "POST",
+      body: JSON.stringify({ imageBase64: previewUrl, festivalHint }),
+    });
+    // The weight field is left for the physical scale reading; the AI estimate is one click away.
+    if (result.success) setAnalysisResult(result.data);
+    else setError(result.error ?? "The AI scan failed.");
+    setAnalyzing(false);
   };
 
   const handleLogBatch = async () => {
-    if (!analysisResult || !weightKg) return;
+    if (!analysisResult || !weightKg || !agreementId) return;
     setSaving(true);
-
-    const festivalConfigs: Record<string, { agreementId: string }> = {
-      panagbenga: { agreementId: "RA-2026-005" },
-      yipeng: { agreementId: "RA-2026-001" },
-      nirmalaya: { agreementId: "RA-2026-002" },
-      pingxi: { agreementId: "RA-2026-003" },
-    };
-
-    const currentConfig = festivalConfigs[festivalHint] || festivalConfigs.panagbenga;
-
-    try {
-      const res = await fetch("/api/materials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: `${analysisResult.materialType} (${pickupDepotName})`,
-          materialType: analysisResult.materialType,
-          weightKg: parseFloat(weightKg),
-          condition: analysisResult.condition,
-          gpsLat: pickupLat,
-          gpsLng: pickupLng,
-          imageUrl: previewUrl || "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=800",
-          agreementId: currentConfig.agreementId,
-          officerId: user?.id || "usr_lgu_04",
-          aiInferredMaterial: analysisResult.inferredMaterialDetails,
-          aiInferredCondition: analysisResult.condition,
-          aiConfidence: analysisResult.confidence,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSavedBatch(data.data);
-      }
-    } catch (err) {
-      console.error("Failed to log batch:", err);
-    } finally {
-      setSaving(false);
-    }
+    setError(null);
+    const result = await apiJson<any>("/api/materials", {
+      method: "POST",
+      body: JSON.stringify({
+        title: `${analysisResult.materialType} (${pickupDepotName})`,
+        materialType: analysisResult.materialType,
+        weightKg: parseFloat(weightKg),
+        condition: analysisResult.condition,
+        gpsLat: pickupLat,
+        gpsLng: pickupLng,
+        imageUrl: previewUrl,
+        agreementId,
+        aiInferredMaterial: analysisResult.inferredMaterialDetails,
+        aiInferredCondition: analysisResult.condition,
+        aiConfidence: analysisResult.confidence,
+      }),
+    });
+    if (result.success) setSavedBatch(result.data);
+    else setError(result.error ?? "Couldn't log the batch.");
+    setSaving(false);
   };
 
   const presets = depotPresets[festivalHint] || depotPresets.panagbenga;
@@ -223,7 +215,6 @@ export default function WasteScannerPage() {
   const steps = [translateSync("Capture"), translateSync("Review AI result"), translateSync("Log batch")];
 
   return (
-    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="AI material scanner">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
         <PageHeader
           eyebrow={translateSync("Collection point")}
@@ -280,6 +271,21 @@ export default function WasteScannerPage() {
               <option value="pingxi">Pingxi Lantern Paper (New Taipei, Taiwan)</option>
             </Select>
 
+            <Select label={translateSync("Release agreement")} value={agreementId} onChange={(e) => setAgreementId(e.target.value)}>
+              {agreements.length === 0 && <option value="">{translateSync("No active agreements")}</option>}
+              {agreements.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.id} · {a.title}
+                </option>
+              ))}
+            </Select>
+
+            {error && (
+              <p role="alert" className="text-sm text-danger">
+                {translateSync(error)}
+              </p>
+            )}
+
             <Button size="lg" className="w-full" onClick={handleAnalyzeAI} disabled={!previewUrl} loading={analyzing}>
               {!analyzing && <Sparkles className="w-4 h-4" />}
               {analyzing ? translateSync("Gemini is analysing…") : translateSync("Analyse with Gemini")}
@@ -290,6 +296,11 @@ export default function WasteScannerPage() {
           {analysisResult ? (
             <div className="space-y-6">
               <Card className="p-5 sm:p-6 space-y-5">
+                {analysisResult.isSample && (
+                  <p className="rounded-md bg-warn-100 border border-warn/20 p-3 text-sm text-warn">
+                    {translateSync("Demo sample: Gemini was unavailable, so this is a prepared example result, not an analysis of your photo.")}
+                  </p>
+                )}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs text-ink-3">{translateSync("Identified material")}</p>
@@ -461,7 +472,7 @@ export default function WasteScannerPage() {
                     </dl>
                   </div>
                 ) : (
-                  <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg} loading={saving}>
+                  <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId} loading={saving}>
                     {!saving && <FileCheck2 className="w-4 h-4" />}
                     {saving ? translateSync("Logging batch…") : `${translateSync("Log batch")} · ${weightKg || 0} kg`}
                   </Button>
@@ -478,6 +489,13 @@ export default function WasteScannerPage() {
           )}
         </div>
       </div>
+  );
+}
+
+export default function WasteScannerPage() {
+  return (
+    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="AI material scanner">
+      <WasteScannerPageContent />
     </AccessGuard>
   );
 }

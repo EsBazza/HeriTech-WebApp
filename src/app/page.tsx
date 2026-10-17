@@ -12,93 +12,8 @@ import { userRole } from "@/lib/roleGuard";
 import { Button, EmptyState, Eyebrow, SectionHeader, Stat, cn, controlClass } from "@/components/ui";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
-
-const CURATED_FEED_BATCHES: FeedMaterialBatch[] = [
-  {
-    id: "batch_01",
-    title: "Panagbenga Botanical Loom Wall Tapestry",
-    description:
-      "Salvaged highland bolo bamboo and sun-dried strawflowers from Baguio City float sculptures. Hand-woven into archival wall decor.",
-    price: 68.0,
-    weightKg: 2.4,
-    image: "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800",
-    cooperativeName: "Cordillera Botanical Cooperative",
-    region: "Baguio City",
-    country: "Philippines",
-    materialType: "Highland Bolo Bamboo",
-    festival: "Panagbenga Festival",
-  },
-  {
-    id: "batch_02",
-    title: "Yi Peng Luminary Ambient Table Lamp",
-    description:
-      "Constructed with split bamboo frames and mulberry rice paper recovered post-celebration along the Ping River in Chiang Mai.",
-    price: 85.0,
-    weightKg: 1.8,
-    image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
-    cooperativeName: "Lanna Heritage Joinery",
-    region: "Chiang Mai",
-    country: "Thailand",
-    materialType: "Mulberry Rice Paper & Bamboo",
-    festival: "Yi Peng Lantern Festival",
-  },
-  {
-    id: "batch_03",
-    title: "Temple Nirmalaya Artisanal Watercolor Pigment Set",
-    description:
-      "Extracted from ceremonial marigolds and rose garland biomass. Solar-dried and milled into archival watercolor half-pans.",
-    price: 45.0,
-    weightKg: 3.5,
-    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800",
-    cooperativeName: "Nirmalaya Bio-Craft Collective",
-    region: "Varanasi",
-    country: "India",
-    materialType: "Ceremonial Floral Biomass",
-    festival: "Ganesh Chaturthi",
-  },
-  {
-    id: "batch_04",
-    title: "Pingxi Repulped Botanical Accordion Journal",
-    description:
-      "Recycled long-fiber lantern sheets reconstituted with indigenous fern inclusions and unbleached cotton binding cord.",
-    price: 38.0,
-    weightKg: 1.2,
-    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
-    cooperativeName: "Pingxi Sustainable Papermaking",
-    region: "New Taipei",
-    country: "Taiwan",
-    materialType: "Mulberry Lantern Paper",
-    festival: "Pingxi Lantern Festival",
-  },
-  {
-    id: "batch_05",
-    title: "Sinulog Festival Upcycled Abaca Bunting Tote",
-    description:
-      "Heavy-duty abaca fiber strips and ceremonial banner textiles repurposed into reinforced market bags.",
-    price: 52.0,
-    weightKg: 2.1,
-    image: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800",
-    cooperativeName: "Cebu Ancestral Weavers Cooperative",
-    region: "Cebu City",
-    country: "Philippines",
-    materialType: "Abaca Fiber & Banner Textile",
-    festival: "Sinulog Festival",
-  },
-  {
-    id: "batch_06",
-    title: "Loi Krathong Biodegradable Banana Leaf Wall Plate",
-    description:
-      "Compressed organic banana trunk fibers and natural gum arabic binder forming resilient wall art tiles.",
-    price: 42.0,
-    weightKg: 1.6,
-    image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=800",
-    cooperativeName: "Lanna Eco-Craft Community",
-    region: "Sukhothai",
-    country: "Thailand",
-    materialType: "Organic Banana Fiber",
-    festival: "Loi Krathong",
-  },
-];
+import { apiJson } from "@/lib/api";
+import { SPLIT_LABEL } from "@/lib/escrow";
 
 const MATERIAL_TAGS = ["Bamboo", "Rice Paper", "Botanical Flora", "Abaca"];
 const COUNTRY_TAGS = ["Philippines", "Thailand", "India"];
@@ -107,84 +22,63 @@ interface HomeStats {
   kg: number;
   artisans: number;
   passes: number;
-  ngo: number;
-  live: boolean;
+  charity: number;
+}
+
+function toFeedItem(p: any): FeedMaterialBatch {
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description ?? "",
+    price: Number(p.price) || 0,
+    image: p.images?.[0],
+    cooperativeName: p.artisan?.workshopName || p.artisan?.fullName || "Artisan workshop",
+    region: p.artisan?.country || p.sourceBatch?.agreement?.country || "Asia",
+    country: p.sourceBatch?.agreement?.country || p.artisan?.country || "Asia",
+    weightKg: Number(p.kgDiverted) || 0,
+    materialType: p.materialTags?.length ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "Upcycled piece",
+    festival: p.sourceBatch?.agreement?.festival || "Festival origin",
+  };
 }
 
 export default function FeedHomePage() {
   const { user } = useAuth();
   const router = useRouter();
   const { translateSync, formatNumber, formatCurrency } = useTranslation();
-  const [batches, setBatches] = useState<FeedMaterialBatch[]>(CURATED_FEED_BATCHES);
+  const [batches, setBatches] = useState<FeedMaterialBatch[]>([]);
+  const [productsState, setProductsState] = useState<"loading" | "ready" | "error">("loading");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
   const [visibleCount, setVisibleCount] = useState(6);
   const [serial, setSerial] = useState("");
 
   const [stats, setStats] = useState<HomeStats | null>(null);
+  const [statsOffline, setStatsOffline] = useState(false);
   useEffect(() => {
-    const applyFallback = () => {
-      // Sample totals from the curated feed when the ledger is unreachable
-      const kg = CURATED_FEED_BATCHES.reduce((s, b) => s + b.weightKg, 0);
-      setStats({ kg, artisans: CURATED_FEED_BATCHES.length, passes: 3, ngo: 16.2, live: false });
-    };
-    fetch("/api/stats")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.data?.totalKgCollected != null) {
-          const d = data.data;
-          setStats({
-            kg: d.totalKgCollected,
-            artisans: d.verifiedArtisansCount ?? 0,
-            passes: d.totalPassesIssued ?? 0,
-            ngo: d.escrowSplitSummary?.ngoTrustFund10 ?? 0,
-            live: true,
-          });
-        } else {
-          applyFallback();
-        }
-      })
-      .catch(applyFallback);
+    apiJson<any>("/api/stats").then((result) => {
+      const d = result.data;
+      if (!result.success || !d) {
+        setStatsOffline(true);
+        return;
+      }
+      setStats({
+        kg: d.totalKgCollected,
+        artisans: d.verifiedArtisansCount,
+        passes: d.totalPassesIssued,
+        charity: d.escrowSplitSummary.charityMaintenance,
+      });
+    });
   }, []);
 
-  // Fetch live products from /api/products to display in the global marketplace feed
   useEffect(() => {
-    async function loadMarketplaceProducts() {
-      try {
-        const res = await fetch("/api/products");
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const liveBatches: FeedMaterialBatch[] = data.data.map((p: any) => {
-            const firstImg = Array.isArray(p.images) && p.images[0] ? p.images[0] : typeof p.images === "string" ? p.images : undefined;
-            const tags =
-              Array.isArray(p.materialTags) && p.materialTags.length > 0
-                ? p.materialTags.join(", ")
-                : p.sourceBatch?.materialType || "Upcycled Heritage Piece";
-            return {
-              id: p.id,
-              title: p.title,
-              description: p.description || "",
-              price: Number(p.price) || 0,
-              image: firstImg,
-              cooperativeName: p.artisan?.workshopName || p.artisan?.fullName || "Certified Artisan Workshop",
-              region: p.artisan?.country || p.sourceBatch?.agreement?.country || "Asia",
-              country: p.sourceBatch?.agreement?.country || p.artisan?.country || "Asia",
-              weightKg: Number(p.kgDiverted) || 1.5,
-              materialType: tags,
-              festival: p.sourceBatch?.agreement?.festival || "Pan-Asian Origin",
-            };
-          });
-
-          // Combine live products with curated ones, avoiding duplicates
-          const liveIds = new Set(liveBatches.map((b) => b.id));
-          const remainingCurated = CURATED_FEED_BATCHES.filter((b) => !liveIds.has(b.id));
-          setBatches([...liveBatches, ...remainingCurated]);
-        }
-      } catch (err) {
-        console.warn("Failed to load live marketplace products, using curated default:", err);
+    apiJson<any[]>("/api/products").then((result) => {
+      if (result.success) {
+        setBatches((result.data ?? []).map(toFeedItem));
+        setProductsState("ready");
+      } else {
+        setProductsState("error");
       }
-    }
-    loadMarketplaceProducts();
+    });
   }, []);
 
   const role = userRole(user);
@@ -235,7 +129,7 @@ export default function FeedHomePage() {
     {
       icon: QrCode,
       title: translateSync("Buy & verify"),
-      body: translateSync("Buyers see the 70/20/10 split at checkout and receive a Verified Impact Pass that anyone can check."),
+      body: `${translateSync("Buyers see the")} ${SPLIT_LABEL} ${translateSync("split at checkout and receive a Verified Impact Pass that anyone can check.")}`,
       tech: "Google Wallet",
     },
   ];
@@ -401,10 +295,10 @@ export default function FeedHomePage() {
           <Stat tone="dark" label={translateSync("Material diverted")} value={stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—"} unit="kg" />
           <Stat tone="dark" label={translateSync("Verified artisans")} value={stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—"} />
           <Stat tone="dark" label={translateSync("Impact passes issued")} value={stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—"} />
-          <Stat tone="dark" label={translateSync("Donated to NGO partners")} value={stats ? <CountUp value={stats.ngo} decimals={2} format={formatCurrency} /> : "—"} />
+          <Stat tone="dark" label={translateSync("Charity & app upkeep")} value={stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—"} />
           <p className="col-span-2 lg:col-span-4 text-xs text-white/60 -mt-2 flex items-center gap-2">
-            <span className={cn("w-1.5 h-1.5 rounded-full", stats?.live === false ? "bg-warn" : "bg-pine-300")} aria-hidden />
-            {stats?.live === false ? translateSync("Showing sample figures — the ledger is offline.") : translateSync("Figures read live from the HeriTech ledger.")}
+            <span className={cn("w-1.5 h-1.5 rounded-full", statsOffline ? "bg-warn" : "bg-pine-300")} aria-hidden />
+            {statsOffline ? translateSync("The ledger is offline right now, so figures can't be shown.") : translateSync("Figures read live from the HeriTech ledger.")}
           </p>
         </div>
       </section>
@@ -510,7 +404,21 @@ export default function FeedHomePage() {
             </div>
           </div>
 
-          {filteredBatches.length === 0 ? (
+          {productsState === "loading" ? (
+            <p className="py-12 text-center text-sm text-ink-3">{translateSync("Loading pieces…")}</p>
+          ) : productsState === "error" ? (
+            <EmptyState
+              icon={<PackageOpen className="w-5 h-5" />}
+              title={translateSync("The shop couldn't load")}
+              description={translateSync("Check your connection and refresh the page.")}
+            />
+          ) : batches.length === 0 ? (
+            <EmptyState
+              icon={<PackageOpen className="w-5 h-5" />}
+              title={translateSync("No pieces listed yet")}
+              description={translateSync("Artisans list their work here once they have crafted it from a collected batch.")}
+            />
+          ) : filteredBatches.length === 0 ? (
             <EmptyState
               icon={<PackageOpen className="w-5 h-5" />}
               title={translateSync("No pieces match")}

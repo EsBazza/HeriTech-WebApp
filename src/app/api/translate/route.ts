@@ -1,168 +1,38 @@
-// Translation API endpoint using Google Translate
-import { NextRequest, NextResponse } from 'next/server';
-import { translateWithCache, translateBatch, detectLanguage } from '@/lib/translation/google-translate';
-import { TranslationStats } from '@/lib/translation/utils';
+import { z } from "zod";
+import { SUPPORTED_LANGUAGES } from "@/lib/languages";
+import { translateWithCache } from "@/lib/translation/google-translate";
+import { ok, parseBody, route } from "@/lib/server/http";
+import { rateLimit } from "@/lib/server/rateLimit";
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { 
-      text, 
-      texts, 
-      targetLanguage, 
-      sourceLanguage = 'auto',
-      type = 'single' // 'single', 'batch', 'detect'
-    } = body;
+const LANGUAGE_CODES = new Set(SUPPORTED_LANGUAGES.map((l) => l.code));
+const languageCode = z.string().refine((code) => LANGUAGE_CODES.has(code), "Unsupported language.");
+const snippet = z.string().max(5000);
 
-    // Validate required parameters
-    if (!targetLanguage) {
-      return NextResponse.json(
-        { success: false, error: 'Target language is required' },
-        { status: 400 }
-      );
-    }
+const schema = z.object({
+  text: z.union([snippet, z.array(snippet).min(1).max(500)]),
+  targetLanguage: languageCode,
+  sourceLanguage: z.union([languageCode, z.literal("auto")]).default("en"),
+});
 
-    const startTime = Date.now();
+/**
+ * POST /api/translate — translates UI text for the language picker.
+ * Open to guests, so it is rate limited and capped at 500 strings per call.
+ */
+export const POST = route(async (request: Request) => {
+  rateLimit(request, "translate", 60, 60_000);
+  const { text, targetLanguage, sourceLanguage } = await parseBody(request, schema);
+  const result = await translateWithCache({ text, targetLanguage, sourceLanguage });
 
-    switch (type) {
-      case 'batch':
-        if (!texts || typeof texts !== 'object') {
-          return NextResponse.json(
-            { success: false, error: 'Texts object is required for batch translation' },
-            { status: 400 }
-          );
-        }
+  // `translation` / `translations` stay top-level because TranslationContext reads them there.
+  return Response.json({
+    success: result.success,
+    translation: Array.isArray(text) ? result.translations : result.translations[0],
+    translations: result.translations,
+    error: result.error,
+  });
+});
 
-        const batchResult = await translateBatch({
-          texts,
-          targetLanguage,
-          sourceLanguage
-        });
-
-        const batchLatency = Date.now() - startTime;
-        TranslationStats.recordTranslation(targetLanguage, batchLatency);
-
-        return NextResponse.json({
-          success: batchResult.success,
-          translations: batchResult.translations,
-          error: batchResult.error,
-          metadata: {
-            sourceLanguage,
-            targetLanguage,
-            latency: batchLatency,
-            count: Object.keys(texts).length
-          }
-        });
-
-      case 'detect':
-        if (!text || typeof text !== 'string') {
-          return NextResponse.json(
-            { success: false, error: 'Text string is required for language detection' },
-            { status: 400 }
-          );
-        }
-
-        const detection = await detectLanguage(text);
-        
-        return NextResponse.json({
-          success: detection.success,
-          language: detection.language,
-          confidence: detection.confidence,
-          error: detection.error
-        });
-
-      case 'single':
-      default:
-        if (!text || (typeof text !== 'string' && !Array.isArray(text))) {
-          return NextResponse.json(
-            { success: false, error: 'Text string or array is required' },
-            { status: 400 }
-          );
-        }
-
-        const result = await translateWithCache({
-          text,
-          targetLanguage,
-          sourceLanguage
-        });
-
-        const latency = Date.now() - startTime;
-        
-        if (result.success) {
-          TranslationStats.recordTranslation(targetLanguage, latency);
-        } else {
-          TranslationStats.recordError(targetLanguage);
-        }
-
-        return NextResponse.json({
-          success: result.success,
-          translation: Array.isArray(text) ? result.translations : result.translations[0],
-          translations: result.translations,
-          detectedLanguage: result.detectedLanguage,
-          error: result.error,
-          metadata: {
-            sourceLanguage,
-            targetLanguage,
-            latency,
-            cached: latency < 50 // Assume cached if very fast
-          }
-        });
-    }
-  } catch (error) {
-    console.error('Translation API error:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Internal server error' 
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
-
-    switch (action) {
-      case 'stats':
-        const stats = TranslationStats.getStats();
-        return NextResponse.json({
-          success: true,
-          stats
-        });
-
-      case 'supported-languages':
-        // Return supported languages from our configuration
-        const { SUPPORTED_LANGUAGES } = await import('@/lib/languages');
-        return NextResponse.json({
-          success: true,
-          languages: SUPPORTED_LANGUAGES.map(lang => ({
-            code: lang.code,
-            name: lang.name,
-            nativeName: lang.nativeName,
-            region: lang.region,
-            flag: lang.flag
-          }))
-        });
-
-      default:
-        return NextResponse.json(
-          { success: false, error: 'Invalid action parameter' },
-          { status: 400 }
-        );
-    }
-  } catch (error) {
-    console.error('Translation API GET error:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Internal server error' 
-      },
-      { status: 500 }
-    );
-  }
-}
+/** GET /api/translate — the list of supported languages. */
+export const GET = route(async () =>
+  ok(SUPPORTED_LANGUAGES.map(({ code, name, nativeName, region, flag }) => ({ code, name, nativeName, region, flag })))
+);

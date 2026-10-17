@@ -1,69 +1,112 @@
-import { adminDb } from "../src/lib/firebase/admin";
-import { 
-  SEED_USERS, 
-  SEED_AGREEMENTS, 
-  SEED_MATERIAL_BATCHES, 
-  SEED_PRODUCTS, 
-  SEED_ORDERS, 
-  SEED_WALLET_PASSES 
-} from "../src/lib/seedData";
+/**
+ * Seeds Firestore with the showcase dataset.
+ *
+ *   npm run seed            upsert the seed documents (safe to re-run)
+ *   npm run seed -- --reset also delete every batch, product, order, pass and
+ *                           message first. Only allowed when NEXT_PUBLIC_DEMO_MODE=true,
+ *                           so it can't wipe a production project.
+ */
+import { Timestamp, type Firestore } from "firebase-admin/firestore";
+import { adminDb } from "../src/lib/firebase/admin-core";
+import { calculateEscrowSplit } from "../src/lib/escrow";
+import {
+  SEED_AGREEMENTS,
+  SEED_MATERIAL_BATCHES,
+  SEED_ORDERS,
+  SEED_PRODUCTS,
+  SEED_USERS,
+  SEED_WALLET_PASSES,
+} from "./seed-data";
 
-async function seedFirebase() {
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT_ID;
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+const RESET = process.argv.includes("--reset");
+const RESET_COLLECTIONS = ["material_batches", "products", "orders", "wallet_passes", "messages", "counters", "agreements"];
 
-  if (!projectId && !process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    console.error("⚠️ Firebase credentials missing in .env file.");
-    console.error("Please add your NEXT_PUBLIC_FIREBASE_PROJECT_ID or FIREBASE_SERVICE_ACCOUNT_KEY in .env before running the seeder.");
-    process.exit(0);
+const ts = (iso: string) => Timestamp.fromDate(new Date(iso));
+
+async function deleteCollection(firestore: Firestore, name: string) {
+  const docs = await firestore.collection(name).listDocuments();
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = firestore.batch();
+    docs.slice(i, i + 400).forEach((doc) => batch.delete(doc));
+    await batch.commit();
   }
-
-  if (!adminDb) {
-    console.error("❌ Firebase Admin DB is not initialized. Please check your .env configuration.");
-    process.exit(0);
-  }
-
-  console.log("🌱 Seeding Firebase Firestore...");
-
-  // 1. Users
-  for (const user of SEED_USERS) {
-    await adminDb.collection("users").doc(user.id).set(user, { merge: true });
-  }
-  console.log(`✅ Seeded ${SEED_USERS.length} Users into Firestore.`);
-
-  // 2. Agreements
-  for (const agreement of SEED_AGREEMENTS) {
-    await adminDb.collection("agreements").doc(agreement.id).set(agreement, { merge: true });
-  }
-  console.log(`✅ Seeded ${SEED_AGREEMENTS.length} Agreements into Firestore.`);
-
-  // 3. Material Batches
-  for (const batch of SEED_MATERIAL_BATCHES) {
-    await adminDb.collection("material_batches").doc(batch.id).set(batch, { merge: true });
-  }
-  console.log(`✅ Seeded ${SEED_MATERIAL_BATCHES.length} Material Batches into Firestore.`);
-
-  // 4. Products
-  for (const product of SEED_PRODUCTS) {
-    await adminDb.collection("products").doc(product.id).set(product, { merge: true });
-  }
-  console.log(`✅ Seeded ${SEED_PRODUCTS.length} Products into Firestore.`);
-
-  // 5. Orders
-  for (const order of SEED_ORDERS) {
-    await adminDb.collection("orders").doc(order.id).set(order, { merge: true });
-  }
-  console.log(`✅ Seeded ${SEED_ORDERS.length} Orders into Firestore.`);
-
-  // 6. Wallet Passes
-  for (const pass of SEED_WALLET_PASSES) {
-    await adminDb.collection("wallet_passes").doc(pass.id).set(pass, { merge: true });
-  }
-  console.log(`✅ Seeded ${SEED_WALLET_PASSES.length} Wallet Passes into Firestore.`);
-
-  console.log("🚀 Firebase Firestore Seeding Complete!");
+  console.log(`  cleared ${name} (${docs.length})`);
 }
 
-seedFirebase().catch((err) => {
-  console.error("❌ Seeding failed:", err);
+async function main() {
+  const firestore = adminDb();
+
+  if (RESET) {
+    if (process.env.NEXT_PUBLIC_DEMO_MODE !== "true") {
+      throw new Error("--reset is only allowed when NEXT_PUBLIC_DEMO_MODE=true.");
+    }
+    console.log("Resetting demo data…");
+    for (const name of RESET_COLLECTIONS) await deleteCollection(firestore, name);
+  }
+
+  const writer = firestore.bulkWriter();
+  const put = (collection: string, id: string, data: Record<string, unknown>) =>
+    writer.set(firestore.collection(collection).doc(id), data);
+
+  for (const { id, ...user } of SEED_USERS) {
+    put("users", id, {
+      workshopName: null,
+      stationName: null,
+      application: null,
+      ...user,
+      isDemo: true,
+      createdAt: ts(user.createdAt),
+    });
+  }
+
+  for (const { id, ...agreement } of SEED_AGREEMENTS) {
+    put("agreements", id, { ...agreement, createdById: null, signedAt: ts(agreement.signedAt) });
+  }
+
+  for (const { id, ...batch } of SEED_MATERIAL_BATCHES) {
+    put("material_batches", id, { ...batch, createdAt: ts(batch.createdAt) });
+  }
+
+  for (const { id, ...product } of SEED_PRODUCTS) {
+    put("products", id, { ...product, createdAt: ts(product.createdAt) });
+  }
+
+  for (const { id, ...order } of SEED_ORDERS) {
+    const product = SEED_PRODUCTS.find((p) => p.id === order.productId);
+    if (!product) throw new Error(`Seed order ${id} points at missing product ${order.productId}`);
+    put("orders", id, {
+      ...order,
+      ...calculateEscrowSplit(order.amountPaid),
+      amountPaid: order.amountPaid,
+      artisanId: product.artisanId,
+      sourceBatchId: product.sourceBatchId,
+      quantity: 1,
+      unitPrice: product.price,
+      paymentMode: "simulated",
+      shippingAddress: null,
+      createdAt: ts(order.createdAt),
+    });
+  }
+
+  for (const { id: legacyId, ...pass } of SEED_WALLET_PASSES) {
+    // Passes are keyed by serial so lookups are a single document read.
+    writer.delete(firestore.collection("wallet_passes").doc(legacyId));
+    put("wallet_passes", pass.serial, { ...pass, qrPayload: `${APP_URL}/verify/${pass.serial}`, issuedAt: ts(pass.issuedAt) });
+  }
+
+  // Live ids continue after the seeded ones (RA-2026-005, HT-2026-0101…0502).
+  put("counters", "agreements-2026", { value: SEED_AGREEMENTS.length });
+  put("counters", "batches-2026", { value: 1000 });
+
+  await writer.close();
+  console.log(
+    `Seeded ${SEED_USERS.length} users, ${SEED_AGREEMENTS.length} agreements, ${SEED_MATERIAL_BATCHES.length} batches, ` +
+      `${SEED_PRODUCTS.length} products, ${SEED_ORDERS.length} orders and ${SEED_WALLET_PASSES.length} passes.`
+  );
+}
+
+main().catch((error) => {
+  console.error("Seeding failed:", error);
   process.exit(1);
 });

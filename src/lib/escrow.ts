@@ -1,42 +1,36 @@
 /**
- * HeriTech Fixed 70/20/10 Financial Escrow Engine
- * - 70% -> Direct Artisan Payout (Fair-trade floor price)
- * - 20% -> LGU Logistics + Platform Operations
- * - 10% -> Verified Environmental NGO Trust Fund
+ * HeriTech fixed 70 / 25 / 5 disbursement split.
+ * - 70% to the artisan or cooperative
+ * - 25% to the LGU for collection and logistics
+ * - 5% to charity and HeriTech app maintenance
+ *
+ * Every screen and API reads the percentages from SPLIT so they cannot drift apart.
  */
-/** Canonical split percentages — every screen must read from here. */
-export const SPLIT = { artisan: 70, platform: 20, ngo: 10 } as const;
+export const SPLIT = { artisan: 70, lgu: 25, charityMaintenance: 5 } as const;
+
+export const SPLIT_LABEL = `${SPLIT.artisan}/${SPLIT.lgu}/${SPLIT.charityMaintenance}`;
 
 export interface EscrowSplit {
   totalAmount: number;
-  artisanPayout: number;     // 70%
-  platformFee: number;       // 20%
-  ngoContribution: number;   // 10%
-  percentages: {
-    artisan: number;
-    platform: number;
-    ngo: number;
-  };
+  artisanPayout: number;
+  lguShare: number;
+  charityMaintenanceShare: number;
 }
 
+/**
+ * Splits a price in whole cents so the three parts always add up to the total.
+ * Any rounding remainder goes to the charity & maintenance share.
+ */
 export function calculateEscrowSplit(totalPrice: number): EscrowSplit {
-  const roundedPrice = Math.round(totalPrice * 100) / 100;
-  
-  // Calculate exact splits with 2 decimal precision
-  const artisanPayout = Math.round(roundedPrice * 0.70 * 100) / 100;
-  const platformFee = Math.round(roundedPrice * 0.20 * 100) / 100;
-  // Ensure the remainder matches the total exactly
-  const ngoContribution = Math.round((roundedPrice - artisanPayout - platformFee) * 100) / 100;
+  const totalCents = Math.round(totalPrice * 100);
+  const artisanCents = Math.round((totalCents * SPLIT.artisan) / 100);
+  const lguCents = Math.round((totalCents * SPLIT.lgu) / 100);
+  const charityCents = totalCents - artisanCents - lguCents;
 
   return {
-    totalAmount: roundedPrice,
-    artisanPayout,
-    platformFee,
-    ngoContribution,
-    percentages: {
-      artisan: 70,
-      platform: 20,
-      ngo: 10,
-    },
+    totalAmount: totalCents / 100,
+    artisanPayout: artisanCents / 100,
+    lguShare: lguCents / 100,
+    charityMaintenanceShare: charityCents / 100,
   };
 }

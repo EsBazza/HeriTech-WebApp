@@ -1,127 +1,47 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import type { Query } from "firebase-admin/firestore";
+import type { ProductDoc } from "@/lib/firebase/types";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { badRequest, forbidden, ok, parseBody, route } from "@/lib/server/http";
+import { storeImage } from "@/lib/server/images";
+import { productCreateSchema } from "@/lib/server/productInput";
+import { newestFirst, withProductRelations } from "@/lib/server/views";
 
-// GET /api/products - List all upcycled marketplace products
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const artisanId = searchParams.get("artisanId");
+/** GET /api/products?artisanId= — marketplace listings, newest first. */
+export const GET = route(async (request: Request) => {
+  const artisanId = new URL(request.url).searchParams.get("artisanId");
+  let query: Query<ProductDoc> = db.products();
+  if (artisanId) query = query.where("artisanId", "==", artisanId);
 
-    const where: Record<string, unknown> = {};
-    if (artisanId) where.artisanId = artisanId;
+  const products = (await query.get()).docs.map((d) => d.data()).filter((p) => !p.archived).sort(newestFirst);
+  return ok(await withProductRelations(products), {
+    headers: artisanId ? undefined : { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" },
+  });
+});
 
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        artisan: {
-          select: {
-            id: true,
-            fullName: true,
-            workshopName: true,
-            country: true,
-            avatarUrl: true,
-          },
-        },
-        sourceBatch: {
-          include: {
-            agreement: true,
-            scannedByOfficer: {
-              select: { fullName: true, stationName: true, country: true },
-            },
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+/** POST /api/products — an artisan lists a piece made from a batch they claimed. */
+export const POST = route(async (request: Request) => {
+  const artisan = await requireUser(request, ["artisan"]);
+  const input = await parseBody(request, productCreateSchema);
 
-    const formatted = products.map((p: any) => ({
-      ...p,
-      images: typeof p.images === "string" ? JSON.parse(p.images || "[]") : (p.images || []),
-      materialTags: typeof p.materialTags === "string" ? JSON.parse(p.materialTags || "[]") : (p.materialTags || []),
-    }));
-
-    return NextResponse.json({ success: true, count: formatted.length, data: formatted });
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error fetching products" },
-      { status: 500 }
-    );
+  const batch = (await db.batches().doc(input.sourceBatchId).get()).data();
+  if (!batch) throw badRequest("Source batch not found.");
+  if (batch.status !== "claimed") throw badRequest("You can only list pieces made from a batch you have picked up.");
+  if (batch.claimedByArtisanId !== artisan.id && artisan.role !== "admin") {
+    throw forbidden("That batch was picked up by another artisan.");
   }
-}
+  if (input.kgDiverted > batch.weightKg) throw badRequest(`kgDiverted can't exceed the batch weight of ${batch.weightKg} kg.`);
 
-// POST /api/products - Artisan lists a new upcycled product (Act 4)
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const {
-      title,
-      description,
-      price,
-      images,
-      artisanId,
-      sourceBatchId,
-      materialTags,
-      stock,
-      kgDiverted,
-      ngoFundName,
-    } = body;
+  const ref = db.products().doc();
+  const product: ProductDoc = {
+    ...input,
+    id: ref.id,
+    images: await Promise.all(input.images.map((img) => storeImage(img, "products"))),
+    artisanId: batch.claimedByArtisanId ?? artisan.id,
+    createdAt: new Date().toISOString(),
+  };
+  await ref.create(product);
 
-    if (!title || !price || !artisanId || !sourceBatchId || !kgDiverted || !ngoFundName) {
-      return NextResponse.json(
-        { success: false, error: "Missing required product or origin fields" },
-        { status: 400 }
-      );
-    }
-
-    // Verify source batch exists
-    const batch = await prisma.materialBatch.findUnique({
-      where: { id: sourceBatchId },
-    });
-
-    if (!batch) {
-      return NextResponse.json(
-        { success: false, error: "Source material batch not found" },
-        { status: 404 }
-      );
-    }
-
-    const product = await prisma.product.create({
-      data: {
-        title,
-        description: description || "",
-        price: Number(price),
-        images: JSON.stringify(Array.isArray(images) ? images : [images]),
-        artisanId,
-        sourceBatchId,
-        materialTags: JSON.stringify(Array.isArray(materialTags) ? materialTags : []),
-        stock: stock ? Number(stock) : 1,
-        kgDiverted: Number(kgDiverted),
-        ngoFundName,
-      },
-      include: {
-        artisan: true,
-        sourceBatch: true,
-      },
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Product listed successfully with immutable source batch origin link.",
-        data: {
-          ...product,
-          images: JSON.parse(product.images),
-          materialTags: JSON.parse(product.materialTags),
-        },
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("Failed to create product:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to list upcycled product" },
-      { status: 500 }
-    );
-  }
-}
+  const [view] = await withProductRelations([product]);
+  return ok(view, { status: 201, message: "Listed on the marketplace, linked to its source batch." });
+});

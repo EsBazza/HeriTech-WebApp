@@ -12,10 +12,10 @@ Asia generates over 60% of the world's festival and organic waste—from sky lan
 
 **HeriTech** is a continent-wide circular digital system that intercepts this waste. It uses AI to classify material, routes it to local artisans via a live map, and issues every upcycled product a verifiable **Google Wallet Impact Pass**. 
 
-**The 70/20/10 Economic Engine (Fixed Global Standard):**
-- **70%** → Direct Artisan Payout (Fair-trade floor price).
-- **20%** → LGU Logistics + Platform Operations (Infrastructure & collection).
-- **10%** → Verified Environmental NGO Fund (Transparent, continent-wide traceability).
+**The 70/25/5 split (fixed, defined in `src/lib/escrow.ts`):**
+- **70%** → Direct artisan payout (fair-trade floor price).
+- **25%** → LGU collection and logistics.
+- **5%** → Charity and HeriTech app upkeep.
 
 ---
 
@@ -24,7 +24,7 @@ Asia generates over 60% of the world's festival and organic waste—from sky lan
 1. **Act 1 – LGU Release & Scan:** Municipality issues a *Digital Material Release Agreement*. LGU officers scan raw waste using the AI Camera (Gemini Vision). **Critical Constraint:** AI suggests *material type* and *condition* only. Weight is a **manual scale entry** (vision cannot estimate mass from 2D photos).
 2. **Act 2 – Mapping & Artisan Ping:** Scanned materials are pinned to a public map (Green = Available, Orange = Reserved). Artisans locate them, view specs, and "Ping" the LGU to reserve.
 3. **Act 3 – QR Handover (Strictly No NFC):** Artisan arrives on-site. LGU scans the Artisan's **HeriTech Verified QR Code** (using standard mobile camera). Web NFC is explicitly banned to ensure 100% cross-device (iOS/Android) compatibility across diverse Asian markets.
-4. **Act 4 – Craft, Sell, & Prove:** Artisan links finished products to the original Batch ID. Buyer purchases with transparent 70/20/10 escrow breakdown. Buyer receives a Google Wallet Pass containing a QR code linking to a public, tamper-evident Impact Page.
+4. **Act 4 – Craft, Sell, & Prove:** Artisan links finished products to the original Batch ID. Buyer purchases with the transparent 70/25/5 breakdown and receives a Verified Impact Pass: a QR code linking to a public, tamper-evident impact page. (Google Wallet passes are planned, not built.)
 
 ---
 
@@ -62,6 +62,6 @@ It is not a native iOS/Android app, nor is it a desktop-only dashboard.
 - **Primary Device:** Smartphone (Android/iOS) — because LGU officers scan waste in the field, artisans navigate to collection points via GPS, and QR handovers require a rear-facing camera.
 - **Viewport Target:** Design strictly for **393px width** (iPhone 15 / Pixel 8 standard). Use `max-w-md mx-auto` containers to simulate the phone frame in the browser.
 - **Desktop Fallback:** For the live showcase presentation, the app must scale gracefully on a 1920x1080 projector screen (center-aligned, max-width ~480px for demo clarity).
-- **Camera Access:** Use the browser's native `getUserMedia` API (via `react-qr-reader` and the standard `<video>` tag) for QR scanning and AI photo capture.
+- **Camera Access:** Photos use a file input with `capture="environment"`. QR pickup codes are scanned with the phone's own camera app and pasted in; in-app QR scanning is planned.
 - **GPS:** Use the browser's Geolocation API to auto-fill coordinates when pinning waste material to the map.
 

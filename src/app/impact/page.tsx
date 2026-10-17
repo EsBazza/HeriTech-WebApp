@@ -6,134 +6,20 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { TreeMap } from "@/components/impact/TreeMap";
 import { EscrowBar } from "@/components/EscrowBar";
 import { Badge, Card, PageHeader, SectionHeader, Skeleton, Stat, cn, type BadgeTone } from "@/components/ui";
+import { apiJson } from "@/lib/api";
+import { SPLIT } from "@/lib/escrow";
 
 interface LeaderboardEntry {
   rank: number;
   id: string;
   name: string;
-  role: "artisan" | "buyer" | "lgu";
-  region: string;
-  country: string;
+  role: "artisan" | "lgu";
+  country: string | null;
   kgDiverted: number;
-  transactions: number;
+  batches: number;
 }
 
-const LEADERBOARD_DATA: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    id: "lead_01",
-    name: "Cordillera Botanical Cooperative",
-    role: "artisan",
-    region: "Baguio City",
-    country: "Philippines",
-    kgDiverted: 480.5,
-    transactions: 34,
-  },
-  {
-    rank: 2,
-    id: "lead_02",
-    name: "Varanasi Municipal Clean Rivers Unit",
-    role: "lgu",
-    region: "Varanasi",
-    country: "India",
-    kgDiverted: 395.2,
-    transactions: 28,
-  },
-  {
-    rank: 3,
-    id: "lead_03",
-    name: "Lanna Heritage Joinery",
-    role: "artisan",
-    region: "Chiang Mai",
-    country: "Thailand",
-    kgDiverted: 320.0,
-    transactions: 22,
-  },
-  {
-    rank: 4,
-    id: "lead_04",
-    name: "Elena Rostova (Heritage Studio)",
-    role: "buyer",
-    region: "Singapore",
-    country: "Singapore",
-    kgDiverted: 245.8,
-    transactions: 19,
-  },
-  {
-    rank: 5,
-    id: "lead_05",
-    name: "Nirmalaya Bio-Craft Collective",
-    role: "artisan",
-    region: "Uttar Pradesh",
-    country: "India",
-    kgDiverted: 215.4,
-    transactions: 16,
-  },
-  {
-    rank: 6,
-    id: "lead_06",
-    name: "Chiang Mai City Waste Management Office",
-    role: "lgu",
-    region: "Chiang Mai",
-    country: "Thailand",
-    kgDiverted: 198.0,
-    transactions: 14,
-  },
-  {
-    rank: 7,
-    id: "lead_07",
-    name: "Cebu Ancestral Weavers Cooperative",
-    role: "artisan",
-    region: "Cebu",
-    country: "Philippines",
-    kgDiverted: 175.6,
-    transactions: 13,
-  },
-  {
-    rank: 8,
-    id: "lead_08",
-    name: "Marcus Vance Interior Arch",
-    role: "buyer",
-    region: "Tokyo",
-    country: "Japan",
-    kgDiverted: 154.2,
-    transactions: 11,
-  },
-  {
-    rank: 9,
-    id: "lead_09",
-    name: "Pingxi Sustainable Papermaking",
-    role: "artisan",
-    region: "New Taipei",
-    country: "Taiwan",
-    kgDiverted: 138.0,
-    transactions: 10,
-  },
-  {
-    rank: 10,
-    id: "lead_10",
-    name: "Baguio City Environment & Parks Bureau",
-    role: "lgu",
-    region: "Baguio",
-    country: "Philippines",
-    kgDiverted: 122.5,
-    transactions: 9,
-  },
-];
-
-type FilterRole = "all" | "artisan" | "buyer" | "lgu";
-
-// Shown only when the ledger API is unreachable, and labelled as sample data.
-const SAMPLE_STATS = {
-  totalKgCollected: 303.2,
-  totalPassesIssued: 3,
-  escrowSplitSummary: { totalGrossVolume: 162, artisanPayout70: 113.4, lguPlatformFee20: 32.4, ngoTrustFund10: 16.2 },
-  festivals: [
-    { festival: "Yi Peng Lantern Festival", country: "Thailand", allocatedKg: 400, collectedKg: 212, quotaProgress: 53 },
-    { festival: "Panagbenga Festival", country: "Philippines", allocatedKg: 250, collectedKg: 168, quotaProgress: 67 },
-    { festival: "Ganesh Chaturthi", country: "India", allocatedKg: 600, collectedKg: 150, quotaProgress: 25 },
-  ],
-};
+type FilterRole = "all" | LeaderboardEntry["role"];
 
 export default function ImpactLeaderboardPage() {
   const { user } = useAuth();
@@ -141,42 +27,28 @@ export default function ImpactLeaderboardPage() {
   const [selectedFilter, setSelectedFilter] = useState<FilterRole>("all");
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isSample, setIsSample] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   useEffect(() => {
-    async function loadStats() {
-      try {
-        const res = await fetch("/api/stats");
-        const data = await res.json();
-        if (data.success) {
-          setStats(data.data);
-        } else {
-          setStats(SAMPLE_STATS);
-          setIsSample(true);
-        }
-      } catch (err) {
-        console.error("Failed to load impact stats:", err);
-        setStats(SAMPLE_STATS);
-        setIsSample(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadStats();
+    apiJson<any>("/api/stats").then((result) => {
+      if (result.success) setStats(result.data);
+      else setOffline(true);
+      setLoading(false);
+    });
   }, []);
 
-  const filteredData = LEADERBOARD_DATA.filter((entry) => selectedFilter === "all" || entry.role === selectedFilter);
-  const maxKg = Math.max(...LEADERBOARD_DATA.map((e) => e.kgDiverted));
+  const leaderboard: LeaderboardEntry[] = stats?.leaderboard ?? [];
+  const filteredData = leaderboard.filter((entry) => selectedFilter === "all" || entry.role === selectedFilter);
+  const maxKg = Math.max(1, ...leaderboard.map((e) => e.kgDiverted));
 
   const roleTag: Record<LeaderboardEntry["role"], { label: string; tone: BadgeTone }> = {
     artisan: { label: translateSync("Artisan"), tone: "pine" },
-    buyer: { label: translateSync("Buyer"), tone: "accent" },
     lgu: { label: translateSync("LGU officer"), tone: "neutral" },
   };
 
   const split = stats?.escrowSplitSummary;
   const festivals: any[] = stats?.festivals ?? [];
-  const v = (x: React.ReactNode) => (loading ? <Skeleton className="h-8 w-24" /> : x);
+  const v = (x: React.ReactNode) => (loading ? <Skeleton className="h-8 w-24" /> : offline ? "—" : x);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
@@ -186,17 +58,17 @@ export default function ImpactLeaderboardPage() {
         description={translateSync("Live totals from every collection, sale and donation recorded on HeriTech. Anyone can view this page.")}
       />
 
-      {isSample && (
-        <p className="text-sm text-warn bg-warn-100 border border-warn/20 rounded-md px-4 py-2.5">
-          {translateSync("The ledger is offline, so these are sample figures.")}
+      {offline && (
+        <p role="alert" className="text-sm text-warn bg-warn-100 border border-warn/20 rounded-md px-4 py-2.5">
+          {translateSync("The ledger is offline right now, so figures can't be shown. Try again shortly.")}
         </p>
       )}
 
       {/* KPIs */}
       <Card className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-line">
         <Stat className="p-5 sm:p-6" label={translateSync("Material diverted")} value={v(formatNumber(stats?.totalKgCollected ?? 0))} unit="kg" hint={translateSync("Kept out of landfill and rivers")} />
-        <Stat className="p-5 sm:p-6" label={translateSync("Paid to artisans")} value={v(formatCurrency(split?.artisanPayout70 ?? 0))} hint={translateSync("70% of every sale")} />
-        <Stat className="p-5 sm:p-6" label={translateSync("Donated to NGOs")} value={v(formatCurrency(split?.ngoTrustFund10 ?? 0))} hint={translateSync("10% of every sale")} />
+        <Stat className="p-5 sm:p-6" label={translateSync("Paid to artisans")} value={v(formatCurrency(split?.artisanPayout ?? 0))} hint={`${SPLIT.artisan}% ${translateSync("of every sale")}`} />
+        <Stat className="p-5 sm:p-6" label={translateSync("Paid to LGUs")} value={v(formatCurrency(split?.lguShare ?? 0))} hint={`${SPLIT.lgu}% ${translateSync("of every sale")}`} />
         <Stat className="p-5 sm:p-6" label={translateSync("Impact passes issued")} value={v(formatNumber(stats?.totalPassesIssued ?? 0))} hint={translateSync("Each one publicly verifiable")} />
       </Card>
 
@@ -261,7 +133,6 @@ export default function ImpactLeaderboardPage() {
               {[
                 { id: "all", label: translateSync("All") },
                 { id: "artisan", label: translateSync("Artisans") },
-                { id: "buyer", label: translateSync("Buyers") },
                 { id: "lgu", label: translateSync("LGUs") },
               ].map((tab) => {
                 const active = selectedFilter === tab.id;
@@ -285,9 +156,12 @@ export default function ImpactLeaderboardPage() {
         />
 
         <Card className="overflow-hidden">
+          {!loading && filteredData.length === 0 && (
+            <p className="px-6 py-8 text-sm text-ink-3 text-center">{translateSync("No collections recorded yet.")}</p>
+          )}
           <ol className="divide-y divide-line">
             {filteredData.map((row) => {
-              const isCurrentUser = user?.fullName === row.name;
+              const isCurrentUser = Boolean(user && row.id.endsWith(`:${user.id}`));
               const tag = roleTag[row.role];
               return (
                 <li key={row.id} className={cn("grid grid-cols-[2rem_1fr_auto] sm:grid-cols-[3rem_1.4fr_1fr_auto] items-center gap-3 sm:gap-5 px-4 sm:px-6 py-3.5", isCurrentUser && "bg-lantern-100/50")}>
@@ -303,9 +177,7 @@ export default function ImpactLeaderboardPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge tone={tag.tone}>{tag.label}</Badge>
-                      <span className="text-xs text-ink-3 truncate">
-                        {translateSync(row.region)}, {translateSync(row.country)}
-                      </span>
+                      {row.country && <span className="text-xs text-ink-3 truncate">{translateSync(row.country)}</span>}
                     </div>
                   </div>
                   <div className="hidden sm:block">
@@ -313,7 +185,7 @@ export default function ImpactLeaderboardPage() {
                       <div className="h-full rounded-full bg-pine-300" style={{ width: `${(row.kgDiverted / maxKg) * 100}%` }} />
                     </div>
                     <p className="text-xs text-ink-3 mt-1 tabular">
-                      {row.transactions} {translateSync("transactions")}
+                      {row.batches} {row.batches === 1 ? translateSync("batch") : translateSync("batches")}
                     </p>
                   </div>
                   <span className="tabular text-sm font-semibold text-ink text-right">{formatNumber(row.kgDiverted)} kg</span>

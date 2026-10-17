@@ -8,14 +8,14 @@ import { cn } from "@/components/ui";
 interface EscrowBarProps {
   /** When provided, each row shows the actual amount for this price. */
   amount?: number;
-  /** Overrides the NGO row label with the partner fund name. */
+  /** Names the charity partner in the charity & maintenance row. */
   ngoName?: string;
   /** Hide per-row descriptions for tight spaces (cards, checkout). */
   compact?: boolean;
   className?: string;
 }
 
-/** The single 70 / 20 / 10 split visual used across the app. */
+/** The single artisan / LGU / charity split visual used across the app. */
 export function EscrowBar({ amount, ngoName, compact, className }: EscrowBarProps) {
   const { translateSync, formatCurrency } = useTranslation();
   const split = amount != null ? calculateEscrowSplit(amount) : null;
@@ -30,26 +30,32 @@ export function EscrowBar({ amount, ngoName, compact, className }: EscrowBarProp
       value: split?.artisanPayout,
     },
     {
-      key: "platform",
-      pct: SPLIT.platform,
+      key: "lgu",
+      pct: SPLIT.lgu,
       color: "bg-split-platform",
-      label: translateSync("Collection & platform"),
-      desc: translateSync("Covers municipal collection, transport and running HeriTech."),
-      value: split?.platformFee,
+      label: translateSync("Paid to the LGU"),
+      desc: translateSync("Covers municipal collection, sorting and transport of festival material."),
+      value: split?.lguShare,
     },
     {
-      key: "ngo",
-      pct: SPLIT.ngo,
+      key: "charity",
+      pct: SPLIT.charityMaintenance,
       color: "bg-split-ngo",
-      label: ngoName ? `${translateSync("Donated to")} ${translateSync(ngoName)}` : translateSync("Donated to NGO partner"),
-      desc: translateSync("Logged publicly on the impact ledger for every sale."),
-      value: split?.ngoContribution,
+      label: ngoName
+        ? `${translateSync("Charity")} (${translateSync(ngoName)}) ${translateSync("& app upkeep")}`
+        : translateSync("Charity & app upkeep"),
+      desc: translateSync("Shared between the charity partner and keeping HeriTech running."),
+      value: split?.charityMaintenanceShare,
     },
   ];
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-paper-2" role="img" aria-label="70% artisan, 20% platform, 10% NGO">
+      <div
+        className="flex h-2.5 w-full overflow-hidden rounded-full bg-paper-2"
+        role="img"
+        aria-label={`${SPLIT.artisan}% artisan, ${SPLIT.lgu}% LGU, ${SPLIT.charityMaintenance}% charity and app upkeep`}
+      >
         {rows.map((r) => (
           <div key={r.key} className={cn("h-full", r.color)} style={{ width: `${r.pct}%` }} />
         ))}

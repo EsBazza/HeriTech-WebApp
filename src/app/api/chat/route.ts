@@ -1,4 +1,8 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
+import { SPLIT } from "@/lib/escrow";
+import { generate } from "@/lib/server/gemini";
+import { HttpError, ok, parseBody, route } from "@/lib/server/http";
+import { rateLimit } from "@/lib/server/rateLimit";
 
 const HERITECH_SYSTEM_PROMPT = `You are the HeriTech Assistant, an expert AI guide for HeriTech, a Pan-Asian circular digital platform that transforms post-festival organic and textile waste into certified heritage crafts.
 
@@ -39,130 +43,32 @@ Platform Knowledge Base:
 - Global Impact Ledger: Real-time telemetry tracking total kilograms diverted, active cooperatives, and 3D satellite reforestation impact.
 
 4. Financial Transparency Engine:
-Every craft sale automatically disburses fair payouts: 70 percent direct payout to the certified artisan cooperative, 20 percent to the Municipal Cleanup Trust for LGU collection and logistics, and 10 percent to the Conservation and Watershed NGO Fund for local reforestation.`;
+Every craft sale is split automatically: ${SPLIT.artisan} percent goes directly to the certified artisan cooperative, ${SPLIT.lgu} percent to the LGU for collection and logistics, and ${SPLIT.charityMaintenance} percent to charity and the upkeep of the HeriTech app. Checkout currently uses simulated payments, so no real money is charged yet.`;
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    
-    // Support all client payload formats (message+history, messages array, prompt)
-    let chatMessages: Array<{ role: string; content: string }> = [];
+const turn = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().trim().min(1).max(2000),
+});
 
-    if (Array.isArray(body.messages) && body.messages.length > 0) {
-      chatMessages = body.messages;
-    } else if (body.message) {
-      const history = Array.isArray(body.history) ? body.history : [];
-      chatMessages = [...history, { role: "user", content: String(body.message) }];
-    } else if (body.prompt) {
-      chatMessages = [{ role: "user", content: String(body.prompt) }];
-    }
+const schema = z.object({
+  message: z.string().trim().min(1, "Type a message first.").max(2000),
+  history: z.array(turn).max(100).default([]),
+});
 
-    if (chatMessages.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Invalid messages payload" },
-        { status: 400 }
-      );
-    }
+/** Only the most recent turns are sent, which bounds cost per request. */
+const MAX_HISTORY = 12;
 
-    const apiKey = process.env.GEMINI_API_KEY;
+/** POST /api/chat — the HeriTech assistant. Open to guests, rate limited per client. */
+export const POST = route(async (request: Request) => {
+  rateLimit(request, "chat", 15, 60_000);
+  const { message, history } = await parseBody(request, schema);
 
-    if (apiKey) {
-      // Map chat history to Gemini contents format
-      const contents = chatMessages.map((m) => ({
-        role: m.role === "assistant" || m.role === "model" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
+  const contents = [...history.slice(-MAX_HISTORY), { role: "user" as const, content: message }].map((m) => ({
+    role: m.role === "assistant" ? ("model" as const) : ("user" as const),
+    parts: [{ text: m.content }],
+  }));
 
-      // High-performance Gemini models prioritizing 3.5 Flash Lite
-      const models = [
-        "gemini-3.5-flash-lite",
-        "gemini-3.6-flash",
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-      ];
-
-      for (const model of models) {
-        try {
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                system_instruction: {
-                  parts: [{ text: HERITECH_SYSTEM_PROMPT }],
-                },
-                contents,
-                generationConfig: {
-                  temperature: 0.3,
-                  maxOutputTokens: 600,
-                },
-              }),
-            }
-          );
-
-          if (res.ok) {
-            const data = await res.json();
-            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (reply) {
-              return NextResponse.json({
-                success: true,
-                reply: reply.trim(),
-                modelUsed: model,
-              });
-            }
-          } else {
-            const errData = await res.text();
-            console.warn(`Gemini model ${model} error (${res.status}):`, errData);
-          }
-        } catch (err) {
-          console.warn(`Chat generation error on model ${model}:`, err);
-        }
-      }
-    }
-
-    // Fallback response if API key is not configured or fails
-    const lastUserMessage =
-      chatMessages[chatMessages.length - 1]?.content?.toLowerCase() || "";
-
-    let mockReply =
-      "HeriTech connects municipal festival salvage teams with certified artisan cooperatives across Asia. You can explore available craft materials on the harvest map, track fair payouts on Global Impact, or reserve active batches directly.";
-
-    if (lastUserMessage.includes("scan") || lastUserMessage.includes("scanner")) {
-      mockReply =
-        "The AI Material Scanner allows municipal teams and collection officers to photograph salvaged festival items on site, identifying material grade, condition, and estimated weight in kilograms.";
-    } else if (lastUserMessage.includes("map") || lastUserMessage.includes("depot")) {
-      mockReply =
-        "The Harvest Map displays verified salvage depots and active craft material stocks across the Philippines, India, Thailand, and neighboring regions in real time.";
-    } else if (
-      lastUserMessage.includes("pay") ||
-      lastUserMessage.includes("escrow") ||
-      lastUserMessage.includes("split") ||
-      lastUserMessage.includes("money")
-    ) {
-      mockReply =
-        "Every material purchase supports certified artisans directly with transparent automated financial splits, ensuring makers and local environmental trusts are paid fairly.";
-    } else if (
-      lastUserMessage.includes("join") ||
-      lastUserMessage.includes("artisan") ||
-      lastUserMessage.includes("lgu")
-    ) {
-      mockReply =
-        "Artisan cooperatives and municipal LGU officers can register their workshops or jurisdictions directly through the profile tab to access certified handover agreements.";
-    }
-
-    return NextResponse.json({
-      success: true,
-      reply: mockReply,
-      modelUsed: "fallback-rule-engine",
-    });
-  } catch (error) {
-    console.error("Chatbot API error:", error);
-    return NextResponse.json(
-      { success: false, error: "Could not reach HeriTech Assistant. Try again." },
-      { status: 500 }
-    );
-  }
-}
+  const result = await generate({ system: HERITECH_SYSTEM_PROMPT, contents, temperature: 0.3, maxOutputTokens: 600 });
+  if (!result) throw new HttpError(503, "The assistant is offline right now. Please try again in a moment.");
+  return ok({ reply: result.text.trim(), model: result.model });
+});

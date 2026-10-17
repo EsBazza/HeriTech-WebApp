@@ -6,10 +6,17 @@ import { X, CheckCircle2, Lock, ArrowRight, ArrowLeft, Truck, ExternalLink, Mess
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart, CartProduct } from "@/components/cart/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { calculateEscrowSplit } from "@/lib/escrow";
+import { apiJson } from "@/lib/api";
 import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
 import { EscrowBar } from "@/components/EscrowBar";
 import { Button, Input, Select, cn, buttonClass } from "@/components/ui";
+
+interface OrderResult {
+  orders: { id: string; productId: string; amountPaid: number }[];
+  passes: { serial: string; qrPayload: string; orderId: string }[];
+  totalPaid: number;
+  paymentMode: "simulated";
+}
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -28,7 +35,6 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   const checkoutItems = purchased ?? liveItems;
   const totalPrice = checkoutItems.reduce((acc, item) => acc + item.price, 0);
   const totalKg = checkoutItems.reduce((acc, item) => acc + (item.kgDiverted || 0), 0);
-  const escrow = calculateEscrowSplit(totalPrice);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -65,7 +71,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   };
 
   const [processing, setProcessing] = useState(false);
-  const [orderResult, setOrderResult] = useState<any>(null);
+  const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
 
   // Start fresh each time the modal is reopened after a completed order.
@@ -101,59 +107,28 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
     setProcessing(true);
     setOrderError(null);
-    try {
-      const primaryProduct = checkoutItems[0];
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: primaryProduct.id,
-          buyerId: user.id,
-          shippingAddress: {
-            fullName,
-            streetAddress,
-            city,
-            country,
-            postalCode,
-          },
-        }),
-      });
+    // One request for the whole cart; the server creates an order, pass and artisan
+    // notification per line, and checks stock atomically.
+    const result = await apiJson<OrderResult>("/api/orders", {
+      method: "POST",
+      body: JSON.stringify({
+        items: checkoutItems.map((item) => ({ productId: item.id, quantity: 1 })),
+        shippingAddress: { fullName, streetAddress, city, country, postalCode },
+      }),
+    });
 
-      const data = await res.json();
-      if (data.success) {
-        setPurchased(checkoutItems);
-        setOrderResult(data.data);
-        clearCart();
-        setStep(3);
-
-        try {
-          await fetch("/api/messages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              senderId: user.id,
-              receiverId: primaryProduct.artisanId,
-              content: `Order #${data.data.order.id.substring(0, 8)} confirmed for "${primaryProduct.title}"! Fair-trade payout of $${escrow.artisanPayout.toFixed(2)} (70%) transferred to your cooperative. Total ${primaryProduct.kgDiverted} kg diverted. Shipping to: ${city}, ${country}.`,
-              contextType: "order",
-              contextId: data.data.order.id,
-              isSystem: true,
-            }),
-          });
-        } catch (msgErr) {
-          console.warn("Could not trigger automated message:", msgErr);
-        }
-      } else {
-        setOrderError(data.error || "We couldn't place this order. Please try again.");
-      }
-    } catch (err) {
-      console.error("Checkout execution error:", err);
-      setOrderError("We couldn't reach the server. Check your connection and try again.");
-    } finally {
-      setProcessing(false);
+    if (result.success && result.data) {
+      setPurchased(checkoutItems);
+      setOrderResult(result.data);
+      if (!directProduct) clearCart();
+      setStep(3);
+    } else {
+      setOrderError(result.error ?? "We couldn't place this order. Please try again.");
     }
+    setProcessing(false);
   };
 
-  const serial = orderResult?.walletPass?.serial || "HT-519-PH";
+  const serial = orderResult?.passes[0]?.serial ?? "";
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const steps = [translateSync("Delivery"), translateSync("Review & pay"), translateSync("Your pass")];
 
@@ -238,7 +213,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             </form>
           )}
 
-          {/* STEP 2: Route + 70/20/10 breakdown */}
+          {/* STEP 2: Route + payment split */}
           {step === 2 && (
             <div className="space-y-6">
               <section className="space-y-3">
@@ -290,6 +265,10 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 </div>
               )}
 
+              <p className="text-xs text-ink-3">
+                {translateSync("Demo payment: no card is charged. Payments go live once a payment provider is connected.")}
+              </p>
+
               <div className="flex flex-col-reverse sm:flex-row gap-3">
                 <Button variant="secondary" size="lg" type="button" onClick={() => setStep(1)}>
                   <ArrowLeft className="w-4 h-4" />
@@ -300,8 +279,8 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   {processing
                     ? translateSync("Placing order and issuing pass…")
                     : user
-                    ? `${translateSync("Pay")} ${formatCurrency(totalPrice)} ${translateSync("with Google Wallet")}`
-                    : translateSync("Sign in with Google to pay")}
+                    ? `${translateSync("Place demo order")} · ${formatCurrency(totalPrice)}`
+                    : translateSync("Sign in with Google to order")}
                 </Button>
               </div>
             </div>
@@ -315,7 +294,9 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 <p className="text-[15px] text-ink-2">
                   {translateSync("You diverted")} <strong className="text-ink">{formatNumber(totalKg)} kg</strong>{" "}
                   {translateSync("of festival material and supported")} <strong className="text-ink">{translateSync(checkoutItems[0]?.artisanName || "the artisan")}</strong>.{" "}
-                  {translateSync("Your Verified Impact Pass is ready.")}
+                  {orderResult.passes.length > 1
+                    ? `${orderResult.passes.length} ${translateSync("Verified Impact Passes are ready, one per piece. The first is shown below; all are on your profile.")}`
+                    : translateSync("Your Verified Impact Pass is ready.")}
                 </p>
               </div>
 

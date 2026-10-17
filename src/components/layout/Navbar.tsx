@@ -10,9 +10,10 @@ import { useCart } from "@/context/CartContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
+import { DEMO_ACCOUNTS } from "@/lib/demo";
 import { cn } from "@/components/ui";
 
-type DemoRole = "buyer" | "artisan" | "lgu" | "admin";
+type DemoRole = keyof typeof DEMO_ACCOUNTS;
 
 const ROLE_LABELS: Record<string, string> = {
   buyer: "Buyer",
@@ -70,7 +71,7 @@ function CartButton() {
 }
 
 function AccountMenu() {
-  const { user, loading, signInWithGoogle, signInAsAdmin, signOut, switchRole } = useAuth();
+  const { user, loading, demoMode, signInWithGoogle, signInAsDemo, signOut } = useAuth();
   const { translateSync } = useTranslation();
   const [open, setOpen] = useState(false);
   const close = React.useCallback(() => setOpen(false), []);
@@ -82,6 +83,17 @@ function AccountMenu() {
   }
 
   if (!user) {
+    if (!demoMode) {
+      return (
+        <button
+          onClick={signInWithGoogle}
+          className="h-10 px-4 rounded-md bg-pine-700 text-white text-sm font-medium hover:bg-pine-600 transition-colors cursor-pointer"
+        >
+          {translateSync("Sign in")}
+        </button>
+      );
+    }
+
     return (
       <div className="relative" ref={ref}>
         <div className="flex items-center rounded-md bg-pine-700 text-white">
@@ -94,7 +106,7 @@ function AccountMenu() {
           <button
             onClick={() => setOpen((o) => !o)}
             className="h-10 px-2 border-l border-white/20 hover:bg-pine-600 rounded-r-md transition-colors cursor-pointer"
-            aria-label={translateSync("More sign-in options")}
+            aria-label={translateSync("Demo accounts")}
             aria-expanded={open}
           >
             <ChevronDown className="w-4 h-4" />
@@ -102,27 +114,20 @@ function AccountMenu() {
         </div>
         {open && (
           <div className="absolute right-0 mt-2 w-64 bg-surface rounded-md border border-line shadow-pop p-2 z-50">
-            <p className="px-2 pt-1 pb-2 text-xs text-ink-3">{translateSync("Demo access for judges and showcase visitors")}</p>
-            <button
-              onClick={() => {
-                close();
-                signInWithGoogle();
-              }}
-              className="w-full flex items-center gap-2.5 px-2 h-10 rounded-sm text-sm text-ink-2 hover:bg-pine-50 cursor-pointer"
-            >
-              <User className="w-4 h-4 text-ink-3" />
-              {translateSync("Continue with Google")}
-            </button>
-            <button
-              onClick={() => {
-                close();
-                signInAsAdmin();
-              }}
-              className="w-full flex items-center gap-2.5 px-2 h-10 rounded-sm text-sm text-ink-2 hover:bg-pine-50 cursor-pointer"
-            >
-              <ShieldCheck className="w-4 h-4 text-ink-3" />
-              {translateSync("Sign in as demo admin")}
-            </button>
+            <p className="px-2 pt-1 pb-2 text-xs text-ink-3">{translateSync("Demo accounts for presentations")}</p>
+            {(Object.keys(DEMO_ACCOUNTS) as DemoRole[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => {
+                  close();
+                  signInAsDemo(r);
+                }}
+                className="w-full flex items-center gap-2.5 px-2 h-10 rounded-sm text-sm text-ink-2 hover:bg-pine-50 cursor-pointer"
+              >
+                {r === "admin" ? <ShieldCheck className="w-4 h-4 text-ink-3" /> : <User className="w-4 h-4 text-ink-3" />}
+                {translateSync("Demo")} {translateSync(ROLE_LABELS[r])}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -165,24 +170,32 @@ function AccountMenu() {
             </Link>
           )}
 
-          <div className="border-t border-line mt-2 pt-2 px-4">
-            <p className="text-xs text-ink-3 pb-1.5">{translateSync("Demo: view as")}</p>
-            <div className="grid grid-cols-2 gap-1">
-              {(["buyer", "artisan", "lgu", "admin"] as DemoRole[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => switchRole(r)}
-                  className={cn(
-                    "h-8 px-2 rounded-sm text-xs font-medium flex items-center justify-between cursor-pointer border",
-                    role === r ? "bg-pine-100 border-pine-200 text-pine-700" : "border-line text-ink-2 hover:border-pine-300"
-                  )}
-                >
-                  {translateSync(ROLE_LABELS[r])}
-                  {role === r && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
+          {demoMode && (
+            <div className="border-t border-line mt-2 pt-2 px-4">
+              <p className="text-xs text-ink-3 pb-1.5">{translateSync("Demo: switch account")}</p>
+              <div className="grid grid-cols-2 gap-1">
+                {(Object.keys(DEMO_ACCOUNTS) as DemoRole[]).map((r) => {
+                  const current = user.id === DEMO_ACCOUNTS[r];
+                  return (
+                    <button
+                      key={r}
+                      onClick={() => {
+                        close();
+                        if (!current) signInAsDemo(r);
+                      }}
+                      className={cn(
+                        "h-8 px-2 rounded-sm text-xs font-medium flex items-center justify-between cursor-pointer border",
+                        current ? "bg-pine-100 border-pine-200 text-pine-700" : "border-line text-ink-2 hover:border-pine-300"
+                      )}
+                    >
+                      {translateSync(ROLE_LABELS[r])}
+                      {current && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="border-t border-line mt-2 pt-2">
             <button

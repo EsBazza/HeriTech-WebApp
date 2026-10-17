@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import {
@@ -26,54 +25,46 @@ import {
   Cell,
 } from "recharts";
 import { AccessGuard } from "@/components/AccessGuard";
+import { apiJson } from "@/lib/api";
+import { SPLIT, SPLIT_LABEL } from "@/lib/escrow";
 
-export default function AdminDashboardPage() {
-  const { user } = useAuth();
+function AdminDashboardPageContent() {
   const { formatCurrency, formatNumber, translateSync } = useTranslation();
   const [stats, setStats] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadAdminData = async () => {
-    try {
-      const [statsRes, appsRes] = await Promise.all([
-        fetch("/api/admin/stats"),
-        fetch("/api/admin/applications"),
-      ]);
-      const statsData = await statsRes.json();
-      const appsData = await appsRes.json();
-
-      if (statsData.success) setStats(statsData.data);
-      if (appsData.success) setApplications(appsData.data);
-    } catch (err) {
-      console.error("Failed to load admin data:", err);
-    } finally {
-      setLoading(false);
-    }
+    const [statsRes, appsRes, usersRes] = await Promise.all([
+      apiJson<any>("/api/admin/stats"),
+      apiJson<any[]>("/api/admin/applications"),
+      apiJson<any[]>("/api/admin/users"),
+    ]);
+    if (statsRes.success) setStats(statsRes.data);
+    if (appsRes.success) setApplications(appsRes.data ?? []);
+    if (usersRes.success) setUsers(usersRes.data ?? []);
+    setActionError([statsRes, appsRes, usersRes].find((r) => !r.success)?.error ?? null);
   };
 
   useEffect(() => {
     loadAdminData();
   }, []);
 
-  const handleReview = async (userId: string, action: "approve" | "reject") => {
+  const submitAdminAction = async (body: Record<string, string>) => {
     setActionMessage(null);
-    try {
-      const res = await fetch("/api/admin/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, action }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setActionMessage(data.message);
-        await loadAdminData();
-      }
-    } catch (err) {
-      console.error("Review action error:", err);
+    setActionError(null);
+    const result = await apiJson("/api/admin/applications", { method: "POST", body: JSON.stringify(body) });
+    if (result.success) {
+      setActionMessage(result.message ?? null);
+      await loadAdminData();
+    } else {
+      setActionError(result.error ?? "That action failed.");
     }
   };
+
+  const handleReview = (userId: string, action: "approve" | "reject") => submitAdminAction({ userId, action });
 
   const pendingApps = applications.filter(
     (a) => a.verificationStatus === "pending_artisan" || a.verificationStatus === "pending_lgu"
@@ -82,7 +73,6 @@ export default function AdminDashboardPage() {
   const escrowColors = ["#1f3a2b", "#8fb09c", "#c2602f"]; // split-artisan, split-platform, split-ngo
 
   return (
-    <AccessGuard allowedRoles={["admin"]} pageTitle="System Administration">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
       {/* Admin Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-6">
@@ -110,6 +100,11 @@ export default function AdminDashboardPage() {
         <div className="p-4 rounded-lg bg-pine-50 border border-pine-200 text-xs font-bold text-pine-700 flex items-center space-x-2">
           <CheckCircle2 className="w-5 h-5 text-pine-500 flex-shrink-0" />
           <span><TranslatableText>{actionMessage}</TranslatableText></span>
+        </div>
+      )}
+      {actionError && (
+        <div role="alert" className="p-4 rounded-lg bg-danger-100 border border-danger/20 text-xs font-bold text-danger">
+          {translateSync(actionError)}
         </div>
       )}
 
@@ -200,7 +195,7 @@ export default function AdminDashboardPage() {
                       )}
                       {applicant.applicationDetails?.bio && (
                         <p className="text-xs text-ink-3 italic mt-1">
-                          "{applicant.applicationDetails.bio}"
+                          &ldquo;{applicant.applicationDetails.bio}&rdquo;
                         </p>
                       )}
                     </div>
@@ -244,7 +239,7 @@ export default function AdminDashboardPage() {
             </TranslatableParagraph>
           </div>
           <span className="text-xs font-bold text-ink-3 font-mono-data">
-            {applications.length} <TranslatableText>Total users</TranslatableText>
+            {users.length} <TranslatableText>Total users</TranslatableText>
           </span>
         </div>
 
@@ -260,7 +255,7 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {applications.map((u) => (
+                {users.map((u) => (
                   <tr key={u.id} className="hover:bg-paper/50 transition-colors">
                     <td className="py-3 px-4 font-bold text-ink flex items-center space-x-2">
                       <div className="w-7 h-7 rounded-full bg-pine-700 text-white flex items-center justify-center font-bold text-xs">
@@ -279,22 +274,7 @@ export default function AdminDashboardPage() {
                         {(["buyer", "artisan", "lgu", "admin"] as const).map((r) => (
                           <button
                             key={r}
-                            onClick={async () => {
-                              try {
-                                const res = await fetch("/api/admin/applications", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ userId: u.id, action: "change_role", targetRole: r }),
-                                });
-                                const data = await res.json();
-                                if (data.success) {
-                                  setActionMessage(data.message);
-                                  await loadAdminData();
-                                }
-                              } catch (err) {
-                                console.error("Role change error:", err);
-                              }
-                            }}
+                            onClick={() => u.role !== r && submitAdminAction({ userId: u.id, action: "change_role", targetRole: r })}
                             className={`px-2 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
                               u.role === r
                                 ? "bg-pine-700 text-white border-pine-500"
@@ -322,7 +302,7 @@ export default function AdminDashboardPage() {
             <span>Payments & material overview</span>
           </TranslatableHeading>
           <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
-            Aggregated gross volume, automated 70/20/10 disbursements, and festival diversion metrics.
+            Gross volume, how every sale was split, and festival collection metrics.
           </TranslatableParagraph>
         </div>
 
@@ -331,31 +311,31 @@ export default function AdminDashboardPage() {
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
             <TranslatableText className="text-xs font-bold text-ink-3">Gross Volume</TranslatableText>
             <p className="font-display text-[34px] leading-none font-semibold text-ink tabular">
-              {formatCurrency(stats?.kpis?.grossVolume || 162.00)}
+              {formatCurrency(stats?.kpis?.grossVolume ?? 0)}
             </p>
-            <TranslatableText className="text-xs text-ink-3 font-medium">100% Escrow Transacted</TranslatableText>
+            <TranslatableText className="text-xs text-ink-3 font-medium">Simulated payments, no real money yet</TranslatableText>
           </div>
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
-            <TranslatableText className="text-xs font-bold text-ink-3">70% Artisan Payouts</TranslatableText>
+            <p className="text-xs font-bold text-ink-3">{SPLIT.artisan}% {translateSync("Artisan payouts")}</p>
             <p className="font-display text-[34px] leading-none font-semibold text-ink tabular">
-              {formatCurrency(stats?.kpis?.artisanPayoutTotal || 113.40)}
+              {formatCurrency(stats?.kpis?.artisanPayoutTotal ?? 0)}
             </p>
             <TranslatableText className="text-xs text-pine-500 font-medium">To Certified Maker Cooperatives</TranslatableText>
           </div>
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
-            <TranslatableText className="text-xs font-bold text-ink-3">10% NGO Trust Funds</TranslatableText>
+            <p className="text-xs font-bold text-ink-3">{SPLIT.lgu}% {translateSync("LGU share")}</p>
             <p className="font-display text-[34px] leading-none font-semibold text-lantern-600 tabular">
-              {formatCurrency(stats?.kpis?.ngoFundTotal || 16.20)}
+              {formatCurrency(stats?.kpis?.lguShareTotal ?? 0)}
             </p>
-            <TranslatableText className="text-xs text-ink-3">Clean Air & River Trusts</TranslatableText>
+            <TranslatableText className="text-xs text-ink-3">For municipal collection and logistics</TranslatableText>
           </div>
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
             <TranslatableText className="text-xs font-bold text-ink-3">Total Diverted</TranslatableText>
             <p className="font-display text-[34px] leading-none font-semibold text-ink tabular">
-              {formatNumber(stats?.kpis?.totalKgCollected || 303.2)} <span className="text-xs font-normal">kg</span>
+              {formatNumber(stats?.kpis?.totalKgCollected ?? 0)} <span className="text-xs font-normal">kg</span>
             </p>
             <TranslatableText className="text-xs text-pine-600 font-medium">From Asian Landfills</TranslatableText>
           </div>
@@ -382,14 +362,14 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Chart 2: 70/20/10 Escrow Breakdown */}
+          {/* Chart 2: payment split breakdown */}
           <div className="bg-surface rounded-lg border border-line p-6 space-y-4 shadow-card flex flex-col justify-between">
             <div>
-              <TranslatableHeading level={3} className="text-sm font-bold text-ink">
-                Fixed 70/20/10 Escrow Distribution
-              </TranslatableHeading>
+              <h3 className="text-sm font-bold text-ink">
+                {translateSync("Payment split")} ({SPLIT_LABEL})
+              </h3>
               <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
-                Direct economic routing across artisans, infrastructure, and clean-up funds.
+                How completed sales were divided between artisans, LGUs, and charity & app upkeep.
               </TranslatableParagraph>
             </div>
 
@@ -416,22 +396,29 @@ export default function AdminDashboardPage() {
 
             <div className="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-line">
               <div>
-                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-artisan" aria-hidden />70%</span>
-                <TranslatableText className="text-xs text-ink-3">Artisan Payout</TranslatableText>
+                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-artisan" aria-hidden />{SPLIT.artisan}%</span>
+                <TranslatableText className="text-xs text-ink-3">Artisan payout</TranslatableText>
               </div>
               <div>
-                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-platform" aria-hidden />20%</span>
-                <TranslatableText className="text-xs text-ink-3">LGU & Platform</TranslatableText>
+                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-platform" aria-hidden />{SPLIT.lgu}%</span>
+                <TranslatableText className="text-xs text-ink-3">LGU</TranslatableText>
               </div>
               <div>
-                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-ngo" aria-hidden />10%</span>
-                <TranslatableText className="text-xs text-ink-3">NGO Fund</TranslatableText>
+                <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-ngo" aria-hidden />{SPLIT.charityMaintenance}%</span>
+                <TranslatableText className="text-xs text-ink-3">Charity & app upkeep</TranslatableText>
               </div>
             </div>
           </div>
         </div>
       </section>
     </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <AccessGuard allowedRoles={["admin"]} pageTitle="System Administration">
+      <AdminDashboardPageContent />
     </AccessGuard>
   );
 }

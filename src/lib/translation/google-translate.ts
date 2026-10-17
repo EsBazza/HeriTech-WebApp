@@ -1,4 +1,7 @@
-// Google Cloud Translation & Gemini AI Multilingual Engine
+// Server-side translation: Google Cloud Translation first, Gemini as a fallback,
+// then the bundled phrase dictionary.
+import "server-only";
+import { generateJson } from "@/lib/server/gemini";
 
 export interface TranslationRequest {
   text: string | string[];
@@ -74,9 +77,6 @@ async function fetchGoogleTranslateRest(
   if (!apiKey || apiKey.includes('YOUR_') || apiKey.length < 20) return null;
 
   try {
-    const url = new URL('https://translation.googleapis.com/language/translate/v2');
-    url.searchParams.set('key', apiKey);
-
     const body: Record<string, any> = {
       q: texts,
       target: targetLanguage,
@@ -86,9 +86,10 @@ async function fetchGoogleTranslateRest(
       body.source = sourceLanguage;
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch('https://translation.googleapis.com/language/translate/v2', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      signal: AbortSignal.timeout(15_000),
       body: JSON.stringify(body),
     });
 
@@ -104,51 +105,26 @@ async function fetchGoogleTranslateRest(
   return null;
 }
 
-// Fallback: Gemini AI Batch Translation
-async function fetchGeminiTranslate(
-  texts: string[],
-  targetLanguage: string
-): Promise<string[] | null> {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey || geminiKey.length < 20) return null;
-
-  try {
-    const prompt = `You are an expert multilingual translator for Pan-Asian cultural crafts.
-Translate the following JSON array of English strings into target language code: "${targetLanguage}".
-Return ONLY a valid JSON array of strings corresponding 1-to-1 with the input array. Do not include markdown ticks, comments, or explanations.
-
-Input:
-${JSON.stringify(texts)}`;
-
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+// Fallback: Gemini translation of the whole batch in one call
+async function fetchGeminiTranslate(texts: string[], targetLanguage: string): Promise<string[] | null> {
+  const result = await generateJson<unknown>({
+    system: "You are an expert multilingual translator for Pan-Asian cultural crafts. Reply with JSON only.",
+    contents: [
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.1,
-            responseMimeType: 'application/json',
+        role: "user",
+        parts: [
+          {
+            text: `Translate this JSON array of English strings into the language with code "${targetLanguage}". Return a JSON array of strings matching the input one-to-one.
+
+${JSON.stringify(texts)}`,
           },
-        }),
-      }
-    );
-
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (rawText) {
-      const parsed = JSON.parse(rawText);
-      if (Array.isArray(parsed) && parsed.length === texts.length) {
-        return parsed.map(String);
-      }
-    }
-  } catch (err) {
-    console.warn('Gemini translate fallback failed:', err);
-  }
-  return null;
+        ],
+      },
+    ],
+    temperature: 0.1,
+  });
+  const parsed = result?.data;
+  return Array.isArray(parsed) && parsed.length === texts.length ? parsed.map(String) : null;
 }
 
 // Translate single text or array of texts
@@ -268,17 +244,4 @@ export async function translateWithCache({
     TranslationCache.set(text, targetLanguage, response.translations[0], sourceLanguage);
   }
   return response;
-}
-
-export async function detectLanguage(text: string): Promise<{
-  language: string;
-  confidence: number;
-  success: boolean;
-  error?: string;
-}> {
-  return {
-    language: 'en',
-    confidence: 0.99,
-    success: true
-  };
 }

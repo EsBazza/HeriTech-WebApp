@@ -28,271 +28,9 @@ import { EscrowBar } from "@/components/EscrowBar";
 import { FeedCard, type FeedMaterialBatch } from "@/components/FeedCard";
 import { ProvenanceTimeline } from "@/components/ProvenanceTimeline";
 import { Button, Card, Spinner, EmptyState, LinkButton, SectionHeader } from "@/components/ui";
+import { apiJson } from "@/lib/api";
 
-const FALLBACK_PRODUCTS: Record<string, any> = {
-  batch_01: {
-    id: "batch_01",
-    title: "Panagbenga Botanical Loom Wall Tapestry",
-    description:
-      "Salvaged highland bolo bamboo and sun-dried strawflowers from Baguio City float sculptures. Hand-woven into archival wall decor with natural beeswax finish.",
-    price: 68.0,
-    images: ["https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800"],
-    materialTags: ["Bamboo", "Botanical Flora", "Highland Loom"],
-    stock: 4,
-    kgDiverted: 2.4,
-    ngoFundName: "Cordillera Ancestral Watershed Trust",
-    artisan: {
-      fullName: "Danilo Cruz",
-      workshopName: "Cordillera Botanical Cooperative",
-      country: "Philippines",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0101",
-      materialType: "Highland Bolo Bamboo & Strawflower",
-      condition: "Pristine & Dry",
-      agreement: {
-        festival: "Panagbenga Festival",
-        country: "Philippines",
-      },
-    },
-  },
-  prod_demo_01: {
-    id: "prod_demo_01",
-    title: "Panagbenga Botanical Loom Wall Tapestry",
-    description:
-      "Salvaged highland bolo bamboo and sun-dried strawflowers from Baguio City float sculptures. Hand-woven into archival wall decor with natural beeswax finish.",
-    price: 68.0,
-    images: ["https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800"],
-    materialTags: ["Bamboo", "Botanical Flora", "Highland Loom"],
-    stock: 4,
-    kgDiverted: 2.4,
-    ngoFundName: "Cordillera Ancestral Watershed Trust",
-    artisan: {
-      fullName: "Danilo Cruz",
-      workshopName: "Cordillera Botanical Cooperative",
-      country: "Philippines",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0101",
-      materialType: "Highland Bolo Bamboo & Strawflower",
-      condition: "Pristine & Dry",
-      agreement: {
-        festival: "Panagbenga Festival",
-        country: "Philippines",
-      },
-    },
-  },
-  batch_02: {
-    id: "batch_02",
-    title: "Yi Peng Luminary Ambient Table Lamp",
-    description:
-      "Constructed with split bamboo frames and mulberry rice paper recovered post-celebration along the Ping River in Chiang Mai. Emits warm ambient light.",
-    price: 85.0,
-    images: ["https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"],
-    materialTags: ["Bamboo", "Rice Paper", "Mulberry Fiber"],
-    stock: 3,
-    kgDiverted: 1.8,
-    ngoFundName: "Ping River Aquatic Ecology Trust",
-    artisan: {
-      fullName: "Somchai Prasert",
-      workshopName: "Lanna Heritage Joinery",
-      country: "Thailand",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0102",
-      materialType: "Split Bamboo & Mulberry Paper",
-      condition: "Intact & Wire-Free",
-      agreement: {
-        festival: "Yi Peng Lantern Festival",
-        country: "Thailand",
-      },
-    },
-  },
-  prod_demo_02: {
-    id: "prod_demo_02",
-    title: "Yi Peng Luminary Ambient Table Lamp",
-    description:
-      "Constructed with split bamboo frames and mulberry rice paper recovered post-celebration along the Ping River in Chiang Mai. Emits warm ambient light.",
-    price: 85.0,
-    images: ["https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"],
-    materialTags: ["Bamboo", "Rice Paper", "Mulberry Fiber"],
-    stock: 3,
-    kgDiverted: 1.8,
-    ngoFundName: "Ping River Aquatic Ecology Trust",
-    artisan: {
-      fullName: "Somchai Prasert",
-      workshopName: "Lanna Heritage Joinery",
-      country: "Thailand",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0102",
-      materialType: "Split Bamboo & Mulberry Paper",
-      condition: "Intact & Wire-Free",
-      agreement: {
-        festival: "Yi Peng Lantern Festival",
-        country: "Thailand",
-      },
-    },
-  },
-  batch_03: {
-    id: "batch_03",
-    title: "Temple Nirmalaya Artisanal Watercolor Pigment Set",
-    description:
-      "Extracted from ceremonial marigolds and rose garland biomass. Solar-dried and milled into archival watercolor half-pans with gum arabic binder.",
-    price: 45.0,
-    images: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800"],
-    materialTags: ["Botanical Flora", "Natural Pigment", "Organic Marigold"],
-    stock: 8,
-    kgDiverted: 3.5,
-    ngoFundName: "Ganges River Clean Water Foundation",
-    artisan: {
-      fullName: "Aarav Sharma",
-      workshopName: "Nirmalaya Bio-Craft Collective",
-      country: "India",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0103",
-      materialType: "Temple Nirmalaya Floral Biomass",
-      condition: "Organic Rich Pigment",
-      agreement: {
-        festival: "Ganesh Chaturthi",
-        country: "India",
-      },
-    },
-  },
-  prod_demo_03: {
-    id: "prod_demo_03",
-    title: "Temple Nirmalaya Artisanal Watercolor Pigment Set",
-    description:
-      "Extracted from ceremonial marigolds and rose garland biomass. Solar-dried and milled into archival watercolor half-pans with gum arabic binder.",
-    price: 45.0,
-    images: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800"],
-    materialTags: ["Botanical Flora", "Natural Pigment", "Organic Marigold"],
-    stock: 8,
-    kgDiverted: 3.5,
-    ngoFundName: "Ganges River Clean Water Foundation",
-    artisan: {
-      fullName: "Aarav Sharma",
-      workshopName: "Nirmalaya Bio-Craft Collective",
-      country: "India",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0103",
-      materialType: "Temple Nirmalaya Floral Biomass",
-      condition: "Organic Rich Pigment",
-      agreement: {
-        festival: "Ganesh Chaturthi",
-        country: "India",
-      },
-    },
-  },
-  batch_04: {
-    id: "batch_04",
-    title: "Pingxi Repulped Botanical Accordion Journal",
-    description:
-      "Recycled long-fiber lantern sheets reconstituted with indigenous fern inclusions and unbleached cotton cord.",
-    price: 38.0,
-    images: ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800"],
-    materialTags: ["Rice Paper", "Mulberry Paper", "Recycled Fiber"],
-    stock: 6,
-    kgDiverted: 1.2,
-    ngoFundName: "Taiwan Mountain Forest Trust",
-    artisan: {
-      fullName: "Lin Wei-Ting",
-      workshopName: "Pingxi Sustainable Papermaking",
-      country: "Taiwan",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0104",
-      materialType: "Mulberry Lantern Paper",
-      condition: "Clean & Sun-Dried",
-      agreement: {
-        festival: "Pingxi Lantern Festival",
-        country: "Taiwan",
-      },
-    },
-  },
-  prod_demo_04: {
-    id: "prod_demo_04",
-    title: "Pingxi Repulped Botanical Accordion Journal",
-    description:
-      "Recycled long-fiber lantern sheets reconstituted with indigenous fern inclusions and unbleached cotton cord.",
-    price: 38.0,
-    images: ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800"],
-    materialTags: ["Rice Paper", "Mulberry Paper", "Recycled Fiber"],
-    stock: 6,
-    kgDiverted: 1.2,
-    ngoFundName: "Taiwan Mountain Forest Trust",
-    artisan: {
-      fullName: "Lin Wei-Ting",
-      workshopName: "Pingxi Sustainable Papermaking",
-      country: "Taiwan",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0104",
-      materialType: "Mulberry Lantern Paper",
-      condition: "Clean & Sun-Dried",
-      agreement: {
-        festival: "Pingxi Lantern Festival",
-        country: "Taiwan",
-      },
-    },
-  },
-  batch_05: {
-    id: "batch_05",
-    title: "Sinulog Festival Upcycled Abaca Bunting Tote",
-    description:
-      "Heavy-duty abaca fiber strips and ceremonial banner textiles repurposed into reinforced market bags.",
-    price: 52.0,
-    images: ["https://images.unsplash.com/photo-1544816155-12df9643f363?w=800"],
-    materialTags: ["Abaca", "Banner Textile", "Woven"],
-    stock: 5,
-    kgDiverted: 2.1,
-    ngoFundName: "Visayas Coastal Ecology Trust",
-    artisan: {
-      fullName: "Maria Santos",
-      workshopName: "Cebu Ancestral Weavers Cooperative",
-      country: "Philippines",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0105",
-      materialType: "Abaca Fiber & Banner Textile",
-      condition: "Pristine",
-      agreement: {
-        festival: "Sinulog Festival",
-        country: "Philippines",
-      },
-    },
-  },
-  batch_06: {
-    id: "batch_06",
-    title: "Loi Krathong Biodegradable Banana Leaf Wall Plate",
-    description:
-      "Compressed organic banana trunk fibers and natural gum arabic binder forming resilient wall art tiles.",
-    price: 42.0,
-    images: ["https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=800"],
-    materialTags: ["Banana Fiber", "Botanical Art", "Eco Tile"],
-    stock: 7,
-    kgDiverted: 1.6,
-    ngoFundName: "Sukhothai Cultural Heritage Fund",
-    artisan: {
-      fullName: "Kamonwan Boonmee",
-      workshopName: "Lanna Eco-Craft Community",
-      country: "Thailand",
-    },
-    sourceBatch: {
-      id: "HT-BATCH-0106",
-      materialType: "Organic Banana Fiber",
-      condition: "Dry & Sun-Bleached",
-      agreement: {
-        festival: "Loi Krathong",
-        country: "Thailand",
-      },
-    },
-  },
-};
-
-/** Maps an API or fallback product to the shop card shape. */
+/** Maps an API product to the shop card shape. */
 function toFeedBatch(p: any): FeedMaterialBatch {
   const tags = Array.isArray(p.materialTags) && p.materialTags.length > 0 ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "Upcycled piece";
   const country = p.sourceBatch?.agreement?.country || p.artisan?.country || "Asia";
@@ -327,26 +65,12 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     async function loadProduct() {
-      let catalogue: any[] = [];
-      let found: any = null;
-      try {
-        const res = await fetch("/api/products");
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) {
-          catalogue = data.data;
-          found = data.data.find((p: any) => p.id === productId);
-        }
-      } catch (err) {
-        console.warn("Using fallback product for id:", productId, err);
-      }
-
-      // Fallback to dictionary
-      if (!found) {
-        found = FALLBACK_PRODUCTS[productId] || FALLBACK_PRODUCTS["batch_01"];
-      }
-      if (catalogue.length < 4) {
-        catalogue = [...catalogue, ...Object.values(FALLBACK_PRODUCTS).filter((p: any) => !p.id.startsWith("prod_demo"))];
-      }
+      const [productRes, catalogueRes] = await Promise.all([
+        apiJson<any>(`/api/products/${encodeURIComponent(productId)}`),
+        apiJson<any[]>("/api/products"),
+      ]);
+      const found = productRes.success ? productRes.data : null;
+      const catalogue = catalogueRes.data ?? [];
 
       // Related: same festival first, then anything else; unique titles, max 3
       const festival = found?.sourceBatch?.agreement?.festival;
@@ -391,15 +115,15 @@ export default function ProductDetailPage() {
     title: product.title,
     description: product.description || "",
     price: product.price,
-    image: product.images?.[0] || "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
-    artisanId: product.artisanId || "usr_art_05",
-    artisanName: product.artisan?.fullName || "Danilo Cruz",
-    artisanWorkshop: product.artisan?.workshopName || "Cordillera Botanical Cooperative",
-    artisanCountry: product.sourceBatch?.agreement?.country || "Philippines",
-    kgDiverted: product.kgDiverted || 2.0,
-    ngoFundName: product.ngoFundName || "Regional Watershed Trust",
-    sourceBatchId: product.sourceBatchId || "HT-BATCH-0101",
-    festivalName: product.sourceBatch?.agreement?.festival || "Pan-Asian Harvest",
+    image: product.images?.[0] ?? "",
+    artisanId: product.artisanId,
+    artisanName: product.artisan?.fullName,
+    artisanWorkshop: product.artisan?.workshopName ?? undefined,
+    artisanCountry: product.sourceBatch?.agreement?.country ?? product.artisan?.country ?? undefined,
+    kgDiverted: product.kgDiverted,
+    ngoFundName: product.ngoFundName,
+    sourceBatchId: product.sourceBatchId,
+    festivalName: product.sourceBatch?.agreement?.festival ?? undefined,
   };
 
   const festival = product.sourceBatch?.agreement?.festival || "Pan-Asian Festival";
@@ -408,11 +132,11 @@ export default function ProductDetailPage() {
   const workshop = product.artisan?.workshopName || "Heritage Cooperative";
   const material = product.sourceBatch?.materialType || (product.materialTags || []).join(", ") || "—";
   const inCart = items.some((i) => i.id === product.id);
-  const stock = product.stock ?? 1;
+  const stock: number = product.stock ?? 0;
   const artisanShare = calculateEscrowSplit(product.price).artisanPayout;
 
   const openArtisanThread = () => {
-    const artisanId = product.artisanId || `artisan_${makerName.toLowerCase().replace(/\s+/g, "_")}`;
+    const artisanId: string = product.artisanId;
     window.dispatchEvent(
       new CustomEvent("open-messages", {
         detail: {
@@ -421,7 +145,6 @@ export default function ProductDetailPage() {
           subtitle: workshop,
           avatarText: makerName.slice(0, 2).toUpperCase(),
           productTitle: product.title,
-          initialGreeting: `Hello! I am ${makerName} from ${workshop}. How can I assist you with "${product.title}"?`,
         },
       })
     );
@@ -437,7 +160,7 @@ export default function ProductDetailPage() {
     { label: translateSync("Origin"), value: `${translateSync(festival)}, ${translateSync(country)}` },
     { label: translateSync("Material"), value: translateSync(material) },
     { label: translateSync("Condition at collection"), value: product.sourceBatch?.condition ? translateSync(product.sourceBatch.condition) : "—" },
-    { label: translateSync("Waste diverted"), value: `${formatNumber(product.kgDiverted || 2.0)} kg` },
+    { label: translateSync("Waste diverted"), value: `${formatNumber(product.kgDiverted)} kg` },
     { label: translateSync("Source batch"), value: product.sourceBatch?.id || "—", mono: true },
   ];
 
@@ -486,7 +209,11 @@ export default function ProductDetailPage() {
             <div className="flex items-baseline gap-3">
               <p className="tabular font-display text-[32px] font-semibold text-ink">{formatCurrency(product.price)}</p>
               <span className={stock <= 3 ? "text-sm text-lantern-600" : "text-sm text-ink-3"}>
-                {stock <= 3 ? `${translateSync("Only")} ${stock} ${translateSync("left")}` : `${stock} ${translateSync("in stock")}`}
+                {stock === 0
+                  ? translateSync("Sold out")
+                  : stock <= 3
+                  ? `${translateSync("Only")} ${stock} ${translateSync("left")}`
+                  : `${stock} ${translateSync("in stock")}`}
               </span>
             </div>
           </div>
@@ -494,13 +221,19 @@ export default function ProductDetailPage() {
           <p className="text-[15px] text-ink-2 leading-relaxed">{translateSync(product.description || "")}</p>
 
           <div className="space-y-3">
-            <Button size="lg" className="w-full" onClick={() => setCheckoutModalOpen(true)}>
+            <Button size="lg" className="w-full" onClick={() => setCheckoutModalOpen(true)} disabled={stock === 0}>
               <Lock className="w-4 h-4" />
               {translateSync("Buy now")}
             </Button>
-            <Button size="lg" variant="secondary" onClick={handleAdd} className={inCart || justAdded ? "w-full text-pine-700 border-pine-300" : "w-full"}>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={handleAdd}
+              disabled={stock === 0 || inCart}
+              className={inCart || justAdded ? "w-full text-pine-700 border-pine-300" : "w-full"}
+            >
               {inCart || justAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
-              {justAdded ? translateSync("Added to cart") : inCart ? translateSync("In cart · add another") : translateSync("Add to cart")}
+              {justAdded ? translateSync("Added to cart") : inCart ? translateSync("In your cart") : translateSync("Add to cart")}
             </Button>
             {!user && <p className="text-xs text-ink-3 text-center">{translateSync("You'll sign in with Google at checkout.")}</p>}
           </div>

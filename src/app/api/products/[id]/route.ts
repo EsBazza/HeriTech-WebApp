@@ -1,102 +1,52 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import type { ProductDoc, UserDoc } from "@/lib/firebase/types";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { forbidden, notFound, ok, parseBody, route } from "@/lib/server/http";
+import { storeImage } from "@/lib/server/images";
+import { productUpdateSchema } from "@/lib/server/productInput";
+import { withProductRelations } from "@/lib/server/views";
 
-// PATCH /api/products/[id] — artisan updates their product details
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const {
-      title,
-      description,
-      price,
-      images,
-      materialTags,
-      stock,
-      kgDiverted,
-      ngoFundName,
-    } = body;
+type Context = { params: Promise<{ id: string }> };
 
-    const existing = await prisma.product.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: "Product not found" },
-        { status: 404 }
-      );
-    }
-
-    const updated = await prisma.product.update({
-      where: { id },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(price !== undefined && { price: Number(price) }),
-        ...(images !== undefined && {
-          images: JSON.stringify(Array.isArray(images) ? images : [images]),
-        }),
-        ...(materialTags !== undefined && {
-          materialTags: JSON.stringify(
-            Array.isArray(materialTags) ? materialTags : [materialTags]
-          ),
-        }),
-        ...(stock !== undefined && { stock: Number(stock) }),
-        ...(kgDiverted !== undefined && { kgDiverted: Number(kgDiverted) }),
-        ...(ngoFundName !== undefined && { ngoFundName }),
-      },
-      include: {
-        artisan: { select: { id: true, fullName: true, workshopName: true } },
-        sourceBatch: { include: { agreement: true } },
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "Product updated successfully.",
-      data: {
-        ...updated,
-        images: JSON.parse(updated.images),
-        materialTags: JSON.parse(updated.materialTags),
-      },
-    });
-  } catch (error) {
-    console.error("Failed to update product:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update product" },
-      { status: 500 }
-    );
-  }
+async function loadOwnedProduct(id: string, user: UserDoc): Promise<ProductDoc> {
+  const product = (await db.products().doc(id).get()).data();
+  if (!product || product.archived) throw notFound("Product not found.");
+  if (product.artisanId !== user.id && user.role !== "admin") throw forbidden("You can only change your own listings.");
+  return product;
 }
 
-// DELETE /api/products/[id] — artisan removes their listing
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
+/** GET /api/products/:id — one listing with its artisan and source batch. */
+export const GET = route(async (_request: Request, { params }: Context) => {
+  const { id } = await params;
+  const product = (await db.products().doc(id).get()).data();
+  if (!product || product.archived) throw notFound("This piece is no longer listed.");
+  const [view] = await withProductRelations([product]);
+  return ok(view);
+});
 
-    const existing = await prisma.product.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: "Product not found" },
-        { status: 404 }
-      );
-    }
+/** PATCH /api/products/:id — the owning artisan edits a listing. */
+export const PATCH = route(async (request: Request, { params }: Context) => {
+  const user = await requireUser(request, ["artisan"]);
+  const { id } = await params;
+  const product = await loadOwnedProduct(id, user);
+  const input = await parseBody(request, productUpdateSchema);
 
-    await prisma.product.delete({ where: { id } });
+  const updates: Partial<ProductDoc> = { ...input };
+  if (input.images) updates.images = await Promise.all(input.images.map((img) => storeImage(img, "products")));
+  await db.products().doc(id).update(updates);
 
-    return NextResponse.json({
-      success: true,
-      message: "Product removed from marketplace.",
-    });
-  } catch (error) {
-    console.error("Failed to delete product:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to delete product" },
-      { status: 500 }
-    );
-  }
-}
+  const [view] = await withProductRelations([{ ...product, ...updates }]);
+  return ok(view, { message: "Listing updated." });
+});
+
+/**
+ * DELETE /api/products/:id — removes a listing from the marketplace.
+ * The document is archived, not deleted, so impact passes for past sales still verify.
+ */
+export const DELETE = route(async (request: Request, { params }: Context) => {
+  const user = await requireUser(request, ["artisan"]);
+  const { id } = await params;
+  await loadOwnedProduct(id, user);
+  await db.products().doc(id).update({ archived: true, stock: 0 });
+  return ok({ id }, { message: "Listing removed from the marketplace." });
+});

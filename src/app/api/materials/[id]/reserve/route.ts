@@ -1,63 +1,38 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { FieldValue } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase/admin";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { conflict, notFound, ok, route } from "@/lib/server/http";
+import { addSystemMessage } from "@/lib/server/messages";
+import { withBatchRelations } from "@/lib/server/views";
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const { artisanId } = body;
+/**
+ * POST /api/materials/:id/reserve — an artisan reserves an available batch.
+ * The logging officer gets a system message to arrange the QR handover.
+ */
+export const POST = route(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
+  const artisan = await requireUser(request, ["artisan"]);
+  const { id } = await params;
+  const ref = db.batches().doc(id);
 
-    if (!artisanId) {
-      return NextResponse.json(
-        { success: false, error: "artisanId is required to reserve a batch" },
-        { status: 400 }
-      );
+  await adminDb().runTransaction(async (tx) => {
+    const batch = (await tx.get(ref)).data();
+    if (!batch) throw notFound("Material batch not found.");
+    if (batch.status !== "available") throw conflict(`Batch ${id} is already ${batch.status}.`);
+
+    tx.update(ref, { status: "reserved", reservedByArtisanId: artisan.id, reservedAt: FieldValue.serverTimestamp() });
+
+    if (batch.scannedByOfficerId) {
+      addSystemMessage(tx, {
+        senderId: artisan.id,
+        receiverId: batch.scannedByOfficerId,
+        content: `${artisan.fullName}${artisan.workshopName ? ` (${artisan.workshopName})` : ""} reserved batch ${id}: ${batch.weightKg} kg of ${batch.materialType}. Please arrange a pickup time for the QR handover.`,
+        contextType: "batch_reservation",
+        contextId: id,
+      });
     }
+  });
 
-    // Verify batch exists and is available
-    const batch = await prisma.materialBatch.findUnique({
-      where: { id },
-    });
-
-    if (!batch) {
-      return NextResponse.json(
-        { success: false, error: "Material batch not found" },
-        { status: 404 }
-      );
-    }
-
-    if (batch.status !== "available") {
-      return NextResponse.json(
-        { success: false, error: `Batch is currently ${batch.status} and cannot be reserved` },
-        { status: 400 }
-      );
-    }
-
-    const updatedBatch = await prisma.materialBatch.update({
-      where: { id },
-      data: {
-        status: "reserved",
-        reservedByArtisanId: artisanId,
-      },
-      include: {
-        reservedByArtisan: true,
-        agreement: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: `Batch ${id} reserved successfully for artisan. Proceed to on-site QR handover (Act 3).`,
-      data: updatedBatch,
-    });
-  } catch (error) {
-    console.error("Failed to reserve batch:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error reserving batch" },
-      { status: 500 }
-    );
-  }
-}
+  const [view] = await withBatchRelations([(await ref.get()).data()!]);
+  return ok(view, { message: `Batch ${id} is reserved for you. Open the handover to show your QR code at pickup.` });
+});

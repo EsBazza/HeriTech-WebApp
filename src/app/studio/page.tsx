@@ -13,7 +13,6 @@ import {
   PlusCircle,
   Sparkles,
   Loader2,
-  ShieldAlert,
   ImagePlus,
   Pencil,
   Trash2,
@@ -56,9 +55,10 @@ const BLANK_FORM = {
 };
 
 import { AccessGuard } from "@/components/AccessGuard";
+import { apiJson } from "@/lib/api";
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function ArtisanStudioPage() {
+function ArtisanStudioPageContent() {
   const { user, loading: authLoading } = useAuth();
   const { translateSync, formatCurrency } = useTranslation();
   const role = userRole(user);
@@ -88,6 +88,7 @@ export default function ArtisanStudioPage() {
 
   // --- Async state ---
   const [generatingStory, setGeneratingStory] = useState(false);
+  const [storyIsSample, setStoryIsSample] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -165,29 +166,26 @@ export default function ArtisanStudioPage() {
       setBatchesLoading(false);
       return;
     }
-    fetch("/api/materials")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.data?.length > 0) {
-          setClaimedBatches(data.data);
-          setForm((f) => ({ ...f, selectedBatchId: data.data[0].id }));
-        }
-      })
-      .catch(console.error)
-      .finally(() => setBatchesLoading(false));
+    // Only batches this artisan has physically picked up can be turned into listings.
+    apiJson<any[]>("/api/materials?mine=claimed").then((result) => {
+      if (result.success && result.data?.length) {
+        setClaimedBatches(result.data);
+        setForm((f) => ({ ...f, selectedBatchId: result.data![0].id }));
+      } else if (!result.success) {
+        setErrorMessage(result.error ?? "Couldn't load your batches.");
+      }
+      setBatchesLoading(false);
+    });
   }, [authLoading, isAuthorized]);
 
   // --- Load artisan's own products ---
   const loadMyProducts = () => {
     if (!user?.id) return;
     setProductsLoading(true);
-    fetch(`/api/products?artisanId=${user.id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) setMyProducts(data.data ?? []);
-      })
-      .catch(console.error)
-      .finally(() => setProductsLoading(false));
+    apiJson<Product[]>(`/api/products?artisanId=${encodeURIComponent(user.id)}`).then((result) => {
+      if (result.success) setMyProducts(result.data ?? []);
+      setProductsLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -237,34 +235,30 @@ export default function ArtisanStudioPage() {
   const handleGenerateAIStory = async () => {
     if (!selectedBatch) return;
     setGeneratingStory(true);
-    try {
-      const res = await fetch("/api/ai/story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          batchId: selectedBatch.id,
-          materialType: selectedBatch.materialType,
-          condition: selectedBatch.condition,
-          festival: selectedBatch.agreement?.festival ?? "Pan-Asian Festival",
-          country: selectedBatch.agreement?.country ?? "Asia",
-          craftTypology: selectedBatch.aiInferredMaterial ?? "Traditional Joinery & Weaving",
-          artisanWorkshop: (user as any)?.workshopName ?? "Master Heritage Cooperative",
-          divertedKg: form.kgDiverted || selectedBatch.weightKg,
-          title: form.title || `${selectedBatch.materialType} Upcycled Creation`,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.data?.story) {
-        setField("description", data.data.story);
-        if (Array.isArray(data.data.suggestedTags)) {
-          setField("materialTags", data.data.suggestedTags.join(", "));
-        }
-      }
-    } catch (err) {
-      console.error("AI story failed:", err);
-    } finally {
-      setGeneratingStory(false);
+    setErrorMessage(null);
+    setStoryIsSample(false);
+    const result = await apiJson<{ story: string; suggestedTags?: string[]; isSample: boolean }>("/api/ai/story", {
+      method: "POST",
+      body: JSON.stringify({
+        batchId: selectedBatch.id,
+        materialType: selectedBatch.materialType,
+        condition: selectedBatch.condition,
+        festival: selectedBatch.agreement?.festival,
+        country: selectedBatch.agreement?.country,
+        craftTypology: selectedBatch.aiInferredMaterial,
+        artisanWorkshop: user?.workshopName,
+        divertedKg: form.kgDiverted || selectedBatch.weightKg,
+        title: form.title || `${selectedBatch.materialType} Upcycled Creation`,
+      }),
+    });
+    if (result.success && result.data?.story) {
+      setField("description", result.data.story);
+      if (Array.isArray(result.data.suggestedTags)) setField("materialTags", result.data.suggestedTags.join(", "));
+      setStoryIsSample(result.data.isSample);
+    } else {
+      setErrorMessage(result.error ?? translateSync("The story writer failed. Try again."));
     }
+    setGeneratingStory(false);
   };
 
   // ─── Submit (create or update) ───────────────────────────────────────────────
@@ -273,48 +267,29 @@ export default function ArtisanStudioPage() {
     if (!form.title || !form.price || !form.selectedBatchId) return;
     setSubmitting(true);
     setErrorMessage(null);
-    try {
-      const payload = {
-        title: form.title,
-        description: form.description,
-        price: parseFloat(form.price),
-        images: form.imageUrl ? [form.imageUrl] : [],
-        artisanId: user?.id ?? "usr_art_05",
-        sourceBatchId: form.selectedBatchId,
-        materialTags: form.materialTags.split(",").map((t) => t.trim()).filter(Boolean),
-        kgDiverted: parseFloat(form.kgDiverted),
-        ngoFundName: form.ngoFundName,
-      };
+    const payload = {
+      title: form.title,
+      description: form.description,
+      price: parseFloat(form.price),
+      images: form.imageUrl ? [form.imageUrl] : [],
+      sourceBatchId: form.selectedBatchId,
+      materialTags: form.materialTags.split(",").map((t) => t.trim()).filter(Boolean),
+      kgDiverted: parseFloat(form.kgDiverted),
+      ngoFundName: form.ngoFundName,
+    };
 
-      const res = editingId
-        ? await fetch(`/api/products/${editingId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          })
-        : await fetch("/api/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
+    const result = editingId
+      ? await apiJson(`/api/products/${editingId}`, { method: "PATCH", body: JSON.stringify(payload) })
+      : await apiJson("/api/products", { method: "POST", body: JSON.stringify(payload) });
 
-      const data = await res.json();
-      if (data.success) {
-        setSuccessMessage(
-          editingId
-            ? `"${form.title}" updated successfully.`
-            : `"${form.title}" published to the marketplace!`
-        );
-        resetForm();
-        loadMyProducts();
-      } else {
-        setErrorMessage(data.error ?? "Something went wrong.");
-      }
-    } catch (err) {
-      setErrorMessage("Network error. Please try again.");
-    } finally {
-      setSubmitting(false);
+    if (result.success) {
+      setSuccessMessage(editingId ? `"${form.title}" updated.` : `"${form.title}" is now on the marketplace.`);
+      resetForm();
+      loadMyProducts();
+    } else {
+      setErrorMessage(result.error ?? "Something went wrong.");
     }
+    setSubmitting(false);
   };
 
   // ─── Delete ──────────────────────────────────────────────────────────────────
@@ -326,23 +301,18 @@ export default function ArtisanStudioPage() {
   const handleDelete = async () => {
     if (!deletingId) return;
     setDeleting(true);
-    try {
-      const res = await fetch(`/api/products/${deletingId}`, { method: "DELETE" });
-      const data = await res.json();
-      if (data.success) {
-        setMyProducts((prev) => prev.filter((p) => p.id !== deletingId));
-        setDeletingId(null);
-      }
-    } catch (err) {
-      console.error("Delete failed:", err);
-    } finally {
-      setDeleting(false);
+    const result = await apiJson(`/api/products/${deletingId}`, { method: "DELETE" });
+    if (result.success) {
+      setMyProducts((prev) => prev.filter((p) => p.id !== deletingId));
+      setDeletingId(null);
+    } else {
+      setErrorMessage(result.error ?? "Couldn't remove the listing.");
     }
+    setDeleting(false);
   };
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <AccessGuard allowedRoles={["artisan", "admin"]} pageTitle="Artisan Studio">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
       {/* ── Header ── */}
@@ -681,6 +651,11 @@ export default function ArtisanStudioPage() {
                 )}
               </button>
             </div>
+            {storyIsSample && (
+              <p className="text-xs text-warn">
+                {translateSync("Demo sample: Gemini was unavailable, so this is a prepared example. Edit it before publishing.")}
+              </p>
+            )}
             <textarea
               rows={4}
               value={form.description}
@@ -962,6 +937,13 @@ export default function ArtisanStudioPage() {
       )}
 
     </div>
+  );
+}
+
+export default function ArtisanStudioPage() {
+  return (
+    <AccessGuard allowedRoles={["artisan", "admin"]} pageTitle="Artisan Studio">
+      <ArtisanStudioPageContent />
     </AccessGuard>
   );
 }

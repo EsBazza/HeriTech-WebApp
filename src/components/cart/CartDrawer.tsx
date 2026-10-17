@@ -94,7 +94,7 @@ export function CartDrawer() {
           {items.length > 0 && (
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div className="flex items-center justify-between text-sm font-bold text-gray-900">
-                <TranslatableText>Subtotal (70/20/10 Escrow)</TranslatableText>
+                <TranslatableText>Subtotal (70/25/5 Escrow)</TranslatableText>
                 <span className="font-mono-data text-lg font-black">{formatCurrency(totalAmount)} USD</span>
               </div>
 

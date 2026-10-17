@@ -133,12 +133,16 @@ export default function PublicVerificationPage() {
       icon: <ShoppingBag className="w-4 h-4" />,
       title: translateSync("Sold & pass issued"),
       meta: fmt(data.issuedAt),
-      detail: `${formatCurrency(escrow.totalAmount ?? data.product.price)} · ${translateSync("Pass")} ${data.serial}`,
+      detail: `${formatCurrency(escrow.totalAmount ?? data.product.price)} · ${translateSync("Pass")} ${data.serial}${
+        escrow.paymentMode === "simulated" ? ` · ${translateSync("demo payment")}` : ""
+      }`,
     },
     {
       icon: <HeartHandshake className="w-4 h-4" />,
-      title: translateSync("Donation recorded"),
-      detail: `${formatCurrency(escrow.ngoContribution ?? 0)} ${translateSync("to")} ${translateSync(escrow.ngoFundName || "NGO partner")}`,
+      title: translateSync("Split recorded"),
+      detail: `${formatCurrency(escrow.lguShare ?? 0)} ${translateSync("to the LGU")} · ${formatCurrency(escrow.charityMaintenanceShare ?? 0)} ${translateSync("to charity")}${
+        escrow.ngoFundName ? ` (${translateSync(escrow.ngoFundName)})` : ""
+      } ${translateSync("& app upkeep")}`,
     },
   ];
 
@@ -199,8 +203,8 @@ export default function PublicVerificationPage() {
             <dd className="tabular mt-1 font-display text-2xl font-semibold text-ink">{formatCurrency(escrow.artisanPayout ?? 0)}</dd>
           </div>
           <div className="p-4 sm:p-5">
-            <dt className="text-xs text-ink-3">{translateSync("Donated")}</dt>
-            <dd className="tabular mt-1 font-display text-2xl font-semibold text-lantern-600">{formatCurrency(escrow.ngoContribution ?? 0)}</dd>
+            <dt className="text-xs text-ink-3">{translateSync("Paid to the LGU")}</dt>
+            <dd className="tabular mt-1 font-display text-2xl font-semibold text-lantern-600">{formatCurrency(escrow.lguShare ?? 0)}</dd>
           </div>
         </dl>
       </Card>

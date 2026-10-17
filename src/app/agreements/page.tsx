@@ -5,8 +5,9 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import { FileCheck2, Plus, MapPin } from "lucide-react";
 import { AccessGuard } from "@/components/AccessGuard";
+import { apiJson } from "@/lib/api";
 
-export default function AgreementsPage() {
+function AgreementsPageContent() {
   const { formatNumber, translateSync } = useTranslation();
   const [agreements, setAgreements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,55 +21,37 @@ export default function AgreementsPage() {
   const [allocatedKg, setAllocatedKg] = useState("2000");
   const [submitting, setSubmitting] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    async function loadAgreements() {
-      try {
-        const res = await fetch("/api/agreements");
-        const data = await res.json();
-        if (data.success) {
-          setAgreements(data.data);
-        }
-      } catch (err) {
-        console.error("Failed to load agreements:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadAgreements();
+    apiJson<any[]>("/api/agreements").then((result) => {
+      if (result.success) setAgreements(result.data ?? []);
+      else setError(result.error ?? "Couldn't load agreements.");
+      setLoading(false);
+    });
   }, []);
 
   const handleCreateAgreement = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    try {
-      const res = await fetch("/api/agreements", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          organizerName,
-          festival,
-          country,
-          allocatedKg: parseFloat(allocatedKg),
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAgreements([data.data, ...agreements]);
-        setModalOpen(false);
-        setTitle("");
-        setOrganizerName("");
-        setFestival("");
-      }
-    } catch (err) {
-      console.error("Failed to create agreement:", err);
-    } finally {
-      setSubmitting(false);
+    setError(null);
+    const result = await apiJson<any>("/api/agreements", {
+      method: "POST",
+      body: JSON.stringify({ title, organizerName, festival, country, allocatedKg: parseFloat(allocatedKg) }),
+    });
+    if (result.success) {
+      setAgreements((prev) => [result.data, ...prev]);
+      setModalOpen(false);
+      setTitle("");
+      setOrganizerName("");
+      setFestival("");
+    } else {
+      setError(result.error ?? "Couldn't create the agreement.");
     }
+    setSubmitting(false);
   };
 
   return (
-    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="Municipal Material Release Agreements">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-6">
@@ -93,6 +76,12 @@ export default function AgreementsPage() {
           <TranslatableText>New agreement</TranslatableText>
         </button>
       </div>
+
+      {error && (
+        <p role="alert" className="p-4 rounded-md bg-danger-100 text-sm text-danger">
+          {translateSync(error)}
+        </p>
+      )}
 
       {/* Agreements Cards Grid */}
       {loading ? (
@@ -253,6 +242,13 @@ export default function AgreementsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AgreementsPage() {
+  return (
+    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="Municipal Material Release Agreements">
+      <AgreementsPageContent />
     </AccessGuard>
   );
 }

@@ -1,76 +1,31 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/server/firestore";
+import { ok, route } from "@/lib/server/http";
+import { materialTotals, orderTotals } from "@/lib/server/stats";
 
-// GET /api/stats - High-level system telemetry for the public Impact Dashboard
-export async function GET() {
-  try {
-    const [
-      totalBatches,
-      batches,
-      totalOrders,
-      orders,
-      totalArtisans,
-      agreements,
-      totalPasses,
-    ] = await Promise.all([
-      prisma.materialBatch.count(),
-      prisma.materialBatch.findMany({ select: { weightKg: true, status: true, materialType: true } }),
-      prisma.order.count(),
-      prisma.order.findMany({
-        select: {
-          amountPaid: true,
-          artisanPayout: true,
-          platformFee: true,
-          ngoContribution: true,
-        },
-      }),
-      prisma.user.count({ where: { role: "artisan", artisanVerified: true } }),
-      prisma.agreement.findMany({
-        select: {
-          id: true,
-          festival: true,
-          country: true,
-          allocatedKg: true,
-          collectedKg: true,
-        },
-      }),
-      prisma.walletPass.count(),
-    ]);
+/** GET /api/stats — public totals for the homepage and impact ledger. */
+export const GET = route(async () => {
+  const [orders, materials, artisans] = await Promise.all([
+    orderTotals(),
+    materialTotals(),
+    db.users().where("role", "==", "artisan").where("artisanVerified", "==", true).count().get(),
+  ]);
 
-    const totalKgCollected = batches.reduce((sum: number, b: any) => sum + (b.weightKg || 0), 0);
-    const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.amountPaid || 0), 0);
-    const totalArtisanPayout = orders.reduce((sum: number, o: any) => sum + (o.artisanPayout || 0), 0);
-    const totalPlatformFee = orders.reduce((sum: number, o: any) => sum + (o.platformFee || 0), 0);
-    const totalNgoFunds = orders.reduce((sum: number, o: any) => sum + (o.ngoContribution || 0), 0);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        totalKgCollected: Math.round(totalKgCollected * 100) / 100,
-        totalBatches,
-        totalOrders,
-        totalPassesIssued: totalPasses,
-        verifiedArtisansCount: totalArtisans,
-        escrowSplitSummary: {
-          totalGrossVolume: Math.round(totalRevenue * 100) / 100,
-          artisanPayout70: Math.round(totalArtisanPayout * 100) / 100,
-          lguPlatformFee20: Math.round(totalPlatformFee * 100) / 100,
-          ngoTrustFund10: Math.round(totalNgoFunds * 100) / 100,
-        },
-        festivals: agreements.map((a: any) => ({
-          festival: a.festival,
-          country: a.country,
-          allocatedKg: a.allocatedKg,
-          collectedKg: a.collectedKg,
-          quotaProgress: Math.round((a.collectedKg / a.allocatedKg) * 100),
-        })),
+  return ok(
+    {
+      totalKgCollected: materials.totalKgCollected,
+      totalBatches: materials.batchCount,
+      totalOrders: orders.orderCount,
+      totalPassesIssued: materials.passCount,
+      verifiedArtisansCount: artisans.data().count,
+      escrowSplitSummary: {
+        totalGrossVolume: orders.grossVolume,
+        artisanPayout: orders.artisanPayoutTotal,
+        lguShare: orders.lguShareTotal,
+        charityMaintenance: orders.charityMaintenanceTotal,
       },
-    });
-  } catch (error) {
-    console.error("Failed to fetch dashboard stats:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error calculating stats" },
-      { status: 500 }
-    );
-  }
-}
+      festivals: materials.festivals,
+      leaderboard: materials.leaderboard,
+    },
+    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
+  );
+});

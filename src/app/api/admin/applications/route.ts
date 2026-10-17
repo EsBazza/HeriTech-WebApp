@@ -1,113 +1,56 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import type { UserDoc } from "@/lib/firebase/types";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { badRequest, fields, notFound, ok, parseBody, route } from "@/lib/server/http";
 
-// GET /api/admin/applications - List all pending, approved, or rejected applications
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
+const REVIEWABLE = ["pending_artisan", "pending_lgu", "approved", "rejected"] as const;
 
-    const where: Record<string, unknown> = {};
-    if (status) {
-      where.verificationStatus = status;
-    } else {
-      where.verificationStatus = {
-        in: ["pending_artisan", "pending_lgu", "approved", "rejected"],
-      };
+/** GET /api/admin/applications?status= — role applications, newest first. */
+export const GET = route(async (request: Request) => {
+  await requireUser(request, ["admin"]);
+  const status = new URL(request.url).searchParams.get("status");
+  const statuses = status && (REVIEWABLE as readonly string[]).includes(status) ? [status] : [...REVIEWABLE];
+
+  const snap = await db.users().where("verificationStatus", "in", statuses).get();
+  const applicants = snap.docs.map((d) => ({ ...d.data(), applicationDetails: d.data().application }));
+  applicants.sort((a, b) => (b.application?.appliedAt ?? b.createdAt).localeCompare(a.application?.appliedAt ?? a.createdAt));
+  return ok(applicants);
+});
+
+const schema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("approve"), userId: fields.id }),
+  z.object({ action: z.literal("reject"), userId: fields.id }),
+  z.object({ action: z.literal("change_role"), userId: fields.id, targetRole: z.enum(["buyer", "artisan", "lgu", "admin"]) }),
+]);
+
+/** POST /api/admin/applications — approve, reject, or directly change a user's role. */
+export const POST = route(async (request: Request) => {
+  const admin = await requireUser(request, ["admin"]);
+  const input = await parseBody(request, schema);
+
+  const ref = db.users().doc(input.userId);
+  const target = (await ref.get()).data();
+  if (!target) throw notFound("User not found.");
+
+  let updates: Partial<UserDoc>;
+  if (input.action === "change_role") {
+    if (target.id === admin.id && input.targetRole !== "admin") {
+      throw badRequest("You can't remove your own admin role. Ask another admin.");
     }
-
-    const applications = await prisma.user.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
-
-    const parsed = applications.map((u) => ({
-      ...u,
-      applicationDetails: u.applicationNotes ? JSON.parse(u.applicationNotes) : null,
-    }));
-
-    return NextResponse.json({ success: true, count: parsed.length, data: parsed });
-  } catch (error) {
-    console.error("Admin applications error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch verification applications" },
-      { status: 500 }
-    );
+    updates = { role: input.targetRole, artisanVerified: input.targetRole === "artisan" };
+  } else if (input.action === "approve") {
+    if (target.verificationStatus !== "pending_artisan" && target.verificationStatus !== "pending_lgu") {
+      throw badRequest("This user has no pending application.");
+    }
+    const role = target.verificationStatus === "pending_artisan" ? "artisan" : "lgu";
+    updates = { role, artisanVerified: role === "artisan", verificationStatus: "approved" };
+  } else {
+    updates = { verificationStatus: "rejected" };
   }
-}
 
-// POST /api/admin/applications - Approve or Reject an applicant
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { userId, action, targetRole, adminNotes } = body; // action: 'approve' | 'reject' | 'change_role'
-
-    if (action === "change_role" && targetRole) {
-      const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          role: targetRole,
-          artisanVerified: targetRole === "artisan" ? true : false,
-        },
-      });
-
-      return NextResponse.json({
-        success: true,
-        message: `Updated role for ${updatedUser.fullName || updatedUser.email} to ${targetRole.toUpperCase()}`,
-        data: updatedUser,
-      });
-    }
-
-    if (!userId || !action || (action !== "approve" && action !== "reject")) {
-      return NextResponse.json(
-        { success: false, error: "Invalid review action. Must be 'approve', 'reject', or 'change_role'." },
-        { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Target user not found" },
-        { status: 404 }
-      );
-    }
-
-    let newRole = user.role;
-    let isArtisanVerified = user.artisanVerified;
-    let newStatus = action === "approve" ? "approved" : "rejected";
-
-    if (action === "approve") {
-      if (user.verificationStatus === "pending_artisan") {
-        newRole = "artisan";
-        isArtisanVerified = true;
-      } else if (user.verificationStatus === "pending_lgu") {
-        newRole = "lgu";
-      }
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        role: newRole,
-        artisanVerified: isArtisanVerified,
-        verificationStatus: newStatus,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: `User ${user.fullName} (${user.email}) has been ${action === "approve" ? "APPROVED" : "REJECTED"} as ${newRole.toUpperCase()}.`,
-      data: updatedUser,
-    });
-  } catch (error) {
-    console.error("Admin application review error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to process application review" },
-      { status: 500 }
-    );
-  }
-}
+  await ref.update(updates);
+  const updated = { ...target, ...updates };
+  const verb = input.action === "change_role" ? `is now ${updated.role}` : input.action === "approve" ? `was approved as ${updated.role}` : "was rejected";
+  return ok(updated, { message: `${target.fullName} (${target.email}) ${verb}.` });
+});

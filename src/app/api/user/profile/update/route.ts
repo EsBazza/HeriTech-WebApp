@@ -1,34 +1,32 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import type { UserDoc } from "@/lib/firebase/types";
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { fields, ok, parseBody, route } from "@/lib/server/http";
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { userId, fullName, avatarUrl, country, workshopName, stationName, role } = body;
+// Role and verification fields are deliberately absent: only admins change those.
+const schema = z.object({
+  fullName: fields.text(120).optional(),
+  avatarUrl: z.union([z.string().url().startsWith("https://").max(2048), z.literal("")]).optional(),
+  country: fields.optionalText(80),
+  workshopName: fields.optionalText(160),
+  stationName: fields.optionalText(160),
+  preferredLanguage: z.string().min(2).max(10).optional(),
+});
 
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 });
-    }
+/** POST /api/user/profile/update — edit your own profile details. */
+export const POST = route(async (request: Request) => {
+  const user = await requireUser(request);
+  const input = await parseBody(request, schema);
 
-    const updated = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        role: role || undefined,
-        fullName: fullName || undefined,
-        avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined,
-        country: country || undefined,
-        workshopName: workshopName !== undefined ? workshopName : undefined,
-        stationName: stationName !== undefined ? stationName : undefined,
-      },
-    });
+  const updates: Partial<UserDoc> = {};
+  if (input.fullName) updates.fullName = input.fullName;
+  if (input.avatarUrl !== undefined) updates.avatarUrl = input.avatarUrl || null;
+  if (input.preferredLanguage) updates.preferredLanguage = input.preferredLanguage;
+  if (input.country) updates.country = input.country;
+  if (user.role === "artisan" && input.workshopName) updates.workshopName = input.workshopName;
+  if (user.role === "lgu" && input.stationName) updates.stationName = input.stationName;
 
-    return NextResponse.json({
-      success: true,
-      message: "Profile updated successfully",
-      data: updated,
-    });
-  } catch (error: any) {
-    console.error("Profile update error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
-}
+  if (Object.keys(updates).length) await db.users().doc(user.id).update(updates);
+  return ok({ ...user, ...updates }, { message: "Profile updated." });
+});
