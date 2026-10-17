@@ -310,12 +310,11 @@ function MaterialsMapPageContent() {
                 </div>
               </div>
 
-              {/* SHA-256 Provenance Hash */}
-              <div className="p-3 bg-paper rounded-md border border-line font-mono-data text-xs space-y-1">
-                <TranslatableText className="text-xs text-ink-3 font-bold">
-                  SHA-256 Harvest Cryptographic Hash
-                </TranslatableText>
-                <p className="text-ink-2 text-xs break-all">{selectedBatch.txHash}</p>
+              {/* Origin fingerprint (SHA-256 of the collection record) */}
+              <div className="p-3 bg-paper rounded-md border border-line text-xs space-y-1">
+                <p className="font-bold text-ink-3">{translateSync("Origin fingerprint")}</p>
+                <p className="text-ink-3">{translateSync("Changes if anyone edits where, when or how much was collected.")}</p>
+                <p className="font-mono-data text-ink-2 break-all" title="SHA-256">{selectedBatch.txHash}</p>
               </div>
 
               {/* Success Notification */}

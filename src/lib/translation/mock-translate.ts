@@ -1278,8 +1278,8 @@ export const MOCK_TRANSLATIONS: Record<string, Record<string, string>> = {
 function getMockFallback(text: string, targetLanguage: string): string {
   if (!text || text.trim().length === 0) return text;
 
-  // Primary curated dictionaries
-  const primaryLangs = ['zh-CN', 'zh-TW', 'ja', 'vi'];
+  // Traditional Chinese can fall back to the Simplified dictionary; other languages must not.
+  const primaryLangs = ['zh-CN', 'zh-TW'];
   if (primaryLangs.includes(targetLanguage)) {
     const zhMap = MOCK_TRANSLATIONS['zh-CN'];
     if (zhMap && zhMap[text]) return zhMap[text];

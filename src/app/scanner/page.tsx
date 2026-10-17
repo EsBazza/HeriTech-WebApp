@@ -465,7 +465,7 @@ function WasteScannerPageContent() {
                       </div>
                       {savedBatch.txHash && (
                         <div className="flex gap-2">
-                          <dt className="text-ink-3 w-16 shrink-0">{translateSync("Hash")}</dt>
+                          <dt className="text-ink-3 w-16 shrink-0">{translateSync("Fingerprint")}</dt>
                           <dd className="font-mono-data break-all">{savedBatch.txHash}</dd>
                         </div>
                       )}

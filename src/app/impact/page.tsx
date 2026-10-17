@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { TreeMap } from "@/components/impact/TreeMap";
 import { EscrowBar } from "@/components/EscrowBar";
 import { Badge, Card, PageHeader, SectionHeader, Skeleton, Stat, cn, type BadgeTone } from "@/components/ui";
 import { apiJson } from "@/lib/api";
@@ -119,9 +118,6 @@ export default function ImpactLeaderboardPage() {
           <EscrowBar amount={split?.totalGrossVolume ?? 0} compact />
         </Card>
       </div>
-
-      {/* Tree canopy map */}
-      <TreeMap />
 
       {/* Leaderboard */}
       <section className="space-y-5">

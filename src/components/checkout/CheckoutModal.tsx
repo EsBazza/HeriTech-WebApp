@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, CheckCircle2, Lock, ArrowRight, ArrowLeft, Truck, ExternalLink, MessageSquare, AlertCircle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useCart, CartProduct } from "@/components/cart/CartContext";
+import { useCart, type CartProduct } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { apiJson } from "@/lib/api";
 import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
