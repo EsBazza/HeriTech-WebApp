@@ -1,6 +1,6 @@
 # HeriTech V4
 
-Festival waste across Asia — bamboo, lantern paper, flowers, textiles — is collected by municipal (LGU) officers, reserved and picked up by artisans, crafted into new pieces and sold with a public **Verified Impact Pass** that shows where the material came from and how the money was split.
+Recyclable material left over after festivals is collected by municipal (LGU) officers, reserved and picked up by artisans, crafted into new pieces and sold with a public **Verified Impact Pass** that shows where the material came from and how the money was split.
 
 ## How it works
 
@@ -102,4 +102,3 @@ npm run test:e2e              # terminal 3
 - Real payments and payouts (Stripe Connect or similar)
 - Google Wallet publishing access (passes work for test users while the issuer is in demo mode)
 - Offline queue for field officers
-- In-app QR camera scanning (officers scan with the phone camera and paste the code)
