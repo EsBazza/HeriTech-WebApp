@@ -46,6 +46,13 @@ describe("Google Wallet save links", () => {
     expect(object.textModulesData.find((m: { id: string }) => m.id === "split").body).toContain("70% artisan");
   });
 
+  it("uses the class created in the Wallet console when one is configured", () => {
+    vi.stubEnv("GOOGLE_WALLET_CLASS_ID", "HeriTech2026");
+    const { claims } = decode(impactPassSaveUrl(pass, "https://heritech.example"));
+    expect(claims.payload.genericClasses[0].id).toBe("3388000000022114455.HeriTech2026");
+    expect(claims.payload.genericObjects[0].classId).toBe("3388000000022114455.HeriTech2026");
+  });
+
   it("leaves out the logo and origins when not served over public HTTPS", () => {
     const { claims } = decode(impactPassSaveUrl(pass, "http://localhost:3000"));
     expect(claims.origins).toBeUndefined();

@@ -66,7 +66,7 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
     throw new HttpError(503, "Google Wallet isn't set up on this server yet.");
   }
 
-  const classId = `${issuerId}.heritech_impact_pass`;
+  const classId = `${issuerId}.${process.env.GOOGLE_WALLET_CLASS_ID || "heritech_impact_pass"}`;
   const objectId = `${issuerId}.${pass.serial.replace(/[^A-Za-z0-9._-]/g, "_")}`;
   const isPublicHttps = appUrl.startsWith("https://");
   const origin = [pass.festival, pass.country].filter(Boolean).join(", ") || "Festival material";
