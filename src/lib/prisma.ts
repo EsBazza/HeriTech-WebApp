@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import { adminDb } from "./firebase/admin";
 import { 
   SEED_USERS, 
   SEED_AGREEMENTS, 
@@ -9,7 +10,7 @@ import {
   SEED_WALLET_PASSES 
 } from "./seedData";
 
-// In-Memory Database Store for transition to Firebase
+// In-Memory Database Store for fallback if Firestore is not yet configured
 const fallbackStore: Record<string, any[]> = {
   users: [...SEED_USERS],
   agreements: [...SEED_AGREEMENTS],
@@ -76,7 +77,30 @@ function resolveInclude(item: any, include: any, modelKey: string, depth = 0): a
   return out;
 }
 
+const COLLECTION_MAP: Record<string, string> = {
+  user: "users",
+  users: "users",
+  agreement: "agreements",
+  agreements: "agreements",
+  materialBatch: "material_batches",
+  materialBatches: "material_batches",
+  product: "products",
+  products: "products",
+  order: "orders",
+  orders: "orders",
+  walletPass: "wallet_passes",
+  walletPasses: "wallet_passes",
+  message: "messages",
+  messages: "messages",
+  translation: "translations",
+  translations: "translations",
+  translationStats: "translation_stats",
+  translation_stats: "translation_stats",
+};
+
 function createModelHandler(modelKey: string) {
+  const collectionName = COLLECTION_MAP[modelKey] || modelKey;
+
   return new Proxy({}, {
     get(target, prop: string) {
       const storeList = fallbackStore[modelKey] || [];
@@ -84,6 +108,138 @@ function createModelHandler(modelKey: string) {
       return async (options: any = {}) => {
         const withRelations = (r: any) => resolveInclude(r, options.include || options.select, modelKey);
 
+        // 1. If adminDb is available, query Firestore directly
+        if (adminDb) {
+          try {
+            const colRef = adminDb.collection(collectionName);
+
+            // AGGREGATE
+            if (prop === "aggregate") {
+              const snapshot = await colRef.get();
+              const items = snapshot.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+              const sumObj: Record<string, number> = {};
+              if (options._sum) {
+                for (const field of Object.keys(options._sum)) {
+                  sumObj[field] = items.reduce((acc: number, item: any) => acc + (Number(item[field]) || 0), 0);
+                }
+              }
+              return { _sum: sumObj, _count: items.length, _avg: {}, _min: {}, _max: {} };
+            }
+
+            // FIND MANY
+            if (prop === "findMany") {
+              let query: any = colRef;
+              if (options.where) {
+                for (const [key, value] of Object.entries(options.where)) {
+                  if (value !== undefined && value !== null && typeof value !== "object") {
+                    query = query.where(key, "==", value);
+                  }
+                }
+              }
+              const snapshot = await query.get();
+              if (snapshot.empty && storeList.length > 0) {
+                // If firestore is empty, fall back to seed data
+                let res = [...storeList];
+                if (options.where) {
+                  for (const [key, value] of Object.entries(options.where)) {
+                    if (value !== undefined) res = res.filter((item: any) => item[key] === value);
+                  }
+                }
+                return res;
+              }
+              return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+            }
+
+            // FIND UNIQUE / FIND FIRST
+            if (prop === "findUnique" || prop === "findFirst") {
+              if (options.where?.id) {
+                const doc = await colRef.doc(options.where.id).get();
+                if (doc.exists) {
+                  return { id: doc.id, ...doc.data() };
+                }
+              } else if (options.where) {
+                let query: any = colRef;
+                for (const [key, value] of Object.entries(options.where)) {
+                  if (value !== undefined && value !== null) {
+                    query = query.where(key, "==", value);
+                  }
+                }
+                const snapshot = await query.limit(1).get();
+                if (!snapshot.empty) {
+                  const doc = snapshot.docs[0];
+                  return { id: doc.id, ...doc.data() };
+                }
+              }
+              // Fallback
+              if (options.where?.id) {
+                return storeList.find((item: any) => item.id === options.where.id) || null;
+              }
+              if (options.where?.email) {
+                return storeList.find((item: any) => item.email === options.where.email) || null;
+              }
+              if (options.where?.serial) {
+                return storeList.find((item: any) => item.serial === options.where.serial) || null;
+              }
+              return null;
+            }
+
+            // COUNT
+            if (prop === "count") {
+              let query: any = colRef;
+              if (options.where) {
+                for (const [key, value] of Object.entries(options.where)) {
+                  if (value !== undefined && value !== null) {
+                    query = query.where(key, "==", value);
+                  }
+                }
+              }
+              const snapshot = await query.get();
+              return snapshot.size || storeList.length;
+            }
+
+            // CREATE
+            if (prop === "create") {
+              const docId = options.data?.id || `id_${Date.now()}`;
+              const newItem = {
+                ...options.data,
+                id: docId,
+                createdAt: options.data?.createdAt || new Date().toISOString(),
+              };
+              await colRef.doc(docId).set(newItem);
+              storeList.push(newItem);
+              return newItem;
+            }
+
+            // UPDATE
+            if (prop === "update") {
+              const docId = options.where?.id;
+              if (docId) {
+                await colRef.doc(docId).set(options.data, { merge: true });
+                const idx = storeList.findIndex((item: any) => item.id === docId);
+                if (idx !== -1) {
+                  storeList[idx] = { ...storeList[idx], ...options.data };
+                  return storeList[idx];
+                }
+                return { id: docId, ...options.data };
+              }
+              return options.data || {};
+            }
+
+            // DELETE
+            if (prop === "delete" || prop === "deleteMany") {
+              if (options.where?.id) {
+                await colRef.doc(options.where.id).delete();
+              }
+              return { count: 1 };
+            }
+
+          } catch (err) {
+            console.warn(`[Firestore Bridge] Warning for collection ${collectionName}.${prop}:`, err);
+            // On Firestore error, safely fall through to fallbackStore
+          }
+        }
+
+        // 2. In-Memory fallback store
         if (prop === "aggregate") {
           const sumObj: Record<string, number> = {};
           if (options._sum) {

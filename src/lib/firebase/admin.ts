@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { initializeApp, getApps, cert, App } from "firebase-admin/app";
 import { getAuth, Auth } from "firebase-admin/auth";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
@@ -7,16 +8,18 @@ let app: App | undefined;
 
 if (!getApps().length) {
   try {
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "heritech-edutech";
     const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
     if (serviceAccountKey) {
-      const parsedKey = JSON.parse(serviceAccountKey);
+      const parsedKey = typeof serviceAccountKey === "string" ? JSON.parse(serviceAccountKey) : serviceAccountKey;
       app = initializeApp({
         credential: cert(parsedKey),
+        projectId: parsedKey.project_id || projectId,
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
     } else {
       app = initializeApp({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        projectId: projectId,
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
     }
