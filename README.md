@@ -92,7 +92,7 @@ npm run test:e2e              # terminal 3
 
 1. Add every variable from `.env.example` in Vercel → Settings → Environment Variables.
 2. In Firebase console → Authentication → Settings → Authorized domains, add the Vercel domain.
-3. Publish `firestore.rules` (Firebase console → Firestore → Rules, or `npx firebase deploy --only firestore:rules`).
+3. Publish the rules and indexes: `npx firebase deploy --only firestore --project <project-id>`. The emulators don't enforce indexes, so a missing one only shows up against a real project.
 4. Google Wallet: in the [Pay & Wallet console](https://pay.google.com/business/console), open Google Wallet API, copy the issuer id into `GOOGLE_WALLET_ISSUER_ID`, and under **Users** add the service account email (the Firebase one, or a dedicated one in `GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL`). While the issuer is in demo mode, add every judge's and teammate's Google account as a test user.
 5. Google Maps: enable the **Maps JavaScript API** for the key in Google Cloud Console and restrict the key to your domains.
 6. Optional: enable Cloud Storage (requires the Blaze plan). Until then, uploaded photos are compressed and stored inline, capped well below Firestore's 1 MiB document limit.

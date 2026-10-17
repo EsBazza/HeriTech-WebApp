@@ -1,0 +1,16 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "amountPaid", "order": "ASCENDING" },
+        { "fieldPath": "artisanPayout", "order": "ASCENDING" },
+        { "fieldPath": "charityMaintenanceShare", "order": "ASCENDING" },
+        { "fieldPath": "lguShare", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
