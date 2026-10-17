@@ -6,6 +6,7 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { AccessGuard } from "@/components/AccessGuard";
 import { Badge, Button, Card, EmptyState, Input, PageHeader, Select, cn, controlClass } from "@/components/ui";
 import { apiJson } from "@/lib/api";
+import { compressImage } from "@/lib/image";
 
 /** Words that identify each festival preset's agreement by its festival name. */
 const FESTIVAL_KEYWORDS: Record<string, string> = {
@@ -17,7 +18,6 @@ const FESTIVAL_KEYWORDS: Record<string, string> = {
 
 function WasteScannerPageContent() {
   const { translateSync } = useTranslation();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [festivalHint, setFestivalHint] = useState("panagbenga");
   const [analyzing, setAnalyzing] = useState(false);
@@ -82,10 +82,10 @@ function WasteScannerPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [festivalHint, agreements]);
 
-  // Real-time GPS Location Handler
-  const handleUseRealtimeLocation = () => {
+  // Pins the batch to the device's GPS position. `silent` keeps the preset depot on failure.
+  const handleUseRealtimeLocation = (silent = false) => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      if (!silent) setError("This browser can't share its location. Pick a depot instead.");
       return;
     }
     setIsLocating(true);
@@ -96,92 +96,49 @@ function WasteScannerPageContent() {
         const lng = parseFloat(position.coords.longitude.toFixed(6));
         setPickupLat(lat);
         setPickupLng(lng);
-        setPickupDepotName(`Field GPS Pin (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`);
-        setLocationSuccess(`Pin updated to your device's exact GPS coordinates!`);
+        setPickupDepotName(`Field GPS pin (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`);
+        setLocationSuccess("Pinned to your current location.");
         setIsLocating(false);
       },
-      (error) => {
-        console.warn("GPS error:", error);
-        alert(`Could not fetch realtime GPS (${error.message}). Please select a preset depot or enter coordinates manually.`);
+      (gpsError) => {
+        if (!silent) setError(`Couldn't get your location (${gpsError.message}). Pick a depot instead.`);
         setIsLocating(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
 
-  // Fast Client-Side Image Resizer & Compressor
-  const compressImage = (file: File, maxDimension = 1024, quality = 0.85): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDimension) {
-              height = Math.round((height * maxDimension) / width);
-              width = maxDimension;
-            }
-          } else {
-            if (height > maxDimension) {
-              width = Math.round((width * maxDimension) / height);
-              height = maxDimension;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            resolve(e.target?.result as string);
-            return;
-          }
-          ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL("image/jpeg", quality);
-          resolve(dataUrl);
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      try {
-        const compressedBase64 = await compressImage(file, 1024, 0.85);
-        setPreviewUrl(compressedBase64);
-      } catch (err) {
-        // Fallback to uncompressed
-        const reader = new FileReader();
-        reader.onloadend = () => setPreviewUrl(reader.result as string);
-        reader.readAsDataURL(file);
-      }
-      setAnalysisResult(null);
-      setSavedBatch(null);
-    }
-  };
-
-  const handleAnalyzeAI = async () => {
-    if (!previewUrl) return;
+  const analyze = async (imageBase64: string) => {
     setAnalyzing(true);
     setError(null);
     const result = await apiJson<any>("/api/ai/scan", {
       method: "POST",
-      body: JSON.stringify({ imageBase64: previewUrl, festivalHint }),
+      body: JSON.stringify({ imageBase64, festivalHint }),
     });
     // The weight field is left for the physical scale reading; the AI estimate is one click away.
     if (result.success) setAnalysisResult(result.data);
     else setError(result.error ?? "The AI scan failed.");
     setAnalyzing(false);
   };
+
+  // Taking the photo starts the analysis and the GPS lookup straight away.
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAnalysisResult(null);
+    setSavedBatch(null);
+    setError(null);
+    try {
+      const compressed = await compressImage(file, 1024, 0.85);
+      setPreviewUrl(compressed);
+      handleUseRealtimeLocation(true);
+      await analyze(compressed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That photo couldn't be read.");
+    }
+  };
+
+  const handleAnalyzeAI = () => previewUrl && analyze(previewUrl);
 
   const handleLogBatch = async () => {
     if (!analysisResult || !weightKg || !agreementId) return;
@@ -288,7 +245,7 @@ function WasteScannerPageContent() {
 
             <Button size="lg" className="w-full" onClick={handleAnalyzeAI} disabled={!previewUrl} loading={analyzing}>
               {!analyzing && <Sparkles className="w-4 h-4" />}
-              {analyzing ? translateSync("Gemini is analysing…") : translateSync("Analyse with Gemini")}
+              {analyzing ? translateSync("Gemini is analysing…") : analysisResult ? translateSync("Analyse again") : translateSync("Analyse with Gemini")}
             </Button>
           </Card>
 
@@ -424,7 +381,7 @@ function WasteScannerPageContent() {
                       {!presets.some((d) => d.name === pickupDepotName) && pickupDepotName !== "Custom Pin Location" && <option value={pickupDepotName}>{pickupDepotName}</option>}
                       <option value="Custom Pin Location">{translateSync("Custom location (enter coordinates)")}</option>
                     </Select>
-                    <Button variant="secondary" onClick={handleUseRealtimeLocation} disabled={isLocating} title={translateSync("Use my location")} aria-label={translateSync("Use my location")}>
+                    <Button variant="secondary" onClick={() => handleUseRealtimeLocation()} disabled={isLocating} title={translateSync("Use my location")} aria-label={translateSync("Use my location")}>
                       <Crosshair className={cn("w-4 h-4", isLocating && "animate-spin")} />
                       <span className="hidden sm:inline">{isLocating ? translateSync("Locating…") : translateSync("My location")}</span>
                     </Button>

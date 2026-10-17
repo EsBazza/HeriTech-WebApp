@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, CheckCircle2, Lock, ArrowRight, ArrowLeft, Truck, ExternalLink, MessageSquare, AlertCircle } from "lucide-react";
+import { X, CheckCircle2, Lock, Truck, ExternalLink, MessageSquare, AlertCircle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart, type CartProduct } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { apiJson } from "@/lib/api";
 import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
 import { EscrowBar } from "@/components/EscrowBar";
-import { Button, Input, Select, cn, buttonClass } from "@/components/ui";
+import { Button, Input, cn, buttonClass } from "@/components/ui";
 
 interface OrderResult {
   orders: { id: string; productId: string; amountPaid: number }[];
@@ -36,39 +36,14 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   const totalPrice = checkoutItems.reduce((acc, item) => acc + item.price, 0);
   const totalKg = checkoutItems.reduce((acc, item) => acc + (item.kgDiverted || 0), 0);
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2>(1);
 
-  // Shipping Details Form State
-  const [fullName, setFullName] = useState(user?.fullName || "");
+  // Delivery details, pre-filled from the buyer's profile where possible
+  const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [streetAddress, setStreetAddress] = useState("");
-  const [city, setCity] = useState("Manila");
-  const [country, setCountry] = useState("Philippines");
-  const [postalCode, setPostalCode] = useState("1000");
-
-  const getCityCoordinates = (cityName: string) => {
-    switch (cityName.toLowerCase()) {
-      case "manila":
-        return { lat: 14.5995, lng: 120.9842, distance: "245 km" };
-      case "cebu":
-        return { lat: 10.3157, lng: 123.8854, distance: "820 km" };
-      case "bangkok":
-        return { lat: 13.7563, lng: 100.5018, distance: "2,200 km" };
-      case "tokyo":
-        return { lat: 35.6762, lng: 139.6503, distance: "3,050 km" };
-      case "singapore":
-        return { lat: 1.3521, lng: 103.8198, distance: "2,400 km" };
-      default:
-        return { lat: 14.5995, lng: 120.9842, distance: "350 km" };
-    }
-  };
-
-  const buyerCoords = getCityCoordinates(city);
-  const artisanCoords = {
-    lat: checkoutItems[0]?.artisanLat || 16.4023,
-    lng: checkoutItems[0]?.artisanLng || 120.596,
-    name: checkoutItems[0]?.artisanWorkshop || "Cordillera Artisan Cooperative",
-    city: "Baguio City, Philippines",
-  };
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState(user?.country ?? "");
+  const [postalCode, setPostalCode] = useState("");
 
   const [processing, setProcessing] = useState(false);
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
@@ -76,7 +51,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
   // Start fresh each time the modal is reopened after a completed order.
   useEffect(() => {
-    if (isOpen && step === 3) {
+    if (isOpen && step === 2) {
       setStep(1);
       setPurchased(null);
       setOrderResult(null);
@@ -93,13 +68,8 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
   if (!isOpen) return null;
 
-  const handleNextToRoute = (e: React.FormEvent) => {
+  const handleExecutePayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !streetAddress || !city) return;
-    setStep(2);
-  };
-
-  const handleExecutePayment = async () => {
     if (!user) {
       signInWithGoogle();
       return;
@@ -121,7 +91,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
       setPurchased(checkoutItems);
       setOrderResult(result.data);
       if (!directProduct) clearCart();
-      setStep(3);
+      setStep(2);
     } else {
       setOrderError(result.error ?? "We couldn't place this order. Please try again.");
     }
@@ -130,7 +100,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
   const serial = orderResult?.passes[0]?.serial ?? "";
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const steps = [translateSync("Delivery"), translateSync("Review & pay"), translateSync("Your pass")];
+  const steps = [translateSync("Delivery & payment"), translateSync("Your pass")];
 
   return (
     <div className="fixed inset-0 z-50 bg-pine-900/50 backdrop-blur-sm flex items-start sm:items-center justify-center p-0 sm:p-4 overflow-y-auto" onClick={onClose}>
@@ -145,13 +115,13 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
         <div className="px-5 sm:px-6 pt-5 pb-4 border-b border-line">
           <div className="flex items-start justify-between gap-4">
             <h2 id="checkout-title" className="font-display text-[28px] leading-tight font-semibold text-ink">
-              {step === 3 ? translateSync("Order confirmed") : translateSync("Checkout")}
+              {step === 2 ? translateSync("Order confirmed") : translateSync("Checkout")}
             </h2>
             <button onClick={onClose} className="-mr-2 w-10 h-10 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer" aria-label={translateSync("Close")}>
               <X className="w-5 h-5" />
             </button>
           </div>
-          <ol className="mt-4 grid grid-cols-3 gap-2">
+          <ol className="mt-4 grid grid-cols-2 gap-2">
             {steps.map((label, i) => {
               const n = i + 1;
               const done = step > n;
@@ -169,9 +139,9 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
         </div>
 
         <div className="px-5 sm:px-6 py-5">
-          {/* STEP 1: Shipping Form */}
+          {/* STEP 1: Delivery details, money split and payment on one screen */}
           {step === 1 && (
-            <form onSubmit={handleNextToRoute} className="space-y-5">
+            <form onSubmit={handleExecutePayment} className="space-y-5">
               <div className="rounded-md bg-paper border border-line divide-y divide-line">
                 {checkoutItems.map((item) => (
                   <div key={item.id} className="flex items-center justify-between gap-3 px-4 py-3">
@@ -190,65 +160,19 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input label={translateSync("Recipient name")} required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={translateSync("e.g. Maria Clara Santos")} autoComplete="name" />
-                <Select label={translateSync("City")} value={city} onChange={(e) => setCity(e.target.value)}>
-                  <option value="Manila">Manila, Philippines</option>
-                  <option value="Cebu">Cebu City, Philippines</option>
-                  <option value="Bangkok">Bangkok, Thailand</option>
-                  <option value="Singapore">Singapore</option>
-                  <option value="Tokyo">Tokyo, Japan</option>
-                </Select>
-              </div>
-              <Input label={translateSync("Street address")} required value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} placeholder={translateSync("e.g. Unit 402 Heritage Tower, Ayala Avenue")} autoComplete="street-address" />
-              <div className="grid grid-cols-2 gap-4">
+              <fieldset className="space-y-4">
+                <legend className="flex items-center gap-2 text-sm font-medium text-ink mb-3">
+                  <Truck className="w-4 h-4 text-pine-500" />
+                  {translateSync("Deliver to")}
+                </legend>
+                <Input label={translateSync("Recipient name")} required value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+                <Input label={translateSync("Street address")} required value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} autoComplete="street-address" />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label={translateSync("City")} required value={city} onChange={(e) => setCity(e.target.value)} autoComplete="address-level2" />
+                  <Input label={translateSync("Postal code")} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} autoComplete="postal-code" />
+                </div>
                 <Input label={translateSync("Country")} required value={country} onChange={(e) => setCountry(e.target.value)} autoComplete="country-name" />
-                <Input label={translateSync("Postal code")} required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="1000" autoComplete="postal-code" />
-              </div>
-
-              <Button type="submit" size="lg" className="w-full">
-                {translateSync("Continue to review")}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </form>
-          )}
-
-          {/* STEP 2: Route + payment split */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <section className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 font-medium text-ink">
-                    <Truck className="w-4 h-4 text-pine-500" />
-                    {translateSync("Shipping route")}
-                  </span>
-                  <span className="text-ink-3 tabular">~{buyerCoords.distance}</span>
-                </div>
-                <div className="h-44 rounded-md overflow-hidden border border-line bg-paper-2">
-                  <iframe
-                    title={translateSync("Shipping route map")}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}&origin=${artisanCoords.lat},${artisanCoords.lng}&destination=${buyerCoords.lat},${buyerCoords.lng}&mode=transit`}
-                  />
-                </div>
-                <dl className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <dt className="text-xs text-ink-3">{translateSync("From")}</dt>
-                    <dd className="font-medium text-ink">{translateSync(artisanCoords.name)}</dd>
-                    <dd className="text-xs text-ink-3">{translateSync(artisanCoords.city)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-ink-3">{translateSync("To")}</dt>
-                    <dd className="font-medium text-ink">{fullName}</dd>
-                    <dd className="text-xs text-ink-3">
-                      {city}, {country}
-                    </dd>
-                  </div>
-                </dl>
-              </section>
+              </fieldset>
 
               <section className="rounded-md border border-line p-4 space-y-4">
                 <div className="flex items-baseline justify-between">
@@ -269,25 +193,19 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 {translateSync("Demo payment: no card is charged. Payments go live once a payment provider is connected.")}
               </p>
 
-              <div className="flex flex-col-reverse sm:flex-row gap-3">
-                <Button variant="secondary" size="lg" type="button" onClick={() => setStep(1)}>
-                  <ArrowLeft className="w-4 h-4" />
-                  {translateSync("Back")}
-                </Button>
-                <Button variant="primary" size="lg" className="flex-1" onClick={handleExecutePayment} loading={processing}>
-                  {!processing && <Lock className="w-4 h-4" />}
-                  {processing
-                    ? translateSync("Placing order and issuing pass…")
-                    : user
-                    ? `${translateSync("Place demo order")} · ${formatCurrency(totalPrice)}`
-                    : translateSync("Sign in with Google to order")}
-                </Button>
-              </div>
-            </div>
+              <Button type="submit" variant="primary" size="lg" className="w-full" loading={processing}>
+                {!processing && <Lock className="w-4 h-4" />}
+                {processing
+                  ? translateSync("Placing order and issuing pass…")
+                  : user
+                  ? `${translateSync("Place demo order")} · ${formatCurrency(totalPrice)}`
+                  : translateSync("Sign in with Google to order")}
+              </Button>
+            </form>
           )}
 
-          {/* STEP 3: Order Completed */}
-          {step === 3 && orderResult && (
+          {/* STEP 2: Order completed */}
+          {step === 2 && orderResult && (
             <div className="space-y-6">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-6 h-6 text-success shrink-0 mt-0.5" />

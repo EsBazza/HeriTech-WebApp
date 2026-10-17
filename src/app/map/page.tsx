@@ -91,7 +91,11 @@ function MaterialsMapPageContent() {
     const result = await apiJson<BatchItem>(`/api/materials/${batchId}/reserve`, { method: "POST" });
     if (result.success && result.data) {
       replaceBatch(result.data);
-      setReserveSuccess(result.message ?? `Batch ${batchId} is reserved for you.`);
+      setReserveSuccess(`Batch ${batchId} is reserved for you. Show this code at the depot.`);
+      // Go straight to the pickup code; it is the artisan's next step.
+      setHandoverTab("artisan");
+      setHandoverSuccess(null);
+      setHandoverModalOpen(true);
     } else {
       setActionError(result.error ?? "Reservation failed.");
     }

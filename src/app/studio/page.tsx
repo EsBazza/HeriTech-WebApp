@@ -49,13 +49,23 @@ const BLANK_FORM = {
   price: "45.00",
   selectedBatchId: "",
   kgDiverted: "1.5",
-  materialTags: "Bamboo, Heritage Loom",
+  materialTags: "",
   imageUrl: "",
   ngoFundName: "Cordillera Ancestral Watershed Fund",
 };
 
+/** Listing fields that follow from the chosen source batch, so the artisan doesn't retype them. */
+function fieldsFromBatch(batch: { id: string; materialType: string; weightKg: number; agreement?: { festival?: string } | null }, currentKg: string) {
+  const tags = [...batch.materialType.split(/\s*(?:&|,|\band\b)\s*/i), batch.agreement?.festival]
+    .map((t) => t?.trim())
+    .filter((t): t is string => Boolean(t));
+  const kg = Math.min(parseFloat(currentKg) || 1, batch.weightKg);
+  return { selectedBatchId: batch.id, materialTags: [...new Set(tags)].join(", "), kgDiverted: String(kg) };
+}
+
 import { AccessGuard } from "@/components/AccessGuard";
 import { apiJson } from "@/lib/api";
+import { compressImage } from "@/lib/image";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 function ArtisanStudioPageContent() {
@@ -98,55 +108,6 @@ function ArtisanStudioPageContent() {
 
   const isAuthorized = role === "artisan" || role === "admin";
 
-  // --- Image Compression & File Handler (.jpg, .jpeg, .png) ---
-  const compressImage = (file: File, maxDimension = 1200, quality = 0.88): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const validTypes = ["image/jpeg", "image/jpg", "image/png"];
-      const ext = file.name.split(".").pop()?.toLowerCase();
-      if (!validTypes.includes(file.type) && !["jpg", "jpeg", "png"].includes(ext || "")) {
-        reject(new Error(translateSync("Please upload a .jpg, .jpeg, or .png image file.")));
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new window.Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDimension) {
-              height = Math.round((height * maxDimension) / width);
-              width = maxDimension;
-            }
-          } else {
-            if (height > maxDimension) {
-              width = Math.round((width * maxDimension) / height);
-              height = maxDimension;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            resolve(e.target?.result as string);
-            return;
-          }
-          ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL("image/jpeg", quality);
-          resolve(dataUrl);
-        };
-        img.onerror = () => reject(new Error(translateSync("Failed to load image")));
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = () => reject(new Error(translateSync("Failed to read file")));
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleFileChange = async (file: File | undefined | null) => {
     if (!file) return;
     setErrorMessage(null);
@@ -170,7 +131,7 @@ function ArtisanStudioPageContent() {
     apiJson<any[]>("/api/materials?mine=claimed").then((result) => {
       if (result.success && result.data?.length) {
         setClaimedBatches(result.data);
-        setForm((f) => ({ ...f, selectedBatchId: result.data![0].id }));
+        setForm((f) => ({ ...f, ...fieldsFromBatch(result.data![0], f.kgDiverted) }));
       } else if (!result.success) {
         setErrorMessage(result.error ?? "Couldn't load your batches.");
       }
@@ -200,7 +161,7 @@ function ArtisanStudioPageContent() {
   };
 
   const resetForm = () => {
-    setForm({ ...BLANK_FORM, selectedBatchId: claimedBatches[0]?.id ?? "" });
+    setForm(claimedBatches[0] ? { ...BLANK_FORM, ...fieldsFromBatch(claimedBatches[0], BLANK_FORM.kgDiverted) } : BLANK_FORM);
     setEditingId(null);
     setFileName(null);
     setSuccessMessage(null);
@@ -608,7 +569,10 @@ function ArtisanStudioPageContent() {
             ) : (
               <select
                 value={form.selectedBatchId}
-                onChange={(e) => setField("selectedBatchId", e.target.value)}
+                onChange={(e) => {
+                  const batch = claimedBatches.find((b) => b.id === e.target.value);
+                  if (batch) setForm((f) => ({ ...f, ...fieldsFromBatch(batch, f.kgDiverted) }));
+                }}
                 disabled={!!editingId}
                 className="w-full p-3 rounded-md border border-line bg-surface font-mono-data text-xs font-semibold text-ink disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-pine-500/30"
               >
