@@ -16,6 +16,7 @@
     "check:firebase": "tsx --env-file=.env scripts/test-firebase-connection.ts"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
     "clsx": "^2.1.1",
     "firebase": "^12.19.0",
     "firebase-admin": "^14.5.0",

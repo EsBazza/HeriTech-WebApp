@@ -7,6 +7,7 @@ import { AccessGuard } from "@/components/AccessGuard";
 import { Badge, Button, Card, EmptyState, Input, PageHeader, Select, cn, controlClass } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 import { compressImage } from "@/lib/image";
+import { classifyOffline } from "@/lib/offlineClassifier";
 
 /** Words that identify each festival preset's agreement by its festival name. */
 const FESTIVAL_KEYWORDS: Record<string, string> = {
@@ -116,8 +117,25 @@ function WasteScannerPageContent() {
       body: JSON.stringify({ imageBase64, festivalHint }),
     });
     // The weight field is left for the physical scale reading; the AI estimate is one click away.
-    if (result.success) setAnalysisResult(result.data);
-    else setError(result.error ?? "The AI scan failed.");
+    if (result.success) {
+      setAnalysisResult(result.data);
+      setAnalyzing(false);
+      return;
+    }
+
+    // No signal or Gemini down: fall back to the on-device Teachable Machine model, if installed.
+    const offline = await classifyOffline(imageBase64).catch(() => null);
+    if (offline) {
+      setAnalysisResult({
+        materialType: offline.label,
+        confidence: offline.probability,
+        condition: "Not assessed on-device. Check by eye.",
+        inferredMaterialDetails: "",
+        isOffline: true,
+      });
+    } else {
+      setError(result.error ?? "The AI scan failed.");
+    }
     setAnalyzing(false);
   };
 
@@ -256,6 +274,11 @@ function WasteScannerPageContent() {
                 {analysisResult.peopleVisible && (
                   <p role="alert" className="rounded-md bg-danger-100 border border-danger/20 p-3 text-sm text-danger">
                     {translateSync("People are visible in this photo. Batch photos are public, so retake it close-up on the material before logging.")}
+                  </p>
+                )}
+                {analysisResult.isOffline && (
+                  <p className="rounded-md bg-paper-2 border border-line p-3 text-sm text-ink-2">
+                    {translateSync("On-device estimate (Teachable Machine): Gemini couldn't be reached, so only the material type was identified. Check condition and contamination by eye.")}
                   </p>
                 )}
                 {analysisResult.isSample && (
