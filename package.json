@@ -5,6 +5,11 @@
   "engines": {
     "node": "22.x"
   },
+  "overrides": {
+    "jwks-rsa": {
+      "jose": "^4.15.9"
+    }
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
