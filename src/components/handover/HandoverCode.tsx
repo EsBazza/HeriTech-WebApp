@@ -53,6 +53,7 @@ export function HandoverCode({ batchId }: { batchId: string }) {
     <div className="flex flex-col items-center gap-4">
       <QRCodeViewer
         value={token.token}
+        level="M"
         size={208}
         label={`${translateSync("Batch")} ${batchId}`}
         sublabel={`${translateSync("Show this to the LGU officer. Valid until")} ${expires}.`}
