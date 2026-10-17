@@ -36,7 +36,7 @@ check("guest: messages -> 401", (await call("/api/messages")).status === 401);
 check("guest: order -> 401", (await call("/api/orders", { method: "POST", body: { items: [{ productId: "prod_01" }], shippingAddress: {} } })).status === 401);
 check("bad token -> 401", (await call("/api/messages", { token: "garbage" })).status === 401);
 const pub = await call("/api/stats");
-check("public stats ok", pub.status === 200 && pub.json.data.escrowSplitSummary.totalGrossVolume === 162, JSON.stringify(pub.json?.data?.escrowSplitSummary));
+check("public stats ok", pub.status === 200 && pub.json.data.escrowSplitSummary.totalGrossVolume === 87, JSON.stringify(pub.json?.data?.escrowSplitSummary));
 check("public leaderboard is real", pub.json.data.leaderboard.length > 0 && pub.json.data.leaderboard.every((e) => ["artisan", "lgu"].includes(e.role)));
 
 const buyer = await login("buyer");
@@ -58,7 +58,7 @@ const agrBefore = (await call("/api/agreements", { token: lgu.token })).json.dat
 const logged = await call("/api/materials", {
   token: lgu.token,
   method: "POST",
-  body: { title: "Test bamboo", materialType: "Bamboo", weightKg: 12.5, condition: "Dry", gpsLat: 16.41, gpsLng: 120.59, imageUrl: img, agreementId: "RA-2026-005" },
+  body: { title: "Test paper", materialType: "Paper and card", weightKg: 12.5, condition: "Dry", gpsLat: 15.03, gpsLng: 120.69, imageUrl: img, agreementId: "RA-2026-005" },
 });
 check("lgu logs batch with sequential id", logged.status === 201 && logged.json.data.id === `HT-${new Date().getFullYear()}-1001`, JSON.stringify(logged.json));
 const batchId = logged.json.data?.id;
@@ -89,7 +89,7 @@ check("lgu verifies handover", verified.status === 200 && verified.json.data.sta
 check("replayed token -> 409", (await call("/api/handover/verify", { token: lgu.token, method: "POST", body: { token: tok.json.data.token } })).status === 409);
 
 // --- artisan lists a piece from the claimed batch ---
-const listed = await call("/api/products", { token: artisan.token, method: "POST", body: { title: "Test lamp", price: 33.33, images: [img], sourceBatchId: batchId, kgDiverted: 2, stock: 2, ngoFundName: "Cordillera Trust" } });
+const listed = await call("/api/products", { token: artisan.token, method: "POST", body: { title: "Test lamp", price: 33.33, images: [img], sourceBatchId: batchId, kgDiverted: 2, stock: 2, ngoFundName: "Test charity" } });
 check("artisan lists product", listed.status === 201 && Array.isArray(listed.json.data.images));
 const productId = listed.json.data?.id;
 check("buyer can't edit someone else's listing", (await call(`/api/products/${productId}`, { token: buyer.token, method: "PATCH", body: { price: 1 } })).status === 403);
@@ -112,7 +112,7 @@ check("artisan notified of order", artisanMsgs.some((m) => m.contextType === "or
 const serial = order.json.data.passes[0].serial;
 const ver = await call(`/api/verify/${serial}`);
 check("new pass verifies publicly", ver.status === 200 && ver.json.data.escrowAudit.lguShare === 16.67 && ver.json.data.originHarvest.batchId === batchId, JSON.stringify(ver.json).slice(0, 300));
-check("seeded pass verifies", (await call("/api/verify/HT-492-AX")).json?.data?.serial === "HT-492-AX");
+check("seeded pass verifies", (await call("/api/verify/HT-D3M0-0001")).json?.data?.serial === "HT-D3M0-0001");
 const wallet = await call(`/api/wallet/${serial}`, { token: buyer.token });
 check("buyer gets a Google Wallet save link (or a clear 503 if Wallet isn't configured)", (wallet.status === 200 && wallet.json.data.saveUrl.startsWith("https://pay.google.com/gp/v/save/")) || wallet.status === 503, JSON.stringify(wallet.json).slice(0, 200));
 check("someone else can't get that wallet link", (await call(`/api/wallet/${serial}`, { token: artisan.token })).status === 403);

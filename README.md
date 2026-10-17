@@ -62,12 +62,13 @@ npm run set-role -- you@example.com admin
 
 Set `NEXT_PUBLIC_DEMO_MODE=true` on a **separate** deployment backed by a **separate** Firebase project. It adds one-click sign-in as the seeded buyer, artisan, LGU officer and admin. Those are real Firebase sessions with exactly their role's permissions — nothing is bypassed. Every page shows a banner saying the data is fictional. If Gemini is unreachable, the scanner and story writer return clearly labelled placeholder results instead of an error.
 
-Load or reset the fictional demo data with the demo project's credentials in `.env` (the script refuses to run unless demo mode is on):
+Put the demo project's settings in `.env.demo.local` (git ignores it), including `NEXT_PUBLIC_DEMO_MODE=true` and the demo site's `NEXT_PUBLIC_APP_URL`, so the seeded passes' QR codes open the demo site. Then load or reset the fictional data, for example before each presentation:
 
 ```bash
-NEXT_PUBLIC_DEMO_MODE=true npm run seed            # first time
-NEXT_PUBLIC_DEMO_MODE=true npm run seed -- --reset # before each presentation
+npm run seed:demo
 ```
+
+The script refuses to run unless demo mode is on. The demo data is deliberately generic: materials by broad category, no real people or organisations, and labelled placeholder images from `public/demo`.
 
 ## Testing
 

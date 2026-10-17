@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Fabric and textile">
+  <rect width="800" height="600" fill="#3f5f7a"/>
+  <g fill="#ffffff" opacity="0.18"><path d="M0 120 Q200 60 400 120 T800 120 V170 Q600 230 400 170 T0 170Z"/><path d="M0 440 Q200 380 400 440 T800 440 V490 Q600 550 400 490 T0 490Z"/></g>
+  <text x="400" y="285" text-anchor="middle" font-family="system-ui, sans-serif" font-size="44" font-weight="600" fill="#ffffff">Fabric and textile</text>
+  <text x="400" y="340" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" fill="#ffffff" opacity="0.85">Demo image</text>
+</svg>

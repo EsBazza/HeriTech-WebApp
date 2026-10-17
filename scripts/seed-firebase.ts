@@ -4,11 +4,12 @@
  * products and orders can never end up in the real project.
  *
  *   npm run seed            upsert the seed documents (safe to re-run)
- *   npm run seed -- --reset also delete every batch, product, order, pass and
- *                           message first
+ *   npm run seed -- --reset also delete every batch, product, order, pass,
+ *                           message and seeded user first
  */
 import { Timestamp, type Firestore } from "firebase-admin/firestore";
 import { adminDb } from "../src/lib/firebase/admin-core";
+import { generateHarvestTxHash } from "../src/lib/crypto";
 import { calculateEscrowSplit } from "../src/lib/escrow";
 import {
   SEED_AGREEMENTS,
@@ -44,6 +45,10 @@ async function main() {
   if (RESET) {
     console.log("Resetting demo data…");
     for (const name of RESET_COLLECTIONS) await deleteCollection(firestore, name);
+    // Seeded accounts are rewritten below; people who signed in for real are kept.
+    const demoUsers = await firestore.collection("users").where("isDemo", "==", true).get();
+    await Promise.all(demoUsers.docs.map((doc) => doc.ref.delete()));
+    console.log(`  cleared seeded users (${demoUsers.size})`);
   }
 
   const writer = firestore.bulkWriter();
@@ -65,8 +70,18 @@ async function main() {
     put("agreements", id, { ...agreement, createdById: null, signedAt: ts(agreement.signedAt) });
   }
 
+  const txHashes = new Map<string, string>();
   for (const { id, ...batch } of SEED_MATERIAL_BATCHES) {
-    put("material_batches", id, { ...batch, createdAt: ts(batch.createdAt) });
+    const txHash = generateHarvestTxHash({
+      batchId: id,
+      gpsLat: batch.gpsLat,
+      gpsLng: batch.gpsLng,
+      weightKg: batch.weightKg,
+      officerId: batch.scannedByOfficerId,
+      timestamp: batch.createdAt,
+    });
+    txHashes.set(id, txHash);
+    put("material_batches", id, { ...batch, txHash, createdAt: ts(batch.createdAt) });
   }
 
   for (const { id, ...product } of SEED_PRODUCTS) {
@@ -93,7 +108,16 @@ async function main() {
   for (const { id: legacyId, ...pass } of SEED_WALLET_PASSES) {
     // Passes are keyed by serial so lookups are a single document read.
     writer.delete(firestore.collection("wallet_passes").doc(legacyId));
-    put("wallet_passes", pass.serial, { ...pass, qrPayload: `${APP_URL}/verify/${pass.serial}`, issuedAt: ts(pass.issuedAt) });
+    const order = SEED_ORDERS.find((o) => o.id === pass.orderId);
+    const product = SEED_PRODUCTS.find((p) => p.id === order?.productId);
+    const harvestHash = product && txHashes.get(product.sourceBatchId);
+    if (!harvestHash) throw new Error(`Seed pass ${pass.serial} does not lead back to a seeded batch`);
+    put("wallet_passes", pass.serial, {
+      ...pass,
+      harvestHash,
+      qrPayload: `${APP_URL}/verify/${pass.serial}`,
+      issuedAt: ts(pass.issuedAt),
+    });
   }
 
   // Live ids continue after the seeded ones (RA-2026-005, HT-2026-0101…0502).

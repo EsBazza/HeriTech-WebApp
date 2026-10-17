@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Flowers and plant matter">
+  <rect width="800" height="600" fill="#9c4a5c"/>
+  <g fill="#ffffff" opacity="0.18"><circle cx="140" cy="140" r="70"/><circle cx="660" cy="460" r="90"/><circle cx="640" cy="120" r="45"/><circle cx="170" cy="480" r="55"/></g>
+  <text x="400" y="285" text-anchor="middle" font-family="system-ui, sans-serif" font-size="44" font-weight="600" fill="#ffffff">Flowers and plant matter</text>
+  <text x="400" y="340" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" fill="#ffffff" opacity="0.85">Demo image</text>
+</svg>

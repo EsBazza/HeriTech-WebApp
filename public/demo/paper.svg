@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Paper and card">
+  <rect width="800" height="600" fill="#8a6d3b"/>
+  <g fill="#ffffff" opacity="0.18"><rect x="80" y="70" width="180" height="230" rx="6"/><rect x="560" y="320" width="170" height="210" rx="6"/><rect x="300" y="420" width="140" height="120" rx="6"/></g>
+  <text x="400" y="285" text-anchor="middle" font-family="system-ui, sans-serif" font-size="44" font-weight="600" fill="#ffffff">Paper and card</text>
+  <text x="400" y="340" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" fill="#ffffff" opacity="0.85">Demo image</text>
+</svg>
