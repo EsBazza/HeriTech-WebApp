@@ -9,6 +9,7 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { apiJson } from "@/lib/api";
 import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
 import { EscrowBar } from "@/components/EscrowBar";
+import { AddToWalletButton } from "@/components/wallet/AddToWalletButton";
 import { Button, Input, cn, buttonClass } from "@/components/ui";
 
 interface OrderResult {
@@ -218,13 +219,14 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 </p>
               </div>
 
-              <div className="flex justify-center rounded-md bg-paper border border-line py-6">
+              <div className="flex flex-col items-center gap-4 rounded-md bg-paper border border-line py-6">
                 <QRCodeViewer
                   value={`${origin}/verify/${serial}`}
                   size={148}
                   label={`${translateSync("Pass")} ${serial}`}
                   sublabel={translateSync("Scan with a phone camera to view the full origin record")}
                 />
+                <AddToWalletButton serial={serial} />
               </div>
 
               <div className="flex items-center justify-between gap-3 rounded-md border border-line px-4 py-3 text-sm">

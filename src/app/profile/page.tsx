@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { apiJson } from "@/lib/api";
+import { AddToWalletLink } from "@/components/wallet/AddToWalletButton";
 import {
   User,
   CheckCircle2,
@@ -457,9 +458,12 @@ export default function ProfilePage() {
                             <td className="py-3.5 font-display text-sm font-semibold text-pine-500">{formatCurrency(order.amountPaid)}</td>
                             <td className="py-3.5 text-right">
                               {order.pass ? (
-                                <Link href={`/verify/${order.pass.serial}`} className="font-mono-data text-pine-700 underline">
-                                  {order.pass.serial}
-                                </Link>
+                                <span className="inline-flex flex-col items-end gap-1">
+                                  <Link href={`/verify/${order.pass.serial}`} className="font-mono-data text-pine-700 underline">
+                                    {order.pass.serial}
+                                  </Link>
+                                  <AddToWalletLink serial={order.pass.serial} />
+                                </span>
                               ) : (
                                 "—"
                               )}

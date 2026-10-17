@@ -1,0 +1,46 @@
+import { requireUser } from "@/lib/server/auth";
+import { db } from "@/lib/server/firestore";
+import { forbidden, notFound, ok, route } from "@/lib/server/http";
+import { withProductRelations } from "@/lib/server/views";
+import { impactPassSaveUrl } from "@/lib/server/wallet";
+
+function appUrl(request: Request): string {
+  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || new URL(request.url).origin;
+}
+
+/**
+ * GET /api/wallet/:serial — a Save to Google Wallet link for the caller's own pass.
+ * Only the buyer of the order (or an admin) can add it to their wallet.
+ */
+export const GET = route(async (request: Request, { params }: { params: Promise<{ serial: string }> }) => {
+  const user = await requireUser(request);
+  const { serial } = await params;
+
+  const pass = (await db.passes().doc(serial.toUpperCase()).get()).data();
+  if (!pass) throw notFound("No impact pass with that serial.");
+  const order = (await db.orders().doc(pass.orderId).get()).data();
+  if (!order) throw notFound("The order behind this pass could not be found.");
+  if (order.buyerId !== user.id && user.role !== "admin") throw forbidden("Only the buyer can add this pass to their wallet.");
+
+  const product = (await db.products().doc(order.productId).get()).data();
+  if (!product) throw notFound("The piece behind this pass could not be found.");
+  const [view] = await withProductRelations([product]);
+  const base = appUrl(request);
+
+  const saveUrl = impactPassSaveUrl(
+    {
+      serial: pass.serial,
+      verifyUrl: `${base}/verify/${pass.serial}`,
+      productTitle: product.title,
+      makerName: view.artisan?.workshopName || view.artisan?.fullName || null,
+      festival: view.sourceBatch?.agreement?.festival ?? null,
+      country: view.sourceBatch?.agreement?.country ?? null,
+      kgDiverted: product.kgDiverted * order.quantity,
+      amountPaid: order.amountPaid,
+      issuedAt: pass.issuedAt,
+    },
+    base
+  );
+
+  return ok({ saveUrl });
+});

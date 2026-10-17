@@ -113,6 +113,9 @@ const serial = order.json.data.passes[0].serial;
 const ver = await call(`/api/verify/${serial}`);
 check("new pass verifies publicly", ver.status === 200 && ver.json.data.escrowAudit.lguShare === 16.67 && ver.json.data.originHarvest.batchId === batchId, JSON.stringify(ver.json).slice(0, 300));
 check("seeded pass verifies", (await call("/api/verify/HT-492-AX")).json?.data?.serial === "HT-492-AX");
+const wallet = await call(`/api/wallet/${serial}`, { token: buyer.token });
+check("buyer gets a Google Wallet save link (or a clear 503 if Wallet isn't configured)", (wallet.status === 200 && wallet.json.data.saveUrl.startsWith("https://pay.google.com/gp/v/save/")) || wallet.status === 503, JSON.stringify(wallet.json).slice(0, 200));
+check("someone else can't get that wallet link", (await call(`/api/wallet/${serial}`, { token: artisan.token })).status === 403);
 const history = (await call("/api/orders", { token: buyer.token })).json.data;
 check("order history includes passes", history.some((h) => h.pass?.serial === serial));
 
