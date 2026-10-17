@@ -16,6 +16,9 @@ import { AccessGuard } from "@/components/AccessGuard";
 import { HandoverCode } from "@/components/handover/HandoverCode";
 import { HandoverVerifyForm } from "@/components/handover/HandoverVerifyForm";
 import { apiJson } from "@/lib/api";
+import { directionsUrl } from "@/lib/googleMaps";
+import { BatchMap } from "@/components/map/BatchMap";
+import { buttonClass } from "@/components/ui";
 
 interface BatchItem {
   id: string;
@@ -150,6 +153,15 @@ function MaterialsMapPageContent() {
         </div>
       </div>
 
+      <BatchMap
+        batches={batches}
+        selectedId={selectedBatch?.id ?? null}
+        onSelect={(id) => {
+          setSelectedBatch(batches.find((b) => b.id === id) ?? null);
+          setReserveSuccess(null);
+        }}
+      />
+
       {/* Split Map View */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[600px]">
         {/* Left Col: Interactive Batch List (5 cols) */}
@@ -248,24 +260,22 @@ function MaterialsMapPageContent() {
                   </TranslatableText>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="aspect-video sm:aspect-square rounded-lg overflow-hidden border border-line bg-paper relative">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      allowFullScreen
-                      referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://www.google.com/maps/embed/v1/place?key=${
-                        process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
-                      }&q=${selectedBatch.gpsLat},${selectedBatch.gpsLng}&zoom=14`}
-                    />
-                  </div>
-                  <span className="text-xs text-pine-700 font-medium block text-center flex items-center justify-center space-x-1">
-                    <MapPin className="w-3 h-3 text-pine-600" />
-                    <TranslatableText>Live Google Maps GPS Satellite Pin</TranslatableText>
-                  </span>
+                <div className="flex flex-col justify-center gap-3 rounded-lg border border-line bg-paper p-4">
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-ink-3">
+                    <MapPin className="w-3.5 h-3.5 text-pine-600" />
+                    {translateSync("Collection depot")}
+                  </p>
+                  <p className="font-mono-data text-xs text-ink-2">
+                    {selectedBatch.gpsLat.toFixed(4)}°, {selectedBatch.gpsLng.toFixed(4)}°
+                  </p>
+                  <a
+                    href={directionsUrl(selectedBatch.gpsLat, selectedBatch.gpsLng)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonClass("secondary", "sm", "w-full")}
+                  >
+                    {translateSync("Directions in Google Maps")}
+                  </a>
                 </div>
               </div>
 
