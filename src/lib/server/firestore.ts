@@ -17,11 +17,25 @@ import type {
   WalletPassDoc,
 } from "@/lib/firebase/types";
 
+/** Records written before the Firestore rewrite stored lists as JSON text. */
+function asList(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return value ? [value] : [];
+  }
+}
+
 /**
  * Stores the listed fields as Firestore Timestamps and returns them as ISO strings,
  * so the rest of the app only ever sees plain JSON-safe values.
  */
-function converter<T extends { id: string }>(dateFields: readonly (keyof T & string)[]): FirestoreDataConverter<T> {
+function converter<T extends { id: string }>(
+  dateFields: readonly (keyof T & string)[],
+  listFields: readonly (keyof T & string)[] = []
+): FirestoreDataConverter<T> {
   return {
     toFirestore(model) {
       const { id: _id, ...data } = model as DocumentData;
@@ -37,20 +51,25 @@ function converter<T extends { id: string }>(dateFields: readonly (keyof T & str
         const value = data[field];
         if (value instanceof Timestamp) data[field] = value.toDate().toISOString();
       }
+      for (const field of listFields) data[field] = asList(data[field]);
       return { ...data, id: snapshot.id } as T;
     },
   };
 }
 
-function collection<T extends { id: string }>(name: string, dateFields: readonly (keyof T & string)[]) {
-  return (): CollectionReference<T> => adminDb().collection(name).withConverter(converter<T>(dateFields));
+function collection<T extends { id: string }>(
+  name: string,
+  dateFields: readonly (keyof T & string)[],
+  listFields: readonly (keyof T & string)[] = []
+) {
+  return (): CollectionReference<T> => adminDb().collection(name).withConverter(converter<T>(dateFields, listFields));
 }
 
 export const db = {
   users: collection<UserDoc>("users", ["createdAt"]),
   agreements: collection<AgreementDoc>("agreements", ["signedAt"]),
   batches: collection<MaterialBatchDoc>("material_batches", ["createdAt", "reservedAt", "claimedAt"]),
-  products: collection<ProductDoc>("products", ["createdAt"]),
+  products: collection<ProductDoc>("products", ["createdAt"], ["images", "materialTags"]),
   orders: collection<OrderDoc>("orders", ["createdAt"]),
   passes: collection<WalletPassDoc>("wallet_passes", ["issuedAt"]),
   messages: collection<MessageDoc>("messages", ["createdAt"]),
