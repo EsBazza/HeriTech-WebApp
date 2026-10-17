@@ -180,7 +180,7 @@ function AdminDashboardPageContent() {
                             <TranslatableText>Workshop</TranslatableText>: <strong>{applicant.workshopName || translateSync("Not specified")}</strong>
                           </p>
                           <p className="text-ink-2">
-                            <TranslatableText>Craft</TranslatableText>: <TranslatableText>{applicant.applicationDetails?.craftTypology || "Bamboo/Paper"}</TranslatableText>
+                            <TranslatableText>Craft</TranslatableText>: <TranslatableText>{applicant.applicationDetails?.craftTypology || "Not given"}</TranslatableText>
                           </p>
                         </>
                       ) : (
@@ -346,7 +346,7 @@ function AdminDashboardPageContent() {
           {/* Chart 1: Festival Quota Progress */}
           <div className="bg-surface rounded-lg border border-line p-6 space-y-4 shadow-card">
             <TranslatableHeading level={3} className="text-sm font-bold text-ink">
-              Pan-Asian Festival Waste Quotas (kg Collected vs Target)
+              Festival collection quotas (kg collected vs target)
             </TranslatableHeading>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">

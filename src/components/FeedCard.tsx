@@ -41,7 +41,7 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
       title: batch.title,
       description: batch.description,
       price: batch.price,
-      image: batch.image || "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800",
+      image: batch.image ?? "",
       cooperativeName: batch.cooperativeName,
       artisanName: batch.cooperativeName,
       region: batch.region,
@@ -70,16 +70,20 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
         ) : (
           <div className="w-full h-full flex items-center justify-center p-4 text-center text-sm text-ink-3">{translateSync(batch.materialType)}</div>
         )}
-        <span className="absolute left-3 top-3 inline-flex items-center rounded-sm bg-surface/95 px-2 py-1 text-xs font-medium text-ink shadow-card">
-          {translateSync(batch.festival)}
-        </span>
+        {batch.festival && (
+          <span className="absolute left-3 top-3 inline-flex items-center rounded-sm bg-surface/95 px-2 py-1 text-xs font-medium text-ink shadow-card">
+            {translateSync(batch.festival)}
+          </span>
+        )}
       </Link>
 
       <div className="flex flex-col flex-1 p-4 sm:p-5">
-        <div className="flex items-center gap-1.5 text-xs text-ink-3">
-          <MapPin className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{translateSync(location)}</span>
-        </div>
+        {location && (
+          <div className="flex items-center gap-1.5 text-xs text-ink-3">
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{translateSync(location)}</span>
+          </div>
+        )}
 
         <h3 className="mt-1.5 font-display text-[22px] leading-snug font-semibold text-ink">
           <Link href={href} className="hover:text-pine-600 transition-colors focus-visible:underline">
@@ -93,9 +97,11 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
             <Leaf className="w-3 h-3" />
             {formatNumber(batch.weightKg)} {translateSync("kg diverted")}
           </span>
-          <span className="inline-flex items-center rounded-sm bg-paper-2 px-2 py-0.5 text-xs text-ink-2 truncate max-w-full">
-            {translateSync(batch.materialType)}
-          </span>
+          {batch.materialType && (
+            <span className="inline-flex items-center rounded-sm bg-paper-2 px-2 py-0.5 text-xs text-ink-2 truncate max-w-full">
+              {translateSync(batch.materialType)}
+            </span>
+          )}
         </div>
 
         <div className="mt-auto pt-4 flex items-center justify-between gap-3">

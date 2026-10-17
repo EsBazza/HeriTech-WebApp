@@ -51,7 +51,7 @@ const BLANK_FORM = {
   kgDiverted: "1.5",
   materialTags: "",
   imageUrl: "",
-  ngoFundName: "Cordillera Ancestral Watershed Fund",
+  ngoFundName: "",
 };
 
 /** Listing fields that follow from the chosen source batch, so the artisan doesn't retype them. */
@@ -354,7 +354,7 @@ function ArtisanStudioPageContent() {
                 required
                 value={form.title}
                 onChange={(e) => setField("title", e.target.value)}
-                placeholder={translateSync("e.g. Panagbenga Botanical Loom Wall Tapestry")}
+                placeholder={translateSync("Name of the piece")}
                 className="w-full p-3 rounded-md border border-line bg-paper font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
               />
             </div>
@@ -483,29 +483,9 @@ function ArtisanStudioPageContent() {
                   />
                   <p className="text-xs text-ink-3 leading-relaxed">
                     {translateSync(
-                      "Paste a direct image URL (.jpg, .png, Unsplash, CDN). Visible to all buyers."
+                      "Paste a link to a photo of your own piece. Buyers see it on the listing."
                     )}
                   </p>
-                  {/* Quick Unsplash suggestion chips */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {[
-                      { label: "Bamboo craft", url: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800" },
-                      { label: "Woven textile", url: "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800" },
-                      { label: "Paper art", url: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800" },
-                    ].map((s) => (
-                      <button
-                        key={s.label}
-                        type="button"
-                        onClick={() => {
-                          setField("imageUrl", s.url);
-                          setFileName(null);
-                        }}
-                        className="px-2 py-1 rounded-full border border-line bg-paper text-xs font-semibold text-lantern-600 hover:bg-paper-2 transition-colors"
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -668,7 +648,7 @@ function ArtisanStudioPageContent() {
               type="text"
               value={form.materialTags}
               onChange={(e) => setField("materialTags", e.target.value)}
-              placeholder={translateSync("Bamboo, Natural Dyes, Rice Paper")}
+              placeholder={translateSync("Materials used, separated by commas")}
               className="w-full p-3 rounded-md border border-line bg-paper text-ink font-medium focus:outline-none focus:ring-2 focus:ring-pine-500/30"
             />
           </div>

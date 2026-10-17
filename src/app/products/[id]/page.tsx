@@ -33,7 +33,7 @@ import { apiJson } from "@/lib/api";
 /** Maps an API product to the shop card shape. */
 function toFeedBatch(p: any): FeedMaterialBatch {
   const tags = Array.isArray(p.materialTags) && p.materialTags.length > 0 ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "Upcycled piece";
-  const country = p.sourceBatch?.agreement?.country || p.artisan?.country || "Asia";
+  const country = p.sourceBatch?.agreement?.country || p.artisan?.country || "";
   return {
     id: p.id,
     title: p.title,
@@ -45,7 +45,7 @@ function toFeedBatch(p: any): FeedMaterialBatch {
     country,
     weightKg: Number(p.kgDiverted) || 1.5,
     materialType: tags,
-    festival: p.sourceBatch?.agreement?.festival || "Pan-Asian Origin",
+    festival: p.sourceBatch?.agreement?.festival || "",
   };
 }
 
@@ -126,10 +126,12 @@ export default function ProductDetailPage() {
     festivalName: product.sourceBatch?.agreement?.festival ?? undefined,
   };
 
-  const festival = product.sourceBatch?.agreement?.festival || "Pan-Asian Festival";
-  const country = product.sourceBatch?.agreement?.country || product.artisan?.country || "Asia";
-  const makerName = product.artisan?.fullName || "Master Artisan";
-  const workshop = product.artisan?.workshopName || "Heritage Cooperative";
+  const festival: string = product.sourceBatch?.agreement?.festival || "";
+  const country: string = product.sourceBatch?.agreement?.country || product.artisan?.country || "";
+  const makerName: string = product.artisan?.fullName || "Artisan";
+  const workshop: string = product.artisan?.workshopName || "";
+  const joinKnown = (...parts: string[]) => parts.filter(Boolean).map((p) => translateSync(p)).join(", ");
+  const origin = joinKnown(festival, country) || "—";
   const material = product.sourceBatch?.materialType || (product.materialTags || []).join(", ") || "—";
   const inCart = items.some((i) => i.id === product.id);
   const stock: number = product.stock ?? 0;
@@ -157,7 +159,7 @@ export default function ProductDetailPage() {
   };
 
   const specs = [
-    { label: translateSync("Origin"), value: `${translateSync(festival)}, ${translateSync(country)}` },
+    { label: translateSync("Origin"), value: origin },
     { label: translateSync("Material"), value: translateSync(material) },
     { label: translateSync("Condition at collection"), value: product.sourceBatch?.condition ? translateSync(product.sourceBatch.condition) : "—" },
     { label: translateSync("Waste diverted"), value: `${formatNumber(product.kgDiverted)} kg` },
@@ -260,7 +262,7 @@ export default function ProductDetailPage() {
               <Truck className="w-[18px] h-[18px] text-pine-500 shrink-0 mt-0.5" />
               <span>
                 <span className="text-ink font-medium">
-                  {translateSync("Ships from")} {translateSync(country)}
+                  {country ? `${translateSync("Ships from")} ${translateSync(country)}` : translateSync("Ships from the maker")}
                 </span>
                 <span className="block text-ink-3">{translateSync("The maker is notified the moment you order.")}</span>
               </span>
@@ -287,7 +289,7 @@ export default function ProductDetailPage() {
                 <p className="text-xs text-ink-3">{translateSync("Handmade by")}</p>
                 <p className="font-medium text-ink truncate">{translateSync(makerName)}</p>
                 <p className="text-sm text-ink-3 truncate">
-                  {translateSync(workshop)} · {translateSync(country)}
+                  {joinKnown(workshop, country)}
                 </p>
               </div>
             </div>
@@ -310,7 +312,7 @@ export default function ProductDetailPage() {
               {
                 icon: <FileSignature className="w-4 h-4" />,
                 title: translateSync("Collection agreed"),
-                detail: `${translateSync("Release agreement with")} ${translateSync(festival)}, ${translateSync(country)}`,
+                detail: `${translateSync("Release agreement with")} ${origin}`,
               },
               {
                 icon: <ScanLine className="w-4 h-4" />,
@@ -324,7 +326,7 @@ export default function ProductDetailPage() {
               {
                 icon: <Hammer className="w-4 h-4" />,
                 title: translateSync("Crafted"),
-                detail: `${translateSync(makerName)}, ${translateSync(workshop)}`,
+                detail: joinKnown(makerName, workshop),
               },
               {
                 icon: <QrCode className="w-4 h-4" />,

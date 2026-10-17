@@ -31,9 +31,10 @@ Every sale is split **70% artisan / 25% LGU / 5% charity & app upkeep** (`src/li
 npm install
 cp .env.example .env   # then fill it in
 npm run check:firebase # confirms the credentials work (read-only)
-npm run seed           # loads the showcase dataset
 npm run dev
 ```
+
+The real project starts empty: it only ever holds records people create. The fictional showcase data is for the demo project only (see Demo mode).
 
 ### Environment variables
 
@@ -59,12 +60,13 @@ npm run set-role -- you@example.com admin
 
 ## Demo mode (presentations)
 
-Set `NEXT_PUBLIC_DEMO_MODE=true` on a **separate** deployment backed by a **separate** Firebase project. It adds one-click sign-in as the seeded buyer, artisan, LGU officer and admin. Those are real Firebase sessions with exactly their role's permissions — nothing is bypassed. If Gemini is unreachable, the scanner and story writer return clearly labelled sample results instead of an error.
+Set `NEXT_PUBLIC_DEMO_MODE=true` on a **separate** deployment backed by a **separate** Firebase project. It adds one-click sign-in as the seeded buyer, artisan, LGU officer and admin. Those are real Firebase sessions with exactly their role's permissions — nothing is bypassed. Every page shows a banner saying the data is fictional. If Gemini is unreachable, the scanner and story writer return clearly labelled placeholder results instead of an error.
 
-Before a presentation, reset the demo data (refuses to run unless demo mode is on):
+Load or reset the fictional demo data with the demo project's credentials in `.env` (the script refuses to run unless demo mode is on):
 
 ```bash
-npm run seed -- --reset
+NEXT_PUBLIC_DEMO_MODE=true npm run seed            # first time
+NEXT_PUBLIC_DEMO_MODE=true npm run seed -- --reset # before each presentation
 ```
 
 ## Testing

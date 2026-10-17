@@ -174,7 +174,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
           const newThread: Thread = {
             id: threadId,
             name: detail.name || "Artisan Maker",
-            subtitle: detail.subtitle || "Heritage Cooperative",
+            subtitle: detail.subtitle || "",
             avatarText: (detail.name || "M").slice(0, 2).toUpperCase(),
             isBot: false,
             time: "",

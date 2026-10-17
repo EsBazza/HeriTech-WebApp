@@ -169,7 +169,7 @@ function AgreementsPageContent() {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder={translateSync("e.g. Panagbenga 2027 floral collection")}
+                  placeholder={translateSync("Name of the agreement")}
                   className="w-full p-2.5 rounded-md border border-line bg-paper font-semibold text-ink"
                 />
               </div>
@@ -181,7 +181,7 @@ function AgreementsPageContent() {
                   required
                   value={organizerName}
                   onChange={(e) => setOrganizerName(e.target.value)}
-                  placeholder={translateSync("e.g. Baguio Flower Festival Foundation & CEPMO")}
+                  placeholder={translateSync("Festival organiser or municipal office")}
                   className="w-full p-2.5 rounded-md border border-line bg-paper font-semibold text-ink"
                 />
               </div>
@@ -194,7 +194,7 @@ function AgreementsPageContent() {
                     required
                     value={festival}
                     onChange={(e) => setFestival(e.target.value)}
-                    placeholder={translateSync("e.g. Panagbenga Festival")}
+                    placeholder={translateSync("Festival name")}
                     className="w-full p-2.5 rounded-md border border-line bg-paper text-ink"
                   />
                 </div>

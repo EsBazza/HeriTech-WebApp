@@ -13,10 +13,14 @@ import { Button, EmptyState, Eyebrow, SectionHeader, Stat, cn, controlClass } fr
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { apiJson } from "@/lib/api";
-import { SPLIT_LABEL } from "@/lib/escrow";
+import { SPLIT, SPLIT_LABEL } from "@/lib/escrow";
 
-const MATERIAL_TAGS = ["Bamboo", "Rice Paper", "Botanical Flora", "Abaca"];
-const COUNTRY_TAGS = ["Philippines", "Thailand", "India"];
+/** The most common values across listed pieces, so filters only offer what is actually for sale. */
+function topValues(values: string[], limit: number): string[] {
+  const counts = new Map<string, number>();
+  for (const v of values) if (v) counts.set(v, (counts.get(v) ?? 0) + 1);
+  return [...counts].sort((a, b) => b[1] - a[1]).slice(0, limit).map(([v]) => v);
+}
 
 interface HomeStats {
   kg: number;
@@ -33,11 +37,11 @@ function toFeedItem(p: any): FeedMaterialBatch {
     price: Number(p.price) || 0,
     image: p.images?.[0],
     cooperativeName: p.artisan?.workshopName || p.artisan?.fullName || "Artisan workshop",
-    region: p.artisan?.country || p.sourceBatch?.agreement?.country || "Asia",
-    country: p.sourceBatch?.agreement?.country || p.artisan?.country || "Asia",
+    region: p.artisan?.country || p.sourceBatch?.agreement?.country || "",
+    country: p.sourceBatch?.agreement?.country || p.artisan?.country || "",
     weightKg: Number(p.kgDiverted) || 0,
-    materialType: p.materialTags?.length ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "Upcycled piece",
-    festival: p.sourceBatch?.agreement?.festival || "Festival origin",
+    materialType: p.materialTags?.length ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "",
+    festival: p.sourceBatch?.agreement?.festival || "",
   };
 }
 
@@ -82,6 +86,8 @@ export default function FeedHomePage() {
   }, []);
 
   const role = userRole(user);
+  const materialTags = topValues(batches.flatMap((b) => b.materialType.split(", ")), 5);
+  const countryTags = topValues(batches.map((b) => b.country), 4);
 
   const filteredBatches = batches.filter((b) => {
     if (searchQuery.trim().length > 0) {
@@ -91,7 +97,7 @@ export default function FeedHomePage() {
     }
 
     if (selectedTag === "All") return true;
-    if (COUNTRY_TAGS.includes(selectedTag)) return b.country === selectedTag;
+    if (countryTags.includes(selectedTag)) return b.country === selectedTag;
     return b.materialType.toLowerCase().includes(selectedTag.toLowerCase()) || b.title.toLowerCase().includes(selectedTag.toLowerCase());
   });
 
@@ -111,8 +117,8 @@ export default function FeedHomePage() {
     {
       icon: Camera,
       title: translateSync("Collect & classify"),
-      body: translateSync("Collectors photograph festival waste on refurbished Chromebooks. Gemini identifies the material and flags contamination."),
-      tech: "Gemini · ChromeOS",
+      body: translateSync("LGU officers photograph leftover festival material at the collection point. Gemini identifies it and flags contamination."),
+      tech: "Gemini",
     },
     {
       icon: Handshake,
@@ -151,32 +157,39 @@ export default function FeedHomePage() {
     );
   };
 
+  // Published figures only, each with its source.
   const problems = [
     {
-      figure: translateSync("1 night"),
-      label: translateSync("is all it takes for tens of thousands of paper-and-bamboo lanterns to be released at Yi Peng and Loy Krathong, Chiang Mai."),
-      note: translateSync("Many carry wire and wax that never break down."),
+      figure: "50,000+",
+      label: translateSync("sky lanterns released in a single night at Yi Peng, Chiang Mai (2017)."),
+      note: translateSync("In 2025 the festival disrupted 161 flights at Chiang Mai airport."),
+      source: "Khaosod English",
+      href: "https://www.khaosodenglish.com/news/2017/11/03/yi-peng-lanterns-soar-sky-tonight-photo/",
     },
     {
-      figure: "150+ t",
-      label: translateSync("of floral offering waste (nirmalaya) collected by Thane Municipal Corporation in one Ganesh Chaturthi season."),
-      note: translateSync("Only about 40 t of it was composted."),
+      figure: "508 t",
+      label: translateSync("of floral offerings collected in Mumbai after Ganesh Chaturthi 2025."),
+      note: translateSync("Collected in a single post-immersion drive."),
+      source: "Greater Kashmir",
+      href: "https://m.greaterkashmir.com/article/ganesh-festival-508-tonnes-of-floral-offerings-collected-in-post-immersion-drive/431563",
     },
     {
-      figure: translateSync("18 months"),
-      label: translateSync("for Phool.co to earn a temple's trust before it would hand over its flower waste."),
-      note: translateSync("Consent, not craft, is the bottleneck."),
+      figure: "30+ t",
+      label: translateSync("of temple flower waste processed every day by Phool.co in India (2025)."),
+      note: translateSync("Proof that festival leftovers can become products people buy."),
+      source: "YourStory",
+      href: "https://yourstory.com/2025/07/phool-flowercycling-sustainable-innovation",
     },
   ];
 
   const systemPoints = [
     {
-      title: translateSync("Second life for devices"),
-      body: translateSync("Collection stations are designed to run on refurbished school Chromebooks, so the system extends the life of technology as well as material."),
+      title: translateSync("Works on any phone"),
+      body: translateSync("Runs in the phone browser officers and artisans already use. Nothing to install."),
     },
     {
-      title: translateSync("One engine, many materials"),
-      body: translateSync("Agreement, scan, custody and pass work the same for e-waste refurbishers, textile offcuts or construction scrap."),
+      title: translateSync("Any festival, any leftover"),
+      body: translateSync("Whatever a festival leaves behind, the same steps apply: agreement, scan, pickup, craft and pass."),
     },
     {
       title: translateSync("Proof anyone can check"),
@@ -184,10 +197,11 @@ export default function FeedHomePage() {
     },
   ];
 
+  // An illustration of what every pass records, not a real pass.
   const passRows = [
-    { label: translateSync("Collected"), value: "Yi Peng · Chiang Mai" },
-    { label: translateSync("Classified by Gemini"), value: translateSync("Mulberry paper, wire-free") },
-    { label: translateSync("Crafted by"), value: "Lanna Heritage Joinery" },
+    { label: translateSync("Collected"), value: translateSync("Festival and collection point") },
+    { label: translateSync("Classified by Gemini"), value: translateSync("Material and condition") },
+    { label: translateSync("Crafted by"), value: translateSync("Verified artisan") },
   ];
 
   return (
@@ -230,7 +244,7 @@ export default function FeedHomePage() {
                   id="hero-serial"
                   value={serial}
                   onChange={(e) => setSerial(e.target.value)}
-                  placeholder={translateSync("Pass serial, e.g. HT-519-PH")}
+                  placeholder={translateSync("Pass serial (HT-XXXX-XXXX)")}
                   className={cn(controlClass, "h-12 rounded-r-none border-r-0 font-mono-data text-sm")}
                 />
                 <button type="submit" className="h-12 px-4 rounded-r-md border border-line-strong bg-surface text-ink font-medium hover:border-pine-500 hover:text-pine-700 transition-colors cursor-pointer whitespace-nowrap">
@@ -253,7 +267,7 @@ export default function FeedHomePage() {
             <div className="relative aspect-[5/4] rounded-lg overflow-hidden bg-paper-2 shadow-pop">
               <Image
                 src="/fresh-botanical-hero-bg.png"
-                alt={translateSync("Artisan workshop with recovered bamboo and paper")}
+                alt={translateSync("Artisan workshop with recovered festival materials")}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -262,7 +276,7 @@ export default function FeedHomePage() {
               <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-pine-900/25 via-transparent to-transparent" />
             </div>
 
-            {/* Sample pass: verifies itself line by line */}
+            {/* Example pass: shows what every pass records (illustration, not a real pass) */}
             <div className="float absolute -bottom-8 left-4 right-4 sm:left-auto sm:right-6 sm:w-[21rem]">
               <div className="bg-surface rounded-md border border-line shadow-pop p-4">
                 <div className="flex items-center justify-between">
@@ -270,9 +284,9 @@ export default function FeedHomePage() {
                     <ShieldCheck className="w-4 h-4" />
                     {translateSync("Verified Impact Pass")}
                   </span>
-                  <span className="font-mono-data text-xs text-ink-3">HT-519-PH</span>
+                  <span className="rounded-sm bg-paper-2 px-1.5 py-0.5 text-xs text-ink-3">{translateSync("Example")}</span>
                 </div>
-                <p className="mt-2 text-sm text-ink-2">{translateSync("This lamp was once a Yi Peng sky lantern released in Chiang Mai.")}</p>
+                <p className="mt-2 text-sm text-ink-2">{translateSync("Every piece carries a record like this, back to the festival its material came from.")}</p>
                 <ul className="mt-3 space-y-1.5 border-t border-line pt-3">
                   {passRows.map((r, i) => (
                     <li key={r.label} className="confirm flex items-center gap-2 text-xs" style={{ ["--confirm-delay" as string]: `${900 + i * 350}ms` }}>
@@ -286,16 +300,16 @@ export default function FeedHomePage() {
                 </ul>
                 <dl className="confirm mt-3 grid grid-cols-3 gap-2 text-xs" style={{ ["--confirm-delay" as string]: "1950ms" }}>
                   <div>
-                    <dt className="text-ink-3">{translateSync("Diverted")}</dt>
-                    <dd className="tabular font-medium text-ink">1.8 kg</dd>
-                  </div>
-                  <div>
                     <dt className="text-ink-3">{translateSync("To artisan")}</dt>
-                    <dd className="tabular font-medium text-ink">{formatCurrency(59.5)}</dd>
+                    <dd className="tabular font-medium text-ink">{SPLIT.artisan}%</dd>
                   </div>
                   <div>
-                    <dt className="text-ink-3">{translateSync("To NGO")}</dt>
-                    <dd className="tabular font-medium text-lantern-600">{formatCurrency(8.5)}</dd>
+                    <dt className="text-ink-3">{translateSync("To LGU")}</dt>
+                    <dd className="tabular font-medium text-ink">{SPLIT.lgu}%</dd>
+                  </div>
+                  <div>
+                    <dt className="text-ink-3">{translateSync("Charity & upkeep")}</dt>
+                    <dd className="tabular font-medium text-lantern-600">{SPLIT.charityMaintenance}%</dd>
                   </div>
                 </dl>
               </div>
@@ -335,6 +349,9 @@ export default function FeedHomePage() {
               <p className="font-display text-[40px] leading-none font-semibold text-lantern-600">{p.figure}</p>
               <p className="mt-3 text-sm text-ink-2 leading-relaxed">{p.label}</p>
               <p className="mt-3 text-xs text-ink-3">{p.note}</p>
+              <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs text-pine-600 underline hover:text-pine-700">
+                {translateSync("Source")}: {p.source}
+              </a>
             </Reveal>
           ))}
         </div>
@@ -377,8 +394,8 @@ export default function FeedHomePage() {
           <Reveal className="lg:col-span-4">
             <SectionHeader
               eyebrow={translateSync("A circular digital system")}
-              title={translateSync("Festival waste is the first use case, not the last")}
-              description={translateSync("HeriTech is the record-keeping layer that makes reuse provable. The material changes; the chain of custody stays the same.")}
+              title={translateSync("One system for every festival")}
+              description={translateSync("HeriTech is the record-keeping layer that makes festival reuse provable. The leftovers change from festival to festival; the chain of custody stays the same.")}
             />
           </Reveal>
           <ul className="lg:col-span-8 grid sm:grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden self-start">
@@ -425,9 +442,9 @@ export default function FeedHomePage() {
                 )}
               </div>
               <div className="flex items-center gap-2 overflow-x-auto scrollbar-none md:flex-1">
-                {MATERIAL_TAGS.map(chip)}
+                {materialTags.map(chip)}
                 <span className="w-px h-5 bg-line-strong shrink-0 mx-1" aria-hidden />
-                {COUNTRY_TAGS.map(chip)}
+                {countryTags.map(chip)}
               </div>
             </div>
             <div className="flex items-center justify-between text-sm text-ink-3">
@@ -496,7 +513,7 @@ export default function FeedHomePage() {
         </Reveal>
         <Reveal delay={120} className="bg-surface border border-line rounded-md p-6 shadow-card">
           <div className="flex items-baseline justify-between mb-5">
-            <span className="text-sm text-ink-3">{translateSync("Example: a lamp sold for")}</span>
+            <span className="text-sm text-ink-3">{translateSync("Example: a piece sold for")}</span>
             <span className="tabular font-display text-3xl font-semibold text-ink">{formatCurrency(85)}</span>
           </div>
           <EscrowBar amount={85} />

@@ -1,10 +1,11 @@
 /**
- * Seeds Firestore with the showcase dataset.
+ * Seeds a DEMO Firestore project with the fictional showcase dataset.
+ * Refuses to run unless NEXT_PUBLIC_DEMO_MODE=true, so fictional people,
+ * products and orders can never end up in the real project.
  *
  *   npm run seed            upsert the seed documents (safe to re-run)
  *   npm run seed -- --reset also delete every batch, product, order, pass and
- *                           message first. Only allowed when NEXT_PUBLIC_DEMO_MODE=true,
- *                           so it can't wipe a production project.
+ *                           message first
  */
 import { Timestamp, type Firestore } from "firebase-admin/firestore";
 import { adminDb } from "../src/lib/firebase/admin-core";
@@ -35,12 +36,12 @@ async function deleteCollection(firestore: Firestore, name: string) {
 }
 
 async function main() {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== "true") {
+    throw new Error("The seed data is fictional. Only load it into a demo project (set NEXT_PUBLIC_DEMO_MODE=true).");
+  }
   const firestore = adminDb();
 
   if (RESET) {
-    if (process.env.NEXT_PUBLIC_DEMO_MODE !== "true") {
-      throw new Error("--reset is only allowed when NEXT_PUBLIC_DEMO_MODE=true.");
-    }
     console.log("Resetting demo data…");
     for (const name of RESET_COLLECTIONS) await deleteCollection(firestore, name);
   }
@@ -107,6 +108,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Seeding failed:", error);
+  console.error("Seeding failed:", error instanceof Error ? error.message : error);
   process.exit(1);
 });

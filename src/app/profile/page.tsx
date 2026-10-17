@@ -145,6 +145,13 @@ export default function ProfilePage() {
       ? "Administrator"
       : "Buyer";
 
+  // Materials this user has actually worked with: tags on their listings, or batches they logged.
+  const materialsHandled: string[] = [
+    ...new Set<string>(
+      role === "artisan" ? artisanProducts.flatMap((p) => p.materialTags ?? []) : lguBatches.map((b) => b.materialType)
+    ),
+  ].slice(0, 8);
+
   // Activity stats from this user's own records
   const totalBatchesScanned = lguBatches.length;
   const totalOrdersCompleted = orders.length;
@@ -338,17 +345,17 @@ export default function ProfilePage() {
                         {role === "lgu" ? "Municipal station" : "Cooperative name"}
                       </p>
                       <p className="text-[15px] font-medium text-ink">
-                        {user.workshopName || user.stationName || "Cordillera Botanical Cooperative"}
+                        {user.workshopName || user.stationName || translateSync("Not set yet. Add it with Edit profile.")}
                       </p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-xs font-medium text-[var(--warm-gray)]">
-                        Certification status
+                        Verification
                       </p>
                       <div className="pt-0.5">
                         <span className="text-xs font-bold px-2 py-0.5 rounded-sm bg-pine-500/10 text-pine-500 border border-pine-300/25 inline-block">
-                          Verified maker
+                          {translateSync(role === "artisan" ? (user.artisanVerified ? "Verified artisan" : "Artisan") : role === "lgu" ? "Verified LGU officer" : "Administrator")}
                         </span>
                       </div>
                     </div>
@@ -357,25 +364,25 @@ export default function ProfilePage() {
                       <p className="text-xs font-medium text-[var(--warm-gray)]">
                         Materials handled
                       </p>
-                      <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-sm bg-paper-2 text-ink border border-[var(--border-light)]">
-                          Highland Bamboo
-                        </span>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-sm bg-paper-2 text-ink border border-[var(--border-light)]">
-                          Botanical Flora
-                        </span>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-sm bg-paper-2 text-ink border border-[var(--border-light)]">
-                          Mulberry Paper
-                        </span>
-                      </div>
+                      {materialsHandled.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {materialsHandled.map((material) => (
+                            <span key={material} className="text-xs font-semibold px-2 py-0.5 rounded-sm bg-paper-2 text-ink border border-[var(--border-light)]">
+                              {translateSync(material)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-ink-3">{translateSync("None yet.")}</p>
+                      )}
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-xs font-medium text-[var(--warm-gray)]">
-                        Region of operation
+                        Country
                       </p>
                       <p className="text-[15px] font-medium text-ink">
-                        Benguet & Cordillera Administrative Region
+                        {user.country || translateSync("Not set yet.")}
                       </p>
                     </div>
                   </div>

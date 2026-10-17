@@ -61,11 +61,13 @@ export const POST = route(async (request: Request) => {
   const data = imageBase64.slice(separator + 1);
   const result = await generateJson<ScanAnalysis>({
     system: SYSTEM_PROMPT,
-    contents: [{ role: "user", parts: [{ text: USER_PROMPT }, { inline_data: { mime_type: mimeType, data } }] }],
+    contents: [{ role: "user", parts: [{ text: festivalHint ? `${USER_PROMPT}
+
+Context: this material was collected after ${festivalHint}.` : USER_PROMPT }, { inline_data: { mime_type: mimeType, data } }] }],
     temperature: 0.2,
   });
 
   if (result) return ok({ ...result.data, isSample: false, model: result.model });
-  if (DEMO_MODE) return ok({ ...sampleScan(festivalHint), isSample: true });
+  if (DEMO_MODE) return ok({ ...sampleScan(), isSample: true });
   throw new HttpError(503, "The AI scanner is unavailable right now. Enter the material details by hand.");
 });

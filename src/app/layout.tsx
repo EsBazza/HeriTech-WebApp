@@ -7,6 +7,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingBubble } from "@/components/FloatingBubble";
 import { BottomTabBar } from "@/components/BottomTabBar";
+import { DemoBanner } from "@/components/DemoBanner";
 
 export const metadata: Metadata = {
   title: "HeriTech — Traceable heritage craft from festival waste",
@@ -35,6 +36,7 @@ export default function RootLayout({
         <TranslationProvider>
           <AuthProvider>
             <CartProvider>
+              <DemoBanner />
               <Navbar />
               <main className="flex-grow">{children}</main>
               <Footer />

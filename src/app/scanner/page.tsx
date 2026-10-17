@@ -9,18 +9,10 @@ import { apiJson } from "@/lib/api";
 import { compressImage } from "@/lib/image";
 import { classifyOffline } from "@/lib/offlineClassifier";
 
-/** Words that identify each festival preset's agreement by its festival name. */
-const FESTIVAL_KEYWORDS: Record<string, string> = {
-  panagbenga: "panagbenga",
-  yipeng: "yi peng",
-  nirmalaya: "ganesh",
-  pingxi: "pingxi",
-};
 
 function WasteScannerPageContent() {
   const { translateSync } = useTranslation();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [festivalHint, setFestivalHint] = useState("panagbenga");
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any | null>(null);
 
@@ -30,32 +22,11 @@ function WasteScannerPageContent() {
   const [savedBatch, setSavedBatch] = useState<any | null>(null);
 
   // Pickup Location State
-  const [pickupDepotName, setPickupDepotName] = useState("Burnham Park Central Depot A");
-  const [pickupLat, setPickupLat] = useState<number>(16.4023);
-  const [pickupLng, setPickupLng] = useState<number>(120.5960);
+  const [collectionPoint, setCollectionPoint] = useState("");
+  const [pickupLat, setPickupLat] = useState<number | null>(null);
+  const [pickupLng, setPickupLng] = useState<number | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationSuccess, setLocationSuccess] = useState<string | null>(null);
-
-  // Preset depots per festival
-  const depotPresets: Record<string, Array<{ name: string; lat: number; lng: number }>> = {
-    panagbenga: [
-      { name: "Burnham Park Central Depot A", lat: 16.4116, lng: 120.5937 },
-      { name: "Baguio Athletic Bowl Processing Hub", lat: 16.4089, lng: 120.5962 },
-      { name: "Session Road Float Deconstruction Site", lat: 16.4124, lng: 120.5975 },
-    ],
-    yipeng: [
-      { name: "Chiang Mai Tha Phae Gate Depot", lat: 18.7877, lng: 98.9931 },
-      { name: "Nawarat Bridge River Reclamation Yard", lat: 18.7883, lng: 99.0035 },
-    ],
-    nirmalaya: [
-      { name: "Thane Ulhas Creek Reclamation Depot", lat: 19.2183, lng: 72.9781 },
-      { name: "Masunda Lake Floral Collection Bay", lat: 19.1925, lng: 72.9744 },
-    ],
-    pingxi: [
-      { name: "Pingxi Old Street Paper Sorting Hub", lat: 25.0264, lng: 121.7378 },
-      { name: "Shifen Station Remnant Recovery Depot", lat: 25.0427, lng: 121.7770 },
-    ],
-  };
 
   // Active release agreements the batch can be logged against.
   const [agreements, setAgreements] = useState<Array<{ id: string; title: string; festival: string; status: string }>>([]);
@@ -69,24 +40,17 @@ function WasteScannerPageContent() {
     });
   }, []);
 
-  // Sync default depot and matching agreement when festival changes
+  // Default to the first active agreement; the officer can pick another.
   useEffect(() => {
-    const presets = depotPresets[festivalHint] || depotPresets.panagbenga;
-    if (presets.length > 0) {
-      setPickupDepotName(presets[0].name);
-      setPickupLat(presets[0].lat);
-      setPickupLng(presets[0].lng);
-    }
-    const keyword = FESTIVAL_KEYWORDS[festivalHint];
-    const match = agreements.find((a) => a.festival.toLowerCase().includes(keyword));
-    setAgreementId((current) => match?.id ?? (agreements.some((a) => a.id === current) ? current : agreements[0]?.id ?? ""));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [festivalHint, agreements]);
+    setAgreementId((current) => (agreements.some((a) => a.id === current) ? current : agreements[0]?.id ?? ""));
+  }, [agreements]);
 
-  // Pins the batch to the device's GPS position. `silent` keeps the preset depot on failure.
+  const festivalHint = agreements.find((a) => a.id === agreementId)?.festival ?? "";
+
+  // Pins the batch to the device's GPS position. `silent` skips the error message on failure.
   const handleUseRealtimeLocation = (silent = false) => {
     if (!navigator.geolocation) {
-      if (!silent) setError("This browser can't share its location. Pick a depot instead.");
+      if (!silent) setError("This browser can't share its location. Type the coordinates instead.");
       return;
     }
     setIsLocating(true);
@@ -97,12 +61,11 @@ function WasteScannerPageContent() {
         const lng = parseFloat(position.coords.longitude.toFixed(6));
         setPickupLat(lat);
         setPickupLng(lng);
-        setPickupDepotName(`Field GPS pin (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`);
         setLocationSuccess("Pinned to your current location.");
         setIsLocating(false);
       },
       (gpsError) => {
-        if (!silent) setError(`Couldn't get your location (${gpsError.message}). Pick a depot instead.`);
+        if (!silent) setError(`Couldn't get your location (${gpsError.message}). Type the coordinates instead.`);
         setIsLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
@@ -159,13 +122,13 @@ function WasteScannerPageContent() {
   const handleAnalyzeAI = () => previewUrl && analyze(previewUrl);
 
   const handleLogBatch = async () => {
-    if (!analysisResult || !weightKg || !agreementId || analysisResult.peopleVisible) return;
+    if (!analysisResult || !weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible) return;
     setSaving(true);
     setError(null);
     const result = await apiJson<any>("/api/materials", {
       method: "POST",
       body: JSON.stringify({
-        title: `${analysisResult.materialType} (${pickupDepotName})`,
+        title: collectionPoint ? `${analysisResult.materialType} (${collectionPoint})` : analysisResult.materialType,
         materialType: analysisResult.materialType,
         weightKg: parseFloat(weightKg),
         condition: analysisResult.condition,
@@ -183,7 +146,6 @@ function WasteScannerPageContent() {
     setSaving(false);
   };
 
-  const presets = depotPresets[festivalHint] || depotPresets.panagbenga;
   const flags: string[] = analysisResult?.contaminationFlags ?? [];
   const crafts: string[] = analysisResult?.suggestedCraftTypologies ?? [];
   const stepNow = savedBatch ? 3 : analysisResult ? 2 : 1;
@@ -239,13 +201,6 @@ function WasteScannerPageContent() {
               <input type="file" accept="image/*" capture="environment" onChange={handleFileChange} className="sr-only" />
             </label>
 
-            <Select label={translateSync("Festival")} value={festivalHint} onChange={(e) => setFestivalHint(e.target.value)}>
-              <option value="panagbenga">Panagbenga Flower Festival (Baguio, Philippines)</option>
-              <option value="yipeng">Yi Peng Sky Lantern Festival (Chiang Mai, Thailand)</option>
-              <option value="nirmalaya">Ganesh Chaturthi Nirmalaya (Thane, India)</option>
-              <option value="pingxi">Pingxi Lantern Paper (New Taipei, Taiwan)</option>
-            </Select>
-
             <Select label={translateSync("Release agreement")} value={agreementId} onChange={(e) => setAgreementId(e.target.value)}>
               {agreements.length === 0 && <option value="">{translateSync("No active agreements")}</option>}
               {agreements.map((a) => (
@@ -283,7 +238,7 @@ function WasteScannerPageContent() {
                 )}
                 {analysisResult.isSample && (
                   <p className="rounded-md bg-warn-100 border border-warn/20 p-3 text-sm text-warn">
-                    {translateSync("Demo sample: Gemini was unavailable, so this is a prepared example result, not an analysis of your photo.")}
+                    {translateSync("Demo sample: Gemini was unavailable, so this photo was not analysed. Check the material and enter its details by hand.")}
                   </p>
                 )}
                 <div className="flex items-start justify-between gap-3">
@@ -318,7 +273,8 @@ function WasteScannerPageContent() {
                   </div>
                 </dl>
 
-                {/* Safety triage */}
+                {/* Safety triage: only shown when Gemini actually assessed the photo */}
+                {!analysisResult.isSample && !analysisResult.isOffline && (
                 <div className={cn("rounded-md border p-4", flags.length ? "bg-warn-100 border-warn/20" : "bg-success-100 border-success/20")}>
                   <p className={cn("flex items-center gap-2 text-sm font-medium", flags.length ? "text-warn" : "text-success")}>
                     {flags.length ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
@@ -339,6 +295,7 @@ function WasteScannerPageContent() {
                     </>
                   )}
                 </div>
+                )}
 
                 {crafts.length > 0 && (
                   <div>
@@ -386,41 +343,22 @@ function WasteScannerPageContent() {
 
                 <div className="space-y-3">
                   <div className="flex items-end gap-2">
-                    <Select
+                    <Input
                       wrapperClassName="flex-1 min-w-0"
-                      label={translateSync("Pickup depot")}
-                      value={pickupDepotName}
-                      onChange={(e) => {
-                        const selected = presets.find((d) => d.name === e.target.value);
-                        if (selected) {
-                          setPickupDepotName(selected.name);
-                          setPickupLat(selected.lat);
-                          setPickupLng(selected.lng);
-                        } else {
-                          setPickupDepotName(e.target.value);
-                        }
-                      }}
-                    >
-                      {presets.map((depot) => (
-                        <option key={depot.name} value={depot.name}>
-                          {depot.name}
-                        </option>
-                      ))}
-                      {!presets.some((d) => d.name === pickupDepotName) && pickupDepotName !== "Custom Pin Location" && <option value={pickupDepotName}>{pickupDepotName}</option>}
-                      <option value="Custom Pin Location">{translateSync("Custom location (enter coordinates)")}</option>
-                    </Select>
-                    <Button variant="secondary" onClick={() => handleUseRealtimeLocation()} disabled={isLocating} title={translateSync("Use my location")} aria-label={translateSync("Use my location")}>
-                      <Crosshair className={cn("w-4 h-4", isLocating && "animate-spin")} />
-                      <span className="hidden sm:inline">{isLocating ? translateSync("Locating…") : translateSync("My location")}</span>
-                    </Button>
+                      label={translateSync("Collection point (optional)")}
+                      value={collectionPoint}
+                      onChange={(e) => setCollectionPoint(e.target.value)}
+                      placeholder={translateSync("Where the batch can be picked up")}
+                    />
                   </div>
                   {locationSuccess && <p className="text-xs text-success">{translateSync(locationSuccess)}</p>}
 
                   <div className="grid grid-cols-2 gap-3">
-                    <Input label={translateSync("Latitude")} type="number" step="0.0001" value={pickupLat} onChange={(e) => setPickupLat(parseFloat(e.target.value) || 0)} className="tabular" />
-                    <Input label={translateSync("Longitude")} type="number" step="0.0001" value={pickupLng} onChange={(e) => setPickupLng(parseFloat(e.target.value) || 0)} className="tabular" />
+                    <Input label={translateSync("Latitude")} type="number" step="0.0001" min={-90} max={90} value={pickupLat ?? ""} onChange={(e) => setPickupLat(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
+                    <Input label={translateSync("Longitude")} type="number" step="0.0001" min={-180} max={180} value={pickupLng ?? ""} onChange={(e) => setPickupLng(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
                   </div>
 
+                  {pickupLat !== null && pickupLng !== null ? (
                   <div className="h-40 rounded-md overflow-hidden border border-line bg-paper-2">
                     <iframe
                       title={translateSync("Pickup location map")}
@@ -431,6 +369,9 @@ function WasteScannerPageContent() {
                       src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}&q=${pickupLat},${pickupLng}&zoom=15`}
                     />
                   </div>
+                  ) : (
+                    <p className="text-xs text-ink-3">{translateSync("Allow location access or type the coordinates to pin the batch on the map.")}</p>
+                  )}
                 </div>
 
                 {savedBatch ? (
@@ -445,8 +386,8 @@ function WasteScannerPageContent() {
                         <dd className="font-mono-data break-all">{savedBatch.id}</dd>
                       </div>
                       <div className="flex gap-2">
-                        <dt className="text-ink-3 w-16 shrink-0">{translateSync("Depot")}</dt>
-                        <dd>{translateSync(pickupDepotName)}</dd>
+                        <dt className="text-ink-3 w-16 shrink-0">{translateSync("Location")}</dt>
+                        <dd className="font-mono-data">{collectionPoint ? `${collectionPoint} · ` : ""}{pickupLat?.toFixed(4)}°, {pickupLng?.toFixed(4)}°</dd>
                       </div>
                       {savedBatch.txHash && (
                         <div className="flex gap-2">
@@ -457,7 +398,7 @@ function WasteScannerPageContent() {
                     </dl>
                   </div>
                 ) : (
-                  <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId || analysisResult.peopleVisible} loading={saving}>
+                  <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible} loading={saving}>
                     {!saving && <FileCheck2 className="w-4 h-4" />}
                     {saving ? translateSync("Logging batch…") : `${translateSync("Log batch")} · ${weightKg || 0} kg`}
                   </Button>
