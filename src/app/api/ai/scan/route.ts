@@ -18,6 +18,7 @@ Provide:
 4. Contamination Flags: List every visible contaminant or foreign element observed (e.g., shipping tape, staples, moisture, food grease, wax coating, fuel, dirt, mold, wire).
 5. Suggested Upcycling & Craft Typologies: Suggest realistic artisan crafts, recycling pathways, or maker applications tailored to the specific material.
 6. Volumetric Weight Estimation: Estimate the weight in kilograms based on visible scale, dimensions, and material density.
+7. Privacy: Say whether any person (face or body) is visible in the photo.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -33,7 +34,8 @@ Return ONLY valid JSON matching this schema:
     "high": 2.5,
     "bestEstimate": 1.8,
     "visualRationale": "Brief visual scale and density basis (e.g. bundle size relative to curbside ~50x30x20cm at ~60-80 kg/m³)"
-  }
+  },
+  "peopleVisible": false
 }`;
 
 const schema = z.object({

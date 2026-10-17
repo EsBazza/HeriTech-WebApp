@@ -15,6 +15,8 @@ export interface ScanAnalysis {
   contaminationFlags?: string[];
   suggestedCraftTypologies?: string[];
   estimatedWeightKg?: { low: number; high: number; bestEstimate: number; visualRationale: string };
+  /** True when any person is recognisable in the photo; such photos must not be logged. */
+  peopleVisible?: boolean;
 }
 
 const SCAN_SAMPLES: Record<"panagbenga" | "yipeng" | "nirmalaya" | "default", ScanAnalysis> = {

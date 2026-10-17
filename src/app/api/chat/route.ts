@@ -31,16 +31,19 @@ Platform Knowledge Base:
 - Core Mission: Pan-Asian circular digital infrastructure that recovers organic and structural post-festival waste, routing materials to certified artisan cooperatives to craft authenticated heritage goods with verifiable digital provenance.
 
 2. Stakeholders and User Roles:
-- Municipal LGU Officers (Field Loggers): Photograph and log raw festival waste in the field using the Multimodal AI Scanner. Manage municipal quotas, generate batch IDs, and confirm artisan batch reservations via QR tokens.
-- Certified Artisan Cooperatives (Makers): Browse available raw materials on the Harvest Map, reserve material batches, claim physical custody at depots via QR verification, craft upcycled pieces in the Artisan Studio, and share cultural craft stories.
-- Buyers and Global Collectors: Discover and purchase verified upcycled crafts, receiving tamper-evident Google Wallet Digital Badges proving material origin, festival GPS coordinates, and exact kilograms diverted from landfills.
+- Municipal LGU Officers: Record material release agreements, photograph and log festival waste with the AI scanner (the scale weight is entered by hand), and scan the artisan's pickup QR code to release a batch.
+- Artisans and cooperatives: Find available batches on the harvest map, reserve one, show a pickup QR code at the depot, then list pieces made from that batch in the Artisan Studio.
+- Buyers: Purchase pieces and receive a Verified Impact Pass, which can be added to Google Wallet and opens a public record of the material's origin, the maker and the money split.
+- New accounts start as buyers. People apply from their profile to become an artisan or LGU officer, and an admin approves them.
 
 3. Core Features and Technology Integration:
-- Multimodal AI Scanner (Powered by Google Gemini 3.5 Flash Lite): Real-time waste analysis, material condition grading, and cultural origin story generation.
-- Harvest Map and Canopy Impact (Powered by Google Maps Platform and Google Earth 3D): Real-time GIS batch clustering, depot routing, and 2020 through 2026 canopy impact visualization.
-- Google Wallet API: Tamper-evident digital origin passes with cryptographic SHA-256 batch hashes.
-- Google Cloud Translation: Multilingual support across English, Filipino (Tagalog), Thai, Hindi, Indonesian, Japanese, and Chinese.
-- Global Impact Ledger: Real-time telemetry tracking total kilograms diverted, active cooperatives, and 3D satellite reforestation impact.
+- AI scanner (Google Gemini): identifies the material, its condition and contamination, and suggests uses. It refuses photos where people are visible, because batch photos are public.
+- Story writer (Google Gemini): drafts a product origin story for the artisan to edit.
+- Harvest map (Google Maps Platform): shows every batch by status, with directions to the collection depot.
+- Impact passes (Google Wallet): each purchase gets a pass with a QR code to its public record. Every batch record carries an origin fingerprint (a SHA-256 hash) that changes if the collection details are edited.
+- Translation (Google Cloud Translation): English, Filipino, Thai, Hindi, Indonesian, Japanese, and Simplified and Traditional Chinese.
+- Sign-in and data (Firebase Authentication and Cloud Firestore).
+- Impact ledger: public totals of kilograms collected, passes issued and money paid out, plus a leaderboard of artisans and LGUs.
 
 4. Financial Transparency Engine:
 Every craft sale is split automatically: ${SPLIT.artisan} percent goes directly to the certified artisan cooperative, ${SPLIT.lgu} percent to the LGU for collection and logistics, and ${SPLIT.charityMaintenance} percent to charity and the upkeep of the HeriTech app. Checkout currently uses simulated payments, so no real money is charged yet.`;

@@ -141,7 +141,7 @@ function WasteScannerPageContent() {
   const handleAnalyzeAI = () => previewUrl && analyze(previewUrl);
 
   const handleLogBatch = async () => {
-    if (!analysisResult || !weightKg || !agreementId) return;
+    if (!analysisResult || !weightKg || !agreementId || analysisResult.peopleVisible) return;
     setSaving(true);
     setError(null);
     const result = await apiJson<any>("/api/materials", {
@@ -208,7 +208,7 @@ function WasteScannerPageContent() {
                   </span>
                   <div>
                     <p className="font-medium text-ink">{translateSync("Take or upload a photo")}</p>
-                    <p className="text-sm text-ink-3 mt-0.5">{translateSync("JPG or PNG. Fill the frame with the material.")}</p>
+                    <p className="text-sm text-ink-3 mt-0.5">{translateSync("Fill the frame with the material. Photograph the material, not the crowd.")}</p>
                   </div>
                 </div>
               )}
@@ -253,6 +253,11 @@ function WasteScannerPageContent() {
           {analysisResult ? (
             <div className="space-y-6">
               <Card className="p-5 sm:p-6 space-y-5">
+                {analysisResult.peopleVisible && (
+                  <p role="alert" className="rounded-md bg-danger-100 border border-danger/20 p-3 text-sm text-danger">
+                    {translateSync("People are visible in this photo. Batch photos are public, so retake it close-up on the material before logging.")}
+                  </p>
+                )}
                 {analysisResult.isSample && (
                   <p className="rounded-md bg-warn-100 border border-warn/20 p-3 text-sm text-warn">
                     {translateSync("Demo sample: Gemini was unavailable, so this is a prepared example result, not an analysis of your photo.")}
@@ -429,7 +434,7 @@ function WasteScannerPageContent() {
                     </dl>
                   </div>
                 ) : (
-                  <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId} loading={saving}>
+                  <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId || analysisResult.peopleVisible} loading={saving}>
                     {!saving && <FileCheck2 className="w-4 h-4" />}
                     {saving ? translateSync("Logging batch…") : `${translateSync("Log batch")} · ${weightKg || 0} kg`}
                   </Button>

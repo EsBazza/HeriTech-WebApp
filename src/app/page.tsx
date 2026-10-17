@@ -169,6 +169,21 @@ export default function FeedHomePage() {
     },
   ];
 
+  const systemPoints = [
+    {
+      title: translateSync("Second life for devices"),
+      body: translateSync("Collection stations are designed to run on refurbished school Chromebooks, so the system extends the life of technology as well as material."),
+    },
+    {
+      title: translateSync("One engine, many materials"),
+      body: translateSync("Agreement, scan, custody and pass work the same for e-waste refurbishers, textile offcuts or construction scrap."),
+    },
+    {
+      title: translateSync("Proof anyone can check"),
+      body: translateSync("Every pass opens a public record with the origin, maker and money split. No account needed."),
+    },
+  ];
+
   const passRows = [
     { label: translateSync("Collected"), value: "Yi Peng · Chiang Mai" },
     { label: translateSync("Classified by Gemini"), value: translateSync("Mulberry paper, wire-free") },
@@ -354,6 +369,29 @@ export default function FeedHomePage() {
             );
           })}
         </ol>
+      </section>
+
+      {/* CIRCULAR DIGITAL SYSTEM */}
+      <section className="border-t border-line">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 grid lg:grid-cols-12 gap-10">
+          <Reveal className="lg:col-span-4">
+            <SectionHeader
+              eyebrow={translateSync("A circular digital system")}
+              title={translateSync("Festival waste is the first use case, not the last")}
+              description={translateSync("HeriTech is the record-keeping layer that makes reuse provable. The material changes; the chain of custody stays the same.")}
+            />
+          </Reveal>
+          <ul className="lg:col-span-8 grid sm:grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden self-start">
+            {systemPoints.map((point, i) => (
+              <li key={point.title} className="bg-surface">
+                <Reveal delay={i * 90} className="h-full p-6">
+                  <h3 className="text-base font-semibold text-ink font-sans">{point.title}</h3>
+                  <p className="mt-2 text-sm text-ink-2 leading-relaxed">{point.body}</p>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* SHOP */}
