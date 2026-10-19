@@ -8,6 +8,7 @@ import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { apiJson } from "@/lib/api";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
+import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import type { BatchView, ProductView } from "@/lib/server/views";
 import type { BuyerOrder } from "@/app/api/orders/route";
 import {
@@ -20,11 +21,10 @@ import {
   FileText,
   Sliders,
   ChevronRight,
-  X,
 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, signInWithGoogle, signOut, refreshProfile } = useAuth();
+  const { user, signInWithGoogle, signOut } = useAuth();
   const { formatCurrency, formatNumber, translateSync, currentLanguage } = useTranslation();
 
   // Active Tab for Sidebar/Tablet/Mobile (6 views or direct scrolling)
@@ -40,21 +40,7 @@ export default function ProfilePage() {
     return () => window.removeEventListener("hashchange", openFromHash);
   }, []);
 
-  // Profile Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editFullName, setEditFullName] = useState("");
-  const [editCountry, setEditCountry] = useState("Philippines");
-  const [editAvatarUrl, setEditAvatarUrl] = useState("");
-  const [editWorkshop, setEditWorkshop] = useState("");
-  const [editWorkshopLocation, setEditWorkshopLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [locatingWorkshop, setLocatingWorkshop] = useState(false);
-  const [editStation, setEditStation] = useState("");
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  // Notification settings toggle state
-  const [emailAlerts, setEmailAlerts] = useState(true);
-  const [orderUpdates, setOrderUpdates] = useState(true);
 
   // Profile Data States
   const [artisanProducts, setArtisanProducts] = useState<ProductView[]>([]);
@@ -64,13 +50,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setEditFullName(user.fullName || "");
-      setEditCountry(user.country || "Philippines");
-      setEditAvatarUrl(user.avatarUrl || "");
-      setEditWorkshop(user.workshopName || "");
-      setEditWorkshopLocation(user.workshopLat != null && user.workshopLng != null ? { lat: user.workshopLat, lng: user.workshopLng } : null);
-      setEditStation(user.stationName || "");
-
       // Only this user's own records: their purchases, plus listings or batches for their role.
       const userId = user.id;
       const role = user.role;
@@ -86,49 +65,6 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
-
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingProfile(true);
-    setSaveError(null);
-    const result = await apiJson("/api/user/profile/update", {
-      method: "POST",
-      body: JSON.stringify({
-        fullName: editFullName,
-        country: editCountry,
-        avatarUrl: editAvatarUrl,
-        workshopName: editWorkshop,
-        stationName: editStation,
-        ...(user?.role === "artisan" ? { workshopLocation: editWorkshopLocation } : {}),
-      }),
-    });
-    if (result.success) {
-      await refreshProfile();
-      setEditModalOpen(false);
-    } else {
-      setSaveError(result.error ?? "Couldn't save your profile.");
-    }
-    setSavingProfile(false);
-  };
-
-  const pinWorkshop = () => {
-    if (!navigator.geolocation) {
-      setSaveError("This browser can't share its location.");
-      return;
-    }
-    setLocatingWorkshop(true);
-    navigator.geolocation.getCurrentPosition(
-      (p) => {
-        setEditWorkshopLocation({ lat: parseFloat(p.coords.latitude.toFixed(5)), lng: parseFloat(p.coords.longitude.toFixed(5)) });
-        setLocatingWorkshop(false);
-      },
-      (e) => {
-        setSaveError(`Couldn't get your location (${e.message}).`);
-        setLocatingWorkshop(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
 
   if (!user) {
     return (
@@ -205,7 +141,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="bg-linen min-h-screen py-10 sm:py-14 px-4 sm:px-8 lg:px-12">
+    <div className="min-h-screen py-10 sm:py-14 px-4 sm:px-8 lg:px-12">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* 1. PROFILE HEADER */}
         <section className="bg-surface border border-line rounded-md p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -527,39 +463,6 @@ export default function ProfilePage() {
                 </h2>
 
                 <div className="space-y-4">
-                  {/* Notification preference toggles */}
-                  <div className="flex items-center justify-between py-2 border-b border-line min-h-[44px]">
-                    <div>
-                      <p className="text-sm font-medium text-ink">Email notifications</p>
-                      <p className="text-xs text-ink-3">
-                        Receive harvest reservation updates and shipping confirmations
-                      </p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={emailAlerts}
-                      onChange={(e) => setEmailAlerts(e.target.checked)}
-                      aria-label="Toggle email notifications"
-                      className="w-4 h-4 accent-pine-700 cursor-pointer"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between py-2 border-b border-line min-h-[44px]">
-                    <div>
-                      <p className="text-sm font-medium text-ink">Order alerts</p>
-                      <p className="text-xs text-ink-3">
-                        Notify immediately when an artisan piece is purchased
-                      </p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={orderUpdates}
-                      onChange={(e) => setOrderUpdates(e.target.checked)}
-                      aria-label="Toggle order alerts"
-                      className="w-4 h-4 accent-pine-700 cursor-pointer"
-                    />
-                  </div>
-
                   {/* Language Selector row */}
                   <div className="flex items-center justify-between py-3 border-b border-line">
                     <div>
@@ -588,135 +491,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
-      {editModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-surface border border-line-strong rounded-md max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-pop">
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <h3 className="font-display text-xl font-medium text-ink">
-                Edit personal info
-              </h3>
-              <button
-                onClick={() => setEditModalOpen(false)}
-                className="p-1 rounded-md text-ink-3 hover:text-ink cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="font-semibold text-ink">Full name</label>
-                <input
-                  type="text"
-                  required
-                  value={editFullName}
-                  onChange={(e) => setEditFullName(e.target.value)}
-                  className="w-full p-2.5 rounded-md bg-paper border border-line-strong text-sm text-ink"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold text-ink">Region / country</label>
-                <input
-                  type="text"
-                  required
-                  value={editCountry}
-                  onChange={(e) => setEditCountry(e.target.value)}
-                  className="w-full p-2.5 rounded-md bg-paper border border-line-strong text-sm text-ink"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold text-ink">Avatar image URL</label>
-                <input
-                  type="url"
-                  value={editAvatarUrl}
-                  onChange={(e) => setEditAvatarUrl(e.target.value)}
-                  placeholder="https://example.com/avatar.jpg"
-                  className="w-full p-2.5 rounded-md bg-paper border border-line-strong text-sm text-ink"
-                />
-              </div>
-
-              {(role === "artisan" || role === "admin") && (
-                <div className="space-y-1">
-                  <label className="font-semibold text-ink">Cooperative workshop name</label>
-                  <input
-                    type="text"
-                    value={editWorkshop}
-                    onChange={(e) => setEditWorkshop(e.target.value)}
-                    className="w-full p-2.5 rounded-md bg-paper border border-line-strong text-sm text-ink"
-                  />
-                </div>
-              )}
-
-              {role === "artisan" && (
-                <div className="space-y-1">
-                  <label className="font-semibold text-ink">{translateSync("Workshop location")}</label>
-                  <p className="text-xs text-ink-3">
-                    {translateSync("Optional. Shown on your product pages so buyers can follow the material from the collection point to your workshop.")}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={pinWorkshop}
-                      disabled={locatingWorkshop}
-                      className="px-3 py-2 rounded-md border border-line-strong bg-paper text-xs font-semibold text-ink hover:bg-paper-2 disabled:opacity-50"
-                    >
-                      {translateSync(locatingWorkshop ? "Locating…" : editWorkshopLocation ? "Update to my current location" : "Use my current location")}
-                    </button>
-                    {editWorkshopLocation && (
-                      <>
-                        <span className="text-xs text-ink-2 tabular">
-                          {editWorkshopLocation.lat.toFixed(4)}°, {editWorkshopLocation.lng.toFixed(4)}°
-                        </span>
-                        <button type="button" onClick={() => setEditWorkshopLocation(null)} className="text-xs text-ink-3 underline">
-                          {translateSync("Remove")}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {(role === "lgu" || role === "admin") && (
-                <div className="space-y-1">
-                  <label className="font-semibold text-ink">Local government office</label>
-                  <input
-                    type="text"
-                    value={editStation}
-                    onChange={(e) => setEditStation(e.target.value)}
-                    className="w-full p-2.5 rounded-md bg-paper border border-line-strong text-sm text-ink"
-                  />
-                </div>
-              )}
-
-              {saveError && (
-                <p role="alert" className="text-sm text-danger">
-                  {translateSync(saveError)}
-                </p>
-              )}
-
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-line">
-                <button
-                  type="button"
-                  onClick={() => setEditModalOpen(false)}
-                  className="px-4 py-2.5 rounded-md border border-line-strong text-ink-3 text-xs font-bold min-h-[44px]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingProfile}
-                  className="px-5 py-2.5 rounded-md bg-pine-700 hover:bg-pine-600 text-white text-xs font-bold transition-colors disabled:opacity-50 min-h-[44px]"
-                >
-                  {savingProfile ? "Saving..." : "Save changes"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {editModalOpen && <EditProfileModal onClose={() => setEditModalOpen(false)} />}
     </div>
   );
 }
