@@ -470,7 +470,7 @@ function MaterialsMapPageContent() {
                 </button>
               </div>
             ) : handoverTab === "artisan" && canShowCode ? (
-              <HandoverCode batchId={selectedBatch.id} />
+              <HandoverCode batch={selectedBatch} />
             ) : (
               <div className="space-y-4">
                 <div className="p-3 bg-paper rounded-md space-y-1 text-xs">

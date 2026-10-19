@@ -12,9 +12,10 @@ const MAX_INLINE_CHARS = 600_000;
 let bucketReady: Promise<boolean> | undefined;
 
 function storageAvailable(): Promise<boolean> {
-  bucketReady ??= adminStorage()
-    .bucket()
-    .exists()
+  // bucket() throws synchronously when no bucket name is configured, so start
+  // inside a promise and let the inline fallback below handle that case too.
+  bucketReady ??= Promise.resolve()
+    .then(() => adminStorage().bucket().exists())
     .then(([exists]) => {
       if (!exists) console.warn("[images] Storage bucket missing; storing compressed images inline instead.");
       return exists;

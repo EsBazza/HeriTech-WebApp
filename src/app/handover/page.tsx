@@ -36,6 +36,8 @@ function ArtisanHandover() {
     });
   }, []);
 
+  const selectedBatch = batches?.find((b) => b.id === selected) ?? null;
+
   if (error) return <p role="alert" className="text-sm text-danger text-center">{translateSync(error)}</p>;
   if (!batches) return <Spinner className="py-10" />;
 
@@ -55,17 +57,17 @@ function ArtisanHandover() {
   return (
     <div className="flex flex-col items-center text-center space-y-6 max-w-md mx-auto py-4">
       <div className="space-y-1">
-        <TranslatableHeading level={2} className="text-lg font-bold text-ink">
-          Show this at the collection depot
+        <TranslatableHeading level={2} className="font-display text-[28px] leading-tight font-semibold text-ink">
+          Your pickup code
         </TranslatableHeading>
-        <TranslatableParagraph className="text-xs text-ink-3">
-          The LGU officer scans your code to release the batch to you.
+        <TranslatableParagraph className="text-sm text-ink-3">
+          Show it on screen, or download it, at the collection point. The LGU officer scans it to release the batch to you.
         </TranslatableParagraph>
       </div>
 
       {batches.length > 1 && (
-        <label className="w-full text-left space-y-1.5 text-xs">
-          <span className="font-bold text-ink-2 flex items-center gap-1.5">
+        <label className="w-full text-left space-y-1.5 text-sm">
+          <span className="font-medium text-ink-2 flex items-center gap-1.5">
             <Package className="w-3.5 h-3.5 text-pine-600" />
             {translateSync("Batch to pick up")}
           </span>
@@ -83,7 +85,7 @@ function ArtisanHandover() {
         </label>
       )}
 
-      {selected && <HandoverCode key={selected} batchId={selected} />}
+      {selectedBatch && <HandoverCode key={selectedBatch.id} batch={selectedBatch} />}
     </div>
   );
 }
@@ -94,31 +96,36 @@ function LguHandover() {
 
   if (result) {
     return (
-      <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg space-y-4 text-center max-w-lg mx-auto">
-        <div className="w-12 h-12 bg-pine-100 text-pine-600 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle2 className="w-6 h-6" />
+      <div className="handover-success p-6 sm:p-8 bg-success-100/60 border border-success/20 rounded-lg space-y-5 text-center max-w-lg mx-auto" role="status">
+        <div className="w-14 h-14 bg-success text-white rounded-full flex items-center justify-center mx-auto shadow-pop">
+          <CheckCircle2 className="w-7 h-7" />
         </div>
         <div>
-          <TranslatableHeading level={3} className="text-base font-bold text-ink">
+          <TranslatableHeading level={3} className="font-display text-[28px] leading-tight font-semibold text-ink">
             Custody transferred
           </TranslatableHeading>
-          <p className="text-xs text-pine-700 font-semibold mt-1">{translateSync(result.message)}</p>
+          <p className="text-sm text-ink-2 mt-1">{translateSync(result.message)}</p>
         </div>
-        <dl className="p-3 bg-surface rounded-md border border-pine-200 text-left font-mono-data text-xs space-y-1 text-ink-3">
-          <div>
-            <dt className="inline">{translateSync("Batch")}: </dt>
-            <dd className="inline font-bold text-ink">{result.data.batchId}</dd>
+        <dl className="bg-surface rounded-md border border-line text-left text-sm divide-y divide-line">
+          <div className="flex justify-between gap-4 px-4 py-2.5">
+            <dt className="text-ink-3">{translateSync("Batch")}</dt>
+            <dd className="font-mono-data text-ink">{result.data.batchId}</dd>
           </div>
-          <div>
-            <dt className="inline">{translateSync("Artisan")}: </dt>
-            <dd className="inline font-bold text-ink">{result.data.artisan.name}</dd>
+          <div className="flex justify-between gap-4 px-4 py-2.5">
+            <dt className="text-ink-3">{translateSync("Artisan")}</dt>
+            <dd className="text-ink text-right">
+              {result.data.artisan.name}
+              {result.data.artisan.workshop && <span className="block text-xs text-ink-3">{result.data.artisan.workshop}</span>}
+            </dd>
           </div>
-          <div>
-            <dt className="inline">{translateSync("Verified at")}: </dt>
-            <dd className="inline">{new Date(result.data.verifiedAt).toLocaleString()}</dd>
+          <div className="flex justify-between gap-4 px-4 py-2.5">
+            <dt className="text-ink-3">{translateSync("Verified at")}</dt>
+            <dd className="text-ink">{new Date(result.data.verifiedAt).toLocaleString()}</dd>
           </div>
         </dl>
-        <Button onClick={() => setResult(null)}>{translateSync("Check another handover")}</Button>
+        <Button size="lg" className="w-full" onClick={() => setResult(null)}>
+          {translateSync("Check another handover")}
+        </Button>
       </div>
     );
   }
@@ -126,11 +133,11 @@ function LguHandover() {
   return (
     <div className="space-y-6 max-w-lg mx-auto py-4">
       <div className="space-y-1 text-center">
-        <TranslatableHeading level={2} className="text-lg font-bold text-ink">
+        <TranslatableHeading level={2} className="font-display text-[28px] leading-tight font-semibold text-ink">
           Release a reserved batch
         </TranslatableHeading>
-        <TranslatableParagraph className="text-xs text-ink-3">
-          The code proves the artisan holds the reservation. It expires 30 minutes after it is shown.
+        <TranslatableParagraph className="text-sm text-ink-3">
+          Scan the artisan&apos;s code or import a photo of it. The code proves they hold the reservation and expires 30 minutes after it is created.
         </TranslatableParagraph>
       </div>
       <HandoverVerifyForm onVerified={(data, message) => setResult({ data, message })} />
@@ -146,7 +153,7 @@ function HandoverPageContent() {
   const [activeTab, setActiveTab] = useState<"artisan" | "lgu">(canShowCode ? "artisan" : "lgu");
 
   const tabClass = (tab: "artisan" | "lgu") =>
-    `flex-1 py-2.5 rounded-md text-xs font-bold transition-all ${
+    `flex-1 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
       activeTab === tab ? "bg-pine-700 text-white shadow-card" : "text-ink-2 hover:text-ink"
     }`;
 
@@ -176,7 +183,7 @@ function HandoverPageContent() {
         </div>
       )}
 
-      <div className="bg-surface rounded-lg border border-line p-8 shadow-card">
+      <div className="bg-surface rounded-lg border border-line p-5 sm:p-8 shadow-card">
         {activeTab === "artisan" && canShowCode ? <ArtisanHandover /> : <LguHandover />}
       </div>
     </div>

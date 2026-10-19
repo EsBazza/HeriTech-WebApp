@@ -624,6 +624,26 @@
   }
 }
 
+/* ─── QR handover ─── */
+.scan-line {
+  top: 8%;
+  animation: scan-sweep 2.2s ease-in-out infinite alternate;
+}
+@keyframes scan-sweep {
+  to {
+    top: 90%;
+  }
+}
+.handover-success {
+  animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-line {
+    animation: none;
+    top: 50%;
+  }
+}
+
 /* Shared surfaces still referenced by older markup */
 .card, .material-card, .feat-item, .stat-card {
   background: var(--color-surface);
