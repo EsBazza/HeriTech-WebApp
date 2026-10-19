@@ -2,14 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, CheckCircle2, Lock, Truck, ExternalLink, MessageSquare, AlertCircle } from "lucide-react";
+import { X, CheckCircle2, Lock, Truck, MessageSquare, AlertCircle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart, type CartProduct } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { apiJson } from "@/lib/api";
-import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
 import { EscrowBar } from "@/components/EscrowBar";
-import { AddToWalletButton } from "@/components/wallet/AddToWalletButton";
+import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { Button, Input, cn, buttonClass } from "@/components/ui";
 
 interface OrderResult {
@@ -99,8 +98,6 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
     setProcessing(false);
   };
 
-  const serial = orderResult?.passes[0]?.serial ?? "";
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
   const steps = [translateSync("Delivery & payment"), translateSync("Your pass")];
 
   return (
@@ -214,19 +211,32 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   {translateSync("You diverted")} <strong className="text-ink">{formatNumber(totalKg)} kg</strong>{" "}
                   {translateSync("of festival material and supported")} <strong className="text-ink">{translateSync(checkoutItems[0]?.artisanName || "the artisan")}</strong>.{" "}
                   {orderResult.passes.length > 1
-                    ? `${orderResult.passes.length} ${translateSync("Verified Impact Passes are ready, one per piece. The first is shown below; all are on your profile.")}`
-                    : translateSync("Your Verified Impact Pass is ready.")}
+                    ? `${orderResult.passes.length} ${translateSync("Verified Impact Passes are ready, one per piece. They are saved to your profile too.")}`
+                    : translateSync("Your Verified Impact Pass is ready. It is saved to your profile too.")}
                 </p>
               </div>
 
-              <div className="flex flex-col items-center gap-4 rounded-md bg-paper border border-line py-6">
-                <QRCodeViewer
-                  value={`${origin}/verify/${serial}`}
-                  size={148}
-                  label={`${translateSync("Pass")} ${serial}`}
-                  sublabel={translateSync("Scan with a phone camera to view the full origin record")}
-                />
-                <AddToWalletButton serial={serial} />
+              {/* One pass per piece */}
+              <div className="space-y-6">
+                {orderResult.passes.map((pass) => {
+                  const order = orderResult.orders.find((o) => o.id === pass.orderId);
+                  const item = checkoutItems.find((i) => i.id === order?.productId);
+                  const origin = [item?.festivalName, item?.artisanCountry].filter(Boolean).join(", ") || null;
+                  return (
+                    <ImpactPassCard
+                      key={pass.serial}
+                      className="pass-reveal"
+                      serial={pass.serial}
+                      verifyUrl={pass.qrPayload}
+                      title={item?.title ?? translateSync("Your piece")}
+                      maker={item?.artisanWorkshop || item?.artisanName || null}
+                      origin={origin}
+                      kgDiverted={item?.kgDiverted ?? null}
+                      issuedAt={new Date().toISOString()}
+                      onNavigate={onClose}
+                    />
+                  );
+                })}
               </div>
 
               <div className="flex items-center justify-between gap-3 rounded-md border border-line px-4 py-3 text-sm">
@@ -246,15 +256,9 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 </button>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-3">
-                <Link href={`/verify/${serial}`} onClick={onClose} className={buttonClass("primary", "lg")}>
-                  {translateSync("View public record")}
-                  <ExternalLink className="w-4 h-4" />
-                </Link>
-                <Link href="/profile" onClick={onClose} className={buttonClass("secondary", "lg")}>
-                  {translateSync("Go to my passes")}
-                </Link>
-              </div>
+              <Link href="/profile#passes" onClick={onClose} className={buttonClass("primary", "lg", "w-full")}>
+                {translateSync("Go to my passes")}
+              </Link>
             </div>
           )}
         </div>

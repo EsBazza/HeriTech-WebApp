@@ -644,6 +644,11 @@
   }
 }
 
+/* A freshly issued pass slides up into view */
+.pass-reveal {
+  animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Shared surfaces still referenced by older markup */
 .card, .material-card, .feat-item, .stat-card {
   background: var(--color-surface);

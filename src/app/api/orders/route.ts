@@ -8,7 +8,7 @@ import { db, getMany } from "@/lib/server/firestore";
 import { badRequest, conflict, fields, ok, parseBody, route } from "@/lib/server/http";
 import { passSerial } from "@/lib/server/ids";
 import { addSystemMessage } from "@/lib/server/messages";
-import { newestFirst } from "@/lib/server/views";
+import { newestFirst, withProductRelations } from "@/lib/server/views";
 
 const schema = z.object({
   items: z
@@ -130,14 +130,25 @@ export const GET = route(async (request: Request) => {
     getMany(db.products(), orders.map((o) => o.productId)),
   ]);
   const passByOrder = new Map(passSnap.docs.map((d) => [d.data().orderId, d.data()]));
+  // Maker and origin, so the buyer's pass cards tell the whole story
+  const views = new Map((await withProductRelations([...products.values()])).map((v) => [v.id, v]));
 
   return ok(
     orders.map((order) => {
       const product = products.get(order.productId);
+      const view = views.get(order.productId);
+      const origin = [view?.sourceBatch?.agreement?.festival, view?.sourceBatch?.agreement?.country].filter(Boolean).join(", ") || null;
       return {
         ...order,
         product: product
-          ? { id: product.id, title: product.title, image: product.images[0] ?? null, kgDiverted: product.kgDiverted }
+          ? {
+              id: product.id,
+              title: product.title,
+              image: product.images[0] ?? null,
+              kgDiverted: product.kgDiverted,
+              maker: view?.artisan?.workshopName || view?.artisan?.fullName || null,
+              origin,
+            }
           : null,
         pass: passByOrder.get(order.id) ?? null,
       };

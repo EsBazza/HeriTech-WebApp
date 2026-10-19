@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { apiJson } from "@/lib/api";
-import { AddToWalletLink } from "@/components/wallet/AddToWalletButton";
+import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import {
   User,
   CheckCircle2,
@@ -26,6 +26,16 @@ export default function ProfilePage() {
 
   // Active Tab for Sidebar/Tablet/Mobile (6 views or direct scrolling)
   const [activeTab, setActiveTab] = useState<string>("personal");
+
+  // "Go to my passes" links to /profile#passes: open the passes tab directly
+  useEffect(() => {
+    const openFromHash = () => {
+      if (window.location.hash === "#passes") setActiveTab("impact");
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, []);
 
   // Profile Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -165,7 +175,7 @@ export default function ProfilePage() {
       ? [{ id: "cooperative", label: "Cooperative record", icon: Layers }]
       : []),
     { id: "activity", label: "Activity summary", icon: Sliders },
-    { id: "impact", label: "Impact record", icon: FileText },
+    { id: "impact", label: "My Impact Passes", icon: FileText },
     { id: "settings", label: "Account settings", icon: Globe },
   ];
 
@@ -431,7 +441,7 @@ export default function ProfilePage() {
               <section className="bg-[var(--cream)] border border-[var(--border-light)] rounded-sm p-6 sm:p-8 space-y-6">
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--border-light)]">
                   <h2 className="font-display text-xl font-medium text-ink">
-                    Impact record
+                    {translateSync("Your Impact Passes")}
                   </h2>
                   <span className="text-xs font-mono-data text-[var(--warm-gray)]">
                     {translateSync("Your purchases")}
@@ -445,40 +455,37 @@ export default function ProfilePage() {
                     {translateSync("No purchases yet. Each piece you buy comes with a Verified Impact Pass, listed here.")}
                   </p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-[var(--border-mid)] text-xs text-[var(--warm-gray)]">
-                          <th className="pb-3 font-semibold">{translateSync("Date")}</th>
-                          <th className="pb-3 font-semibold">{translateSync("Piece")}</th>
-                          <th className="pb-3 font-semibold">{translateSync("Quantity")}</th>
-                          <th className="pb-3 font-semibold">{translateSync("Paid")}</th>
-                          <th className="pb-3 font-semibold text-right">{translateSync("Impact pass")}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[var(--border-light)] text-ink">
-                        {orders.map((order) => (
-                          <tr key={order.id} className="hover:bg-paper-2/50 transition-colors">
-                            <td className="py-3.5 font-mono-data text-[var(--warm-gray)]">{new Date(order.createdAt).toLocaleDateString()}</td>
-                            <td className="py-3.5 font-medium">{order.product?.title ?? translateSync("Removed listing")}</td>
-                            <td className="py-3.5 font-mono-data">{order.quantity}</td>
-                            <td className="py-3.5 font-display text-sm font-semibold text-pine-500">{formatCurrency(order.amountPaid)}</td>
-                            <td className="py-3.5 text-right">
-                              {order.pass ? (
-                                <span className="inline-flex flex-col items-end gap-1">
-                                  <Link href={`/verify/${order.pass.serial}`} className="font-mono-data text-pine-700 underline">
-                                    {order.pass.serial}
-                                  </Link>
-                                  <AddToWalletLink serial={order.pass.serial} />
-                                </span>
-                              ) : (
-                                "—"
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div id="passes" className="grid gap-8 md:grid-cols-2 scroll-mt-24">
+                    {orders.map((order) => (
+                      <div key={order.id} className="space-y-2">
+                        <p className="flex flex-wrap items-center gap-x-2 text-xs text-ink-3">
+                          <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                          <span aria-hidden>·</span>
+                          <span>
+                            {order.quantity} × {formatCurrency(order.unitPrice ?? order.amountPaid / (order.quantity || 1))}
+                          </span>
+                          <span aria-hidden>·</span>
+                          <span className="font-medium text-ink-2">
+                            {translateSync("Paid")} {formatCurrency(order.amountPaid)}
+                          </span>
+                        </p>
+                        {order.pass ? (
+                          <ImpactPassCard
+                            serial={order.pass.serial}
+                            verifyUrl={order.pass.qrPayload || `${typeof window !== "undefined" ? window.location.origin : ""}/verify/${order.pass.serial}`}
+                            title={order.product?.title ?? translateSync("Removed listing")}
+                            maker={order.product?.maker ?? null}
+                            origin={order.product?.origin ?? null}
+                            kgDiverted={order.product ? order.product.kgDiverted * (order.quantity || 1) : null}
+                            issuedAt={order.pass.issuedAt}
+                          />
+                        ) : (
+                          <p className="rounded-md border border-dashed border-line-strong px-4 py-6 text-sm text-ink-3">
+                            {translateSync("The pass for this order is still being issued.")}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </section>
