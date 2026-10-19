@@ -321,7 +321,7 @@ function AdminDashboardPageContent() {
             <p className="font-display text-[34px] leading-none font-semibold text-ink tabular">
               {formatCurrency(stats?.kpis?.artisanPayoutTotal ?? 0)}
             </p>
-            <TranslatableText className="text-xs text-pine-500 font-medium">To Certified Maker Cooperatives</TranslatableText>
+            <TranslatableText className="text-xs text-pine-500 font-medium">To artisans and cooperatives</TranslatableText>
           </div>
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">

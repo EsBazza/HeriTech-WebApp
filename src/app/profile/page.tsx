@@ -232,7 +232,7 @@ export default function ProfilePage() {
                 </span>
                 {user.artisanVerified && (
                   <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-pine-500/10 text-pine-500 border border-pine-300/25">
-                    Certified maker
+                    Verified artisan
                   </span>
                 )}
               </div>
