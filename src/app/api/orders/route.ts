@@ -3,11 +3,13 @@ import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import type { OrderDoc, WalletPassDoc } from "@/lib/firebase/types";
 import { calculateEscrowSplit } from "@/lib/escrow";
+import { EMPTY_LOYALTY, LOYALTY, recordPurchase, type LoyaltyState } from "@/lib/loyalty";
 import { requireUser } from "@/lib/server/auth";
 import { db, getMany } from "@/lib/server/firestore";
 import { badRequest, conflict, fields, ok, parseBody, route } from "@/lib/server/http";
 import { passSerial } from "@/lib/server/ids";
 import { addSystemMessage } from "@/lib/server/messages";
+import { refreshLoyaltyCard } from "@/lib/server/wallet";
 import { newestFirst, withProductRelations } from "@/lib/server/views";
 
 const schema = z.object({
@@ -32,7 +34,8 @@ function appUrl(request: Request): string {
 /**
  * POST /api/orders — checkout. Payment is simulated: no money moves.
  * Stock is checked and decremented atomically, and each line gets its own
- * order, impact pass and artisan notification.
+ * order, impact pass and artisan notification. A waiting HeriTech Circle reward
+ * takes 5% off every line, paid for from the charity & maintenance share.
  */
 export const POST = route(async (request: Request) => {
   const buyer = await requireUser(request);
@@ -51,6 +54,9 @@ export const POST = route(async (request: Request) => {
     });
 
     const batchSnaps = await tx.getAll(...products.map((p) => db.batches().doc(p.sourceBatchId)));
+    const loyaltyRef = db.loyalty().doc(buyer.id);
+    const loyaltyBefore: LoyaltyState = (await tx.get(loyaltyRef)).data() ?? EMPTY_LOYALTY;
+    const redeemReward = loyaltyBefore.rewardAvailable;
     const createdAt = new Date().toISOString();
     const orders: OrderDoc[] = [];
     const passes: WalletPassDoc[] = [];
@@ -60,7 +66,7 @@ export const POST = route(async (request: Request) => {
       const batch = batchSnaps[i].data();
       if (!batch) throw conflict(`The source batch for "${product.title}" is missing.`);
 
-      const split = calculateEscrowSplit(product.price * quantity);
+      const split = calculateEscrowSplit(product.price * quantity, { discountPercent: redeemReward ? LOYALTY.discountPercent : 0 });
       const orderRef = db.orders().doc();
       const order: OrderDoc = {
         id: orderRef.id,
@@ -74,6 +80,8 @@ export const POST = route(async (request: Request) => {
         artisanPayout: split.artisanPayout,
         lguShare: split.lguShare,
         charityMaintenanceShare: split.charityMaintenanceShare,
+        discount: split.discount,
+        loyaltyRewardApplied: redeemReward,
         paymentMode: "simulated",
         shippingAddress,
         status: "completed",
@@ -105,17 +113,44 @@ export const POST = route(async (request: Request) => {
       passes.push(pass);
     });
 
-    return { orders, passes };
+    const loyalty = recordPurchase(loyaltyBefore, {
+      passes: passes.length,
+      spend: orders.reduce((sum, o) => sum + o.amountPaid, 0),
+      redeemed: redeemReward,
+    });
+    const { passesTowardReward, spendTowardReward, rewardAvailable, rewardsEarned, rewardsRedeemed } = loyalty;
+    tx.set(loyaltyRef, {
+      id: buyer.id,
+      passesTowardReward,
+      spendTowardReward,
+      rewardAvailable,
+      rewardsEarned,
+      rewardsRedeemed,
+      updatedAt: createdAt,
+    });
+
+    return { orders, passes, loyalty, rewardUnlocked: loyalty.rewardsEarned > loyaltyBefore.rewardsEarned };
   });
+
+  await refreshLoyaltyCard({ userId: buyer.id, name: buyer.fullName, state: result.loyalty });
+  const discount = Math.round(result.orders.reduce((sum, o) => sum + (o.discount ?? 0), 0) * 100) / 100;
+  const notes = [
+    "Order placed. This was a demo payment, so no money was charged.",
+    discount > 0 ? `Your ${LOYALTY.discountPercent}% HeriTech Circle reward saved you $${discount.toFixed(2)}.` : "",
+    result.rewardUnlocked ? `You've unlocked ${LOYALTY.discountPercent}% off your next order.` : "",
+  ];
 
   return ok(
     {
       orders: result.orders,
       passes: result.passes.map((p) => ({ serial: p.serial, qrPayload: p.qrPayload, orderId: p.orderId })),
       totalPaid: Math.round(result.orders.reduce((sum, o) => sum + o.amountPaid, 0) * 100) / 100,
+      discount,
+      loyalty: result.loyalty,
+      rewardUnlocked: result.rewardUnlocked,
       paymentMode: "simulated" as const,
     },
-    { status: 201, message: "Order placed. This was a demo payment, so no money was charged." }
+    { status: 201, message: notes.filter(Boolean).join(" ") }
   );
 });
 

@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, CheckCircle2, Lock, Truck, MessageSquare, AlertCircle } from "lucide-react";
+import { X, CheckCircle2, Lock, Truck, MessageSquare, AlertCircle, Gift } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart, type CartProduct } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { apiJson } from "@/lib/api";
+import { calculateEscrowSplit } from "@/lib/escrow";
+import { LOYALTY, progressSummary, type LoyaltyState } from "@/lib/loyalty";
 import { EscrowBar } from "@/components/EscrowBar";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { Button, Input, cn, buttonClass } from "@/components/ui";
@@ -15,6 +17,9 @@ interface OrderResult {
   orders: { id: string; productId: string; amountPaid: number }[];
   passes: { serial: string; qrPayload: string; orderId: string }[];
   totalPaid: number;
+  discount: number;
+  loyalty: LoyaltyState;
+  rewardUnlocked: boolean;
   paymentMode: "simulated";
 }
 
@@ -37,6 +42,16 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   const totalKg = checkoutItems.reduce((acc, item) => acc + (item.kgDiverted || 0), 0);
 
   const [step, setStep] = useState<1 | 2>(1);
+
+  // A waiting HeriTech Circle reward; the server applies it, this only previews it.
+  const [rewardAvailable, setRewardAvailable] = useState(false);
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    apiJson<LoyaltyState>("/api/loyalty").then((result) => setRewardAvailable(Boolean(result.success && result.data?.rewardAvailable)));
+  }, [isOpen, user]);
+  const discountPercent = rewardAvailable ? LOYALTY.discountPercent : 0;
+  const discount = checkoutItems.reduce((acc, item) => acc + calculateEscrowSplit(item.price, { discountPercent }).discount, 0);
+  const amountDue = Math.round((totalPrice - discount) * 100) / 100;
 
   // Delivery details, pre-filled from the buyer's profile where possible
   const [fullName, setFullName] = useState(user?.fullName ?? "");
@@ -156,6 +171,15 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   </span>
                   <span className="tabular font-semibold text-ink">{formatCurrency(totalPrice)}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm bg-pine-50">
+                    <span className="flex items-center gap-2 text-pine-700">
+                      <Gift className="w-4 h-4" />
+                      {translateSync("HeriTech Circle reward")} · {LOYALTY.discountPercent}%
+                    </span>
+                    <span className="tabular font-semibold text-pine-700">−{formatCurrency(discount)}</span>
+                  </div>
+                )}
               </div>
 
               <fieldset className="space-y-4">
@@ -175,9 +199,14 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
               <section className="rounded-md border border-line p-4 space-y-4">
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-sm font-semibold text-ink font-sans">{translateSync("Where your money goes")}</h3>
-                  <span className="tabular text-lg font-semibold text-ink">{formatCurrency(totalPrice)}</span>
+                  <span className="tabular text-lg font-semibold text-ink">{formatCurrency(amountDue)}</span>
                 </div>
                 <EscrowBar amount={totalPrice} ngoName={checkoutItems[0]?.ngoFundName} compact />
+                {discount > 0 && (
+                  <p className="text-xs text-ink-3">
+                    {translateSync("Your reward comes out of HeriTech's charity & app upkeep share. The artisan and LGU are paid in full.")}
+                  </p>
+                )}
               </section>
 
               {orderError && (
@@ -196,7 +225,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 {processing
                   ? translateSync("Placing order and issuing pass…")
                   : user
-                  ? `${translateSync("Place demo order")} · ${formatCurrency(totalPrice)}`
+                  ? `${translateSync("Place demo order")} · ${formatCurrency(amountDue)}`
                   : translateSync("Sign in with Google to order")}
               </Button>
             </form>
@@ -213,6 +242,20 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   {orderResult.passes.length > 1
                     ? `${orderResult.passes.length} ${translateSync("Verified Impact Passes are ready, one per piece. They are saved to your profile too.")}`
                     : translateSync("Your Verified Impact Pass is ready. It is saved to your profile too.")}
+                </p>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-pine-200 bg-pine-50 px-4 py-3 text-sm text-pine-800">
+                <Gift className="w-4 h-4 mt-0.5 shrink-0" />
+                <p>
+                  {orderResult.discount > 0 && (
+                    <>
+                      {translateSync("Your HeriTech Circle reward saved you")} <strong>{formatCurrency(orderResult.discount)}</strong>.{" "}
+                    </>
+                  )}
+                  {orderResult.rewardUnlocked
+                    ? translateSync(`You've unlocked ${LOYALTY.discountPercent}% off your next order.`)
+                    : translateSync(progressSummary(orderResult.loyalty)) + "."}
                 </p>
               </div>
 

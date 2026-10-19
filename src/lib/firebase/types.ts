@@ -1,3 +1,5 @@
+import type { LoyaltyState } from "@/lib/loyalty";
+
 /**
  * Firestore document shapes, shared by the API routes and the client.
  * Relations are stored as ids only; API routes join the related documents
@@ -130,11 +132,20 @@ export interface OrderDoc {
   artisanPayout: number;
   lguShare: number;
   charityMaintenanceShare: number;
+  /** Loyalty discount taken off the list price, paid for from the charity & maintenance share. */
+  discount?: number;
+  loyaltyRewardApplied?: boolean;
   /** No payment provider is connected yet; every order is a simulated payment. */
   paymentMode: "simulated";
   shippingAddress: ShippingAddress | null;
   status: OrderStatus;
   createdAt: string;
+}
+
+/** `loyalty/{uid}`. HeriTech Circle progress; the rules live in src/lib/loyalty.ts. */
+export interface LoyaltyDoc extends LoyaltyState {
+  id: string;
+  updatedAt: string;
 }
 
 /** `wallet_passes/{serial}`. The public impact record for one order. */

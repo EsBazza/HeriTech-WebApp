@@ -7,6 +7,7 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { apiJson } from "@/lib/api";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
+import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
 import {
   User,
   CheckCircle2,
@@ -470,6 +471,8 @@ export default function ProfilePage() {
                     {translateSync("Your purchases")}
                   </span>
                 </div>
+
+                <LoyaltyCard />
 
                 {loadingData ? (
                   <p className="text-xs text-[var(--warm-gray)]">{translateSync("Loading…")}</p>

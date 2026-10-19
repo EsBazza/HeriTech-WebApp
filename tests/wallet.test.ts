@@ -1,6 +1,6 @@
 import { generateKeyPairSync, createVerify } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { impactPassSaveUrl, walletConfigured } from "@/lib/server/wallet";
+import { impactPassSaveUrl, loyaltyCardSaveUrl, walletConfigured } from "@/lib/server/wallet";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 
@@ -78,6 +78,17 @@ describe("Google Wallet save links", () => {
     expect(claims.origins).toBeUndefined();
     expect(claims.payload.genericObjects[0].logo).toBeUndefined();
     expect(claims.payload.genericObjects[0].heroImage).toBeUndefined();
+  });
+
+  it("builds a HeriTech Circle loyalty card with the member's progress", () => {
+    const state = { passesTowardReward: 3, spendTowardReward: 62.5, rewardAvailable: false, rewardsEarned: 0, rewardsRedeemed: 0 };
+    const { claims } = decode(loyaltyCardSaveUrl({ userId: "usr_buy_01", name: "Test Buyer", state }, "https://heritech.example"));
+    const card = claims.payload.loyaltyObjects[0];
+    expect(claims.payload.loyaltyClasses[0]).toMatchObject({ id: "3388000000022114455.HeriTechCircle", programName: "HeriTech Circle" });
+    expect(card).toMatchObject({ id: "3388000000022114455.circle_usr_buy_01", accountName: "Test Buyer" });
+    expect(card.loyaltyPoints.balance.string).toBe("3 / 5");
+    expect(card.secondaryLoyaltyPoints.balance.money).toEqual({ micros: 62_500_000, currencyCode: "USD" });
+    expect(card.textModulesData[0].body).toBe("2 more passes or $37.50 more until 5% off");
   });
 
   it("reports when Wallet is not configured", () => {
