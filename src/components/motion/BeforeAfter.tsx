@@ -70,13 +70,13 @@ export function BeforeAfter({ before, after, label, className, children }: Befor
 
       {/* Side labels */}
       <span
-        className="pointer-events-none absolute left-4 top-4 rounded-full bg-pine-900/75 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition-opacity duration-300"
+        className="pointer-events-none absolute left-4 top-4 rounded-full bg-pine-900/75 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition-opacity duration-300 max-w-[calc(50%-1.25rem)] truncate"
         style={{ opacity: pos > 18 ? 1 : 0 }}
       >
         {before.label}
       </span>
       <span
-        className="pointer-events-none absolute right-4 top-4 rounded-full bg-surface/95 px-3 py-1.5 text-xs font-medium text-ink shadow-card transition-opacity duration-300"
+        className="pointer-events-none absolute right-4 top-4 rounded-full bg-surface/95 px-3 py-1.5 text-xs font-medium text-ink shadow-card transition-opacity duration-300 max-w-[calc(50%-1.25rem)] truncate"
         style={{ opacity: pos < 82 ? 1 : 0 }}
       >
         {after.label}

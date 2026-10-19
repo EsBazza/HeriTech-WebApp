@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" width="1600" height="700" role="img" aria-label="How HeriTech works: 1 collect and classify, 2 reserve and hand over, 3 craft and list, 4 buy and verify, all written to one public ledger">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3c6b52"/>
+    </marker>
+    <marker id="arrowL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#c2602f"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#14281e" flood-opacity="0.10"/>
+    </filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f4ee"/>
+      <stop offset="1" stop-color="#efe9dd"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="700" rx="28" fill="url(#bg)"/>
+
+  <!-- Heading -->
+  <text x="70" y="78" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="2.5" fill="#3c6b52">THE HERITECH LOOP</text>
+  <text x="70" y="124" font-family="Georgia, 'Times New Roman', serif" font-size="40" fill="#1b1f1c">From festival leftover to a piece with a public record</text>
+
+  <!-- Card template positions: x = 70, 445, 820, 1195 ; y = 170 ; w = 335 ; h = 330 -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+
+    <!-- 1 Collect & classify -->
+    <g filter="url(#shadow)"><rect x="70" y="170" width="335" height="330" rx="20" fill="#ffffff" stroke="#e4ded3"/></g>
+    <circle cx="112" cy="214" r="22" fill="#e3ede6"/>
+    <!-- camera icon -->
+    <rect x="99" y="205" width="26" height="19" rx="4" fill="none" stroke="#1f3a2b" stroke-width="2.4"/>
+    <circle cx="112" cy="214.5" r="5" fill="none" stroke="#1f3a2b" stroke-width="2.4"/>
+    <path d="M106 205 l3 -4 h6 l3 4" fill="none" stroke="#1f3a2b" stroke-width="2.4" stroke-linejoin="round"/>
+    <text x="378" y="222" text-anchor="end" font-family="Georgia, serif" font-size="30" fill="#d3cbbd">01</text>
+    <rect x="96" y="256" width="104" height="26" rx="13" fill="#f1f6f2"/>
+    <text x="148" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#2b4d3a">LGU officer</text>
+    <text x="96" y="318" font-family="Georgia, serif" font-size="27" fill="#1b1f1c">Collect &amp; classify</text>
+    <text font-size="16" fill="#3f4742"><tspan x="96" y="352">Leftover material is photographed at</tspan><tspan x="96" y="375">the collection point. Gemini names the</tspan><tspan x="96" y="398">material and flags contamination.</tspan></text>
+    <line x1="96" y1="432" x2="379" y2="432" stroke="#e4ded3"/>
+    <rect x="96" y="448" width="74" height="28" rx="14" fill="#1f3a2b"/><text x="133" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Gemini</text>
+    <rect x="178" y="448" width="128" height="28" rx="14" fill="#1f3a2b"/><text x="242" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Maps Platform</text>
+
+    <!-- 2 Reserve & hand over -->
+    <g filter="url(#shadow)"><rect x="445" y="170" width="335" height="330" rx="20" fill="#ffffff" stroke="#e4ded3"/></g>
+    <circle cx="487" cy="214" r="22" fill="#e3ede6"/>
+    <!-- QR icon -->
+    <rect x="475" y="202" width="10" height="10" rx="1.5" fill="none" stroke="#1f3a2b" stroke-width="2.4"/>
+    <rect x="489" y="202" width="10" height="10" rx="1.5" fill="none" stroke="#1f3a2b" stroke-width="2.4"/>
+    <rect x="475" y="216" width="10" height="10" rx="1.5" fill="none" stroke="#1f3a2b" stroke-width="2.4"/>
+    <rect x="491" y="218" width="3.5" height="3.5" fill="#1f3a2b"/><rect x="496" y="223" width="3.5" height="3.5" fill="#1f3a2b"/>
+    <text x="753" y="222" text-anchor="end" font-family="Georgia, serif" font-size="30" fill="#d3cbbd">02</text>
+    <rect x="471" y="256" width="148" height="26" rx="13" fill="#f1f6f2"/>
+    <text x="545" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#2b4d3a">Artisan + LGU</text>
+    <text x="471" y="318" font-family="Georgia, serif" font-size="27" fill="#1b1f1c">Reserve &amp; hand over</text>
+    <text font-size="16" fill="#3f4742"><tspan x="471" y="352">A verified artisan reserves the batch.</tspan><tspan x="471" y="375">A signed, 30-minute QR code releases</tspan><tspan x="471" y="398">custody on site, logged on the ledger.</tspan></text>
+    <line x1="471" y1="432" x2="754" y2="432" stroke="#e4ded3"/>
+    <rect x="471" y="448" width="88" height="28" rx="14" fill="#1f3a2b"/><text x="515" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Firebase</text>
+    <rect x="567" y="448" width="120" height="28" rx="14" fill="#1f3a2b"/><text x="627" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Signed QR</text>
+
+    <!-- 3 Craft & list -->
+    <g filter="url(#shadow)"><rect x="820" y="170" width="335" height="330" rx="20" fill="#ffffff" stroke="#e4ded3"/></g>
+    <circle cx="862" cy="214" r="22" fill="#fbe4d6"/>
+    <!-- lantern icon -->
+    <line x1="862" y1="198" x2="862" y2="203" stroke="#a64f24" stroke-width="2.4"/>
+    <ellipse cx="862" cy="214" rx="9" ry="11" fill="none" stroke="#a64f24" stroke-width="2.4"/>
+    <line x1="862" y1="203" x2="862" y2="225" stroke="#a64f24" stroke-width="1.8"/>
+    <line x1="858" y1="228" x2="866" y2="228" stroke="#a64f24" stroke-width="2.4"/>
+    <text x="1128" y="222" text-anchor="end" font-family="Georgia, serif" font-size="30" fill="#d3cbbd">03</text>
+    <rect x="846" y="256" width="84" height="26" rx="13" fill="#f1f6f2"/>
+    <text x="888" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#2b4d3a">Artisan</text>
+    <text x="846" y="318" font-family="Georgia, serif" font-size="27" fill="#1b1f1c">Craft &amp; list</text>
+    <text font-size="16" fill="#3f4742"><tspan x="846" y="352">Each finished piece is listed, linked to</tspan><tspan x="846" y="375">the batch it came from. Gemini drafts</tspan><tspan x="846" y="398">its story for the artisan to review.</tspan></text>
+    <line x1="846" y1="432" x2="1129" y2="432" stroke="#e4ded3"/>
+    <rect x="846" y="448" width="74" height="28" rx="14" fill="#1f3a2b"/><text x="883" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Gemini</text>
+    <rect x="928" y="448" width="150" height="28" rx="14" fill="#1f3a2b"/><text x="1003" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Cloud Translation</text>
+
+    <!-- 4 Buy & verify -->
+    <g filter="url(#shadow)"><rect x="1195" y="170" width="335" height="330" rx="20" fill="#1f3a2b"/></g>
+    <circle cx="1237" cy="214" r="22" fill="#2b4d3a"/>
+    <!-- shield check icon -->
+    <path d="M1237 200 l11 4 v8 c0 8 -5 13 -11 16 c-6 -3 -11 -8 -11 -16 v-8 z" fill="none" stroke="#c4d8cb" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M1232 214 l4 4 l7 -8" fill="none" stroke="#c4d8cb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1503" y="222" text-anchor="end" font-family="Georgia, serif" font-size="30" fill="#3c6b52">04</text>
+    <rect x="1221" y="256" width="76" height="26" rx="13" fill="#2b4d3a"/>
+    <text x="1259" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#e3ede6">Buyer</text>
+    <text x="1221" y="318" font-family="Georgia, serif" font-size="27" fill="#ffffff">Buy &amp; verify</text>
+    <text font-size="16" fill="#d7e3db"><tspan x="1221" y="352">The 70 / 25 / 5 split is shown before</tspan><tspan x="1221" y="375">paying. A Verified Impact Pass goes</tspan><tspan x="1221" y="398">to Google Wallet, scannable by anyone.</tspan></text>
+    <line x1="1221" y1="432" x2="1504" y2="432" stroke="#2b4d3a"/>
+    <rect x="1221" y="448" width="132" height="28" rx="14" fill="#c2602f"/><text x="1287" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Google Wallet</text>
+  </g>
+
+  <!-- Forward arrows between cards -->
+  <line x1="408" y1="335" x2="440" y2="335" stroke="#3c6b52" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="783" y1="335" x2="815" y2="335" stroke="#3c6b52" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1158" y1="335" x2="1190" y2="335" stroke="#3c6b52" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- The loop closes: every step lands on one public record -->
+  <path d="M1362 505 C 1362 600, 1300 610, 1180 610 L 420 610 C 300 610, 238 600, 238 505" fill="none" stroke="#c2602f" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" marker-end="url(#arrowL)"/>
+  <rect x="560" y="590" width="480" height="42" rx="21" fill="#ffffff" stroke="#e4ded3"/>
+  <text x="800" y="617" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1b1f1c">Every step is written to one public ledger</text>
+  <text x="800" y="668" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" fill="#5f6661">Scan any pass to see where the material came from, who made it and where the money went.</text>
+</svg>
