@@ -7,6 +7,7 @@ const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 20
 const pass = {
   serial: "HT-7KQ2-M9XD",
   verifyUrl: "https://heritech.example/verify/HT-7KQ2-M9XD",
+  ownerName: "Test Buyer",
   productTitle: "Lanna desk lamp",
   makerName: "Lanna Bamboo Guild",
   festival: "Yi Peng",
@@ -14,6 +15,8 @@ const pass = {
   kgDiverted: 1.4,
   amountPaid: 65,
   issuedAt: "2026-10-20T10:00:00.000Z",
+  backgroundColor: "#3a2a1c",
+  hasHeroImage: true,
 };
 
 function decode(url: string) {
@@ -53,10 +56,28 @@ describe("Google Wallet save links", () => {
     expect(claims.payload.genericObjects[0].classId).toBe("3388000000022114455.HeriTech2026");
   });
 
+  it("personalises the pass with the owner, the product colour and a blurred hero banner", () => {
+    const { claims } = decode(impactPassSaveUrl(pass, "https://heritech.example"));
+    const object = claims.payload.genericObjects[0];
+    expect(object.textModulesData[0]).toEqual({ id: "owner", header: "Owned by", body: "Test Buyer" });
+    expect(object.hexBackgroundColor).toBe("#3a2a1c");
+    expect(object.heroImage.sourceUri.uri).toBe("https://heritech.example/api/wallet/hero/HT-7KQ2-M9XD");
+    expect(claims.payload.genericClasses[0].classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos).toHaveLength(2);
+  });
+
+  it("falls back to HeriTech green and no banner when the product has no photo", () => {
+    const { claims } = decode(impactPassSaveUrl({ ...pass, ownerName: null, backgroundColor: null, hasHeroImage: false }, "https://heritech.example"));
+    const object = claims.payload.genericObjects[0];
+    expect(object.hexBackgroundColor).toBe("#1f3a2b");
+    expect(object.heroImage).toBeUndefined();
+    expect(object.textModulesData.some((m: { id: string }) => m.id === "owner")).toBe(false);
+  });
+
   it("leaves out the logo and origins when not served over public HTTPS", () => {
     const { claims } = decode(impactPassSaveUrl(pass, "http://localhost:3000"));
     expect(claims.origins).toBeUndefined();
     expect(claims.payload.genericObjects[0].logo).toBeUndefined();
+    expect(claims.payload.genericObjects[0].heroImage).toBeUndefined();
   });
 
   it("reports when Wallet is not configured", () => {

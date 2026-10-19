@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
 import { forbidden, notFound, ok, route } from "@/lib/server/http";
 import { withProductRelations } from "@/lib/server/views";
+import { loadProductImage, passBackground } from "@/lib/server/passArt";
 import { impactPassSaveUrl } from "@/lib/server/wallet";
 
 function appUrl(request: Request): string {
@@ -22,15 +23,21 @@ export const GET = route(async (request: Request, { params }: { params: Promise<
   if (!order) throw notFound("The order behind this pass could not be found.");
   if (order.buyerId !== user.id && user.role !== "admin") throw forbidden("Only the buyer can add this pass to their wallet.");
 
-  const product = (await db.products().doc(order.productId).get()).data();
+  const [productSnap, buyerSnap] = await Promise.all([db.products().doc(order.productId).get(), db.users().doc(order.buyerId).get()]);
+  const product = productSnap.data();
   if (!product) throw notFound("The piece behind this pass could not be found.");
-  const [view] = await withProductRelations([product]);
   const base = appUrl(request);
+  const [[view], image] = await Promise.all([
+    withProductRelations([product]),
+    product.images[0] ? loadProductImage(product.images[0], base) : Promise.resolve(null),
+  ]);
+  const backgroundColor = image ? await passBackground(image).catch(() => null) : null;
 
   const saveUrl = impactPassSaveUrl(
     {
       serial: pass.serial,
       verifyUrl: `${base}/verify/${pass.serial}`,
+      ownerName: buyerSnap.data()?.fullName || null,
       productTitle: product.title,
       makerName: view.artisan?.workshopName || view.artisan?.fullName || null,
       festival: view.sourceBatch?.agreement?.festival ?? null,
@@ -38,6 +45,8 @@ export const GET = route(async (request: Request, { params }: { params: Promise<
       kgDiverted: product.kgDiverted * order.quantity,
       amountPaid: order.amountPaid,
       issuedAt: pass.issuedAt,
+      backgroundColor,
+      hasHeroImage: Boolean(image),
     },
     base
   );

@@ -49,6 +49,8 @@ const text = (value: string) => ({ defaultValue: { language: "en", value } });
 export interface ImpactPassDetails {
   serial: string;
   verifyUrl: string;
+  /** The buyer's name. Shown only on their own Wallet pass, never on the public record. */
+  ownerName: string | null;
   productTitle: string;
   makerName: string | null;
   festival: string | null;
@@ -56,7 +58,23 @@ export interface ImpactPassDetails {
   kgDiverted: number;
   amountPaid: number;
   issuedAt: string;
+  /** Pass colour taken from the product photo; falls back to HeriTech green. */
+  backgroundColor: string | null;
+  /** Whether the product has a photo the blurred hero banner can be made from. */
+  hasHeroImage: boolean;
 }
+
+const field = (id: string) => ({ firstValue: { fields: [{ fieldPath: `object.textModulesData['${id}']` }] } });
+
+/** Front-of-card layout: owner and kg diverted side by side, origin below. */
+const IMPACT_CLASS_TEMPLATE = {
+  cardTemplateOverride: {
+    cardRowTemplateInfos: [
+      { twoItems: { startItem: field("owner"), endItem: field("diverted") } },
+      { oneItem: { item: field("origin") } },
+    ],
+  },
+};
 
 /** Builds the Save to Google Wallet URL for one impact pass. */
 export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): string {
@@ -75,13 +93,17 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
     id: objectId,
     classId,
     state: "ACTIVE",
-    hexBackgroundColor: "#1f3a2b",
+    hexBackgroundColor: pass.backgroundColor ?? "#1f3a2b",
     cardTitle: text("HeriTech Impact Pass"),
     header: text(pass.productTitle),
     subheader: text(pass.makerName ? `Made by ${pass.makerName}` : "Verified upcycled piece"),
     // Google fetches the logo, so it is only included when the app is served over public HTTPS.
     ...(isPublicHttps ? { logo: { sourceUri: { uri: `${appUrl}/logo_heritech.png` }, contentDescription: text("HeriTech") } } : {}),
+    ...(isPublicHttps && pass.hasHeroImage
+      ? { heroImage: { sourceUri: { uri: `${appUrl}/api/wallet/hero/${encodeURIComponent(pass.serial)}` }, contentDescription: text(pass.productTitle) } }
+      : {}),
     textModulesData: [
+      ...(pass.ownerName ? [{ id: "owner", header: "Owned by", body: pass.ownerName }] : []),
       { id: "origin", header: "Origin", body: origin },
       { id: "diverted", header: "Material diverted", body: `${pass.kgDiverted} kg` },
       {
@@ -101,7 +123,7 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
       typ: "savetowallet",
       ...(isPublicHttps ? { origins: [appUrl] } : {}),
       payload: {
-        genericClasses: [{ id: classId }],
+        genericClasses: [{ id: classId, classTemplateInfo: IMPACT_CLASS_TEMPLATE }],
         genericObjects: [genericObject],
       },
     },
