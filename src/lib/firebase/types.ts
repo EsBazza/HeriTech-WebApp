@@ -66,6 +66,10 @@ export interface MaterialBatchDoc {
   status: BatchStatus;
   gpsLat: number;
   gpsLng: number;
+  /** Readable place name for the pickup point, looked up from the GPS position. */
+  pickupAddress?: string | null;
+  /** "ai_estimate" when nobody weighed the batch and the officer kept Gemini's estimate. */
+  weightSource?: "scale" | "ai_estimate";
   imageUrl: string;
   agreementId: string | null;
   scannedByOfficerId: string | null;

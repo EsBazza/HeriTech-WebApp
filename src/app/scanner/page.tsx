@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, CheckCircle2, RefreshCw, Crosshair } from "lucide-react";
+import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, CheckCircle2, Crosshair, MapPin, Minus, Plus } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { AccessGuard } from "@/components/AccessGuard";
 import { Badge, Button, Card, EmptyState, Input, PageHeader, Select, cn, controlClass } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 import { compressImage } from "@/lib/image";
 import { classifyOffline } from "@/lib/offlineClassifier";
+import { reverseGeocode } from "@/lib/googleMaps";
+import { LocationPicker } from "@/components/map/LocationPicker";
 
 
 function WasteScannerPageContent() {
@@ -18,11 +20,17 @@ function WasteScannerPageContent() {
 
   // Physical Scale Telemetry
   const [weightKg, setWeightKg] = useState("");
+  // "ai_estimate" while the field still holds Gemini's number; any manual change makes it a scale reading.
+  const [weightSource, setWeightSource] = useState<"scale" | "ai_estimate">("scale");
   const [saving, setSaving] = useState(false);
   const [savedBatch, setSavedBatch] = useState<any | null>(null);
 
   // Pickup Location State
   const [collectionPoint, setCollectionPoint] = useState("");
+  // Once the officer types their own place name, GPS updates stop overwriting it.
+  const [collectionPointEdited, setCollectionPointEdited] = useState(false);
+  const [lookingUpPlace, setLookingUpPlace] = useState(false);
+  const [showCoordinates, setShowCoordinates] = useState(false);
   const [pickupLat, setPickupLat] = useState<number | null>(null);
   const [pickupLng, setPickupLng] = useState<number | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -45,12 +53,37 @@ function WasteScannerPageContent() {
     setAgreementId((current) => (agreements.some((a) => a.id === current) ? current : agreements[0]?.id ?? ""));
   }, [agreements]);
 
+  // Ask for the position as soon as the page opens, so the pickup point is ready by the time the photo is analysed.
+  useEffect(() => {
+    handleUseRealtimeLocation(true);
+  }, []);
+
+  // Name the pickup point from its coordinates, waiting for the pin to settle first.
+  useEffect(() => {
+    if (pickupLat === null || pickupLng === null || collectionPointEdited) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      setLookingUpPlace(true);
+      reverseGeocode(pickupLat, pickupLng)
+        .then((place) => {
+          if (!cancelled && place) setCollectionPoint(place);
+        })
+        .catch(() => {})
+        .finally(() => !cancelled && setLookingUpPlace(false));
+    }, 600);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [pickupLat, pickupLng, collectionPointEdited]);
+
   const festivalHint = agreements.find((a) => a.id === agreementId)?.festival ?? "";
 
   // Pins the batch to the device's GPS position. `silent` skips the error message on failure.
   const handleUseRealtimeLocation = (silent = false) => {
     if (!navigator.geolocation) {
       if (!silent) setError("This browser can't share its location. Type the coordinates instead.");
+      setShowCoordinates(true);
       return;
     }
     setIsLocating(true);
@@ -66,6 +99,7 @@ function WasteScannerPageContent() {
       },
       (gpsError) => {
         if (!silent) setError(`Couldn't get your location (${gpsError.message}). Type the coordinates instead.`);
+        setShowCoordinates(true);
         setIsLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
@@ -119,6 +153,12 @@ function WasteScannerPageContent() {
     }
   };
 
+  const stepWeight = (delta: number) => {
+    const next = Math.max(0, (parseFloat(weightKg) || 0) + delta);
+    setWeightKg(String(Math.round(next * 10) / 10));
+    setWeightSource("scale");
+  };
+
   const handleAnalyzeAI = () => previewUrl && analyze(previewUrl);
 
   const handleLogBatch = async () => {
@@ -128,9 +168,11 @@ function WasteScannerPageContent() {
     const result = await apiJson<any>("/api/materials", {
       method: "POST",
       body: JSON.stringify({
-        title: collectionPoint ? `${analysisResult.materialType} (${collectionPoint})` : analysisResult.materialType,
+        title: analysisResult.materialType,
         materialType: analysisResult.materialType,
         weightKg: parseFloat(weightKg),
+        weightSource,
+        pickupAddress: collectionPoint.trim() || undefined,
         condition: analysisResult.condition,
         gpsLat: pickupLat,
         gpsLng: pickupLng,
@@ -308,69 +350,142 @@ function WasteScannerPageContent() {
               <Card className="p-5 sm:p-6 space-y-5">
                 <h3 className="text-base font-semibold text-ink font-sans">{translateSync("Weigh and locate")}</h3>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <label htmlFor="scale-weight" className="text-sm font-medium text-ink">
-                      {translateSync("Scale weight (kg)")}
-                    </label>
-                    {analysisResult.estimatedWeightKg?.bestEstimate !== undefined && (
-                      <button
-                        type="button"
-                        onClick={() => setWeightKg(analysisResult.estimatedWeightKg.bestEstimate.toString())}
-                        className="inline-flex items-center gap-1 text-xs text-pine-600 hover:text-pine-700 cursor-pointer"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        {translateSync("Use AI estimate")}
-                      </button>
-                    )}
+                <div className="space-y-2">
+                  <label htmlFor="scale-weight" className="text-sm font-medium text-ink">
+                    {translateSync("Weight")}
+                  </label>
+                  <div className="flex items-stretch gap-2">
+                    <button
+                      type="button"
+                      onClick={() => stepWeight(-0.5)}
+                      aria-label={translateSync("Remove 0.5 kg")}
+                      className="w-12 shrink-0 rounded-md border border-line bg-surface text-ink hover:bg-paper-2 flex items-center justify-center cursor-pointer"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <div className="relative flex-1 min-w-0">
+                      <input
+                        id="scale-weight"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        inputMode="decimal"
+                        value={weightKg}
+                        onChange={(e) => {
+                          setWeightKg(e.target.value);
+                          setWeightSource("scale");
+                        }}
+                        className={cn(controlClass, "h-14 pr-12 tabular text-2xl font-semibold text-center")}
+                        placeholder="0.0"
+                      />
+                      <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-ink-3">kg</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => stepWeight(0.5)}
+                      aria-label={translateSync("Add 0.5 kg")}
+                      className="w-12 shrink-0 rounded-md border border-line bg-surface text-ink hover:bg-paper-2 flex items-center justify-center cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
                   </div>
-                  <input
-                    id="scale-weight"
-                    type="number"
-                    step="0.1"
-                    inputMode="decimal"
-                    value={weightKg}
-                    onChange={(e) => setWeightKg(e.target.value)}
-                    className={cn(controlClass, "h-12 tabular text-lg font-medium")}
-                    placeholder="24.5"
-                  />
-                  {analysisResult.estimatedWeightKg?.visualRationale && (
-                    <p className="text-xs text-ink-3">
-                      {translateSync("AI basis")}: {translateSync(analysisResult.estimatedWeightKg.visualRationale)}
-                    </p>
+                  {analysisResult.estimatedWeightKg?.bestEstimate !== undefined && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWeightKg(analysisResult.estimatedWeightKg.bestEstimate.toString());
+                        setWeightSource("ai_estimate");
+                      }}
+                      className={cn(
+                        "w-full rounded-md border px-3 py-2 text-left text-sm transition-colors cursor-pointer",
+                        weightSource === "ai_estimate" ? "border-pine-300 bg-pine-50 text-pine-800" : "border-line bg-paper hover:border-pine-300"
+                      )}
+                    >
+                      <span className="flex flex-wrap items-center gap-x-1.5 font-medium">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {translateSync("AI estimate")}: ~{analysisResult.estimatedWeightKg.bestEstimate} kg
+                        <span className="font-normal text-ink-3">
+                          ({analysisResult.estimatedWeightKg.low}–{analysisResult.estimatedWeightKg.high} kg)
+                        </span>
+                      </span>
+                      {analysisResult.estimatedWeightKg.visualRationale && (
+                        <span className="block text-xs text-ink-3 mt-0.5">{translateSync(analysisResult.estimatedWeightKg.visualRationale)}</span>
+                      )}
+                    </button>
                   )}
+                  <p className="text-xs text-ink-3">
+                    {weightSource === "ai_estimate"
+                      ? translateSync("Logged as an AI estimate. Weigh the batch and type the scale reading if you can.")
+                      : translateSync("Type the scale reading, or tap the AI estimate if there is no scale.")}
+                  </p>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-end gap-2">
-                    <Input
-                      wrapperClassName="flex-1 min-w-0"
-                      label={translateSync("Collection point (optional)")}
-                      value={collectionPoint}
-                      onChange={(e) => setCollectionPoint(e.target.value)}
-                      placeholder={translateSync("Where the batch can be picked up")}
-                    />
+                  <div className="flex items-start gap-3 rounded-md border border-line bg-paper p-3">
+                    <span className="mt-0.5 w-8 h-8 shrink-0 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center">
+                      <MapPin className="w-4 h-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-ink-3">{translateSync("Collection point")}</p>
+                      {pickupLat !== null && pickupLng !== null ? (
+                        <>
+                          <input
+                            value={collectionPoint}
+                            onChange={(e) => {
+                              setCollectionPoint(e.target.value);
+                              setCollectionPointEdited(true);
+                            }}
+                            placeholder={lookingUpPlace ? translateSync("Finding the place name…") : translateSync("Name this pickup point")}
+                            aria-label={translateSync("Collection point")}
+                            className="w-full bg-transparent font-medium text-ink outline-none border-b border-transparent focus:border-pine-300"
+                          />
+                          <p className="text-xs text-ink-3 tabular">
+                            {pickupLat.toFixed(5)}°, {pickupLng.toFixed(5)}°
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-sm text-ink-2">
+                          {isLocating ? translateSync("Finding your location…") : translateSync("Location not shared yet.")}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCollectionPointEdited(false);
+                        handleUseRealtimeLocation();
+                      }}
+                      disabled={isLocating}
+                      className="shrink-0 inline-flex items-center gap-1 text-xs text-pine-600 hover:text-pine-700 cursor-pointer disabled:opacity-50"
+                    >
+                      <Crosshair className="w-3.5 h-3.5" />
+                      {translateSync(isLocating ? "Locating…" : "Use my location")}
+                    </button>
                   </div>
                   {locationSuccess && <p className="text-xs text-success">{translateSync(locationSuccess)}</p>}
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input label={translateSync("Latitude")} type="number" step="0.0001" min={-90} max={90} value={pickupLat ?? ""} onChange={(e) => setPickupLat(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
-                    <Input label={translateSync("Longitude")} type="number" step="0.0001" min={-180} max={180} value={pickupLng ?? ""} onChange={(e) => setPickupLng(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
-                  </div>
-
-                  {pickupLat !== null && pickupLng !== null ? (
-                  <div className="h-40 rounded-md overflow-hidden border border-line bg-paper-2">
-                    <iframe
-                      title={translateSync("Pickup location map")}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}&q=${pickupLat},${pickupLng}&zoom=15`}
+                  {pickupLat !== null && pickupLng !== null && (
+                    <LocationPicker
+                      lat={pickupLat}
+                      lng={pickupLng}
+                      onMove={(lat, lng) => {
+                        setPickupLat(lat);
+                        setPickupLng(lng);
+                        setCollectionPointEdited(false);
+                        setLocationSuccess(null);
+                      }}
                     />
-                  </div>
+                  )}
+
+                  {showCoordinates ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input label={translateSync("Latitude")} type="number" step="0.0001" min={-90} max={90} value={pickupLat ?? ""} onChange={(e) => setPickupLat(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
+                      <Input label={translateSync("Longitude")} type="number" step="0.0001" min={-180} max={180} value={pickupLng ?? ""} onChange={(e) => setPickupLng(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
+                    </div>
                   ) : (
-                    <p className="text-xs text-ink-3">{translateSync("Allow location access or type the coordinates to pin the batch on the map.")}</p>
+                    <button type="button" onClick={() => setShowCoordinates(true)} className="text-xs text-ink-3 underline underline-offset-2 hover:text-ink cursor-pointer">
+                      {translateSync("Enter coordinates manually")}
+                    </button>
                   )}
                 </div>
 

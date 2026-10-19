@@ -38,3 +38,23 @@ export function loadGoogleMaps(): Promise<typeof google.maps> {
 export function directionsUrl(lat: number, lng: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
+
+/**
+ * Turns a GPS position into a short place name such as "Quiapo, Manila",
+ * using the Geocoding service. Resolves to null when nothing useful is found.
+ */
+export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+  await loadGoogleMaps();
+  const { Geocoder } = (await google.maps.importLibrary("geocoding")) as google.maps.GeocodingLibrary;
+  const { results } = await new Geocoder().geocode({ location: { lat, lng } });
+  if (!results.length) return null;
+
+  const find = (type: string) =>
+    results.flatMap((r) => r.address_components).find((c) => c.types.includes(type))?.long_name;
+  const parts = [
+    find("sublocality_level_1") ?? find("sublocality") ?? find("neighborhood"),
+    find("locality") ?? find("administrative_area_level_2"),
+    find("country"),
+  ].filter((p, i, all): p is string => Boolean(p) && all.indexOf(p) === i);
+  return parts.length ? parts.join(", ") : results[0].formatted_address;
+}

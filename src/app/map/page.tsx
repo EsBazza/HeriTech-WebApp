@@ -29,6 +29,8 @@ interface BatchItem {
   status: "available" | "reserved" | "claimed";
   gpsLat: number;
   gpsLng: number;
+  pickupAddress?: string | null;
+  weightSource?: "scale" | "ai_estimate";
   imageUrl: string;
   txHash: string;
   aiInferredMaterial?: string;
@@ -265,6 +267,7 @@ function MaterialsMapPageContent() {
                     <MapPin className="w-3.5 h-3.5 text-pine-600" />
                     {translateSync("Collection depot")}
                   </p>
+                  {selectedBatch.pickupAddress && <p className="text-sm font-medium text-ink">{selectedBatch.pickupAddress}</p>}
                   <p className="font-mono-data text-xs text-ink-2">
                     {selectedBatch.gpsLat.toFixed(4)}°, {selectedBatch.gpsLng.toFixed(4)}°
                   </p>
@@ -283,9 +286,10 @@ function MaterialsMapPageContent() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 bg-paper rounded-md space-y-1">
                   <TranslatableText className="text-xs text-ink-3 font-bold">
-                    Scale Measurement
+                    {selectedBatch.weightSource === "ai_estimate" ? "Weight (AI estimate)" : "Scale Measurement"}
                   </TranslatableText>
                   <p className="text-base font-semibold text-ink font-mono-data">
+                    {selectedBatch.weightSource === "ai_estimate" && "~"}
                     {formatNumber(selectedBatch.weightKg)} <span className="text-xs font-normal">kg</span>
                   </p>
                   <span className="text-xs text-ink-3 block">
@@ -305,7 +309,7 @@ function MaterialsMapPageContent() {
                     <span>
                       <TranslatableText>Confidence</TranslatableText>:{" "}
                       <strong>
-                        {selectedBatch.aiConfidence ? `${Math.round(selectedBatch.aiConfidence * 100)}%` : "95%"}
+                        {selectedBatch.aiConfidence ? `${Math.round(selectedBatch.aiConfidence * 100)}%` : "—"}
                       </strong>
                     </span>
                   </div>
@@ -316,7 +320,7 @@ function MaterialsMapPageContent() {
                     GPS Coordinates
                   </TranslatableText>
                   <p className="font-mono-data text-xs text-ink">
-                    {selectedBatch.gpsLat.toFixed(4)}° N, {selectedBatch.gpsLng.toFixed(4)}° E
+                    {Math.abs(selectedBatch.gpsLat).toFixed(4)}° {selectedBatch.gpsLat < 0 ? "S" : "N"}, {Math.abs(selectedBatch.gpsLng).toFixed(4)}° {selectedBatch.gpsLng < 0 ? "W" : "E"}
                   </p>
                   <span className="text-xs text-ink-3 block truncate">
                     <TranslatableText>Officer</TranslatableText>: <TranslatableText>{selectedBatch.scannedByOfficer?.fullName || "Field Officer"}</TranslatableText>
