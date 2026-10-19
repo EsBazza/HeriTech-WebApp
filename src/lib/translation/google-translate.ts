@@ -77,7 +77,7 @@ async function fetchGoogleTranslateRest(
   if (!apiKey || apiKey.includes('YOUR_') || apiKey.length < 20) return null;
 
   try {
-    const body: Record<string, any> = {
+    const body: Record<string, string | string[]> = {
       q: texts,
       target: targetLanguage,
       format: 'text',
@@ -97,7 +97,7 @@ async function fetchGoogleTranslateRest(
 
     const data = await response.json();
     if (data?.data?.translations && Array.isArray(data.data.translations)) {
-      return data.data.translations.map((t: any) => t.translatedText);
+      return data.data.translations.map((t: { translatedText: string }) => t.translatedText);
     }
   } catch (err) {
     console.warn('Google Translate REST API call failed:', err);

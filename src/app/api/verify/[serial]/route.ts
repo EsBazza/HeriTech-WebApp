@@ -6,8 +6,7 @@ import { withProductRelations } from "@/lib/server/views";
  * GET /api/verify/:serial — the public impact record behind a pass QR code.
  * Shows the maker, origin batch and money split. The buyer stays anonymous.
  */
-export const GET = route(async (_request: Request, { params }: { params: Promise<{ serial: string }> }) => {
-  const { serial } = await params;
+async function passRecord(serial: string) {
   const pass = (await db.passes().doc(serial.toUpperCase()).get()).data();
   if (!pass) throw notFound("No impact pass with that serial.");
 
@@ -17,8 +16,7 @@ export const GET = route(async (_request: Request, { params }: { params: Promise
 
   const [{ artisan, sourceBatch }] = await withProductRelations([product]);
 
-  return ok(
-    {
+  return {
       serial: pass.serial,
       issuedAt: pass.issuedAt,
       tamperEvidentHarvestHash: pass.harvestHash,
@@ -55,7 +53,12 @@ export const GET = route(async (_request: Request, { params }: { params: Promise
         loggedByOfficer: sourceBatch.scannedByOfficer?.fullName ?? null,
         municipalityStation: sourceBatch.scannedByOfficer?.stationName ?? null,
       },
-    },
-    { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" } }
-  );
+    };
+}
+
+export type PassRecord = Awaited<ReturnType<typeof passRecord>>;
+
+export const GET = route(async (_request: Request, { params }: { params: Promise<{ serial: string }> }) => {
+  const { serial } = await params;
+  return ok(await passRecord(serial), { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" } });
 });

@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { adminDb } from "@/lib/firebase/admin";
-import type { AgreementDoc } from "@/lib/firebase/types";
+import type { AgreementDoc, MaterialBatchDoc } from "@/lib/firebase/types";
 import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
 import { fields, ok, parseBody, route } from "@/lib/server/http";
 import { nextSequence } from "@/lib/server/ids";
+
+export type AgreementBatch = Pick<MaterialBatchDoc, "id" | "agreementId" | "title" | "weightKg" | "status" | "createdAt">;
+export type AgreementWithBatches = AgreementDoc & { batches: AgreementBatch[] };
 
 /** GET /api/agreements — release agreements with the batches logged against each. */
 export const GET = route(async (request: Request) => {
@@ -15,14 +18,14 @@ export const GET = route(async (request: Request) => {
     db.batches().select("agreementId", "title", "weightKg", "status", "createdAt").get(),
   ]);
 
-  const batchesByAgreement = new Map<string, unknown[]>();
+  const batchesByAgreement = new Map<string, AgreementBatch[]>();
   for (const doc of batchSnap.docs) {
-    const batch = { id: doc.id, ...(doc.data() as object) } as { agreementId?: string };
+    const batch = { ...doc.data(), id: doc.id } as AgreementBatch;
     if (!batch.agreementId) continue;
     batchesByAgreement.set(batch.agreementId, [...(batchesByAgreement.get(batch.agreementId) ?? []), batch]);
   }
 
-  return ok(agreementSnap.docs.map((d) => ({ ...d.data(), batches: batchesByAgreement.get(d.id) ?? [] })));
+  return ok(agreementSnap.docs.map((d): AgreementWithBatches => ({ ...d.data(), batches: batchesByAgreement.get(d.id) ?? [] })));
 });
 
 const schema = z.object({

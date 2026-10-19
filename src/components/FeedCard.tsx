@@ -7,7 +7,26 @@ import { Check, Leaf, MapPin, Plus, ScanLine } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { UserRole } from "@/lib/roleGuard";
+import type { ProductView } from "@/lib/server/views";
 import { buttonClass, cn } from "@/components/ui";
+
+/** Maps an API product to the shop card shape. */
+export function toFeedItem(p: ProductView): FeedMaterialBatch {
+  const country = p.sourceBatch?.agreement?.country || p.artisan?.country || "";
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description ?? "",
+    price: Number(p.price) || 0,
+    image: p.images?.[0],
+    cooperativeName: p.artisan?.workshopName || p.artisan?.fullName || "Artisan workshop",
+    region: country,
+    country,
+    weightKg: Number(p.kgDiverted) || 0,
+    materialType: p.materialTags?.length ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "",
+    festival: p.sourceBatch?.agreement?.festival || "",
+  };
+}
 
 export interface FeedMaterialBatch {
   id: string;

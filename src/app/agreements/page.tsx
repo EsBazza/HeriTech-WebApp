@@ -5,11 +5,12 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
 import { FileCheck2, Plus, MapPin } from "lucide-react";
 import { AccessGuard } from "@/components/AccessGuard";
+import type { AgreementWithBatches } from "@/app/api/agreements/route";
 import { apiJson } from "@/lib/api";
 
 function AgreementsPageContent() {
   const { formatNumber, translateSync } = useTranslation();
-  const [agreements, setAgreements] = useState<any[]>([]);
+  const [agreements, setAgreements] = useState<AgreementWithBatches[]>([]);
   const [loading, setLoading] = useState(true);
 
   // New Agreement Modal Form State
@@ -24,7 +25,7 @@ function AgreementsPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiJson<any[]>("/api/agreements").then((result) => {
+    apiJson<AgreementWithBatches[]>("/api/agreements").then((result) => {
       if (result.success) setAgreements(result.data ?? []);
       else setError(result.error ?? "Couldn't load agreements.");
       setLoading(false);
@@ -35,12 +36,13 @@ function AgreementsPageContent() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    const result = await apiJson<any>("/api/agreements", {
+    const result = await apiJson<AgreementWithBatches>("/api/agreements", {
       method: "POST",
       body: JSON.stringify({ title, organizerName, festival, country, allocatedKg: parseFloat(allocatedKg) }),
     });
-    if (result.success) {
-      setAgreements((prev) => [result.data, ...prev]);
+    if (result.success && result.data) {
+      const created = result.data;
+      setAgreements((prev) => [created, ...prev]);
       setModalOpen(false);
       setTitle("");
       setOrganizerName("");

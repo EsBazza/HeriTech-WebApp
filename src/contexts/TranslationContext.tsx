@@ -6,7 +6,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useRef,
   ReactNode,
 } from "react";
 import Cookies from "js-cookie";
@@ -440,15 +439,8 @@ export function useTextTranslation(
 
   // Only call async if not cached
   const [asyncResult, setAsyncResult] = useState<string>(cachedResult);
-  const prevLangRef = useRef(currentLanguage.code);
-  const prevTextRef = useRef(text);
 
   useEffect(() => {
-    const langChanged = prevLangRef.current !== currentLanguage.code;
-    const textChanged = prevTextRef.current !== text;
-    prevLangRef.current = currentLanguage.code;
-    prevTextRef.current = text;
-
     if (!shouldTranslate) {
       setAsyncResult(text);
       return;

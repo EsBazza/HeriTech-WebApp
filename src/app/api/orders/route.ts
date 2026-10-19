@@ -164,6 +164,12 @@ export const POST = route(async (request: Request) => {
   );
 });
 
+/** One of the buyer's orders, with what the pass card needs to tell the piece's story. */
+export interface BuyerOrder extends OrderDoc {
+  product: { id: string; title: string; image: string | null; kgDiverted: number; maker: string | null; origin: string | null } | null;
+  pass: WalletPassDoc | null;
+}
+
 /** GET /api/orders — the signed-in buyer's 30 most recent orders with their impact passes. */
 export const GET = route(async (request: Request) => {
   const buyer = await requireUser(request);
@@ -179,7 +185,7 @@ export const GET = route(async (request: Request) => {
   const views = new Map((await withProductRelations([...products.values()])).map((v) => [v.id, v]));
 
   return ok(
-    orders.map((order) => {
+    orders.map((order): BuyerOrder => {
       const product = products.get(order.productId);
       const view = views.get(order.productId);
       const origin = [view?.sourceBatch?.agreement?.festival, view?.sourceBatch?.agreement?.country].filter(Boolean).join(", ") || null;

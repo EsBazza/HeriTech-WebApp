@@ -26,7 +26,6 @@ export function LanguageSelector({
   
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isChanging, setIsChanging] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,7 +89,7 @@ export function LanguageSelector({
       <div className={`relative ${className}`} ref={dropdownRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          disabled={isLoading || isChanging}
+          disabled={isLoading}
           aria-label={`${translateSync("Language")}: ${currentLanguage.name}`}
           aria-expanded={isOpen}
           className="flex items-center gap-1.5 h-10 px-2.5 rounded-md text-ink-2 hover:bg-pine-50 hover:text-ink transition-colors cursor-pointer"
@@ -99,7 +98,7 @@ export function LanguageSelector({
           <span className="text-sm font-medium hidden sm:block">
             {currentLanguage.code.toUpperCase()}
           </span>
-          {(isLoading || isChanging) ? (
+          {isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin text-ink-3" />
           ) : (
             <ChevronDown className="w-4 h-4 text-ink-3" />
@@ -128,7 +127,6 @@ export function LanguageSelector({
                     <button
                       key={language.code}
                       onClick={() => handleLanguageChange(language.code)}
-                      disabled={isChanging}
                       className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                         currentLanguage.code === language.code
                           ? 'bg-pine-100 text-pine-700'
@@ -166,7 +164,7 @@ export function LanguageSelector({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        disabled={isLoading || isChanging}
+        disabled={isLoading}
         className="flex items-center space-x-3 px-4 py-2.5 rounded-xl border border-line-strong hover:border-pine-500 bg-surface transition-all focus:outline-none focus:ring-2 focus:ring-pine-500/20 focus:border-pine-500 shadow-sm hover:shadow-md"
       >
         <Globe className="w-5 h-5 text-ink-3" />
@@ -181,7 +179,7 @@ export function LanguageSelector({
             </div>
           </div>
         </div>
-        {(isLoading || isChanging) ? (
+        {isLoading ? (
           <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
         ) : (
           <ChevronDown className={`w-5 h-5 text-ink-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -235,7 +233,6 @@ export function LanguageSelector({
                       <button
                         key={language.code}
                         onClick={() => handleLanguageChange(language.code)}
-                        disabled={isChanging}
                         className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-left transition-all group ${
                           currentLanguage.code === language.code
                             ? 'bg-pine-100 border border-pine-200 text-pine-700 shadow-sm'

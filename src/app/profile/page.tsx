@@ -8,6 +8,8 @@ import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { apiJson } from "@/lib/api";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
+import type { BatchView, ProductView } from "@/lib/server/views";
+import type { BuyerOrder } from "@/app/api/orders/route";
 import {
   User,
   CheckCircle2,
@@ -53,12 +55,11 @@ export default function ProfilePage() {
   // Notification settings toggle state
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [orderUpdates, setOrderUpdates] = useState(true);
-  const [batchAlerts, setBatchAlerts] = useState(true);
 
   // Profile Data States
-  const [artisanProducts, setArtisanProducts] = useState<any[]>([]);
-  const [lguBatches, setLguBatches] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [artisanProducts, setArtisanProducts] = useState<ProductView[]>([]);
+  const [lguBatches, setLguBatches] = useState<BatchView[]>([]);
+  const [orders, setOrders] = useState<BuyerOrder[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
@@ -74,9 +75,9 @@ export default function ProfilePage() {
       const userId = user.id;
       const role = user.role;
       Promise.all([
-        apiJson<any[]>("/api/orders"),
-        role === "artisan" ? apiJson<any[]>(`/api/products?artisanId=${encodeURIComponent(userId)}`) : null,
-        role === "lgu" ? apiJson<any[]>("/api/materials?mine=scanned") : null,
+        apiJson<BuyerOrder[]>("/api/orders"),
+        role === "artisan" ? apiJson<ProductView[]>(`/api/products?artisanId=${encodeURIComponent(userId)}`) : null,
+        role === "lgu" ? apiJson<BatchView[]>("/api/materials?mine=scanned") : null,
       ]).then(([orderRes, productRes, batchRes]) => {
         if (orderRes.success) setOrders(orderRes.data ?? []);
         if (productRes?.success) setArtisanProducts(productRes.data ?? []);
@@ -211,6 +212,7 @@ export default function ProfilePage() {
           <div className="flex items-center space-x-4">
             {/* Avatar Circle */}
             {user.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- avatars can be any https host
               <img
                 src={user.avatarUrl}
                 alt={user.fullName}

@@ -65,6 +65,7 @@ function fieldsFromBatch(batch: { id: string; materialType: string; weightKg: nu
 
 import { AccessGuard } from "@/components/AccessGuard";
 import { apiJson } from "@/lib/api";
+import type { BatchView } from "@/lib/server/views";
 import { compressImage } from "@/lib/image";
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -74,7 +75,7 @@ function ArtisanStudioPageContent() {
   const role = userRole(user);
 
   // --- Source batches ---
-  const [claimedBatches, setClaimedBatches] = useState<any[]>([]);
+  const [claimedBatches, setClaimedBatches] = useState<BatchView[]>([]);
   const [batchesLoading, setBatchesLoading] = useState(true);
 
   // --- Published products ---
@@ -116,8 +117,8 @@ function ArtisanStudioPageContent() {
       setField("imageUrl", dataUrl);
       setFileName(file.name);
       setImagePreviewError(false);
-    } catch (err: any) {
-      setErrorMessage(err.message || translateSync("Failed to process image file."));
+    } catch (err) {
+      setErrorMessage((err instanceof Error && err.message) || translateSync("Failed to process image file."));
     }
   };
 
@@ -128,7 +129,7 @@ function ArtisanStudioPageContent() {
       return;
     }
     // Only batches this artisan has physically picked up can be turned into listings.
-    apiJson<any[]>("/api/materials?mine=claimed").then((result) => {
+    apiJson<BatchView[]>("/api/materials?mine=claimed").then((result) => {
       if (result.success && result.data?.length) {
         setClaimedBatches(result.data);
         setForm((f) => ({ ...f, ...fieldsFromBatch(result.data![0], f.kgDiverted) }));

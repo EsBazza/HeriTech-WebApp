@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Camera, Check, Handshake, Hammer, MousePointer2, QrCode, Search, Sparkles, X, PackageOpen } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { FeedCard, FeedMaterialBatch } from "@/components/FeedCard";
+import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
 import { EscrowBar } from "@/components/EscrowBar";
 import { userRole } from "@/lib/roleGuard";
 import { Button, EmptyState, Eyebrow, SectionHeader, Stat, cn, controlClass } from "@/components/ui";
@@ -15,6 +15,8 @@ import { CountUp } from "@/components/motion/CountUp";
 import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
 import { LanternAssembly } from "@/components/motion/LanternAssembly";
 import { apiJson } from "@/lib/api";
+import type { PublicStats } from "@/app/api/stats/route";
+import type { ProductView } from "@/lib/server/views";
 import { SPLIT_LABEL } from "@/lib/escrow";
 
 /** The most common values across listed pieces, so filters only offer what is actually for sale. */
@@ -31,22 +33,6 @@ interface HomeStats {
   charity: number;
 }
 
-function toFeedItem(p: any): FeedMaterialBatch {
-  return {
-    id: p.id,
-    title: p.title,
-    description: p.description ?? "",
-    price: Number(p.price) || 0,
-    image: p.images?.[0],
-    cooperativeName: p.artisan?.workshopName || p.artisan?.fullName || "Artisan workshop",
-    region: p.artisan?.country || p.sourceBatch?.agreement?.country || "",
-    country: p.sourceBatch?.agreement?.country || p.artisan?.country || "",
-    weightKg: Number(p.kgDiverted) || 0,
-    materialType: p.materialTags?.length ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "",
-    festival: p.sourceBatch?.agreement?.festival || "",
-  };
-}
-
 export default function FeedHomePage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -61,7 +47,7 @@ export default function FeedHomePage() {
   const [stats, setStats] = useState<HomeStats | null>(null);
   const [statsOffline, setStatsOffline] = useState(false);
   useEffect(() => {
-    apiJson<any>("/api/stats").then((result) => {
+    apiJson<PublicStats>("/api/stats").then((result) => {
       const d = result.data;
       if (!result.success || !d) {
         setStatsOffline(true);
@@ -77,7 +63,7 @@ export default function FeedHomePage() {
   }, []);
 
   useEffect(() => {
-    apiJson<any[]>("/api/products").then((result) => {
+    apiJson<ProductView[]>("/api/products").then((result) => {
       if (result.success) {
         setBatches((result.data ?? []).map(toFeedItem));
         setProductsState("ready");

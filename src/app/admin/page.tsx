@@ -26,23 +26,27 @@ import {
 } from "recharts";
 import { AccessGuard } from "@/components/AccessGuard";
 import { apiJson } from "@/lib/api";
+import type { UserDoc } from "@/lib/firebase/types";
+import type { AdminStats } from "@/app/api/admin/stats/route";
+
+type Applicant = UserDoc & { applicationDetails: UserDoc["application"] };
 import { SPLIT, SPLIT_LABEL } from "@/lib/escrow";
 
 function AdminDashboardPageContent() {
   const { formatCurrency, formatNumber, translateSync } = useTranslation();
-  const [stats, setStats] = useState<any>(null);
-  const [applications, setApplications] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [applications, setApplications] = useState<Applicant[]>([]);
+  const [users, setUsers] = useState<UserDoc[]>([]);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const loadAdminData = async () => {
     const [statsRes, appsRes, usersRes] = await Promise.all([
-      apiJson<any>("/api/admin/stats"),
-      apiJson<any[]>("/api/admin/applications"),
-      apiJson<any[]>("/api/admin/users"),
+      apiJson<AdminStats>("/api/admin/stats"),
+      apiJson<Applicant[]>("/api/admin/applications"),
+      apiJson<UserDoc[]>("/api/admin/users"),
     ]);
-    if (statsRes.success) setStats(statsRes.data);
+    if (statsRes.success) setStats(statsRes.data ?? null);
     if (appsRes.success) setApplications(appsRes.data ?? []);
     if (usersRes.success) setUsers(usersRes.data ?? []);
     setActionError([statsRes, appsRes, usersRes].find((r) => !r.success)?.error ?? null);
@@ -385,7 +389,7 @@ function AdminDashboardPageContent() {
                     paddingAngle={4}
                     dataKey="value"
                   >
-                    {(stats?.escrowSplitDistribution || []).map((entry: any, index: number) => (
+                    {(stats?.escrowSplitDistribution || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={escrowColors[index % escrowColors.length]} />
                     ))}
                   </Pie>

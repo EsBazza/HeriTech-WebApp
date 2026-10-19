@@ -210,10 +210,12 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
       }
     })();
 
+    const runs = runRef;
+    const stopRun = stopRef;
     return () => {
       cancelled = true;
-      runRef.current++;
-      stopRef.current();
+      runs.current++; // invalidates any flight still in progress
+      stopRun.current();
       mapRef.current?.stopCameraAnimation();
       mapRef.current = null;
     };

@@ -21,6 +21,7 @@ import {
 import { useTranslation } from "@/contexts/TranslationContext";
 import { EscrowBar } from "@/components/EscrowBar";
 import { ProvenanceTimeline, type ProvenanceEvent } from "@/components/ProvenanceTimeline";
+import type { PassRecord } from "@/app/api/verify/[serial]/route";
 import { Badge, Button, Card, Spinner, buttonClass, controlClass, cn } from "@/components/ui";
 
 export default function PublicVerificationPage() {
@@ -29,7 +30,7 @@ export default function PublicVerificationPage() {
   const serial = params?.serial as string;
   const { formatCurrency, formatNumber, formatDate, translateSync } = useTranslation();
 
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<PassRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [retry, setRetry] = useState("");
@@ -86,9 +87,9 @@ export default function PublicVerificationPage() {
     );
   }
 
-  const origin = data.originHarvest || {};
-  const escrow = data.escrowAudit || {};
-  const maker = data.maker || {};
+  const origin: Partial<NonNullable<PassRecord["originHarvest"]>> = data.originHarvest ?? {};
+  const escrow = data.escrowAudit;
+  const maker = data.maker;
   const gps = origin.gpsCoordinates;
   const hasGps = gps && typeof gps.lat === "number" && typeof gps.lng === "number";
   const fmt = (d?: string) => (d ? formatDate(new Date(d)) : undefined);

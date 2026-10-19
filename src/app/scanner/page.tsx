@@ -9,6 +9,11 @@ import { apiJson } from "@/lib/api";
 import { compressImage } from "@/lib/image";
 import { classifyOffline } from "@/lib/offlineClassifier";
 import { reverseGeocode } from "@/lib/googleMaps";
+import type { ScanAnalysis } from "@/lib/server/aiSamples";
+import type { BatchView } from "@/lib/server/views";
+
+/** A scan as the screen shows it: Gemini's answer, a labelled sample, or an on-device estimate. */
+type ScanResult = ScanAnalysis & { isSample?: boolean; isOffline?: boolean; model?: string };
 import { LocationPicker } from "@/components/map/LocationPicker";
 
 
@@ -16,14 +21,14 @@ function WasteScannerPageContent() {
   const { translateSync } = useTranslation();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<any | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<ScanResult | null>(null);
 
   // Physical Scale Telemetry
   const [weightKg, setWeightKg] = useState("");
   // "ai_estimate" while the field still holds Gemini's number; any manual change makes it a scale reading.
   const [weightSource, setWeightSource] = useState<"scale" | "ai_estimate">("scale");
   const [saving, setSaving] = useState(false);
-  const [savedBatch, setSavedBatch] = useState<any | null>(null);
+  const [savedBatch, setSavedBatch] = useState<BatchView | null>(null);
 
   // Pickup Location State
   const [collectionPoint, setCollectionPoint] = useState("");
@@ -109,12 +114,12 @@ function WasteScannerPageContent() {
   const analyze = async (imageBase64: string) => {
     setAnalyzing(true);
     setError(null);
-    const result = await apiJson<any>("/api/ai/scan", {
+    const result = await apiJson<ScanResult>("/api/ai/scan", {
       method: "POST",
       body: JSON.stringify({ imageBase64, festivalHint }),
     });
     // The weight field is left for the physical scale reading; the AI estimate is one click away.
-    if (result.success) {
+    if (result.success && result.data) {
       setAnalysisResult(result.data);
       setAnalyzing(false);
       return;
@@ -165,7 +170,7 @@ function WasteScannerPageContent() {
     if (!analysisResult || !weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible) return;
     setSaving(true);
     setError(null);
-    const result = await apiJson<any>("/api/materials", {
+    const result = await apiJson<BatchView>("/api/materials", {
       method: "POST",
       body: JSON.stringify({
         title: analysisResult.materialType,
@@ -185,12 +190,13 @@ function WasteScannerPageContent() {
         alsoContains: analysisResult.alsoContains ?? [],
       }),
     });
-    if (result.success) setSavedBatch(result.data);
+    if (result.success && result.data) setSavedBatch(result.data);
     else setError(result.error ?? "Couldn't log the batch.");
     setSaving(false);
   };
 
   const flags: string[] = analysisResult?.contaminationFlags ?? [];
+  const aiWeight = analysisResult?.estimatedWeightKg;
   const crafts: string[] = analysisResult?.suggestedCraftTypologies ?? [];
   const stepNow = savedBatch ? 3 : analysisResult ? 2 : 1;
   const steps = [translateSync("Capture"), translateSync("Review AI result"), translateSync("Log batch")];
@@ -288,9 +294,9 @@ function WasteScannerPageContent() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="font-display text-[28px] leading-tight font-semibold text-ink">{translateSync(analysisResult.materialType)}</h2>
-                    {analysisResult.alsoContains?.length > 0 && (
+                    {analysisResult.alsoContains && analysisResult.alsoContains.length > 0 && (
                       <p className="text-sm text-ink-2 mt-0.5">
-                        {translateSync("Also contains")}: {analysisResult.alsoContains.map((c: string) => translateSync(c).toLowerCase()).join(", ")}
+                        {translateSync("Also contains")}: {analysisResult.alsoContains.map((c) => translateSync(c).toLowerCase()).join(", ")}
                       </p>
                     )}
                     {analysisResult.inferredMaterialDetails && <p className="text-sm text-ink-3 mt-0.5">{translateSync(analysisResult.inferredMaterialDetails)}</p>}
@@ -298,7 +304,7 @@ function WasteScannerPageContent() {
                   {!analysisResult.isSample && (
                     <Badge tone="pine" className="shrink-0">
                       {analysisResult.isOffline
-                        ? `${translateSync("On-device")} · ${Math.round(analysisResult.confidence * 100)}%`
+                        ? `${translateSync("On-device")} · ${Math.round((analysisResult.confidence ?? 0) * 100)}%`
                         : translateSync("Gemini's guess")}
                     </Badge>
                   )}
@@ -387,11 +393,11 @@ function WasteScannerPageContent() {
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
-                  {analysisResult.estimatedWeightKg?.bestEstimate !== undefined && (
+                  {aiWeight && (
                     <button
                       type="button"
                       onClick={() => {
-                        setWeightKg(analysisResult.estimatedWeightKg.bestEstimate.toString());
+                        setWeightKg(aiWeight.bestEstimate.toString());
                         setWeightSource("ai_estimate");
                       }}
                       className={cn(
@@ -401,9 +407,9 @@ function WasteScannerPageContent() {
                     >
                       <span className="flex flex-wrap items-center gap-x-1.5 font-medium">
                         <Sparkles className="w-3.5 h-3.5" />
-                        {translateSync("AI estimate")}: ~{analysisResult.estimatedWeightKg.bestEstimate} kg
+                        {translateSync("AI estimate")}: ~{aiWeight.bestEstimate} kg
                         <span className="font-normal text-ink-3">
-                          ({analysisResult.estimatedWeightKg.low}–{analysisResult.estimatedWeightKg.high} kg)
+                          ({aiWeight.low}–{aiWeight.high} kg)
                         </span>
                       </span>
                     </button>

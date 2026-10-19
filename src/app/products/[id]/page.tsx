@@ -28,7 +28,7 @@ import { useCart } from "@/context/CartContext";
 import { SPLIT, calculateEscrowSplit } from "@/lib/escrow";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
 import { EscrowBar } from "@/components/EscrowBar";
-import { FeedCard, type FeedMaterialBatch } from "@/components/FeedCard";
+import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
 import { ProvenanceTimeline } from "@/components/ProvenanceTimeline";
 import { ImpactPassPreview } from "@/components/ImpactPassPreview";
 import { BeforeAfter } from "@/components/motion/BeforeAfter";
@@ -37,25 +37,7 @@ import { CountUp } from "@/components/motion/CountUp";
 import { Button, Card, Spinner, EmptyState, LinkButton, SectionHeader } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 import { Journey3D } from "@/components/map/Journey3D";
-
-/** Maps an API product to the shop card shape. */
-function toFeedBatch(p: any): FeedMaterialBatch {
-  const tags = Array.isArray(p.materialTags) && p.materialTags.length > 0 ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "Upcycled piece";
-  const country = p.sourceBatch?.agreement?.country || p.artisan?.country || "";
-  return {
-    id: p.id,
-    title: p.title,
-    description: p.description || "",
-    price: Number(p.price) || 0,
-    image: Array.isArray(p.images) ? p.images[0] : p.images,
-    cooperativeName: p.artisan?.workshopName || p.artisan?.fullName || "Artisan workshop",
-    region: country,
-    country,
-    weightKg: Number(p.kgDiverted) || 1.5,
-    materialType: tags,
-    festival: p.sourceBatch?.agreement?.festival || "",
-  };
-}
+import type { ProductView } from "@/lib/server/views";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -63,7 +45,7 @@ export default function ProductDetailPage() {
   const { addToCart, items } = useCart();
   const { formatCurrency, formatNumber, translateSync } = useTranslation();
 
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<ProductView | null>(null);
   const [related, setRelated] = useState<FeedMaterialBatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
@@ -74,21 +56,21 @@ export default function ProductDetailPage() {
   useEffect(() => {
     async function loadProduct() {
       const [productRes, catalogueRes] = await Promise.all([
-        apiJson<any>(`/api/products/${encodeURIComponent(productId)}`),
-        apiJson<any[]>("/api/products"),
+        apiJson<ProductView>(`/api/products/${encodeURIComponent(productId)}`),
+        apiJson<ProductView[]>("/api/products"),
       ]);
-      const found = productRes.success ? productRes.data : null;
+      const found = (productRes.success && productRes.data) || null;
       const catalogue = catalogueRes.data ?? [];
 
       // Related: same festival first, then anything else; unique titles, max 3
       const festival = found?.sourceBatch?.agreement?.festival;
-      const seen = new Set<string>([found?.title]);
+      const seen = new Set<string>(found ? [found.title] : []);
       const others = catalogue
-        .filter((p: any) => p.id !== found?.id)
-        .sort((a: any, b: any) => Number(b.sourceBatch?.agreement?.festival === festival) - Number(a.sourceBatch?.agreement?.festival === festival))
-        .filter((p: any) => (seen.has(p.title) ? false : (seen.add(p.title), true)))
+        .filter((p) => p.id !== found?.id)
+        .sort((a, b) => Number(b.sourceBatch?.agreement?.festival === festival) - Number(a.sourceBatch?.agreement?.festival === festival))
+        .filter((p) => (seen.has(p.title) ? false : (seen.add(p.title), true)))
         .slice(0, 3)
-        .map(toFeedBatch);
+        .map(toFeedItem);
 
       setProduct(found);
       setRelated(others);
@@ -402,8 +384,8 @@ export default function ProductDetailPage() {
                   title: translateSync("Logged & classified by Gemini"),
                   meta: batchId,
                   detail: [product.sourceBatch?.materialType, product.sourceBatch?.condition]
-                    .filter(Boolean)
-                    .map((t: string) => translateSync(t))
+                    .filter((t): t is string => Boolean(t))
+                    .map((t) => translateSync(t))
                     .join(" · "),
                 },
                 {

@@ -4,10 +4,8 @@ import { db } from "@/lib/server/firestore";
 import { ok, route } from "@/lib/server/http";
 import { materialTotals, orderTotals } from "@/lib/server/stats";
 
-/** GET /api/admin/stats — KPIs and chart data for the admin dashboard. */
-export const GET = route(async (request: Request) => {
-  await requireUser(request, ["admin"]);
-
+/** KPIs and chart data for the admin dashboard. */
+async function adminStats() {
   const [orders, materials, roleSnap] = await Promise.all([
     orderTotals(),
     materialTotals(),
@@ -17,7 +15,7 @@ export const GET = route(async (request: Request) => {
   const users = roleSnap.docs.map((d) => d.data() as { role: string; verificationStatus: string });
   const countRole = (role: string) => users.filter((u) => u.role === role).length;
 
-  return ok({
+  return {
     kpis: {
       ...orders,
       totalKgCollected: materials.totalKgCollected,
@@ -47,5 +45,13 @@ export const GET = route(async (request: Request) => {
       lgu: countRole("lgu"),
       admins: countRole("admin"),
     },
-  });
+  };
+}
+
+export type AdminStats = Awaited<ReturnType<typeof adminStats>>;
+
+/** GET /api/admin/stats — KPIs and chart data for the admin dashboard. */
+export const GET = route(async (request: Request) => {
+  await requireUser(request, ["admin"]);
+  return ok(await adminStats());
 });

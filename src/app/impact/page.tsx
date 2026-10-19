@@ -6,6 +6,7 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { EscrowBar } from "@/components/EscrowBar";
 import { Badge, Card, PageHeader, SectionHeader, Skeleton, Stat, cn, type BadgeTone } from "@/components/ui";
 import { apiJson } from "@/lib/api";
+import type { PublicStats } from "@/app/api/stats/route";
 import { SPLIT } from "@/lib/escrow";
 
 interface LeaderboardEntry {
@@ -24,13 +25,13 @@ export default function ImpactLeaderboardPage() {
   const { user } = useAuth();
   const { formatNumber, formatCurrency, translateSync } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState<FilterRole>("all");
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
-    apiJson<any>("/api/stats").then((result) => {
-      if (result.success) setStats(result.data);
+    apiJson<PublicStats>("/api/stats").then((result) => {
+      if (result.success && result.data) setStats(result.data);
       else setOffline(true);
       setLoading(false);
     });
@@ -46,7 +47,7 @@ export default function ImpactLeaderboardPage() {
   };
 
   const split = stats?.escrowSplitSummary;
-  const festivals: any[] = stats?.festivals ?? [];
+  const festivals = stats?.festivals ?? [];
   const v = (x: React.ReactNode) => (loading ? <Skeleton className="h-8 w-24" /> : offline ? "—" : x);
 
   return (
