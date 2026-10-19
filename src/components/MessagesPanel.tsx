@@ -11,6 +11,8 @@ import { apiJson } from "@/lib/api";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  /** Written by HeriTech on someone's behalf (order notices), not typed by them. */
+  isSystem?: boolean;
 }
 
 interface ServerMessage {
@@ -18,6 +20,7 @@ interface ServerMessage {
   senderId: string;
   receiverId: string;
   content: string;
+  isSystem?: boolean;
   createdAt: string;
   sender: { id: string; fullName: string; workshopName: string | null; stationName: string | null } | null;
   receiver: { id: string; fullName: string; workshopName: string | null; stationName: string | null } | null;
@@ -28,6 +31,8 @@ function threadsFromServer(messages: ServerMessage[], myId: string): Thread[] {
   const byPerson = new Map<string, Thread>();
   for (const m of messages) {
     const mine = m.senderId === myId;
+    // Automatic notices sent in my name (e.g. "New order…" to the maker) are meant for the other person.
+    if (mine && m.isSystem) continue;
     const other = mine ? m.receiver : m.sender;
     const otherId = mine ? m.receiverId : m.senderId;
     const thread = byPerson.get(otherId) ?? {
@@ -37,7 +42,7 @@ function threadsFromServer(messages: ServerMessage[], myId: string): Thread[] {
       avatarText: (other?.fullName ?? "?").slice(0, 2).toUpperCase(),
       messages: [],
     };
-    thread.messages.push({ role: mine ? "user" : "assistant", content: m.content });
+    thread.messages.push({ role: mine ? "user" : "assistant", content: m.content, isSystem: m.isSystem });
     thread.time = new Date(m.createdAt).toLocaleDateString();
     byPerson.set(otherId, thread);
   }
@@ -411,7 +416,8 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-paper">
               {activeThread?.messages?.map((m, idx) => (
-                <div key={idx} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={idx} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
+                  {m.isSystem && <span className="mb-1 px-1 text-[11px] text-ink-3">{translateSync("Automatic message")}</span>}
                   <div
                     className={`max-w-[85%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed whitespace-pre-wrap ${
                       m.role === "user" ? "bg-pine-700 text-white rounded-br-sm" : "bg-surface border border-line text-ink-2 rounded-bl-sm"

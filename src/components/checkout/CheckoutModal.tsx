@@ -105,6 +105,8 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
     if (result.success && result.data) {
       setPurchased(checkoutItems);
       setOrderResult(result.data);
+      // The maker's automatic thank-you is waiting in Messages.
+      window.dispatchEvent(new CustomEvent("new-message"));
       if (!directProduct) clearCart();
       setStep(2);
     } else {
@@ -290,7 +292,11 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   type="button"
                   onClick={() => {
                     onClose();
-                    setTimeout(() => window.dispatchEvent(new CustomEvent("open-messages")), 200);
+                    const maker = checkoutItems[0];
+                    const detail = maker?.artisanId
+                      ? { threadId: maker.artisanId, name: maker.artisanWorkshop || maker.artisanName || "Maker" }
+                      : undefined;
+                    setTimeout(() => window.dispatchEvent(new CustomEvent("open-messages", { detail })), 200);
                   }}
                   className={buttonClass("ghost", "sm", "shrink-0")}
                 >

@@ -8,9 +8,13 @@ export default function MessagesRedirectPage() {
 
   useEffect(() => {
     // Redirect to home and trigger side bubble messages
+    // /messages?with=<userId>&name=<display name> opens that person's thread (used by Wallet pass links).
+    const params = new URLSearchParams(window.location.search);
+    const withId = params.get("with");
+    const detail = withId ? { threadId: withId, name: params.get("name") || "Maker" } : undefined;
     router.replace("/");
     const timer = setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("open-messages"));
+      window.dispatchEvent(new CustomEvent("open-messages", { detail }));
     }, 200);
 
     return () => clearTimeout(timer);

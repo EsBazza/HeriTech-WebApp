@@ -54,6 +54,8 @@ export const POST = route(async (request: Request) => {
     });
 
     const batchSnaps = await tx.getAll(...products.map((p) => db.batches().doc(p.sourceBatchId)));
+    const artisanSnaps = await tx.getAll(...[...new Set(products.map((p) => p.artisanId))].map((id) => db.users().doc(id)));
+    const artisans = new Map(artisanSnaps.map((snap) => [snap.id, snap.data()]));
     const loyaltyRef = db.loyalty().doc(buyer.id);
     const loyaltyBefore: LoyaltyState = (await tx.get(loyaltyRef)).data() ?? EMPTY_LOYALTY;
     const redeemReward = loyaltyBefore.rewardAvailable;
@@ -105,6 +107,16 @@ export const POST = route(async (request: Request) => {
         senderId: buyer.id,
         receiverId: product.artisanId,
         content: `New order for ${quantity} × "${product.title}" (${split.totalAmount.toFixed(2)} USD, your share ${split.artisanPayout.toFixed(2)} USD). Ship to ${shippingAddress.city}, ${shippingAddress.country}.`,
+        contextType: "order",
+        contextId: order.id,
+      });
+      // The maker's side of the conversation starts with a factual thank-you, labelled as automatic.
+      const artisan = artisans.get(product.artisanId);
+      const maker = artisan?.workshopName || artisan?.fullName || "the maker";
+      addSystemMessage(tx, {
+        senderId: product.artisanId,
+        receiverId: buyer.id,
+        content: `Thanks for buying "${product.title}" from ${maker}. It's being prepared now. Your Impact Pass ${serial} is in your profile and can be added to Google Wallet. Reply here if you have a question for the maker.`,
         contextType: "order",
         contextId: order.id,
       });
