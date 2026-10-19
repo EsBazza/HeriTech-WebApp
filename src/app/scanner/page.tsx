@@ -180,7 +180,8 @@ function WasteScannerPageContent() {
         agreementId,
         aiInferredMaterial: analysisResult.inferredMaterialDetails,
         aiInferredCondition: analysisResult.condition,
-        aiConfidence: analysisResult.confidence,
+        aiConfidence: analysisResult.isOffline ? analysisResult.confidence : undefined,
+        aiSource: analysisResult.isSample ? undefined : analysisResult.isOffline ? "on_device" : "gemini",
         alsoContains: analysisResult.alsoContains ?? [],
       }),
     });
@@ -296,7 +297,9 @@ function WasteScannerPageContent() {
                   </div>
                   {!analysisResult.isSample && (
                     <Badge tone="pine" className="shrink-0">
-                      {Math.round(analysisResult.confidence * 100)}%
+                      {analysisResult.isOffline
+                        ? `${translateSync("On-device")} · ${Math.round(analysisResult.confidence * 100)}%`
+                        : translateSync("Gemini's guess")}
                     </Badge>
                   )}
                 </div>

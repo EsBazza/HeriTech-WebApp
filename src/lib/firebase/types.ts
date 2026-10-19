@@ -84,7 +84,10 @@ export interface MaterialBatchDoc {
   txHash: string;
   aiInferredMaterial: string | null;
   aiInferredCondition: string | null;
+  /** Class probability from the on-device model; null for Gemini, which gives no real score. */
   aiConfidence: number | null;
+  /** Which model classified the batch. */
+  aiSource?: "gemini" | "on_device";
   /** Other material categories the scan saw in a mixed batch. */
   alsoContains?: string[];
   createdAt: string;

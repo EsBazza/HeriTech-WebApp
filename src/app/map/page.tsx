@@ -42,7 +42,8 @@ interface BatchItem {
   txHash: string;
   aiInferredMaterial?: string;
   aiInferredCondition?: string;
-  aiConfidence?: number;
+  aiConfidence?: number | null;
+  aiSource?: "gemini" | "on_device";
   agreement?: {
     festival: string;
     country: string;
@@ -162,7 +163,7 @@ function MaterialsMapPageContent() {
             Material harvest registry
           </TranslatableHeading>
           <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
-            Inspect raw festival waste logged across Asia with GPS and AI confidence scores. Artisans can reserve batches for pickup.
+            Inspect raw festival waste logged across Asia with GPS and an AI material check. Artisans can reserve batches for pickup.
           </TranslatableParagraph>
         </div>
 
@@ -405,7 +406,7 @@ function MaterialsMapPageContent() {
 
                 <div className="p-3 bg-paper rounded-md space-y-1">
                   <TranslatableText className="text-xs text-ink-3 font-bold">
-                    Gemini AI Vision
+                    {selectedBatch.aiSource === "on_device" ? "On-device AI (Teachable Machine)" : "Gemini AI Vision"}
                   </TranslatableText>
                   <p className="font-semibold text-ink truncate">
                     <TranslatableText>{selectedBatch.aiInferredMaterial || selectedBatch.materialType}</TranslatableText>
@@ -415,15 +416,15 @@ function MaterialsMapPageContent() {
                       {translateSync("Also contains")}: {selectedBatch.alsoContains.map((c) => translateSync(c).toLowerCase()).join(", ")}
                     </p>
                   )}
-                  <div className="flex items-center space-x-1 text-pine-600">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>
-                      <TranslatableText>Confidence</TranslatableText>:{" "}
-                      <strong>
-                        {selectedBatch.aiConfidence ? `${Math.round(selectedBatch.aiConfidence * 100)}%` : "—"}
-                      </strong>
-                    </span>
-                  </div>
+                  {/* Only the on-device model gives a real class probability; Gemini's self-rating is not shown. */}
+                  {selectedBatch.aiSource === "on_device" && selectedBatch.aiConfidence != null && (
+                    <div className="flex items-center space-x-1 text-pine-600">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>
+                        <TranslatableText>Model probability</TranslatableText>: <strong>{Math.round(selectedBatch.aiConfidence * 100)}%</strong>
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-3 bg-paper rounded-md space-y-1">

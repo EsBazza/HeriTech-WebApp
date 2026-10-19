@@ -17,7 +17,6 @@ const USER_PROMPT = `Look at the material in this photo and fill in this JSON. K
 {
   "materialType": one of ${MATERIAL_CATEGORIES.map((c) => `"${c}"`).join(", ")},
   "alsoContains": other categories from the same list that are clearly visible too, at most 2 (empty list if none),
-  "confidence": number from 0 to 1,
   "summary": "what is in the photo, at most 10 words, no brand names",
   "condition": one of ${MATERIAL_CONDITIONS.map((c) => `"${c}"`).join(", ")},
   "contaminationFlags": up to 3 things to remove before reuse, each 1 to 3 words (empty list if none),
@@ -48,7 +47,6 @@ export function tidy(raw: Partial<ScanAnalysis> & { summary?: string }): ScanAna
   return {
     materialType: category,
     alsoContains,
-    confidence: Math.min(Math.max(Number(raw.confidence) || 0, 0), 1),
     condition,
     inferredMaterialDetails: words(raw.summary ?? raw.inferredMaterialDetails, 12),
     contaminationFlags: shortList(raw.contaminationFlags, 3, 3),

@@ -11,7 +11,8 @@ export interface ScanAnalysis {
   materialType: string;
   /** Other categories clearly present in a mixed batch. */
   alsoContains?: string[];
-  confidence: number;
+  /** A real class probability, only from the on-device model. Gemini results carry none: a self-rated score isn't a measurement. */
+  confidence?: number;
   condition: string;
   /** One short line describing what is in the photo. */
   inferredMaterialDetails: string;
@@ -25,7 +26,6 @@ export interface ScanAnalysis {
 export function sampleScan(): ScanAnalysis {
   return {
     materialType: "Sample result: festival material",
-    confidence: 0,
     condition: "Not assessed (sample)",
     inferredMaterialDetails: "Gemini was unavailable, so this photo was not analysed. Enter the material details by hand.",
     contaminationFlags: [],

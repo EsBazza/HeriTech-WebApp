@@ -53,6 +53,7 @@ const schema = z.object({
   aiInferredMaterial: fields.optionalText(2000),
   aiInferredCondition: fields.optionalText(300),
   aiConfidence: z.coerce.number().min(0).max(1).optional(),
+  aiSource: z.enum(["gemini", "on_device"]).optional(),
   alsoContains: z.array(fields.text(60)).max(2).default([]),
 });
 
@@ -100,7 +101,8 @@ export const POST = route(async (request: Request) => {
       }),
       aiInferredMaterial: input.aiInferredMaterial,
       aiInferredCondition: input.aiInferredCondition,
-      aiConfidence: input.aiConfidence ?? null,
+      aiConfidence: input.aiSource === "on_device" ? input.aiConfidence ?? null : null,
+      aiSource: input.aiSource,
       alsoContains: input.alsoContains,
       createdAt,
     };

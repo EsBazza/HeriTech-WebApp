@@ -6,7 +6,6 @@ describe("scanner result tidy-up", () => {
     const result = tidy({
       materialType: "mixed plastics",
       alsoContains: ["Paper and card", "mixed plastics", "Bottle caps", "Paper and card", "Fabric and textile", "Wood and frame offcuts"],
-      confidence: 0.96,
       summary: "Clear plastic bottles and food trays piled inside a cardboard collection box with labels",
       condition: "Needs sorting",
       contaminationFlags: ["Paper product labels", "Adhesive residue", "Minor food or liquid residue inside containers", "Caps"],
@@ -24,7 +23,9 @@ describe("scanner result tidy-up", () => {
   });
 
   it("falls back to Other and Needs sorting for answers outside the lists", () => {
-    const result = tidy({ materialType: "PET bottles (Cocobella)", condition: "pristine, mint", confidence: 3 });
-    expect(result).toMatchObject({ materialType: "Other", condition: "Needs sorting", confidence: 1, contaminationFlags: [], alsoContains: [], peopleVisible: false });
+    const result = tidy({ materialType: "PET bottles (Cocobella)", condition: "pristine, mint", confidence: 0.99 });
+    expect(result).toMatchObject({ materialType: "Other", condition: "Needs sorting", contaminationFlags: [], alsoContains: [], peopleVisible: false });
+    // Gemini's self-rated confidence is never passed on.
+    expect(result.confidence).toBeUndefined();
   });
 });
