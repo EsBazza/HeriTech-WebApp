@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { CartProvider } from "@/context/CartContext";
@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   description:
     "HeriTech traces festival waste from collection to finished craft, pays artisans fairly and shows where every sale's money goes.",
 };
+
+/** Colours the phone's status bar to match the app when installed. */
+export const viewport: Viewport = { themeColor: "#1f3a2b" };
 
 export default function RootLayout({
   children,
