@@ -14,7 +14,6 @@ export function Footer() {
       links: [
         { label: translateSync("Shop crafts"), href: "/" },
         { label: translateSync("Impact ledger"), href: "/impact" },
-        { label: translateSync("Verify a pass"), href: "/verify" },
         { label: translateSync("AI material scanner"), href: "/scanner" },
       ],
     },

@@ -226,7 +226,6 @@ export function Navbar() {
   const navLinks = [
     { name: translateSync("Shop"), href: "/", show: true },
     { name: translateSync("Impact"), href: "/impact", show: true },
-    { name: translateSync("Verify a pass"), href: "/verify", show: true },
     { name: translateSync("Harvest map"), href: "/map", show: role === "artisan" || role === "lgu" || role === "admin" },
     { name: translateSync("Studio"), href: "/studio", show: role === "artisan" || role === "admin" },
     { name: translateSync("Scanner"), href: "/scanner", show: role === "lgu" || role === "admin" },

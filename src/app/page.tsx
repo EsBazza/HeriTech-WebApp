@@ -273,7 +273,7 @@ export default function FeedHomePage() {
                 {translateSync("Browse crafts")}
                 <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
-              <form onSubmit={submitSerial} className="flex flex-1 max-w-sm">
+              <form id="verify" onSubmit={submitSerial} className="flex flex-1 max-w-sm scroll-mt-24">
                 <label htmlFor="hero-serial" className="sr-only">
                   {translateSync("Pass serial number")}
                 </label>
