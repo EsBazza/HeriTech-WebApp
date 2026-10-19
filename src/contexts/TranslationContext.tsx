@@ -17,7 +17,6 @@ import {
   getLanguageByCode,
   type Language,
 } from "@/lib/languages";
-import { MOCK_TRANSLATIONS } from "@/lib/translation/mock-translate";
 
 interface TranslationContextType {
   currentLanguage: Language;
@@ -186,10 +185,6 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
         if (langCode !== "en") {
           const loaded = loadCacheFromStorage(langCode);
           if (!loaded) {
-            const localDict = MOCK_TRANSLATIONS[langCode];
-            if (localDict) {
-              Object.entries(localDict).forEach(([k, v]) => globalCache.set(k, v));
-            }
             batchTranslate(langCode).then(() => saveCacheToStorage(langCode));
           }
           setCacheVersion((v) => v + 1);
@@ -227,13 +222,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
           sessionStorage.removeItem(CACHE_LANG_KEY);
         }
 
-        // Hydrate instant local translations synchronously
-        const localDict = MOCK_TRANSLATIONS[language.code];
-        if (localDict) {
-          Object.entries(localDict).forEach(([k, v]) => globalCache.set(k, v));
-        }
-
-        // Instantly notify components so UI updates in 0ms without waiting for network requests
+        // Show English straight away; translations fill in as they arrive.
         setCacheVersion((v) => v + 1);
         setIsLoading(false);
 

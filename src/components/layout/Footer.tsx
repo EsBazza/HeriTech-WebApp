@@ -14,7 +14,6 @@ export function Footer() {
       links: [
         { label: translateSync("Shop crafts"), href: "/" },
         { label: translateSync("Impact record"), href: "/impact" },
-        { label: translateSync("AI material scanner"), href: "/scanner" },
       ],
     },
     {
@@ -22,8 +21,7 @@ export function Footer() {
       links: [
         { label: translateSync("Artisan studio"), href: "/studio" },
         { label: translateSync("Material map"), href: "/map" },
-        { label: translateSync("Release agreements"), href: "/agreements" },
-        { label: translateSync("Custody handover"), href: "/handover" },
+        { label: translateSync("AI material scanner"), href: "/scanner" },
       ],
     },
     {

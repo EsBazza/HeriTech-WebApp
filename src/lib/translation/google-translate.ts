@@ -155,9 +155,8 @@ export async function translateText({
     return { translations: geminiTranslations, success: true };
   }
 
-  // 3. Fallback to Local Mock Translation
-  const { mockTranslateText } = await import('./mock-translate');
-  return mockTranslateText({ text, targetLanguage, sourceLanguage });
+  // 3. Both services failed: keep the English text rather than guess.
+  return { translations: textsToTranslate, success: false, error: 'Translation is unavailable right now.' };
 }
 
 // Translate object with key-value pairs
@@ -217,6 +216,8 @@ export async function translateWithCache({
         targetLanguage,
         sourceLanguage
       });
+      // Never cache a failed attempt as if it were a translation.
+      if (!response.success) return { translations: text, success: false, error: response.error };
 
       response.translations.forEach((translation: string, i: number) => {
         const originalIndex = indices[i];
