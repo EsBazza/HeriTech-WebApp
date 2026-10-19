@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Paper lantern">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#3b3226"/>
+      <stop offset="1" stop-color="#1f1a14"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
+  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
+  <line x1="400" y1="0" x2="400" y2="150" stroke="#3a2f24" stroke-width="3"/>
+      <circle cx="400" cy="300" r="190" fill="#e8a33a" fill-opacity="0.18"/>
+      <ellipse cx="400" cy="300" rx="120" ry="135" fill="#d9823b"/>
+      <ellipse cx="400" cy="290" rx="80" ry="100" fill="#e8a33a" fill-opacity="0.7"/>
+      <path d="M400 170 Q 218.9 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 295.5 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 400 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 504.5 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 581.1 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/>
+      <rect x="350" y="150" width="100" height="22" rx="4" fill="#8f6f43"/>
+      <rect x="350" y="428" width="100" height="22" rx="4" fill="#8f6f43"/>
+      <line x1="388" y1="450" x2="383.2" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/><line x1="396" y1="450" x2="394.4" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/><line x1="404" y1="450" x2="405.6" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/><line x1="412" y1="450" x2="416.8" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/>
+  
+  <g font-family="'DM Sans', system-ui, sans-serif">
+    <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
+    <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
+  </g>
+</svg>

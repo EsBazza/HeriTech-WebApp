@@ -8,6 +8,8 @@ import { Footer } from "@/components/layout/Footer";
 import { FloatingBubble } from "@/components/FloatingBubble";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { DemoBanner } from "@/components/DemoBanner";
+import { IntroSplash } from "@/components/motion/IntroSplash";
+import { INTRO_HEAD_SCRIPT } from "@/lib/intro";
 
 export const metadata: Metadata = {
   title: "HeriTech — Traceable heritage craft from festival waste",
@@ -24,7 +26,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Marks JS as available so scroll-reveal content can start hidden without hurting no-JS readers */}
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');" + INTRO_HEAD_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -36,6 +38,7 @@ export default function RootLayout({
         <TranslationProvider>
           <AuthProvider>
             <CartProvider>
+              <IntroSplash />
               <DemoBanner />
               <Navbar />
               <main className="flex-grow">{children}</main>

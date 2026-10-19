@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import { cn } from "@/components/ui";
+import { useInView } from "@/components/motion/Reveal";
 
 export interface ProvenanceEvent {
   title: React.ReactNode;
@@ -11,14 +14,24 @@ export interface ProvenanceEvent {
 }
 
 /** Vertical chain-of-custody list used on product and verify pages. */
-export function ProvenanceTimeline({ events, className }: { events: ProvenanceEvent[]; className?: string }) {
+export function ProvenanceTimeline({
+  events,
+  className,
+  animate = false,
+}: {
+  events: ProvenanceEvent[];
+  className?: string;
+  /** Draw the chain step by step when it scrolls into view. */
+  animate?: boolean;
+}) {
+  const { ref, inView } = useInView<HTMLOListElement>();
   return (
-    <ol className={cn("relative", className)}>
+    <ol ref={ref} className={cn("relative", animate && "journey", animate && inView && "is-visible", className)}>
       {events.map((e, i) => {
         const last = i === events.length - 1;
         return (
-          <li key={i} className="relative flex gap-4 pb-6 last:pb-0">
-            {!last && <span className="absolute left-[15px] top-8 bottom-0 w-px bg-line-strong" aria-hidden />}
+          <li key={i} className="journey-step relative flex gap-4 pb-6 last:pb-0" style={{ ["--i" as string]: i }}>
+            {!last && <span className="journey-line absolute left-[15px] top-8 bottom-0 w-px bg-line-strong" aria-hidden />}
             <span
               className={cn(
                 "relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border",

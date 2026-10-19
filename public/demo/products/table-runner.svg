@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Patchwork table runner">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#f3eadc"/>
+      <stop offset="1" stop-color="#ddcdb4"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
+  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
+  <g transform="translate(160 260) rotate(-8)">
+        <rect x="0" y="0" width="60" height="60" fill="#c2602f"/><rect x="0" y="60" width="60" height="60" fill="#e8a33a"/><rect x="60" y="0" width="60" height="60" fill="#f7f1e6"/><rect x="60" y="60" width="60" height="60" fill="#8fb09c"/><rect x="120" y="0" width="60" height="60" fill="#3c6b52"/><rect x="120" y="60" width="60" height="60" fill="#f7f1e6"/><rect x="180" y="0" width="60" height="60" fill="#e8a33a"/><rect x="180" y="60" width="60" height="60" fill="#c9705a"/><rect x="240" y="0" width="60" height="60" fill="#8fb09c"/><rect x="240" y="60" width="60" height="60" fill="#3c6b52"/><rect x="300" y="0" width="60" height="60" fill="#f7f1e6"/><rect x="300" y="60" width="60" height="60" fill="#c2602f"/><rect x="360" y="0" width="60" height="60" fill="#c9705a"/><rect x="360" y="60" width="60" height="60" fill="#f7f1e6"/><rect x="420" y="0" width="60" height="60" fill="#3c6b52"/><rect x="420" y="60" width="60" height="60" fill="#3c6b52"/>
+        <rect width="480" height="120" fill="none" stroke="#5a4a3a" stroke-width="3"/>
+        <rect x="6" y="6" width="468" height="108" fill="none" stroke="#f7f1e6" stroke-width="2" stroke-dasharray="6 6"/>
+      </g>
+  
+  <g font-family="'DM Sans', system-ui, sans-serif">
+    <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
+    <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
+  </g>
+</svg>

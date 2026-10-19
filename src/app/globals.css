@@ -240,6 +240,390 @@
   animation-delay: var(--confirm-delay, 0ms);
 }
 
+/* ─── Intro: logo, drawn loop, four HeriTech steps ───────────
+   Hidden before first paint by the head script (html.no-intro)
+   for repeat visits, /verify deep links and reduced motion. */
+.no-intro .intro {
+  display: none;
+}
+.intro {
+  animation: intro-out 0.5s cubic-bezier(0.4, 0, 0.2, 1) 2.25s forwards;
+}
+.intro.is-skipped {
+  animation: intro-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes intro-out {
+  to {
+    opacity: 0;
+    transform: translateY(-2%);
+    visibility: hidden;
+  }
+}
+.intro-ring {
+  stroke-dasharray: 553;
+  stroke-dashoffset: 553;
+  animation: intro-draw 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+}
+@keyframes intro-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.intro-logo {
+  opacity: 0;
+  animation: intro-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards;
+}
+@keyframes intro-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.intro-node {
+  opacity: 0;
+  transform: scale(0.4);
+  animation: intro-node 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: var(--node-delay, 0s);
+}
+@keyframes intro-node {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.intro-word {
+  color: var(--color-ink-3);
+  opacity: 0.45;
+  animation: intro-word 0.35s ease-out forwards;
+  animation-delay: var(--node-delay, 0s);
+}
+@keyframes intro-word {
+  to {
+    color: var(--color-pine-700);
+    opacity: 1;
+  }
+}
+.intro-fade {
+  opacity: 0;
+  animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--rise-delay, 0s);
+}
+
+/* Hero entrances wait until the intro has lifted */
+.intro-on .rise {
+  animation-delay: calc(var(--rise-delay, 0ms) + 2.35s);
+}
+.intro-on .confirm {
+  animation-delay: calc(var(--confirm-delay, 0ms) + 2.35s);
+}
+
+/* ─── Trace reveal: the hero photo comes into colour under the cursor ─── */
+@property --trace-r {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --trace-x {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 70%;
+}
+@property --trace-y {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 45%;
+}
+.trace {
+  --trace-r: 0px;
+  transition: --trace-r 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Hovered or toggled: colour floods out from the cursor across the whole photo */
+.trace[data-state="hover"],
+.trace[data-state="full"] {
+  --trace-r: 160vmax;
+  /* Light spreads outward once the lantern ignites */
+  transition: --trace-r 1.3s cubic-bezier(0.3, 0.7, 0.2, 1) 0.8s;
+}
+/* Hero: the colour flood starts from the lantern, not the cursor */
+.hero-trace {
+  --trace-x: 50%;
+  --trace-y: 20%;
+}
+@media (min-width: 1024px) {
+  .hero-trace {
+    --trace-x: 72%;
+    --trace-y: 39%;
+  }
+}
+/* Slow camera push while the scene comes together */
+.trace-camera {
+  transform: scale(1);
+  transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.trace[data-state="hover"] .trace-camera,
+.trace[data-state="full"] .trace-camera {
+  transform: scale(1.05);
+  transition: transform 2.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.trace-color {
+  -webkit-mask-image: radial-gradient(circle var(--trace-r) at var(--trace-x) var(--trace-y), #000 60%, transparent 100%);
+  mask-image: radial-gradient(circle var(--trace-r) at var(--trace-x) var(--trace-y), #000 60%, transparent 100%);
+}
+.trace-tag {
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.trace[data-state="hover"] .trace-tag,
+.trace[data-state="full"] .trace-tag {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.45s ease-out, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(1350ms + var(--tag-delay, 0ms));
+}
+
+/* Before/after captions that swap with the state */
+.trace-when-idle,
+.trace-when-crafted {
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+}
+.trace-when-crafted {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.trace[data-state="hover"] .trace-when-idle,
+.trace[data-state="full"] .trace-when-idle {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.trace[data-state="hover"] .trace-when-crafted,
+.trace[data-state="full"] .trace-when-crafted {
+  opacity: 1;
+  transform: none;
+  transition-delay: 1.5s;
+}
+
+/* ─── Lantern assembly: leftovers → lantern ─── */
+.lantern-stage {
+  position: absolute;
+}
+.lantern-piece {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(calc(var(--sx) - 50%), calc(var(--sy) - 50%)) rotate(var(--sr));
+  /* Falling apart: quicker, gravity-like */
+  transition: transform 0.45s cubic-bezier(0.55, 0, 0.75, 0.4);
+  transition-delay: calc(var(--piece-delay) * 0.15);
+}
+.trace[data-state="hover"] .lantern-piece,
+.trace[data-state="full"] .lantern-piece {
+  transform: translate(calc(var(--tx) - 50%), calc(var(--ty) - 50%)) rotate(var(--tr));
+  /* Coming together: lift, then settle with a slight overshoot */
+  transition: transform 0.8s cubic-bezier(0.45, -0.35, 0.25, 1.3);
+  transition-delay: var(--piece-delay);
+}
+.lantern-scrap {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  animation: litter-drift 7s ease-in-out infinite alternate;
+  transition: filter 0.6s ease-out, box-shadow 0.6s ease-out;
+  filter: saturate(0.55) brightness(0.8);
+}
+.lantern-paper {
+  border-radius: 2px;
+}
+.lantern-bamboo {
+  border-radius: 9999px;
+}
+.lantern-petal {
+  border-radius: 9999px 9999px 9999px 2px;
+}
+.trace[data-state="hover"] .lantern-scrap,
+.trace[data-state="full"] .lantern-scrap {
+  animation-play-state: paused;
+  filter: saturate(1.1) brightness(1.08);
+  box-shadow: 0 0 10px rgb(255 190 110 / 0.45);
+  transition-delay: 0.85s;
+}
+@keyframes litter-drift {
+  from {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate(4px, -3px) rotate(9deg);
+  }
+}
+.lantern-glow {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  margin: -210px 0 0 -210px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgb(255 196 120 / 0.55) 0%, rgb(232 140 60 / 0.22) 38%, transparent 70%);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.5s ease-out, transform 0.6s ease-out;
+}
+.trace[data-state="hover"] .lantern-glow,
+.trace[data-state="full"] .lantern-glow {
+  opacity: 1;
+  transform: scale(1);
+  animation:
+    lantern-ignite 0.9s cubic-bezier(0.2, 0.9, 0.3, 1) 0.85s both,
+    lantern-flicker 3.2s ease-in-out 2.2s infinite;
+}
+@keyframes lantern-ignite {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.lantern-body {
+  position: absolute;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 45%, rgb(255 233 190 / 0.95) 0%, rgb(247 176 92 / 0.85) 45%, rgb(214 104 48 / 0.9) 80%, rgb(170 70 36 / 0.95) 100%);
+  box-shadow: inset 0 -10px 24px rgb(120 40 20 / 0.35), inset 0 8px 18px rgb(255 240 210 / 0.35);
+  opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.trace[data-state="hover"] .lantern-body,
+.trace[data-state="full"] .lantern-body {
+  opacity: 0.94;
+  transform: scale(1);
+  transition: opacity 0.5s ease-out 0.85s, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.8s;
+}
+@keyframes lantern-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.86;
+  }
+  60% {
+    opacity: 0.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trace,
+  .trace-tag,
+  .lantern-piece,
+  .lantern-glow,
+  .lantern-body,
+  .trace-camera,
+  .trace-when-idle,
+  .trace-when-crafted {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+  .lantern-scrap,
+  .lantern-glow {
+    animation: none !important;
+  }
+}
+
+/* ─── Product page motion ─── */
+/* Journey: steps rise in order and the connecting line draws down */
+.js .journey .journey-step {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i) * 220ms);
+}
+.js .journey .journey-line {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.5s ease-out;
+  transition-delay: calc(var(--i) * 220ms + 180ms);
+}
+.js .journey.is-visible .journey-step {
+  opacity: 1;
+  transform: none;
+}
+.js .journey.is-visible .journey-line {
+  transform: none;
+}
+
+/* Money split: each share fills in turn */
+.js .split-anim .split-seg {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.js .split-anim .split-seg:nth-child(2) {
+  transition-delay: 0.25s;
+}
+.js .split-anim .split-seg:nth-child(3) {
+  transition-delay: 0.5s;
+}
+.js .split-anim.is-visible .split-seg {
+  transform: none;
+}
+
+/* Impact Pass preview: wallet-card look, slow sheen, gentle tilt */
+.pass-stage {
+  perspective: 900px;
+}
+.pass-card {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(194 96 47 / 0.35) 0%, transparent 55%),
+    linear-gradient(150deg, #24453a 0%, #14281e 70%);
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.25s ease-out;
+  transform-style: preserve-3d;
+}
+.pass-sheen {
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(105deg, transparent 42%, rgb(255 255 255 / 0.14) 50%, transparent 58%);
+  transform: translateX(-60%);
+  animation: pass-sheen 6s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+@keyframes pass-sheen {
+  0% {
+    transform: translateX(-60%);
+  }
+  35%,
+  100% {
+    transform: translateX(60%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .journey .journey-step,
+  .js .journey .journey-line,
+  .js .split-anim .split-seg {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .pass-sheen {
+    animation: none;
+  }
+  .pass-card {
+    transform: none;
+  }
+}
+
 /* Shared surfaces still referenced by older markup */
 .card, .material-card, .feat-item, .stat-card {
   background: var(--color-surface);

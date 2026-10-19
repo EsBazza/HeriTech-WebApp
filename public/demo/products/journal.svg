@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Petal-paper journal">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#f5e9d9"/>
+      <stop offset="1" stop-color="#e3cdb0"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
+  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
+  <g transform="rotate(-4 400 320)">
+        <rect x="270" y="150" width="260" height="320" rx="8" fill="#e3c08a" stroke="#5a4a3a" stroke-width="3"/>
+        <rect x="270" y="150" width="34" height="320" fill="#c2602f"/>
+        <ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(0)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(72)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(144)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(216)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(288)"/>
+        <circle cx="420" cy="300" r="12" fill="#e8a33a"/>
+        <path d="M530 310 C 580 310, 590 350, 560 370" stroke="#3a2f24" stroke-width="3" fill="none"/>
+        <rect x="270" y="150" width="260" height="320" rx="8" fill="url(#sheen)"/>
+      </g>
+  
+  <g font-family="'DM Sans', system-ui, sans-serif">
+    <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
+    <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
+  </g>
+</svg>

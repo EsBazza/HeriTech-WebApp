@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Woven tote">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#eef0e6"/>
+      <stop offset="1" stop-color="#d3d9c7"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
+  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
+  <path d="M330 260 C 330 160, 470 160, 470 260" fill="none" stroke="#1f3a2b" stroke-width="14" stroke-linecap="round"/>
+      <path d="M270 260 L530 260 L505 470 L295 470 Z" fill="#3c6b52" stroke="#1f3a2b" stroke-width="3"/>
+      <line x1="275" y1="290" x2="525" y2="290" stroke="#f7f1e6" stroke-width="10" stroke-opacity="0.8"/><line x1="279" y1="320" x2="521" y2="320" stroke="#c2602f" stroke-width="10" stroke-opacity="0.8"/><line x1="283" y1="350" x2="517" y2="350" stroke="#f7f1e6" stroke-width="10" stroke-opacity="0.8"/><line x1="287" y1="380" x2="513" y2="380" stroke="#c2602f" stroke-width="10" stroke-opacity="0.8"/><line x1="291" y1="410" x2="509" y2="410" stroke="#f7f1e6" stroke-width="10" stroke-opacity="0.8"/><line x1="295" y1="440" x2="505" y2="440" stroke="#c2602f" stroke-width="10" stroke-opacity="0.8"/>
+      <path d="M270 260 L530 260 L505 470 L295 470 Z" fill="url(#sheen)"/>
+  
+  <g font-family="'DM Sans', system-ui, sans-serif">
+    <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
+    <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
+  </g>
+</svg>

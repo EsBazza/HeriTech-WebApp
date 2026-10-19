@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Hand-bound sketchbook">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#f2ece0"/>
+      <stop offset="1" stop-color="#ddd2bd"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
+  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
+  <path d="M400 200 C 340 180, 260 190, 200 210 L200 450 C 260 430, 340 425, 400 445 Z" fill="#f7f1e6" stroke="#5a4a3a" stroke-width="3"/>
+      <path d="M400 200 C 460 180, 540 190, 600 210 L600 450 C 540 430, 460 425, 400 445 Z" fill="#f7f1e6" stroke="#5a4a3a" stroke-width="3"/>
+      <line x1="400" y1="220" x2="400" y2="236" stroke="#c2602f" stroke-width="5" stroke-linecap="round"/><line x1="400" y1="260" x2="400" y2="276" stroke="#c2602f" stroke-width="5" stroke-linecap="round"/><line x1="400" y1="300" x2="400" y2="316" stroke="#c2602f" stroke-width="5" stroke-linecap="round"/><line x1="400" y1="340" x2="400" y2="356" stroke="#c2602f" stroke-width="5" stroke-linecap="round"/><line x1="400" y1="380" x2="400" y2="396" stroke="#c2602f" stroke-width="5" stroke-linecap="round"/><line x1="400" y1="420" x2="400" y2="436" stroke="#c2602f" stroke-width="5" stroke-linecap="round"/>
+      <path d="M440 300 C 470 260, 520 260, 540 300 S 520 360, 470 350" fill="none" stroke="#3c6b52" stroke-width="3"/>
+      <path d="M240 260 L360 270 M240 290 L350 298 M240 320 L340 326" stroke="#5a4a3a" stroke-opacity="0.4" stroke-width="3" stroke-linecap="round"/>
+  
+  <g font-family="'DM Sans', system-ui, sans-serif">
+    <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
+    <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
+  </g>
+</svg>

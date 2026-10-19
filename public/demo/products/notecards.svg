@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Plant-dyed notecards">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#f6e7dc"/>
+      <stop offset="1" stop-color="#e8cbbb"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
+  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
+  <g transform="translate(300 310) rotate(-10)">
+        <rect x="-95" y="-125" width="190" height="250" rx="6" fill="#f7f1e6" stroke="#5a4a3a" stroke-width="2.5"/>
+        <g transform="translate(0 -20)"><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c9705a" transform="rotate(0)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c9705a" transform="rotate(72)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c9705a" transform="rotate(144)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c9705a" transform="rotate(216)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c9705a" transform="rotate(288)"/><circle r="10" fill="#e8a33a"/><path d="M0 22 C -4 60, 6 80, 0 100" stroke="#6f8f5a" stroke-width="4" fill="none"/></g>
+      </g><g transform="translate(500 310) rotate(9)">
+        <rect x="-95" y="-125" width="190" height="250" rx="6" fill="#f7f1e6" stroke="#5a4a3a" stroke-width="2.5"/>
+        <g transform="translate(0 -20)"><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#8fb09c" transform="rotate(0)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#8fb09c" transform="rotate(72)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#8fb09c" transform="rotate(144)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#8fb09c" transform="rotate(216)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#8fb09c" transform="rotate(288)"/><circle r="10" fill="#e8a33a"/><path d="M0 22 C -4 60, 6 80, 0 100" stroke="#6f8f5a" stroke-width="4" fill="none"/></g>
+      </g><g transform="translate(400 300) rotate(0)">
+        <rect x="-95" y="-125" width="190" height="250" rx="6" fill="#f7f1e6" stroke="#5a4a3a" stroke-width="2.5"/>
+        <g transform="translate(0 -20)"><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c2602f" transform="rotate(0)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c2602f" transform="rotate(72)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c2602f" transform="rotate(144)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c2602f" transform="rotate(216)"/><ellipse cx="0" cy="-22" rx="12" ry="22" fill="#c2602f" transform="rotate(288)"/><circle r="10" fill="#e8a33a"/><path d="M0 22 C -4 60, 6 80, 0 100" stroke="#6f8f5a" stroke-width="4" fill="none"/></g>
+      </g>
+  
+  <g font-family="'DM Sans', system-ui, sans-serif">
+    <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
+    <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
+  </g>
+</svg>

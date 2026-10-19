@@ -4,6 +4,8 @@ import React from "react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { SPLIT, calculateEscrowSplit } from "@/lib/escrow";
 import { cn } from "@/components/ui";
+import { useInView } from "@/components/motion/Reveal";
+import { CountUp } from "@/components/motion/CountUp";
 
 interface EscrowBarProps {
   /** When provided, each row shows the actual amount for this price. */
@@ -12,11 +14,14 @@ interface EscrowBarProps {
   ngoName?: string;
   /** Hide per-row descriptions for tight spaces (cards, checkout). */
   compact?: boolean;
+  /** Fill the bar and count up the amounts when it scrolls into view. */
+  animate?: boolean;
   className?: string;
 }
 
 /** The single artisan / LGU / charity split visual used across the app. */
-export function EscrowBar({ amount, ngoName, compact, className }: EscrowBarProps) {
+export function EscrowBar({ amount, ngoName, compact, animate = false, className }: EscrowBarProps) {
+  const { ref, inView } = useInView<HTMLDivElement>();
   const { translateSync, formatCurrency } = useTranslation();
   const split = amount != null ? calculateEscrowSplit(amount) : null;
 
@@ -50,14 +55,14 @@ export function EscrowBar({ amount, ngoName, compact, className }: EscrowBarProp
   ];
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div ref={ref} className={cn("space-y-4", animate && "split-anim", animate && inView && "is-visible", className)}>
       <div
         className="flex h-2.5 w-full overflow-hidden rounded-full bg-paper-2"
         role="img"
         aria-label={`${SPLIT.artisan}% artisan, ${SPLIT.lgu}% LGU, ${SPLIT.charityMaintenance}% charity and app upkeep`}
       >
         {rows.map((r) => (
-          <div key={r.key} className={cn("h-full", r.color)} style={{ width: `${r.pct}%` }} />
+          <div key={r.key} className={cn("split-seg h-full", r.color)} style={{ width: `${r.pct}%` }} />
         ))}
       </div>
 
@@ -72,7 +77,9 @@ export function EscrowBar({ amount, ngoName, compact, className }: EscrowBarProp
                   {r.label}
                 </span>
                 {r.value != null && (
-                  <span className="tabular text-sm font-semibold text-ink">{formatCurrency(r.value)}</span>
+                  <span className="tabular text-sm font-semibold text-ink">
+                    {animate ? <CountUp value={r.value} decimals={2} format={formatCurrency} /> : formatCurrency(r.value)}
+                  </span>
                 )}
               </div>
               {!compact && <p className="text-xs text-ink-3 mt-0.5">{r.desc}</p>}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Camera, Check, Handshake, Hammer, QrCode, Search, X, ShieldCheck, PackageOpen } from "lucide-react";
+import { ArrowRight, Camera, Check, Handshake, Hammer, MousePointer2, QrCode, Search, Sparkles, X, PackageOpen } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, FeedMaterialBatch } from "@/components/FeedCard";
@@ -12,8 +12,10 @@ import { userRole } from "@/lib/roleGuard";
 import { Button, EmptyState, Eyebrow, SectionHeader, Stat, cn, controlClass } from "@/components/ui";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
+import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
+import { LanternAssembly } from "@/components/motion/LanternAssembly";
 import { apiJson } from "@/lib/api";
-import { SPLIT, SPLIT_LABEL } from "@/lib/escrow";
+import { SPLIT_LABEL } from "@/lib/escrow";
 
 /** The most common values across listed pieces, so filters only offer what is actually for sale. */
 function topValues(values: string[], limit: number): string[] {
@@ -197,42 +199,77 @@ export default function FeedHomePage() {
     },
   ];
 
-  // An illustration of what every pass records, not a real pass.
-  const passRows = [
-    { label: translateSync("Collected"), value: translateSync("Festival and collection point") },
-    { label: translateSync("Classified by Gemini"), value: translateSync("Material and condition") },
-    { label: translateSync("Crafted by"), value: translateSync("Verified artisan") },
+  // What "traced" means, pinned onto the hero photo (generic, no invented records)
+  const heroTags: TraceTag[] = [
+    { label: translateSync("Material logged"), detail: translateSync("At the collection point"), x: 52, y: 18 },
+    { label: translateSync("Classified by Gemini"), detail: translateSync("Type and condition"), x: 81, y: 27 },
+    { label: translateSync("Linked to its maker"), detail: translateSync("Verified artisan"), x: 50, y: 47 },
   ];
+
 
   return (
     <div className="w-full">
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-line">
-        {/* Lantern-light glow on paper — slow, decorative */}
-        <div aria-hidden className="absolute inset-0 -z-0">
-          <div className="glow w-[520px] h-[520px] -top-40 -left-40 bg-pine-100/70" />
-          <div className="glow w-[420px] h-[420px] top-1/3 right-[-120px] bg-lantern-100/80" style={{ animationDelay: "-8s" }} />
+      {/* HERO — photo first. Muted until traced: hover (or tap) brings it into colour. */}
+      <TraceReveal
+        src="/fresh-botanical-hero-bg.png"
+        alt={translateSync("Artisan workshop with recovered festival materials")}
+        className="hero-trace bg-pine-900 text-white"
+        tags={heroTags}
+        followCursor={false}
+        renderToggle={({ full, toggle }) => (
+          <div className="absolute z-[2] top-4 right-4 sm:top-6 sm:right-6 lg:hidden">
+            <button
+              type="button"
+              onClick={toggle}
+              aria-pressed={full}
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white/15 border border-white/25 text-sm text-white backdrop-blur hover:bg-white/25 transition-colors cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              {full ? translateSync("Show leftovers") : translateSync("Craft it")}
+            </button>
+          </div>
+        )}
+      >
+        {/* Scrim keeps the copy readable over any part of the photo */}
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgb(20_40_30/0.97)_0%,rgb(20_40_30/0.85)_55%,rgb(20_40_30/0.15)_85%,rgb(20_40_30/0)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_40_30/0.95)_0%,rgb(20_40_30/0.8)_34%,rgb(20_40_30/0.2)_62%,rgb(20_40_30/0)_100%)] pointer-events-none" />
+
+        {/* Leftovers → lantern. Hover (or "Craft it") assembles it. */}
+        <div
+          aria-hidden
+          className="absolute z-[1] left-1/2 top-2 -translate-x-1/2 origin-top scale-[0.45] sm:scale-[0.6] lg:scale-100 lg:translate-x-0 lg:left-[calc(72%-220px)] lg:top-[calc(44%-260px)] w-[440px] h-[560px] pointer-events-none"
+        >
+          <LanternAssembly className="left-0 top-0" />
+          <div className="absolute left-1/2 top-[372px] -translate-x-1/2 whitespace-nowrap hidden lg:block">
+            <span className="trace-when-idle absolute left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-pine-900/70 border border-white/15 px-3.5 py-1.5 text-sm text-white/85 backdrop-blur">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
+              {translateSync("Leftovers after the festival")}
+            </span>
+            <span className="trace-when-crafted absolute left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-surface px-3.5 py-1.5 text-sm font-medium text-ink shadow-pop">
+              <Check className="w-4 h-4 text-success" strokeWidth={2.5} />
+              {translateSync("Crafted · traced · verified")}
+            </span>
+          </div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14 lg:pt-16 lg:pb-24 grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          <div className="lg:col-span-6 space-y-7">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[620px] lg:min-h-[min(84vh,760px)] flex items-end lg:items-center pt-64 sm:pt-80 pb-14 lg:py-20">
+          <div className="max-w-xl space-y-7">
             <div className="rise" style={{ ["--rise-delay" as string]: "0ms" }}>
-              <Eyebrow>{translateSync("EDUtech Asia 2026 · Planet Protectors Challenge")}</Eyebrow>
+              <Eyebrow className="text-pine-200">{translateSync("EDUtech Asia 2026 · Planet Protectors Challenge")}</Eyebrow>
             </div>
             <h1
-              className="rise font-display text-[44px] sm:text-[56px] lg:text-[64px] leading-[1.02] font-semibold text-ink tracking-[-0.01em]"
+              className="rise font-display text-[46px] sm:text-[60px] lg:text-[68px] leading-[1.0] font-semibold text-white tracking-[-0.01em]"
               style={{ ["--rise-delay" as string]: "80ms" }}
             >
-              {translateSync("Festival waste,")} <span className="italic text-pine-600">{translateSync("traced")}</span> {translateSync("into heritage craft.")}
+              {translateSync("Festival waste,")} <span className="italic text-pine-200">{translateSync("traced")}</span> {translateSync("into heritage craft.")}
             </h1>
-            <p className="rise text-lg text-ink-2 max-w-xl leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
+            <p className="rise text-lg text-white/80 leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
               {translateSync(
                 "HeriTech is a circular digital system that logs festival materials at collection, routes them to local artisans, and gives every finished piece a public record of where it came from and who got paid."
               )}
             </p>
 
             <div className="rise flex flex-col sm:flex-row gap-3" style={{ ["--rise-delay" as string]: "240ms" }}>
-              <a href="#shop" className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md bg-pine-700 text-white font-medium hover:bg-pine-600 transition-colors">
+              <a href="#shop" className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md bg-white text-pine-900 font-medium hover:bg-pine-50 transition-colors">
                 {translateSync("Browse crafts")}
                 <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
@@ -245,78 +282,37 @@ export default function FeedHomePage() {
                   value={serial}
                   onChange={(e) => setSerial(e.target.value)}
                   placeholder={translateSync("Pass serial (HT-XXXX-XXXX)")}
-                  className={cn(controlClass, "h-12 rounded-r-none border-r-0 font-mono-data text-sm")}
+                  className={cn(
+                    controlClass,
+                    "h-12 rounded-r-none border-r-0 font-mono-data text-sm bg-white/10 border-white/30 text-white placeholder:text-white/55 focus:border-white focus:ring-white/20 backdrop-blur"
+                  )}
                 />
-                <button type="submit" className="h-12 px-4 rounded-r-md border border-line-strong bg-surface text-ink font-medium hover:border-pine-500 hover:text-pine-700 transition-colors cursor-pointer whitespace-nowrap">
+                <button
+                  type="submit"
+                  className="h-12 px-4 rounded-r-md border border-white/30 bg-white/10 text-white font-medium hover:bg-white/20 transition-colors cursor-pointer whitespace-nowrap backdrop-blur"
+                >
                   {translateSync("Verify")}
                 </button>
               </form>
             </div>
 
-            <ul className="rise flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-3" style={{ ["--rise-delay" as string]: "320ms" }}>
+            <ul className="rise flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/75" style={{ ["--rise-delay" as string]: "320ms" }}>
               {[translateSync("Gemini classification"), translateSync("Google Wallet passes"), translateSync("Public impact ledger")].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
-                  <Check className="w-4 h-4 text-pine-500" />
+                  <Check className="w-4 h-4 text-pine-200" />
                   {t}
                 </li>
               ))}
             </ul>
-          </div>
 
-          <div className="lg:col-span-6 relative rise" style={{ ["--rise-delay" as string]: "120ms" }}>
-            <div className="relative aspect-[5/4] rounded-lg overflow-hidden bg-paper-2 shadow-pop">
-              <Image
-                src="/fresh-botanical-hero-bg.png"
-                alt={translateSync("Artisan workshop with recovered festival materials")}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover kenburns"
-              />
-              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-pine-900/25 via-transparent to-transparent" />
-            </div>
-
-            {/* Example pass: shows what every pass records (illustration, not a real pass) */}
-            <div className="float absolute -bottom-8 left-4 right-4 sm:left-auto sm:right-6 sm:w-[21rem]">
-              <div className="bg-surface rounded-md border border-line shadow-pop p-4">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-success">
-                    <ShieldCheck className="w-4 h-4" />
-                    {translateSync("Verified Impact Pass")}
-                  </span>
-                  <span className="rounded-sm bg-paper-2 px-1.5 py-0.5 text-xs text-ink-3">{translateSync("Example")}</span>
-                </div>
-                <p className="mt-2 text-sm text-ink-2">{translateSync("Every piece carries a record like this, back to the festival its material came from.")}</p>
-                <ul className="mt-3 space-y-1.5 border-t border-line pt-3">
-                  {passRows.map((r, i) => (
-                    <li key={r.label} className="confirm flex items-center gap-2 text-xs" style={{ ["--confirm-delay" as string]: `${900 + i * 350}ms` }}>
-                      <span className="w-4 h-4 rounded-full bg-success-100 text-success flex items-center justify-center shrink-0">
-                        <Check className="w-3 h-3" strokeWidth={2.5} />
-                      </span>
-                      <span className="text-ink-3">{r.label}</span>
-                      <span className="ml-auto font-medium text-ink truncate">{r.value}</span>
-                    </li>
-                  ))}
-                </ul>
-                <dl className="confirm mt-3 grid grid-cols-3 gap-2 text-xs" style={{ ["--confirm-delay" as string]: "1950ms" }}>
-                  <div>
-                    <dt className="text-ink-3">{translateSync("To artisan")}</dt>
-                    <dd className="tabular font-medium text-ink">{SPLIT.artisan}%</dd>
-                  </div>
-                  <div>
-                    <dt className="text-ink-3">{translateSync("To LGU")}</dt>
-                    <dd className="tabular font-medium text-ink">{SPLIT.lgu}%</dd>
-                  </div>
-                  <div>
-                    <dt className="text-ink-3">{translateSync("Charity & upkeep")}</dt>
-                    <dd className="tabular font-medium text-lantern-600">{SPLIT.charityMaintenance}%</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
+            <p className="rise hidden lg:flex items-center gap-2 text-xs text-white/60" style={{ ["--rise-delay" as string]: "400ms" }}>
+              <MousePointer2 className="w-3.5 h-3.5" />
+              {translateSync("Hover the photo to turn the leftovers into a lantern")}
+            </p>
           </div>
         </div>
-      </section>
+
+      </TraceReveal>
 
       {/* PROOF STRIP */}
       <section className="bg-pine-900 text-white">

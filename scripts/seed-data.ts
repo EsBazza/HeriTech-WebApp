@@ -60,9 +60,9 @@ const agreement = (n: number, festival: string, allocatedKg: number, collectedKg
 
 // collectedKg matches the batches logged against each agreement below.
 export const SEED_AGREEMENTS = [
-  agreement(1, "Demo Lantern Festival", 300, 18.5, "2026-07-15T09:00:00.000Z"),
-  agreement(2, "Demo Flower Festival", 400, 32, "2026-07-20T09:00:00.000Z"),
-  agreement(3, "Demo Street Parade", 200, 12.4, "2026-08-01T09:00:00.000Z"),
+  agreement(1, "Demo Lantern Festival", 300, 28.3, "2026-07-15T09:00:00.000Z"),
+  agreement(2, "Demo Flower Festival", 400, 53, "2026-07-20T09:00:00.000Z"),
+  agreement(3, "Demo Street Parade", 200, 28, "2026-08-01T09:00:00.000Z"),
   agreement(4, "Demo New Year Celebration", 150, 9.6, "2026-08-05T09:00:00.000Z"),
   agreement(5, "Demo Harvest Festival", 500, 40.2, "2026-08-08T09:00:00.000Z"),
 ];
@@ -103,6 +103,9 @@ export const SEED_MATERIAL_BATCHES = [
   batch("HT-2026-0401", "plastics", 9.6, "RA-2026-004", "usr_lgu_04", [15.0215, 120.6982], "2026-08-06T12:00:00.000Z", { status: "available" }),
   batch("HT-2026-0501", "wood", 26, "RA-2026-005", "usr_lgu_04", [15.0367, 120.6791], "2026-08-09T08:00:00.000Z", { status: "claimed", artisanId: "usr_art_05" }),
   batch("HT-2026-0502", "paper", 14.2, "RA-2026-005", "usr_lgu_04", [15.0254, 120.6823], "2026-08-09T14:00:00.000Z", { status: "available" }),
+  batch("HT-2026-0102", "paper", 9.8, "RA-2026-001", "usr_lgu_01", [15.0291, 120.6912], "2026-07-16T15:00:00.000Z", { status: "claimed", artisanId: "usr_art_05" }),
+  batch("HT-2026-0202", "flowers", 21, "RA-2026-002", "usr_lgu_01", [15.0318, 120.6861], "2026-07-21T15:00:00.000Z", { status: "claimed", artisanId: "usr_art_01" }),
+  batch("HT-2026-0302", "fabric", 15.6, "RA-2026-003", "usr_lgu_04", [15.0398, 120.6937], "2026-08-02T16:00:00.000Z", { status: "claimed", artisanId: "usr_art_02" }),
 ];
 
 const product = (
@@ -115,13 +118,14 @@ const product = (
   material: keyof typeof MATERIAL,
   stock: number,
   kgDiverted: number,
-  createdAt: string
+  createdAt: string,
+  art: string
 ) => ({
   id,
   title,
   description,
   price,
-  images: [MATERIAL[material].image],
+  images: [`/demo/products/${art}.svg`],
   artisanId,
   sourceBatchId,
   materialTags: [MATERIAL[material].type],
@@ -132,10 +136,18 @@ const product = (
 });
 
 export const SEED_PRODUCTS = [
-  product("prod_01", "Lamp shade", "Demo listing. A lamp shade made from paper and card collected after a festival.", 35, "usr_art_01", "HT-2026-0101", "paper", 10, 0.6, "2026-07-20T10:00:00.000Z"),
-  product("prod_02", "Plant-dyed notecards (set of 6)", "Demo listing. Notecards coloured with dye made from festival flowers.", 12, "usr_art_02", "HT-2026-0201", "flowers", 20, 0.3, "2026-07-25T10:00:00.000Z"),
-  product("prod_03", "Wall shelf", "Demo listing. A small shelf built from wood and frame offcuts left after a festival.", 40, "usr_art_05", "HT-2026-0501", "wood", 6, 2.5, "2026-08-10T10:00:00.000Z"),
-  product("prod_04", "Coaster set (4 pieces)", "Demo listing. Coasters cut from the same batch of frame offcuts.", 15, "usr_art_05", "HT-2026-0501", "wood", 12, 0.8, "2026-08-11T10:00:00.000Z"),
+  product("prod_01", "Lamp shade", "Demo listing. A lamp shade made from paper and card collected after a festival.", 35, "usr_art_01", "HT-2026-0101", "paper", 10, 0.6, "2026-07-20T10:00:00.000Z", "lamp-shade"),
+  product("prod_02", "Plant-dyed notecards (set of 6)", "Demo listing. Notecards coloured with dye made from festival flowers.", 12, "usr_art_02", "HT-2026-0201", "flowers", 20, 0.3, "2026-07-25T10:00:00.000Z", "notecards"),
+  product("prod_03", "Wall shelf", "Demo listing. A small shelf built from wood and frame offcuts left after a festival.", 40, "usr_art_05", "HT-2026-0501", "wood", 6, 2.5, "2026-08-10T10:00:00.000Z", "wall-shelf"),
+  product("prod_04", "Coaster set (4 pieces)", "Demo listing. Coasters cut from the same batch of frame offcuts.", 15, "usr_art_05", "HT-2026-0501", "wood", 12, 0.8, "2026-08-11T10:00:00.000Z", "coasters"),
+  product("prod_05", "Paper lantern, medium", "Demo listing. A hanging lantern folded from paper and card collected after a lantern festival.", 28, "usr_art_05", "HT-2026-0102", "paper", 8, 0.4, "2026-07-24T10:00:00.000Z", "paper-lantern"),
+  product("prod_06", "Woven market tote", "Demo listing. A sturdy tote woven from fabric strips left after a street parade.", 32, "usr_art_02", "HT-2026-0302", "fabric", 7, 0.9, "2026-08-04T10:00:00.000Z", "tote"),
+  product("prod_07", "Patchwork table runner", "Demo listing. A table runner pieced together from parade fabric offcuts.", 26, "usr_art_02", "HT-2026-0302", "fabric", 5, 0.7, "2026-08-05T10:00:00.000Z", "table-runner"),
+  product("prod_08", "Pressed-flower bookmarks (set of 3)", "Demo listing. Bookmarks set with flowers pressed after a flower festival.", 9, "usr_art_01", "HT-2026-0202", "flowers", 25, 0.1, "2026-07-26T10:00:00.000Z", "bookmarks"),
+  product("prod_09", "Petal-paper journal", "Demo listing. A journal with covers made from petals and pulped festival paper.", 18, "usr_art_01", "HT-2026-0202", "flowers", 14, 0.4, "2026-07-27T10:00:00.000Z", "journal"),
+  product("prod_10", "Hand-bound sketchbook", "Demo listing. A sketchbook stitched by hand from sorted festival paper.", 16, "usr_art_01", "HT-2026-0101", "paper", 11, 0.5, "2026-07-21T10:00:00.000Z", "sketchbook"),
+  product("prod_11", "Festival bunting, 3 m", "Demo listing. Bunting cut from parade fabric, ready to hang again.", 22, "usr_art_02", "HT-2026-0302", "fabric", 9, 0.6, "2026-08-06T10:00:00.000Z", "bunting"),
+  product("prod_12", "Desk organiser", "Demo listing. A three-section organiser built from frame offcuts.", 24, "usr_art_05", "HT-2026-0501", "wood", 6, 1.1, "2026-08-12T10:00:00.000Z", "desk-organiser"),
 ];
 
 export const SEED_ORDERS = [
