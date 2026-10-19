@@ -110,7 +110,7 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
       {
         id: "split",
         header: "Where the money went",
-        body: `${SPLIT.artisan}% artisan · ${SPLIT.lgu}% LGU · ${SPLIT.charityMaintenance}% charity & app upkeep`,
+        body: `${SPLIT.artisan}% artisan · ${SPLIT.lgu}% local government · ${SPLIT.charityMaintenance}% charity & app upkeep`,
       },
       { id: "issued", header: "Issued", body: new Date(pass.issuedAt).toISOString().slice(0, 10) },
     ],
@@ -165,7 +165,7 @@ function loyaltyBalances(state: LoyaltyState) {
       {
         id: "how",
         header: "How it works",
-        body: `Collect ${LOYALTY.passesForReward} Impact Passes or spend $${LOYALTY.spendForReward} to unlock ${LOYALTY.discountPercent}% off your next order. The discount comes from HeriTech's share, so artisans and LGUs are always paid in full.`,
+        body: `Collect ${LOYALTY.passesForReward} Impact Passes or spend $${LOYALTY.spendForReward} to unlock ${LOYALTY.discountPercent}% off your next order. The discount comes from HeriTech's share, so artisans and local governments are always paid in full.`,
       },
     ],
   };

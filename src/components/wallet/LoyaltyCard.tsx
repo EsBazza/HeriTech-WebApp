@@ -74,7 +74,7 @@ export function LoyaltyCard() {
 
       <p className="text-xs text-white/70">
         {translateSync(
-          `Collect ${rules.passesForReward} passes or spend $${rules.spendForReward}, whichever comes first. The discount comes from HeriTech's share, so artisans and LGUs are always paid in full.`
+          `Collect ${rules.passesForReward} passes or spend $${rules.spendForReward}, whichever comes first. The discount comes from HeriTech's share, so artisans and local governments are always paid in full.`
         )}
       </p>
 

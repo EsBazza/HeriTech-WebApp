@@ -85,7 +85,7 @@ function AdminDashboardPageContent() {
             Admin console
           </TranslatableHeading>
           <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
-            Approve artisan and LGU applications, review payment splits and track festival collection quotas.
+            Approve artisan and local government applications, review payment splits and track festival collection targets.
           </TranslatableParagraph>
         </div>
 
@@ -113,7 +113,7 @@ function AdminDashboardPageContent() {
         <div className="flex items-center justify-between">
           <TranslatableHeading level={2} className="text-lg font-bold text-ink flex items-center space-x-2">
             <Clock className="w-5 h-5 text-pine-500" />
-            <span>Artisan & LGU Verification Applications Queue</span>
+            <span>Applications to join</span>
           </TranslatableHeading>
           <span className="text-xs text-ink-3">
             <TranslatableText>
@@ -126,10 +126,10 @@ function AdminDashboardPageContent() {
           <div className="p-8 bg-surface rounded-lg border border-line text-center space-y-2">
             <CheckCircle2 className="w-10 h-10 text-pine-500 mx-auto" />
             <TranslatableHeading level={3} className="text-sm font-bold text-ink">
-              Application Queue is Clear
+              No applications waiting
             </TranslatableHeading>
             <TranslatableParagraph className="text-xs text-ink-3">
-              There are no pending verification requests awaiting administrative review.
+              New applications will show up here.
             </TranslatableParagraph>
           </div>
         ) : (
@@ -167,7 +167,7 @@ function AdminDashboardPageContent() {
                         }`}
                       >
                         <TranslatableText>
-                          {isArtisan ? "APPLYING: ARTISAN" : "APPLYING: LGU OFFICER"}
+                          {isArtisan ? "Wants to join as an artisan" : "Wants to join as a local government officer"}
                         </TranslatableText>
                       </span>
                     </div>
@@ -235,7 +235,7 @@ function AdminDashboardPageContent() {
               <span>User Accounts & Role Administration</span>
             </TranslatableHeading>
             <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
-              Admin control panel to manage registered user permissions and update roles (Buyer, Artisan, LGU, Admin).
+              Change what each person can do: buyer, artisan, local government officer or admin.
             </TranslatableParagraph>
           </div>
           <span className="text-xs font-bold text-ink-3 font-mono-data">
@@ -325,7 +325,7 @@ function AdminDashboardPageContent() {
           </div>
 
           <div className="p-6 rounded-lg bg-surface border border-line shadow-card space-y-1">
-            <p className="text-xs font-bold text-ink-3">{SPLIT.lgu}% {translateSync("LGU share")}</p>
+            <p className="text-xs font-bold text-ink-3">{SPLIT.lgu}% {translateSync("local government share")}</p>
             <p className="font-display text-[34px] leading-none font-semibold text-lantern-600 tabular">
               {formatCurrency(stats?.kpis?.lguShareTotal ?? 0)}
             </p>
@@ -346,7 +346,7 @@ function AdminDashboardPageContent() {
           {/* Chart 1: Festival Quota Progress */}
           <div className="bg-surface rounded-lg border border-line p-6 space-y-4 shadow-card">
             <TranslatableHeading level={3} className="text-sm font-bold text-ink">
-              Festival collection quotas (kg collected vs target)
+              Festival collection (kg collected vs target)
             </TranslatableHeading>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -369,7 +369,7 @@ function AdminDashboardPageContent() {
                 {translateSync("Payment split")} ({SPLIT_LABEL})
               </h3>
               <TranslatableParagraph className="text-xs text-ink-3 mt-0.5">
-                How completed sales were divided between artisans, LGUs, and charity & app upkeep.
+                How completed sales were divided between artisans, local governments, and charity & app upkeep.
               </TranslatableParagraph>
             </div>
 
@@ -401,7 +401,7 @@ function AdminDashboardPageContent() {
               </div>
               <div>
                 <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-platform" aria-hidden />{SPLIT.lgu}%</span>
-                <TranslatableText className="text-xs text-ink-3">LGU</TranslatableText>
+                <TranslatableText className="text-xs text-ink-3">Local government</TranslatableText>
               </div>
               <div>
                 <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular"><span className="w-2 h-2 rounded-full bg-split-ngo" aria-hidden />{SPLIT.charityMaintenance}%</span>
@@ -417,7 +417,7 @@ function AdminDashboardPageContent() {
 
 export default function AdminDashboardPage() {
   return (
-    <AccessGuard allowedRoles={["admin"]} pageTitle="System Administration">
+    <AccessGuard allowedRoles={["admin"]} pageTitle="Admin">
       <AdminDashboardPageContent />
     </AccessGuard>
   );

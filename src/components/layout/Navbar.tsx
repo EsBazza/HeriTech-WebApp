@@ -18,7 +18,7 @@ type DemoRole = keyof typeof DEMO_ACCOUNTS;
 const ROLE_LABELS: Record<string, string> = {
   buyer: "Buyer",
   artisan: "Artisan",
-  lgu: "LGU officer",
+  lgu: "Local government officer",
   admin: "Admin",
   guest: "Guest",
 };
@@ -226,7 +226,7 @@ export function Navbar() {
   const navLinks = [
     { name: translateSync("Shop"), href: "/", show: true },
     { name: translateSync("Impact"), href: "/impact", show: true },
-    { name: translateSync("Harvest map"), href: "/map", show: role === "artisan" || role === "lgu" || role === "admin" },
+    { name: translateSync("Material map"), href: "/map", show: role === "artisan" || role === "lgu" || role === "admin" },
     { name: translateSync("Studio"), href: "/studio", show: role === "artisan" || role === "admin" },
     { name: translateSync("Scanner"), href: "/scanner", show: role === "lgu" || role === "admin" },
   ].filter((l) => l.show);

@@ -42,7 +42,7 @@ export default function ImpactLeaderboardPage() {
 
   const roleTag: Record<LeaderboardEntry["role"], { label: string; tone: BadgeTone }> = {
     artisan: { label: translateSync("Artisan"), tone: "pine" },
-    lgu: { label: translateSync("LGU officer"), tone: "neutral" },
+    lgu: { label: translateSync("Local government officer"), tone: "neutral" },
   };
 
   const split = stats?.escrowSplitSummary;
@@ -52,14 +52,14 @@ export default function ImpactLeaderboardPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
       <PageHeader
-        eyebrow={translateSync("Public impact ledger")}
+        eyebrow={translateSync("Public impact record")}
         title={translateSync("Global impact")}
         description={translateSync("Live totals from every collection, sale and donation recorded on HeriTech. Anyone can view this page.")}
       />
 
       {offline && (
         <p role="alert" className="text-sm text-warn bg-warn-100 border border-warn/20 rounded-md px-4 py-2.5">
-          {translateSync("The ledger is offline right now, so figures can't be shown. Try again shortly.")}
+          {translateSync("The figures can't load right now. Try again shortly.")}
         </p>
       )}
 
@@ -67,7 +67,7 @@ export default function ImpactLeaderboardPage() {
       <Card className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-line">
         <Stat className="p-5 sm:p-6" label={translateSync("Material diverted")} value={v(formatNumber(stats?.totalKgCollected ?? 0))} unit="kg" hint={translateSync("Kept out of landfill and rivers")} />
         <Stat className="p-5 sm:p-6" label={translateSync("Paid to artisans")} value={v(formatCurrency(split?.artisanPayout ?? 0))} hint={`${SPLIT.artisan}% ${translateSync("of every sale")}`} />
-        <Stat className="p-5 sm:p-6" label={translateSync("Paid to LGUs")} value={v(formatCurrency(split?.lguShare ?? 0))} hint={`${SPLIT.lgu}% ${translateSync("of every sale")}`} />
+        <Stat className="p-5 sm:p-6" label={translateSync("Paid to local governments")} value={v(formatCurrency(split?.lguShare ?? 0))} hint={`${SPLIT.lgu}% ${translateSync("of every sale")}`} />
         <Stat className="p-5 sm:p-6" label={translateSync("Impact passes issued")} value={v(formatNumber(stats?.totalPassesIssued ?? 0))} hint={translateSync("Each one publicly verifiable")} />
       </Card>
 
@@ -129,7 +129,7 @@ export default function ImpactLeaderboardPage() {
               {[
                 { id: "all", label: translateSync("All") },
                 { id: "artisan", label: translateSync("Artisans") },
-                { id: "lgu", label: translateSync("LGUs") },
+                { id: "lgu", label: translateSync("Local governments") },
               ].map((tab) => {
                 const active = selectedFilter === tab.id;
                 return (

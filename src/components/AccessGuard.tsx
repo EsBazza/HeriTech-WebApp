@@ -17,7 +17,7 @@ interface AccessGuardProps {
 
 const ROLE_NAMES: Record<UserRole, string> = {
   artisan: "artisan",
-  lgu: "LGU officer",
+  lgu: "local government officer",
   admin: "admin",
   buyer: "buyer",
   guest: "guest",

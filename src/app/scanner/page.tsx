@@ -488,7 +488,7 @@ function WasteScannerPageContent() {
                   <div className="rounded-md bg-success-100 border border-success/20 p-4 space-y-2" role="status">
                     <p className="flex items-center gap-2 text-sm font-medium text-success">
                       <CheckCircle2 className="w-4 h-4" />
-                      {translateSync("Batch logged to the ledger")}
+                      {translateSync("Batch saved")}
                     </p>
                     <dl className="text-xs text-ink-2 space-y-1">
                       <div className="flex gap-2">
@@ -501,7 +501,7 @@ function WasteScannerPageContent() {
                       </div>
                       {savedBatch.txHash && (
                         <div className="flex gap-2">
-                          <dt className="text-ink-3 w-16 shrink-0">{translateSync("Fingerprint")}</dt>
+                          <dt className="text-ink-3 w-16 shrink-0">{translateSync("Tamper check")}</dt>
                           <dd className="font-mono-data break-all">{savedBatch.txHash}</dd>
                         </div>
                       )}

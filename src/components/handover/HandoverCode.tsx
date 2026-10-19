@@ -73,7 +73,7 @@ export async function pickupCardBlob(qr: HTMLCanvasElement, batch: HandoverBatch
   );
   ctx.fillStyle = "#5f6661";
   ctx.font = font(400, 28);
-  ctx.fillText("Show this to the LGU officer at the collection point.", W / 2, 1376);
+  ctx.fillText("Show this to the local government officer at the collection point.", W / 2, 1376);
 
   return new Promise((resolve) => c.toBlob((b) => resolve(b), "image/png"));
 }

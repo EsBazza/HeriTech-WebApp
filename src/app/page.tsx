@@ -119,7 +119,7 @@ export default function FeedHomePage() {
     {
       icon: Camera,
       title: translateSync("Collect & classify"),
-      body: translateSync("LGU officers photograph leftover festival material at the collection point. Gemini identifies it and flags contamination."),
+      body: translateSync("Local government officers photograph leftover festival material where it is collected. Gemini names the material and flags anything to remove."),
       tech: "Gemini",
     },
     {
@@ -130,7 +130,7 @@ export default function FeedHomePage() {
     },
     {
       icon: Hammer,
-      title: translateSync("Craft & tag provenance"),
+      title: translateSync("Make and tag the piece"),
       body: translateSync("Artisans link each finished piece to its material ID. Gemini drafts the material story for the artisan to review."),
       tech: "Gemini · Cloud Translation",
     },
@@ -297,7 +297,7 @@ export default function FeedHomePage() {
             </div>
 
             <ul className="rise flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/75" style={{ ["--rise-delay" as string]: "320ms" }}>
-              {[translateSync("Gemini classification"), translateSync("Google Wallet passes"), translateSync("Public impact ledger")].map((t) => (
+              {[translateSync("Gemini classification"), translateSync("Google Wallet passes"), translateSync("Public impact record")].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="w-4 h-4 text-pine-200" />
                   {t}
@@ -323,7 +323,7 @@ export default function FeedHomePage() {
           <Stat tone="dark" label={translateSync("Charity & app upkeep")} value={stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—"} />
           <p className="col-span-2 lg:col-span-4 text-xs text-white/60 -mt-2 flex items-center gap-2">
             <span className={cn("w-1.5 h-1.5 rounded-full", statsOffline ? "bg-warn" : "bg-pine-300")} aria-hidden />
-            {statsOffline ? translateSync("The ledger is offline right now, so figures can't be shown.") : translateSync("Figures read live from the HeriTech ledger.")}
+            {statsOffline ? translateSync("The figures can't load right now.") : translateSync("Live figures from HeriTech's records.")}
           </p>
         </div>
       </section>
@@ -359,7 +359,7 @@ export default function FeedHomePage() {
           <SectionHeader
             eyebrow={translateSync("How HeriTech works")}
             title={translateSync("One record, from riverbank to your shelf")}
-            description={translateSync("Every step writes to the same ledger, so the claim on the tag can be checked by anyone.")}
+            description={translateSync("Every step is recorded when it happens, so anyone can check the claim on the tag.")}
           />
         </Reveal>
         <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-md overflow-hidden">
@@ -384,14 +384,14 @@ export default function FeedHomePage() {
         </ol>
       </section>
 
-      {/* CIRCULAR DIGITAL SYSTEM */}
+      {/* ONE SYSTEM FOR EVERY FESTIVAL */}
       <section className="border-t border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 grid lg:grid-cols-12 gap-10">
           <Reveal className="lg:col-span-4">
             <SectionHeader
-              eyebrow={translateSync("A circular digital system")}
+              eyebrow={translateSync("How it works")}
               title={translateSync("One system for every festival")}
-              description={translateSync("HeriTech is the record-keeping layer that makes festival reuse provable. The leftovers change from festival to festival; the chain of custody stays the same.")}
+              description={translateSync("HeriTech records each step from leftover to finished piece, so anyone can check where it came from.")}
             />
           </Reveal>
           <ul className="lg:col-span-8 grid sm:grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden self-start">
@@ -504,7 +504,7 @@ export default function FeedHomePage() {
         <SectionHeader
           eyebrow={translateSync("Transparent checkout")}
           title={translateSync("Not “a portion goes to charity.” The exact split, every sale.")}
-          description={translateSync("The breakdown is shown before you pay and written to the public ledger after. Your pass links to the entry.")}
+          description={translateSync("You see the split before you pay, and it goes on the public record after. Your pass links to it.")}
         />
         </Reveal>
         <Reveal delay={120} className="bg-surface border border-line rounded-md p-6 shadow-card">

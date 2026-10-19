@@ -30,7 +30,7 @@ export const GET = route(async (request: Request) => {
     },
     escrowSplitDistribution: [
       { name: `Artisan payout (${SPLIT.artisan}%)`, value: orders.artisanPayoutTotal, color: "#2563EB" },
-      { name: `LGU (${SPLIT.lgu}%)`, value: orders.lguShareTotal, color: "#10B981" },
+      { name: `Local government (${SPLIT.lgu}%)`, value: orders.lguShareTotal, color: "#10B981" },
       { name: `Charity & app upkeep (${SPLIT.charityMaintenance}%)`, value: orders.charityMaintenanceTotal, color: "#F59E0B" },
     ],
     festivals: materials.festivals.map((f) => ({

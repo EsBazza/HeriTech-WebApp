@@ -45,10 +45,10 @@ function ArtisanHandover() {
     return (
       <div className="text-center space-y-3 py-6">
         <TranslatableParagraph className="text-sm text-ink-2">
-          You have no batches waiting for pickup. Reserve one on the harvest map first.
+          You have no batches waiting for pickup. Reserve one on the material map first.
         </TranslatableParagraph>
         <Link href="/map" className="text-sm font-semibold text-pine-700 underline">
-          {translateSync("Open the harvest map")}
+          {translateSync("Open the material map")}
         </Link>
       </div>
     );
@@ -61,7 +61,7 @@ function ArtisanHandover() {
           Your pickup code
         </TranslatableHeading>
         <TranslatableParagraph className="text-sm text-ink-3">
-          Show it on screen, or download it, at the collection point. The LGU officer scans it to release the batch to you.
+          Show it on screen, or download it, at the collection point. The local government officer scans it to release the batch to you.
         </TranslatableParagraph>
       </div>
 
@@ -102,7 +102,7 @@ function LguHandover() {
         </div>
         <div>
           <TranslatableHeading level={3} className="font-display text-[28px] leading-tight font-semibold text-ink">
-            Custody transferred
+            Picked up
           </TranslatableHeading>
           <p className="text-sm text-ink-2 mt-1">{translateSync(result.message)}</p>
         </div>
@@ -162,13 +162,13 @@ function HandoverPageContent() {
       <div>
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
           <QrCode className="w-3.5 h-3.5" />
-          <TranslatableText>Chain of custody</TranslatableText>
+          <TranslatableText>Pickup</TranslatableText>
         </div>
         <TranslatableHeading level={1} className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
-          QR custody handover
+          Pickup handover
         </TranslatableHeading>
         <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
-          The artisan shows a signed pickup code and the LGU officer checks it on site before releasing the material. Every handover is logged.
+          The artisan shows a pickup code and the local government officer scans it before handing over the material. Every pickup is recorded.
         </TranslatableParagraph>
       </div>
 
@@ -178,7 +178,7 @@ function HandoverPageContent() {
             <TranslatableText>Artisan: show code</TranslatableText>
           </button>
           <button onClick={() => setActiveTab("lgu")} className={tabClass("lgu")}>
-            <TranslatableText>LGU: check & release</TranslatableText>
+            <TranslatableText>Officer: scan & release</TranslatableText>
           </button>
         </div>
       )}
@@ -192,7 +192,7 @@ function HandoverPageContent() {
 
 export default function HandoverPage() {
   return (
-    <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Physical Custody Handover Audit">
+    <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Pickup handover">
       <HandoverPageContent />
     </AccessGuard>
   );

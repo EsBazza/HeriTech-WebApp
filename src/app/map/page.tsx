@@ -142,9 +142,9 @@ function MaterialsMapPageContent() {
       case "available":
         return { label: translateSync("Available for artisans"), bg: "bg-pine-100 text-pine-700 border-pine-300" };
       case "reserved":
-        return { label: translateSync("Reserved, awaiting QR handover"), bg: "bg-warn-100 text-warn border-warn/20" };
+        return { label: translateSync("Reserved, waiting for pickup"), bg: "bg-warn-100 text-warn border-warn/20" };
       case "claimed":
-        return { label: translateSync("Claimed, in crafting"), bg: "bg-pine-100 text-pine-700 border-pine-300" };
+        return { label: translateSync("Picked up"), bg: "bg-pine-100 text-pine-700 border-pine-300" };
       default:
         return { label: translateSync(status.toUpperCase()), bg: "bg-paper-2 text-ink" };
     }
@@ -157,13 +157,13 @@ function MaterialsMapPageContent() {
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
             <Sparkles className="w-3.5 h-3.5" />
-            <TranslatableText>Harvest map</TranslatableText>
+            <TranslatableText>Material map</TranslatableText>
           </div>
           <TranslatableHeading level={1} className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
-            Material harvest registry
+            Leftover material near you
           </TranslatableHeading>
           <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
-            Inspect raw festival waste logged across Asia with GPS and an AI material check. Artisans can reserve batches for pickup.
+            Every batch collected after a festival, with its photo, weight and pickup point. Artisans can reserve a batch and pick it up.
           </TranslatableParagraph>
         </div>
 
@@ -174,7 +174,7 @@ function MaterialsMapPageContent() {
           </span>
           <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-warn-100 text-warn border border-warn/20">
             <span className="w-2 h-2 rounded-full bg-warn"></span>
-            <TranslatableText>Reserved (QR Pending)</TranslatableText>
+            <TranslatableText>Reserved</TranslatableText>
           </span>
         </div>
       </div>
@@ -365,14 +365,14 @@ function MaterialsMapPageContent() {
                     />
                   </div>
                   <TranslatableText className="text-xs text-ink-3 font-medium block text-center">
-                    Field Origin Photograph
+                    Photo at collection
                   </TranslatableText>
                 </div>
 
                 <div className="flex flex-col justify-center gap-3 rounded-lg border border-line bg-paper p-4">
                   <p className="flex items-center gap-1.5 text-xs font-bold text-ink-3">
                     <MapPin className="w-3.5 h-3.5 text-pine-600" />
-                    {translateSync("Collection depot")}
+                    {translateSync("Pickup point")}
                   </p>
                   {selectedBatch.pickupAddress && <p className="text-sm font-medium text-ink">{selectedBatch.pickupAddress}</p>}
                   <p className="font-mono-data text-xs text-ink-2">
@@ -393,7 +393,7 @@ function MaterialsMapPageContent() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 bg-paper rounded-md space-y-1">
                   <TranslatableText className="text-xs text-ink-3 font-bold">
-                    {selectedBatch.weightSource === "ai_estimate" ? "Weight (AI estimate)" : "Scale Measurement"}
+                    {selectedBatch.weightSource === "ai_estimate" ? "Weight (AI estimate)" : "Weight"}
                   </TranslatableText>
                   <p className="text-base font-semibold text-ink font-mono-data">
                     {selectedBatch.weightSource === "ai_estimate" && "~"}
@@ -406,7 +406,7 @@ function MaterialsMapPageContent() {
 
                 <div className="p-3 bg-paper rounded-md space-y-1">
                   <TranslatableText className="text-xs text-ink-3 font-bold">
-                    {selectedBatch.aiSource === "on_device" ? "On-device AI (Teachable Machine)" : "Gemini AI Vision"}
+                    {selectedBatch.aiSource === "on_device" ? "Checked on-device (Teachable Machine)" : "Checked by Gemini"}
                   </TranslatableText>
                   <p className="font-semibold text-ink truncate">
                     <TranslatableText>{selectedBatch.aiInferredMaterial || selectedBatch.materialType}</TranslatableText>
@@ -429,7 +429,7 @@ function MaterialsMapPageContent() {
 
                 <div className="p-3 bg-paper rounded-md space-y-1">
                   <TranslatableText className="text-xs text-ink-3 font-bold">
-                    GPS Coordinates
+                    Location
                   </TranslatableText>
                   <p className="font-mono-data text-xs text-ink">
                     {Math.abs(selectedBatch.gpsLat).toFixed(4)}° {selectedBatch.gpsLat < 0 ? "S" : "N"}, {Math.abs(selectedBatch.gpsLng).toFixed(4)}° {selectedBatch.gpsLng < 0 ? "W" : "E"}
@@ -442,8 +442,8 @@ function MaterialsMapPageContent() {
 
               {/* Origin fingerprint (SHA-256 of the collection record) */}
               <div className="p-3 bg-paper rounded-md border border-line text-xs space-y-1">
-                <p className="font-bold text-ink-3">{translateSync("Origin fingerprint")}</p>
-                <p className="text-ink-3">{translateSync("Changes if anyone edits where, when or how much was collected.")}</p>
+                <p className="font-bold text-ink-3">{translateSync("Tamper check")}</p>
+                <p className="text-ink-3">{translateSync("This code changes if anyone edits where, when or how much was collected.")}</p>
                 <p className="font-mono-data text-ink-2 break-all" title="SHA-256">{selectedBatch.txHash}</p>
               </div>
 
@@ -469,11 +469,11 @@ function MaterialsMapPageContent() {
                     className="w-full py-3.5 rounded-md bg-pine-700 hover:bg-pine-600 text-white font-bold text-xs shadow-card transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
                   >
                     {reserving ? (
-                      <TranslatableText>Reserving Batch for Pickup...</TranslatableText>
+                      <TranslatableText>Reserving…</TranslatableText>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        <TranslatableText>Ping LGU & Reserve Batch for Upcycling</TranslatableText>
+                        <TranslatableText>Reserve this batch</TranslatableText>
                       </>
                     )}
                   </button>
@@ -481,7 +481,7 @@ function MaterialsMapPageContent() {
                   <div className="p-3 bg-pine-50 border border-pine-200 rounded-md text-xs text-pine-700">
                     <TranslatableParagraph className="font-semibold">Want to claim this material?</TranslatableParagraph>
                     <TranslatableParagraph className="text-xs text-pine-600 mt-0.5">
-                      Sign in as a Verified Artisan to reserve festival waste batches.
+                      Sign in as an artisan to reserve batches.
                     </TranslatableParagraph>
                   </div>
                 )
@@ -493,8 +493,8 @@ function MaterialsMapPageContent() {
                     </p>
                     <TranslatableParagraph className="text-xs text-warn">
                       {holdsReservation
-                        ? "Open the handover to show your pickup code at the collection depot."
-                        : "Waiting for the artisan to pick it up at the collection depot."}
+                        ? "Open the pickup screen to show your code at the collection point."
+                        : "Waiting for the artisan to pick it up at the collection point."}
                     </TranslatableParagraph>
                   </div>
                   {(canShowCode || canVerify) && (
@@ -503,7 +503,7 @@ function MaterialsMapPageContent() {
                       className="px-4 py-2 rounded-md bg-warn hover:bg-warn text-white text-xs font-bold shadow-card transition-all flex items-center space-x-1.5 whitespace-nowrap ml-3"
                     >
                       <QrCode className="w-4 h-4" />
-                      <TranslatableText>Open Handover</TranslatableText>
+                      <TranslatableText>Open pickup</TranslatableText>
                     </button>
                   )}
                 </div>
@@ -511,7 +511,7 @@ function MaterialsMapPageContent() {
                 <div className="p-3 bg-paper border border-line rounded-md text-xs text-ink-2 flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 text-pine-500" />
                   <TranslatableText>
-                    Batch claimed and in production. View finished items in the Marketplace.
+                    Picked up by an artisan. Finished pieces appear in the shop.
                   </TranslatableText>
                 </div>
               )}
@@ -544,7 +544,7 @@ function MaterialsMapPageContent() {
                 <TranslatableText>QR handover</TranslatableText>
               </div>
               <TranslatableHeading level={3} className="text-xl font-semibold text-ink mt-1">
-                Chain-of-Custody Handover: {selectedBatch.id}
+                Pickup handover: {selectedBatch.id}
               </TranslatableHeading>
             </div>
 
@@ -565,7 +565,7 @@ function MaterialsMapPageContent() {
                     handoverTab === "lgu" ? "bg-pine-700 text-white shadow-card" : "text-ink-2 hover:text-ink"
                   }`}
                 >
-                  <TranslatableText>LGU: check & release</TranslatableText>
+                  <TranslatableText>Officer: scan & release</TranslatableText>
                 </button>
               </div>
             )}
@@ -573,7 +573,7 @@ function MaterialsMapPageContent() {
             {handoverSuccess ? (
               <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg text-center space-y-3">
                 <CheckCircle2 className="w-10 h-10 text-pine-500 mx-auto" />
-                <TranslatableHeading level={4} className="text-base font-bold text-ink">Custody Confirmed!</TranslatableHeading>
+                <TranslatableHeading level={4} className="text-base font-bold text-ink">Picked up</TranslatableHeading>
                 <p className="text-xs text-pine-700"><TranslatableText>{handoverSuccess}</TranslatableText></p>
                 <button
                   onClick={() => {
@@ -612,7 +612,7 @@ function MaterialsMapPageContent() {
 
 export default function MaterialsMapPage() {
   return (
-    <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Harvest Map">
+    <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Material map">
       <MaterialsMapPageContent />
     </AccessGuard>
   );

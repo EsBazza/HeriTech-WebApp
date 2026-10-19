@@ -13,7 +13,7 @@ export function Footer() {
       title: translateSync("Platform"),
       links: [
         { label: translateSync("Shop crafts"), href: "/" },
-        { label: translateSync("Impact ledger"), href: "/impact" },
+        { label: translateSync("Impact record"), href: "/impact" },
         { label: translateSync("AI material scanner"), href: "/scanner" },
       ],
     },
@@ -21,7 +21,7 @@ export function Footer() {
       title: translateSync("For partners"),
       links: [
         { label: translateSync("Artisan studio"), href: "/studio" },
-        { label: translateSync("Harvest map"), href: "/map" },
+        { label: translateSync("Material map"), href: "/map" },
         { label: translateSync("Release agreements"), href: "/agreements" },
         { label: translateSync("Custody handover"), href: "/handover" },
       ],
@@ -35,7 +35,7 @@ export function Footer() {
     },
   ];
 
-  const googleStack = ["Gemini", "Maps Platform", "Google Earth", "Google Wallet", "Cloud Translation", "Firebase"];
+  const googleStack = ["Gemini", "Maps Platform", "Maps 3D", "Google Wallet", "Cloud Translation", "Firebase"];
 
   return (
     <footer className="bg-pine-900 text-white/80">

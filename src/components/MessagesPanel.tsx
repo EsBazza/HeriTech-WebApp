@@ -72,7 +72,7 @@ const INITIAL_THREADS: Thread[] = [
       {
         role: "assistant",
         content:
-          "Hello! I am the HeriTech Assistant. How can I help you with this craft piece, materials, or our circular platform today?",
+          "Hi, I'm the HeriTech assistant. Ask me about materials, the map or where your money goes.",
       },
     ],
   },

@@ -38,7 +38,7 @@ export function EscrowBar({ amount, ngoName, compact, animate = false, className
       key: "lgu",
       pct: SPLIT.lgu,
       color: "bg-split-platform",
-      label: translateSync("Paid to the LGU"),
+      label: translateSync("Paid to the local government"),
       desc: translateSync("Covers municipal collection, sorting and transport of festival material."),
       value: split?.lguShare,
     },
@@ -59,7 +59,7 @@ export function EscrowBar({ amount, ngoName, compact, animate = false, className
       <div
         className="flex h-2.5 w-full overflow-hidden rounded-full bg-paper-2"
         role="img"
-        aria-label={`${SPLIT.artisan}% artisan, ${SPLIT.lgu}% LGU, ${SPLIT.charityMaintenance}% charity and app upkeep`}
+        aria-label={`${SPLIT.artisan}% artisan, ${SPLIT.lgu}% local government, ${SPLIT.charityMaintenance}% charity and app upkeep`}
       >
         {rows.map((r) => (
           <div key={r.key} className={cn("split-seg h-full", r.color)} style={{ width: `${r.pct}%` }} />

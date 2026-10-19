@@ -174,7 +174,7 @@ export default function ProfilePage() {
     role === "artisan"
       ? "Artisan"
       : role === "lgu"
-      ? "LGU Officer"
+      ? "Local government officer"
       : role === "admin"
       ? "Administrator"
       : "Buyer";
@@ -389,7 +389,7 @@ export default function ProfilePage() {
                       </p>
                       <div className="pt-0.5">
                         <span className="text-xs font-bold px-2 py-0.5 rounded-sm bg-pine-500/10 text-pine-500 border border-pine-300/25 inline-block">
-                          {translateSync(role === "artisan" ? (user.artisanVerified ? "Verified artisan" : "Artisan") : role === "lgu" ? "Verified LGU officer" : "Administrator")}
+                          {translateSync(role === "artisan" ? (user.artisanVerified ? "Verified artisan" : "Artisan") : role === "lgu" ? "Verified local government officer" : "Administrator")}
                         </span>
                       </div>
                     </div>
@@ -679,7 +679,7 @@ export default function ProfilePage() {
 
               {(role === "lgu" || role === "admin") && (
                 <div className="space-y-1">
-                  <label className="font-semibold text-ink">LGU municipal station</label>
+                  <label className="font-semibold text-ink">Local government office</label>
                   <input
                     type="text"
                     value={editStation}

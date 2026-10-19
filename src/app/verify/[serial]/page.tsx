@@ -52,7 +52,7 @@ export default function PublicVerificationPage() {
   }, [serial]);
 
   if (loading) {
-    return <Spinner label={translateSync("Checking the ledger…")} className="py-32" />;
+    return <Spinner label={translateSync("Checking the record…")} className="py-32" />;
   }
 
   if (!data) {
@@ -140,7 +140,7 @@ export default function PublicVerificationPage() {
     {
       icon: <HeartHandshake className="w-4 h-4" />,
       title: translateSync("Split recorded"),
-      detail: `${formatCurrency(escrow.lguShare ?? 0)} ${translateSync("to the LGU")} · ${formatCurrency(escrow.charityMaintenanceShare ?? 0)} ${translateSync("to charity")}${
+      detail: `${formatCurrency(escrow.lguShare ?? 0)} ${translateSync("to the local government")} · ${formatCurrency(escrow.charityMaintenanceShare ?? 0)} ${translateSync("to charity")}${
         escrow.ngoFundName ? ` (${translateSync(escrow.ngoFundName)})` : ""
       } ${translateSync("& app upkeep")}`,
     },
@@ -203,7 +203,7 @@ export default function PublicVerificationPage() {
             <dd className="tabular mt-1 font-display text-2xl font-semibold text-ink">{formatCurrency(escrow.artisanPayout ?? 0)}</dd>
           </div>
           <div className="p-4 sm:p-5">
-            <dt className="text-xs text-ink-3">{translateSync("Paid to the LGU")}</dt>
+            <dt className="text-xs text-ink-3">{translateSync("Paid to the local government")}</dt>
             <dd className="tabular mt-1 font-display text-2xl font-semibold text-lantern-600">{formatCurrency(escrow.lguShare ?? 0)}</dd>
           </div>
         </dl>
@@ -213,8 +213,8 @@ export default function PublicVerificationPage() {
       <Card className="p-5 sm:p-8">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h2 className="font-display text-[28px] font-semibold text-ink">{translateSync("Chain of custody")}</h2>
-            <p className="text-sm text-ink-3">{translateSync("Every step below was written to the ledger when it happened.")}</p>
+            <h2 className="font-display text-[28px] font-semibold text-ink">{translateSync("Where it came from")}</h2>
+            <p className="text-sm text-ink-3">{translateSync("Every step below was recorded when it happened.")}</p>
           </div>
           {hasGps && (
             <a

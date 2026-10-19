@@ -32,8 +32,8 @@
     <circle cx="112" cy="214.5" r="5" fill="none" stroke="#1f3a2b" stroke-width="2.4"/>
     <path d="M106 205 l3 -4 h6 l3 4" fill="none" stroke="#1f3a2b" stroke-width="2.4" stroke-linejoin="round"/>
     <text x="378" y="222" text-anchor="end" font-family="Georgia, serif" font-size="30" fill="#d3cbbd">01</text>
-    <rect x="96" y="256" width="104" height="26" rx="13" fill="#f1f6f2"/>
-    <text x="148" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#2b4d3a">LGU officer</text>
+    <rect x="96" y="256" width="196" height="26" rx="13" fill="#f1f6f2"/>
+    <text x="194" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#2b4d3a">Local government officer</text>
     <text x="96" y="318" font-family="Georgia, serif" font-size="27" fill="#1b1f1c">Collect &amp; classify</text>
     <text font-size="16" fill="#3f4742"><tspan x="96" y="352">Leftover material is photographed at</tspan><tspan x="96" y="375">the collection point. Gemini names the</tspan><tspan x="96" y="398">material and flags contamination.</tspan></text>
     <line x1="96" y1="432" x2="379" y2="432" stroke="#e4ded3"/>
@@ -50,9 +50,9 @@
     <rect x="491" y="218" width="3.5" height="3.5" fill="#1f3a2b"/><rect x="496" y="223" width="3.5" height="3.5" fill="#1f3a2b"/>
     <text x="753" y="222" text-anchor="end" font-family="Georgia, serif" font-size="30" fill="#d3cbbd">02</text>
     <rect x="471" y="256" width="148" height="26" rx="13" fill="#f1f6f2"/>
-    <text x="545" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#2b4d3a">Artisan + LGU</text>
+    <text x="545" y="274" text-anchor="middle" font-size="14" font-weight="600" fill="#2b4d3a">Artisan + officer</text>
     <text x="471" y="318" font-family="Georgia, serif" font-size="27" fill="#1b1f1c">Reserve &amp; hand over</text>
-    <text font-size="16" fill="#3f4742"><tspan x="471" y="352">A verified artisan reserves the batch.</tspan><tspan x="471" y="375">A signed, 30-minute QR code releases</tspan><tspan x="471" y="398">custody on site, logged on the ledger.</tspan></text>
+    <text font-size="16" fill="#3f4742"><tspan x="471" y="352">A verified artisan reserves the batch.</tspan><tspan x="471" y="375">A signed, 30-minute QR code releases</tspan><tspan x="471" y="398">the batch on site, and it is recorded.</tspan></text>
     <line x1="471" y1="432" x2="754" y2="432" stroke="#e4ded3"/>
     <rect x="471" y="448" width="88" height="28" rx="14" fill="#1f3a2b"/><text x="515" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Firebase</text>
     <rect x="567" y="448" width="120" height="28" rx="14" fill="#1f3a2b"/><text x="627" y="467" text-anchor="middle" font-size="13.5" font-weight="600" fill="#ffffff">Signed QR</text>
@@ -97,6 +97,6 @@
   <!-- The loop closes: every step lands on one public record -->
   <path d="M1362 505 C 1362 600, 1300 610, 1180 610 L 420 610 C 300 610, 238 600, 238 505" fill="none" stroke="#c2602f" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" marker-end="url(#arrowL)"/>
   <rect x="560" y="590" width="480" height="42" rx="21" fill="#ffffff" stroke="#e4ded3"/>
-  <text x="800" y="617" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1b1f1c">Every step is written to one public ledger</text>
+  <text x="800" y="617" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1b1f1c">Every step is recorded on one public record</text>
   <text x="800" y="668" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" fill="#5f6661">Scan any pass to see where the material came from, who made it and where the money went.</text>
 </svg>

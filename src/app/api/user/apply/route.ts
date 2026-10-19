@@ -19,7 +19,7 @@ export const POST = route(async (request: Request) => {
   const user = await requireUser(request);
   const input = await parseBody(request, schema);
 
-  if (user.role === input.type) throw conflict(`You are already verified as ${input.type === "lgu" ? "an LGU officer" : "an artisan"}.`);
+  if (user.role === input.type) throw conflict(`You are already verified as ${input.type === "lgu" ? "a local government officer" : "an artisan"}.`);
   if (user.verificationStatus === "pending_artisan" || user.verificationStatus === "pending_lgu") {
     throw conflict("You already have an application waiting for review.");
   }
@@ -36,6 +36,6 @@ export const POST = route(async (request: Request) => {
 
   return ok(
     { ...user, ...updates },
-    { message: `Your ${input.type === "lgu" ? "LGU officer" : "artisan"} application was sent for admin review.` }
+    { message: `Your ${input.type === "lgu" ? "local government officer" : "artisan"} application was sent for admin review.` }
   );
 });

@@ -45,6 +45,6 @@ export const POST = route(async (request: Request) => {
       verifiedAt: new Date().toISOString(),
       officerId: officer.id,
     },
-    { message: `Custody of batch ${batchId} passed to ${artisan.fullName}${artisan.workshopName ? ` (${artisan.workshopName})` : ""}.` }
+    { message: `Batch ${batchId} was picked up by ${artisan.fullName}${artisan.workshopName ? ` (${artisan.workshopName})` : ""}.` }
   );
 });

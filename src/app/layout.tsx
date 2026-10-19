@@ -14,7 +14,7 @@ import { INTRO_HEAD_SCRIPT } from "@/lib/intro";
 export const metadata: Metadata = {
   title: "HeriTech — Traceable heritage craft from festival waste",
   description:
-    "HeriTech traces festival waste from collection to finished craft, pays artisans fairly and publishes every donation on a public ledger.",
+    "HeriTech traces festival waste from collection to finished craft, pays artisans fairly and shows where every sale's money goes.",
 };
 
 export default function RootLayout({

@@ -204,7 +204,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                 <EscrowBar amount={totalPrice} ngoName={checkoutItems[0]?.ngoFundName} compact />
                 {discount > 0 && (
                   <p className="text-xs text-ink-3">
-                    {translateSync("Your reward comes out of HeriTech's charity & app upkeep share. The artisan and LGU are paid in full.")}
+                    {translateSync("Your reward comes out of HeriTech's charity & app upkeep share. The artisan and local government are paid in full.")}
                   </p>
                 )}
               </section>

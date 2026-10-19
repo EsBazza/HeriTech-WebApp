@@ -369,7 +369,7 @@ export default function ProductDetailPage() {
             <p className="text-sm text-white/70 mt-1">
               {product.sourceBatch.pickupAddress
                 ? `${translateSync("Collected at")} ${product.sourceBatch.pickupAddress}`
-                : translateSync("Collected and logged with GPS by an LGU officer.")}
+                : translateSync("Collected and pinned on the map by a local government officer.")}
             </p>
           </div>
           <Journey3D
@@ -388,7 +388,7 @@ export default function ProductDetailPage() {
         <Reveal className="lg:col-span-7">
           <Card className="h-full p-6 sm:p-8">
             <h2 className="font-display text-[30px] font-semibold text-ink">{translateSync("From leftover to this piece")}</h2>
-            <p className="text-sm text-ink-3 mt-1 mb-7">{translateSync("Each step was written to the HeriTech ledger when it happened.")}</p>
+            <p className="text-sm text-ink-3 mt-1 mb-7">{translateSync("Each step was recorded when it happened.")}</p>
             <ProvenanceTimeline
               animate
               events={[
@@ -425,7 +425,7 @@ export default function ProductDetailPage() {
         <Reveal delay={120} className="lg:col-span-5">
           <Card className="h-full p-6 sm:p-8">
             <h2 className="font-display text-[30px] font-semibold text-ink">{translateSync("Where your money goes")}</h2>
-            <p className="text-sm text-ink-3 mt-1 mb-7">{translateSync("Split automatically at checkout and published to the impact ledger.")}</p>
+            <p className="text-sm text-ink-3 mt-1 mb-7">{translateSync("Split automatically at checkout and shown on the public impact record.")}</p>
             <EscrowBar amount={product.price} ngoName={product.ngoFundName} animate />
           </Card>
         </Reveal>

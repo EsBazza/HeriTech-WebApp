@@ -247,7 +247,7 @@ function AgreementsPageContent() {
 
 export default function AgreementsPage() {
   return (
-    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="Municipal Material Release Agreements">
+    <AccessGuard allowedRoles={["lgu", "admin"]} pageTitle="Material release agreements">
       <AgreementsPageContent />
     </AccessGuard>
   );

@@ -676,7 +676,7 @@ function ArtisanStudioPageContent() {
             ) : (
               <>
                 <PlusCircle className="w-4 h-4" />
-                <span>{translateSync("Publish Upcycled Piece to Marketplace")}</span>
+                <span>{translateSync("Publish to the shop")}</span>
               </>
             )}
           </button>
@@ -886,7 +886,7 @@ function ArtisanStudioPageContent() {
 
 export default function ArtisanStudioPage() {
   return (
-    <AccessGuard allowedRoles={["artisan", "admin"]} pageTitle="Artisan Studio">
+    <AccessGuard allowedRoles={["artisan", "admin"]} pageTitle="Artisan studio">
       <ArtisanStudioPageContent />
     </AccessGuard>
   );

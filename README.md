@@ -35,7 +35,7 @@ Festivals across Asia leave tonnes of paper, bamboo, fabric and flowers behind e
 
 | Who | What HeriTech gives them |
 | --- | --- |
-| **LGU officers** (local government) | A fast way to log and classify what they collect, plus **25%** of every sale made from it |
+| **Local government officers** | A fast way to log and classify what they collect, plus **25%** of every sale made from it |
 | **Artisans** | A map of free, classified material near them, safe pickup, and **70%** of every sale |
 | **Buyers** | Crafts with a **Verified Impact Pass**: a public, scannable record of the material, the maker and the money |
 
@@ -79,13 +79,13 @@ That last number shows the material has value once someone collects it. HeriTech
 ## How it works
 
 <p align="center">
-  <img src="docs/readme/how-it-works.svg" alt="The HeriTech loop: 1 collect and classify, 2 reserve and hand over, 3 craft and list, 4 buy and verify, with every step written to one public ledger" width="100%" />
+  <img src="docs/readme/how-it-works.svg" alt="The HeriTech loop: 1 collect and classify, 2 reserve and hand over, 3 craft and list, 4 buy and verify, with every step recorded on one public record" width="100%" />
 </p>
 
-1. **Collect & classify.** An LGU officer signs a material release agreement, photographs the collected material and lets **Gemini** name it, rate its condition and flag contamination (tape, wax, moisture, wire…). The officer weighs it and logs the batch at its location on the map. If Gemini can't be reached, an on-device **Teachable Machine** model gives a clearly labelled estimate instead.
-2. **Reserve & hand over.** A verified artisan finds the batch on the **harvest map** and reserves it, and the logging officer is notified. At pickup, the artisan shows (or downloads, or shares) a **signed QR code that is valid for 30 minutes**. The officer scans it with the camera or imports a photo of it, and custody moves to the artisan. Each step is logged.
+1. **Collect & classify.** A local government officer signs a material release agreement, photographs the collected material and lets **Gemini** name it, rate its condition and flag contamination (tape, wax, moisture, wire…). The officer weighs it and logs the batch at its location on the map. If Gemini can't be reached, an on-device **Teachable Machine** model gives a clearly labelled estimate instead.
+2. **Reserve & hand over.** A verified artisan finds the batch on the **material map** and reserves it, and the logging officer is notified. At pickup, the artisan shows (or downloads, or shares) a **signed QR code that is valid for 30 minutes**. The officer scans it with the camera or imports a photo of it, and custody moves to the artisan. Each step is logged.
 3. **Craft & list.** The artisan lists the finished piece, linked to the batch it came from. **Gemini** drafts a short story about the piece for the artisan to edit. **Cloud Translation** lets buyers read the shop in their own language.
-4. **Buy & verify.** At checkout the buyer sees exactly where the money goes: **70% artisan, 25% LGU, 5% charity & app upkeep**. Each piece comes with a **Verified Impact Pass** that can be saved to **Google Wallet**. Its QR code opens the piece's public record at `/verify/<serial>` for anyone who scans it, no account needed.
+4. **Buy & verify.** At checkout the buyer sees exactly where the money goes: **70% artisan, 25% local government, 5% charity & app upkeep**. Each piece comes with a **Verified Impact Pass** that can be saved to **Google Wallet**. Its QR code opens the piece's public record at `/verify/<serial>` for anyone who scans it, no account needed.
 
 > **Why a public record?** "Made from recycled materials" is easy to claim. The pass lets a stranger check it: what was collected, where, when it changed hands, who made the piece, and how the payment was split.
 
@@ -114,18 +114,18 @@ That last number shows the material has value once someone collects it. HeriTech
 
 <sub>Every product page has a before/after slider (collected material → finished piece), the provenance timeline, the money split and a preview of the pass the buyer will receive.</sub>
 
-### Chain of custody: the QR handover
+### Pickup: the QR handover
 
 <table>
 <tr>
 <td width="38%" valign="top"><img src="docs/readme/handover-artisan.png" alt="Artisan's pickup code: a signed QR code valid for 30 minutes, with download and share" /></td>
 <td width="24%" valign="top"><img src="docs/readme/pickup-card.png" alt="Downloaded pickup card with the QR code, batch number, weight and expiry time" /></td>
-<td width="38%" valign="top"><img src="docs/readme/handover-lgu.png" alt="LGU officer's screen after scanning: custody transferred, with the batch, artisan and time" /></td>
+<td width="38%" valign="top"><img src="docs/readme/handover-lgu.png" alt="Local government officer's screen after scanning: picked up, with the batch, artisan and time" /></td>
 </tr>
 <tr>
 <td align="center"><sub><b>Artisan</b> shows a signed code that expires after 30 minutes</sub></td>
 <td align="center"><sub>…or downloads it as a pickup card</sub></td>
-<td align="center"><sub><b>LGU officer</b> scans or imports a photo, and custody moves</sub></td>
+<td align="center"><sub><b>Local government officer</b> scans or imports a photo, and the batch is handed over</sub></td>
 </tr>
 </table>
 
@@ -136,7 +136,7 @@ The codes are HMAC-signed and tied to one batch and one artisan, so a screenshot
 <table>
 <tr>
 <td width="40%" valign="top"><img src="docs/readme/pass.png" alt="Order confirmed: the Verified Impact Pass with serial, maker, origin, kilograms diverted, QR code and Add to Google Wallet" /></td>
-<td width="30%" valign="top"><img src="docs/readme/phone-verify.jpg" alt="The public record of a pass on a phone: diverted weight, material, amount paid to the artisan and LGU, and the chain of custody" /></td>
+<td width="30%" valign="top"><img src="docs/readme/phone-verify.jpg" alt="The public record of a pass on a phone: diverted weight, material, amount paid to the artisan and local government, and the timeline of where it came from" /></td>
 <td width="30%" valign="top"><img src="docs/readme/phone-home.jpg" alt="The home page on a phone" /></td>
 </tr>
 <tr>
@@ -146,11 +146,11 @@ The codes are HMAC-signed and tied to one batch and one artisan, so a screenshot
 </tr>
 </table>
 
-<img src="docs/readme/verify.jpg" alt="Desktop view of a public pass record with the chain of custody timeline and the payment audit" width="100%" />
+<img src="docs/readme/verify.jpg" alt="Desktop view of a public pass record with the timeline of where it came from and the payment split" width="100%" />
 
-### The public impact ledger
+### The public impact record
 
-<img src="docs/readme/impact.jpg" alt="Impact page: kilograms diverted, money paid to artisans and LGUs, and a breakdown by festival" width="100%" />
+<img src="docs/readme/impact.jpg" alt="Impact page: kilograms diverted, money paid to artisans and local governments, and a breakdown by festival" width="100%" />
 
 ---
 
@@ -161,9 +161,9 @@ Every Google tool listed here does a job in the loop. Without it, that step brea
 | Technology | What it does in HeriTech | Without it |
 | --- | --- | --- |
 | **Gemini API** | Classifies material from a photo (type, condition, contamination), drafts product stories, powers the "Ask HeriTech" assistant | Officers would have to sort and label waste by hand, which nobody has time for at a festival clean-up |
-| **Google Maps Platform** | The harvest map: where each batch was collected and what's available near an artisan | Artisans can't find material, so it isn't reused |
+| **Google Maps Platform** | The material map: where each batch was collected and what's available near an artisan | Artisans can't find material, so it isn't reused |
 | **Google Wallet API** | Each sale issues a Verified Impact Pass (an RS256-signed save link) that lives on the buyer's phone | The proof stays in an inbox nobody opens |
-| **Firebase** (Auth + Firestore) | Google sign-in, roles, and the ledger itself, with transactions for reservations, handovers and stock | — |
+| **Firebase** (Auth + Firestore) | Google sign-in, roles, and the records themselves, with transactions for reservations, handovers and stock | — |
 | **Cloud Translation** | Reads the shop and app in the buyer's language (falls back to Gemini, then to a bundled phrase list) | A regional marketplace limited to one language |
 | **Teachable Machine / TensorFlow.js** | On-device backup classifier for when there's no signal at the collection point | The scanner stops working offline |
 
@@ -187,7 +187,7 @@ flowchart LR
 
     subgraph Google["Google Cloud"]
         FA["Firebase Auth"]
-        FS[("Cloud Firestore<br/>the ledger")]
+        FS[("Cloud Firestore<br/>the records")]
         GM["Gemini API"]
         MAPS["Maps Platform"]
         GT["Cloud Translation"]
@@ -208,9 +208,9 @@ flowchart LR
 **Built to be trusted, not just shown:**
 
 - **No direct database access from the browser.** `firestore.rules` denies all client reads and writes. Every request goes through an API route that checks the Firebase ID token and the caller's role.
-- **One source of truth for money.** The 70 / 25 / 5 split is defined once in `src/lib/escrow.ts` and reused by checkout, the pass, the verify page, the impact ledger and the admin view.
+- **One source of truth for money.** The 70 / 25 / 5 split is defined once in `src/lib/escrow.ts` and reused by checkout, the pass, the verify page, the impact record and the admin view.
 - **Consistent under pressure.** Reservations, handovers, checkout and stock, and serial numbers all run inside Firestore transactions, so two artisans can't claim the same batch.
-- **Roles are earned, not chosen.** Everyone starts as a buyer and applies to become an artisan or LGU officer. An admin approves them, and nobody can change their own role.
+- **Roles are earned, not chosen.** Everyone starts as a buyer and applies to become an artisan or local government officer. An admin approves them, and nobody can change their own role.
 - **Honest by design.** Payments are simulated and the UI says so. AI output is labelled, and the demo deployment carries a banner saying its data is fictional.
 - **Accessible and responsive.** Keyboard focus rings, reduced-motion support on every animation, 12px minimum text, and layouts tested from 390px phones to 1440px displays. Text can be shown in several Asian languages.
 
@@ -234,9 +234,9 @@ The demo has one-click sign-in for each role, so you can walk the whole loop in 
 | Sign in as… | Try this |
 | --- | --- |
 | **Buyer** | Open a product → **Buy now** → place a demo order → see your Verified Impact Pass → scan its QR with your phone |
-| **Artisan** | **Harvest map** → reserve a batch → **Hand over** → download the pickup QR |
-| **LGU officer** | **Scanner** to classify a photo with Gemini → **Hand over** to scan or import the artisan's QR |
-| **Admin** | Review partner applications and the full ledger |
+| **Artisan** | **Material map** → reserve a batch → **Hand over** → download the pickup QR |
+| **Local government officer** | **Scanner** to classify a photo with Gemini → **Hand over** to scan or import the artisan's QR |
+| **Admin** | Review partner applications and all records |
 
 Or skip signing in: enter **`HT-D3M0-0001`** in *Verify a pass* on the home page.
 
@@ -254,7 +254,7 @@ The sections below are for running and deploying HeriTech yourself.
 - Firebase Auth (Google sign-in) and Cloud Firestore through the Admin SDK
 - Gemini API for the material scanner, product stories and the assistant
 - Google Cloud Translation (falls back to Gemini, then to a bundled phrase list)
-- Google Maps Platform for the harvest map, Google Wallet API for impact passes
+- Google Maps Platform for the material map, Google Wallet API for impact passes
 
 ## Architecture
 
@@ -262,7 +262,7 @@ The sections below are for running and deploying HeriTech yourself.
 - Firestore access is typed (`src/lib/server/firestore.ts`). Relations are stored as ids and joined in `src/lib/server/views.ts`. Anything that must be consistent — reservations, handovers, checkout and stock, id sequences — runs in a transaction.
 - Request bodies are validated with zod; errors come back as `{ success: false, error }` with the right status code.
 - Roles: `buyer` (default for new accounts), `artisan`, `lgu`, `admin`. People apply from their profile and an admin approves them. Nobody can change their own role.
-- Every sale is split **70% artisan / 25% LGU / 5% charity & app upkeep** (`src/lib/escrow.ts` is the single source of truth). Payments are **simulated** — no payment provider is connected yet, and the UI says so.
+- Every sale is split **70% artisan / 25% local government / 5% charity & app upkeep** (`src/lib/escrow.ts` is the single source of truth). Payments are **simulated** — no payment provider is connected yet, and the UI says so.
 
 ## Getting started
 
@@ -299,7 +299,7 @@ npm run set-role -- you@example.com admin
 
 ## Demo mode (presentations)
 
-Set `NEXT_PUBLIC_DEMO_MODE=true` on a **separate** deployment backed by a **separate** Firebase project. It adds one-click sign-in as the seeded buyer, artisan, LGU officer and admin. Those are real Firebase sessions with exactly their role's permissions — nothing is bypassed. Every page shows a banner saying the data is fictional. If Gemini is unreachable, the scanner and story writer return clearly labelled placeholder results instead of an error.
+Set `NEXT_PUBLIC_DEMO_MODE=true` on a **separate** deployment backed by a **separate** Firebase project. It adds one-click sign-in as the seeded buyer, artisan, local government officer and admin. Those are real Firebase sessions with exactly their role's permissions — nothing is bypassed. Every page shows a banner saying the data is fictional. If Gemini is unreachable, the scanner and story writer return clearly labelled placeholder results instead of an error.
 
 Put the demo project's settings in `.env.demo.local` (git ignores it), including `NEXT_PUBLIC_DEMO_MODE=true` and the demo site's `NEXT_PUBLIC_APP_URL`, so the seeded passes' QR codes open the demo site. Then load or reset the fictional data, for example before each presentation:
 
