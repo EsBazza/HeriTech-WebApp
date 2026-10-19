@@ -38,6 +38,9 @@ function arc(a: LatLng, b: LatLng, points = 48): google.maps.LatLngAltitudeLiter
   });
 }
 
+/** Where every flight starts: high above the collection point, looking straight down. */
+const START_VIEW = (center: google.maps.LatLngAltitudeLiteral) => ({ center, range: 25_000, tilt: 0, heading: 0 });
+
 const supportsWebGL = () => {
   try {
     return Boolean(document.createElement("canvas").getContext("webgl2"));
@@ -59,6 +62,8 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
   const [visible, setVisible] = useState(false);
   const [mode, setMode] = useState<"loading" | "3d" | "2d" | "error">("loading");
   const [playing, setPlaying] = useState(false);
+  const runRef = useRef(0);
+  const stopRef = useRef<() => void>(() => {});
 
   // Wait until the section is on screen; 3D tiles are heavy on phones.
   useEffect(() => {
@@ -88,24 +93,48 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
       return;
     }
 
-    // Each animation starts when the previous one ends.
-    const steps: (() => void)[] = [
-      () => map.flyCameraTo({ endCamera: close, durationMillis: 4_000 }),
-      () => map.flyCameraAround({ camera: close, durationMillis: 9_000, repeatCount: 1 }),
-      ...(overview ? [() => map.flyCameraTo({ endCamera: overview, durationMillis: 4_000 })] : []),
+    // Every run starts from the same raised view, so Replay always visibly moves.
+    Object.assign(map, START_VIEW(start));
+
+    // Short steps (about 7 s in total, 9 s with a workshop) so the flight never feels stuck.
+    const steps: { run: () => void; ms: number }[] = [
+      { run: () => map.flyCameraTo({ endCamera: close, durationMillis: 2_000 }), ms: 2_000 },
+      { run: () => map.flyCameraAround({ camera: close, durationMillis: 5_000, rounds: 1 }), ms: 5_000 },
+      ...(overview ? [{ run: () => map.flyCameraTo({ endCamera: overview, durationMillis: 2_000 }), ms: 2_000 }] : []),
     ];
+
+    const run = ++runRef.current;
     let next = 0;
-    const onEnd = () => {
-      if (next < steps.length) steps[next++]();
-      else {
-        map.removeEventListener("gmp-animationend", onEnd);
+    let stepStarted = 0;
+    let stepMs = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const advance = () => {
+      clearTimeout(timer);
+      if (run !== runRef.current) return; // a newer replay took over
+      if (next < steps.length) {
+        const step = steps[next++];
+        stepStarted = Date.now();
+        stepMs = step.ms;
+        step.run();
+        // Google doesn't always report the end of a move, so never wait much longer than the move itself.
+        timer = setTimeout(advance, step.ms + 1_000);
+      } else {
+        map.removeEventListener("gmp-animationend", onAnimationEnd);
         setPlaying(false);
       }
     };
+    // While the map is still loading it can report an end straight away; ignore those.
+    const onAnimationEnd = () => {
+      if (Date.now() - stepStarted >= stepMs * 0.8) advance();
+    };
     map.stopCameraAnimation();
-    map.addEventListener("gmp-animationend", onEnd);
+    map.addEventListener("gmp-animationend", onAnimationEnd);
+    stopRef.current = () => {
+      clearTimeout(timer);
+      map.removeEventListener("gmp-animationend", onAnimationEnd);
+    };
     setPlaying(true);
-    onEnd();
+    advance();
   }, [collection, workshop]);
 
   useEffect(() => {
@@ -144,10 +173,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
         if (cancelled) return;
 
         const map = new Map3DElement({
-          center: { lat: collection.lat, lng: collection.lng, altitude: 0 },
-          range: 2_500_000,
-          tilt: 0,
-          heading: 0,
+          ...START_VIEW({ lat: collection.lat, lng: collection.lng, altitude: 0 }),
           mode: "SATELLITE",
           gestureHandling: "COOPERATIVE",
         });
@@ -186,6 +212,8 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
 
     return () => {
       cancelled = true;
+      runRef.current++;
+      stopRef.current();
       mapRef.current?.stopCameraAnimation();
       mapRef.current = null;
     };
