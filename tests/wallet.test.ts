@@ -6,6 +6,8 @@ const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 20
 
 const pass = {
   serial: "HT-7KQ2-M9XD",
+  productId: "prod_01",
+  artisanId: "usr_art_01",
   verifyUrl: "https://heritech.example/verify/HT-7KQ2-M9XD",
   ownerName: "Test Buyer",
   productTitle: "Lanna desk lamp",
@@ -17,6 +19,7 @@ const pass = {
   issuedAt: "2026-10-20T10:00:00.000Z",
   backgroundColor: "#3a2a1c",
   hasHeroImage: true,
+  hasBeforeImage: true,
 };
 
 function decode(url: string) {
@@ -65,11 +68,26 @@ describe("Google Wallet save links", () => {
     expect(claims.payload.genericClasses[0].classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos).toHaveLength(2);
   });
 
+  it("links to the 3D journey, the maker and their shop, shows the before photo and stacks passes", () => {
+    const { claims } = decode(impactPassSaveUrl(pass, "https://heritech.example"));
+    const object = claims.payload.genericObjects[0];
+    const links = Object.fromEntries(object.linksModuleData.uris.map((u: { id: string; uri: string }) => [u.id, u.uri]));
+    expect(links).toEqual({
+      record: pass.verifyUrl,
+      journey: "https://heritech.example/products/prod_01#journey",
+      message: "https://heritech.example/messages?with=usr_art_01&name=Lanna%20Bamboo%20Guild",
+      more: "https://heritech.example/?q=Lanna%20Bamboo%20Guild#shop",
+    });
+    expect(object.imageModulesData[0].mainImage.sourceUri.uri).toBe("https://heritech.example/api/wallet/before/HT-7KQ2-M9XD");
+    expect(object.groupingInfo).toEqual({ groupingId: "heritech-impact" });
+  });
+
   it("falls back to HeriTech green and no banner when the product has no photo", () => {
     const { claims } = decode(impactPassSaveUrl({ ...pass, ownerName: null, backgroundColor: null, hasHeroImage: false }, "https://heritech.example"));
     const object = claims.payload.genericObjects[0];
     expect(object.hexBackgroundColor).toBe("#1f3a2b");
     expect(object.heroImage).toBeUndefined();
+    expect(object.imageModulesData).toBeDefined();
     expect(object.textModulesData.some((m: { id: string }) => m.id === "owner")).toBe(false);
   });
 
@@ -81,7 +99,7 @@ describe("Google Wallet save links", () => {
   });
 
   it("builds a HeriTech Circle loyalty card with the member's progress", () => {
-    const state = { passesTowardReward: 3, spendTowardReward: 62.5, rewardAvailable: false, rewardsEarned: 0, rewardsRedeemed: 0 };
+    const state = { passesTowardReward: 3, spendTowardReward: 62.5, rewardAvailable: false, rewardsEarned: 0, rewardsRedeemed: 0, kgDiverted: 4.2 };
     const { claims } = decode(loyaltyCardSaveUrl({ userId: "usr_buy_01", name: "Test Buyer", state }, "https://heritech.example"));
     const card = claims.payload.loyaltyObjects[0];
     expect(claims.payload.loyaltyClasses[0]).toMatchObject({ id: "3388000000022114455.HeriTechCircle", programName: "HeriTech Circle" });
@@ -89,6 +107,7 @@ describe("Google Wallet save links", () => {
     expect(card.loyaltyPoints.balance.string).toBe("3 / 5");
     expect(card.secondaryLoyaltyPoints.balance.money).toEqual({ micros: 62_500_000, currencyCode: "USD" });
     expect(card.textModulesData[0].body).toBe("2 more passes or $37.50 more until 5% off");
+    expect(card.textModulesData[1]).toEqual({ id: "kg", header: "Total diverted", body: "4.2 kg of festival material" });
   });
 
   it("reports when Wallet is not configured", () => {

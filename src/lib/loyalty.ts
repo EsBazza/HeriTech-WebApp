@@ -15,6 +15,8 @@ export interface LoyaltyState {
   rewardAvailable: boolean;
   rewardsEarned: number;
   rewardsRedeemed: number;
+  /** Lifetime kilograms of festival material diverted by this buyer's purchases; never resets. */
+  kgDiverted: number;
 }
 
 export const EMPTY_LOYALTY: LoyaltyState = {
@@ -23,6 +25,7 @@ export const EMPTY_LOYALTY: LoyaltyState = {
   rewardAvailable: false,
   rewardsEarned: 0,
   rewardsRedeemed: 0,
+  kgDiverted: 0,
 };
 
 const roundCents = (n: number) => Math.round(n * 100) / 100;
@@ -34,7 +37,7 @@ const roundCents = (n: number) => Math.round(n * 100) / 100;
  */
 export function recordPurchase(
   state: LoyaltyState,
-  { passes, spend, redeemed }: { passes: number; spend: number; redeemed: boolean }
+  { passes, spend, redeemed, kg = 0 }: { passes: number; spend: number; redeemed: boolean; kg?: number }
 ): LoyaltyState {
   const next: LoyaltyState = {
     ...state,
@@ -42,6 +45,7 @@ export function recordPurchase(
     rewardsRedeemed: state.rewardsRedeemed + (redeemed ? 1 : 0),
     passesTowardReward: state.passesTowardReward + passes,
     spendTowardReward: roundCents(state.spendTowardReward + spend),
+    kgDiverted: Math.round(((state.kgDiverted ?? 0) + kg) * 100) / 100,
   };
   const reached = next.passesTowardReward >= LOYALTY.passesForReward || next.spendTowardReward >= LOYALTY.spendForReward;
   if (reached && !next.rewardAvailable) {

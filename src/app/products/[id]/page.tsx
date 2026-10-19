@@ -363,7 +363,7 @@ export default function ProductDetailPage() {
 
       {/* Where the material travelled, in Google's photorealistic 3D map */}
       {product.sourceBatch && (
-        <section className="rounded-lg bg-pine-900 text-white p-5 sm:p-8 space-y-5">
+        <section id="journey" className="scroll-mt-24 rounded-lg bg-pine-900 text-white p-5 sm:p-8 space-y-5">
           <div>
             <h2 className="font-display text-[30px] font-semibold">{translateSync("Follow the material")}</h2>
             <p className="text-sm text-white/70 mt-1">

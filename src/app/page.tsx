@@ -109,6 +109,12 @@ export default function FeedHomePage() {
     setSearchQuery("");
   };
 
+  // "More from this maker" links (e.g. from a Wallet pass) arrive as /?q=<maker>#shop.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setSearchQuery(q);
+  }, []);
+
   const submitSerial = (e: React.FormEvent) => {
     e.preventDefault();
     const s = serial.trim();

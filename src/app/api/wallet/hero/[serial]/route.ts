@@ -1,10 +1,6 @@
 import { db } from "@/lib/server/firestore";
-import { notFound, route } from "@/lib/server/http";
+import { appUrl, notFound, route } from "@/lib/server/http";
 import { heroBanner, loadProductImage } from "@/lib/server/passArt";
-
-function appUrl(request: Request): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || new URL(request.url).origin;
-}
 
 /**
  * GET /api/wallet/hero/:serial — the blurred product banner shown on a Wallet pass.

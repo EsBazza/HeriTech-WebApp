@@ -72,6 +72,11 @@ export function LoyaltyCard() {
         </div>
       )}
 
+      <p className="text-sm">
+        <span className="font-display text-2xl font-semibold tabular">{data.kgDiverted ?? 0} kg</span>{" "}
+        <span className="text-white/70">{translateSync("of festival material diverted by your purchases")}</span>
+      </p>
+
       <p className="text-xs text-white/70">
         {translateSync(
           `Collect ${rules.passesForReward} passes or spend $${rules.spendForReward}, whichever comes first. The discount comes from HeriTech's share, so artisans and local governments are always paid in full.`

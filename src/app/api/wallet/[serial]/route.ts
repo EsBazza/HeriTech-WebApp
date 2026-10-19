@@ -1,13 +1,9 @@
 import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
-import { forbidden, notFound, ok, route } from "@/lib/server/http";
+import { appUrl, forbidden, notFound, ok, route } from "@/lib/server/http";
 import { withProductRelations } from "@/lib/server/views";
 import { loadProductImage, passBackground } from "@/lib/server/passArt";
 import { impactPassSaveUrl } from "@/lib/server/wallet";
-
-function appUrl(request: Request): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || new URL(request.url).origin;
-}
 
 /**
  * GET /api/wallet/:serial — a Save to Google Wallet link for the caller's own pass.
@@ -36,6 +32,8 @@ export const GET = route(async (request: Request, { params }: { params: Promise<
   const saveUrl = impactPassSaveUrl(
     {
       serial: pass.serial,
+      productId: product.id,
+      artisanId: product.artisanId,
       verifyUrl: `${base}/verify/${pass.serial}`,
       ownerName: buyerSnap.data()?.fullName || null,
       productTitle: product.title,
@@ -47,6 +45,7 @@ export const GET = route(async (request: Request, { params }: { params: Promise<
       issuedAt: pass.issuedAt,
       backgroundColor,
       hasHeroImage: Boolean(image),
+      hasBeforeImage: Boolean(view.sourceBatch?.imageUrl),
     },
     base
   );

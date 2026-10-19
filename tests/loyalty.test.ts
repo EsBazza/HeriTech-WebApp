@@ -33,6 +33,14 @@ describe("HeriTech Circle loyalty", () => {
     expect(bigOrder).toMatchObject({ rewardAvailable: true, rewardsEarned: 2, rewardsRedeemed: 1, passesTowardReward: 0 });
   });
 
+  it("keeps a lifetime kg total that never resets", () => {
+    let state = recordPurchase(EMPTY_LOYALTY, { passes: 4, spend: 40, redeemed: false, kg: 1.5 });
+    state = recordPurchase(state, { passes: 1, spend: 10, redeemed: false, kg: 0.75 });
+    expect(state).toMatchObject({ rewardAvailable: true, passesTowardReward: 0, kgDiverted: 2.25 });
+    state = recordPurchase(state, { passes: 1, spend: 10, redeemed: true, kg: 0.5 });
+    expect(state.kgDiverted).toBe(2.75);
+  });
+
   it("describes progress in plain language", () => {
     expect(progressSummary(recordPurchase(EMPTY_LOYALTY, { passes: 3, spend: 62, redeemed: false }))).toBe("2 more passes or $38.00 more until 5% off");
     expect(progressSummary({ ...EMPTY_LOYALTY, rewardAvailable: true })).toBe("5% off your next order is ready");

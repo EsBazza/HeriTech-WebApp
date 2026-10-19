@@ -35,6 +35,11 @@ function errorResponse(error: unknown) {
  * Wraps a route handler so thrown HttpErrors become JSON responses and anything
  * unexpected is logged and returned as a generic 500.
  */
+/** Public base URL of the app: NEXT_PUBLIC_APP_URL when set, otherwise the request's origin. */
+export function appUrl(request: Request): string {
+  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || new URL(request.url).origin;
+}
+
 export function route<Args extends unknown[]>(handler: (...args: Args) => Promise<Response>) {
   return async (...args: Args): Promise<Response> => {
     try {

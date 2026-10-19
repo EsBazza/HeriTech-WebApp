@@ -49,6 +49,8 @@ const text = (value: string) => ({ defaultValue: { language: "en", value } });
 
 export interface ImpactPassDetails {
   serial: string;
+  productId: string;
+  artisanId: string;
   verifyUrl: string;
   /** The buyer's name. Shown only on their own Wallet pass, never on the public record. */
   ownerName: string | null;
@@ -63,6 +65,8 @@ export interface ImpactPassDetails {
   backgroundColor: string | null;
   /** Whether the product has a photo the blurred hero banner can be made from. */
   hasHeroImage: boolean;
+  /** Whether the source batch has a collection photo for the "before" image. */
+  hasBeforeImage: boolean;
 }
 
 const field = (id: string) => ({ firstValue: { fields: [{ fieldPath: `object.textModulesData['${id}']` }] } });
@@ -114,7 +118,33 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
       },
       { id: "issued", header: "Issued", body: new Date(pass.issuedAt).toISOString().slice(0, 10) },
     ],
-    linksModuleData: { uris: [{ id: "record", uri: pass.verifyUrl, description: "Public impact record" }] },
+    // Before (the batch as collected) next to after (the hero banner of the finished piece).
+    ...(isPublicHttps && pass.hasBeforeImage
+      ? {
+          imageModulesData: [
+            {
+              id: "before",
+              mainImage: { sourceUri: { uri: `${appUrl}/api/wallet/before/${encodeURIComponent(pass.serial)}` }, contentDescription: text("The material when it was collected") },
+            },
+          ],
+        }
+      : {}),
+    linksModuleData: {
+      uris: [
+        { id: "record", uri: pass.verifyUrl, description: "Public impact record" },
+        { id: "journey", uri: `${appUrl}/products/${encodeURIComponent(pass.productId)}#journey`, description: "See the 3D journey" },
+        {
+          id: "message",
+          uri: `${appUrl}/messages?with=${encodeURIComponent(pass.artisanId)}&name=${encodeURIComponent(pass.makerName ?? "Maker")}`,
+          description: "Message the maker",
+        },
+        ...(pass.makerName
+          ? [{ id: "more", uri: `${appUrl}/?q=${encodeURIComponent(pass.makerName)}#shop`, description: "More from this maker" }]
+          : []),
+      ],
+    },
+    // Keeps all of a buyer's HeriTech passes stacked together in Wallet.
+    groupingInfo: { groupingId: "heritech-impact" },
     barcode: { type: "QR_CODE", value: pass.verifyUrl, alternateText: pass.serial },
   };
 
@@ -162,6 +192,7 @@ function loyaltyBalances(state: LoyaltyState) {
     },
     textModulesData: [
       { id: "reward", header: state.rewardAvailable ? "Reward ready" : "Next reward", body: progressSummary(state) },
+      { id: "kg", header: "Total diverted", body: `${state.kgDiverted ?? 0} kg of festival material` },
       {
         id: "how",
         header: "How it works",

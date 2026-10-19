@@ -1,12 +1,8 @@
 import { EMPTY_LOYALTY, LOYALTY, progressSummary } from "@/lib/loyalty";
 import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
-import { ok, route } from "@/lib/server/http";
+import { appUrl, ok, route } from "@/lib/server/http";
 import { loyaltyCardSaveUrl, walletConfigured } from "@/lib/server/wallet";
-
-function appUrl(request: Request): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || new URL(request.url).origin;
-}
 
 /**
  * GET /api/loyalty — the signed-in buyer's HeriTech Circle progress, the rules,
@@ -21,6 +17,7 @@ export const GET = route(async (request: Request) => {
     rewardAvailable: doc?.rewardAvailable ?? EMPTY_LOYALTY.rewardAvailable,
     rewardsEarned: doc?.rewardsEarned ?? EMPTY_LOYALTY.rewardsEarned,
     rewardsRedeemed: doc?.rewardsRedeemed ?? EMPTY_LOYALTY.rewardsRedeemed,
+    kgDiverted: doc?.kgDiverted ?? EMPTY_LOYALTY.kgDiverted,
   };
 
   return ok({

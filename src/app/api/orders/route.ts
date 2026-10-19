@@ -6,7 +6,7 @@ import { calculateEscrowSplit } from "@/lib/escrow";
 import { EMPTY_LOYALTY, LOYALTY, recordPurchase, type LoyaltyState } from "@/lib/loyalty";
 import { requireUser } from "@/lib/server/auth";
 import { db, getMany } from "@/lib/server/firestore";
-import { badRequest, conflict, fields, ok, parseBody, route } from "@/lib/server/http";
+import { appUrl, badRequest, conflict, fields, ok, parseBody, route } from "@/lib/server/http";
 import { passSerial } from "@/lib/server/ids";
 import { addSystemMessage } from "@/lib/server/messages";
 import { refreshLoyaltyCard } from "@/lib/server/wallet";
@@ -26,10 +26,6 @@ const schema = z.object({
     postalCode: z.string().trim().max(20).default(""),
   }),
 });
-
-function appUrl(request: Request): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || new URL(request.url).origin;
-}
 
 /**
  * POST /api/orders — checkout. Payment is simulated: no money moves.
@@ -129,8 +125,9 @@ export const POST = route(async (request: Request) => {
       passes: passes.length,
       spend: orders.reduce((sum, o) => sum + o.amountPaid, 0),
       redeemed: redeemReward,
+      kg: products.reduce((sum, p, i) => sum + p.kgDiverted * items[i].quantity, 0),
     });
-    const { passesTowardReward, spendTowardReward, rewardAvailable, rewardsEarned, rewardsRedeemed } = loyalty;
+    const { passesTowardReward, spendTowardReward, rewardAvailable, rewardsEarned, rewardsRedeemed, kgDiverted } = loyalty;
     tx.set(loyaltyRef, {
       id: buyer.id,
       passesTowardReward,
@@ -138,6 +135,7 @@ export const POST = route(async (request: Request) => {
       rewardAvailable,
       rewardsEarned,
       rewardsRedeemed,
+      kgDiverted,
       updatedAt: createdAt,
     });
 
