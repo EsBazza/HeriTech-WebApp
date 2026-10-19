@@ -85,6 +85,8 @@ export interface MaterialBatchDoc {
   aiInferredMaterial: string | null;
   aiInferredCondition: string | null;
   aiConfidence: number | null;
+  /** Other material categories the scan saw in a mixed batch. */
+  alsoContains?: string[];
   createdAt: string;
   reservedAt?: string | null;
   claimedAt?: string | null;

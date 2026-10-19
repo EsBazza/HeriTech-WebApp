@@ -16,6 +16,7 @@ const USER_PROMPT = `Look at the material in this photo and fill in this JSON. K
 
 {
   "materialType": one of ${MATERIAL_CATEGORIES.map((c) => `"${c}"`).join(", ")},
+  "alsoContains": other categories from the same list that are clearly visible too, at most 2 (empty list if none),
   "confidence": number from 0 to 1,
   "summary": "what is in the photo, at most 10 words, no brand names",
   "condition": one of ${MATERIAL_CONDITIONS.map((c) => `"${c}"`).join(", ")},
@@ -25,7 +26,7 @@ const USER_PROMPT = `Look at the material in this photo and fill in this JSON. K
   "peopleVisible": true if any person or face is visible
 }
 
-Pick the single category that makes up most of the photo. Use "Other" for anything that fits none of them.
+For materialType, pick the category that makes up most of the photo. Use "Other" for anything that fits none of them.
 Return only the JSON.`;
 
 const words = (text: unknown, max: number) =>
@@ -37,11 +38,16 @@ const shortList = (list: unknown, maxItems: number, maxWords: number) =>
 /** Holds Gemini to the short, fixed answers the scanner screen expects. */
 export function tidy(raw: Partial<ScanAnalysis> & { summary?: string }): ScanAnalysis {
   const category = MATERIAL_CATEGORIES.find((c) => c.toLowerCase() === String(raw.materialType ?? "").trim().toLowerCase()) ?? "Other";
+  const alsoContains = (Array.isArray(raw.alsoContains) ? raw.alsoContains : [])
+    .map((item) => MATERIAL_CATEGORIES.find((c) => c !== "Other" && c !== category && c.toLowerCase() === String(item).trim().toLowerCase()))
+    .filter((c, i, all): c is (typeof MATERIAL_CATEGORIES)[number] => Boolean(c) && all.indexOf(c) === i)
+    .slice(0, 2);
   const condition = MATERIAL_CONDITIONS.find((c) => c.toLowerCase() === String(raw.condition ?? "").trim().toLowerCase()) ?? "Needs sorting";
   const weight = raw.estimatedWeightKg;
   const kg = (n: unknown) => Math.max(0, Math.round(Number(n) * 10) / 10 || 0);
   return {
     materialType: category,
+    alsoContains,
     confidence: Math.min(Math.max(Number(raw.confidence) || 0, 0), 1),
     condition,
     inferredMaterialDetails: words(raw.summary ?? raw.inferredMaterialDetails, 12),

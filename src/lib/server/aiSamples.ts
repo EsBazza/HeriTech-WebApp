@@ -9,6 +9,8 @@ import "server-only";
 export interface ScanAnalysis {
   /** One of MATERIAL_CATEGORIES, or a labelled sample. */
   materialType: string;
+  /** Other categories clearly present in a mixed batch. */
+  alsoContains?: string[];
   confidence: number;
   condition: string;
   /** One short line describing what is in the photo. */

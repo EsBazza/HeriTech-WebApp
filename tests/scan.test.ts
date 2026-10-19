@@ -5,6 +5,7 @@ describe("scanner result tidy-up", () => {
   it("keeps Gemini to one general category, one condition and short lists", () => {
     const result = tidy({
       materialType: "mixed plastics",
+      alsoContains: ["Paper and card", "mixed plastics", "Bottle caps", "Paper and card", "Fabric and textile", "Wood and frame offcuts"],
       confidence: 0.96,
       summary: "Clear plastic bottles and food trays piled inside a cardboard collection box with labels",
       condition: "Needs sorting",
@@ -14,6 +15,7 @@ describe("scanner result tidy-up", () => {
       peopleVisible: false,
     });
     expect(result.materialType).toBe("Mixed plastics");
+    expect(result.alsoContains).toEqual(["Paper and card", "Fabric and textile"]);
     expect(result.inferredMaterialDetails.split(" ")).toHaveLength(12);
     expect(result.contaminationFlags).toEqual(["Paper product labels", "Adhesive residue", "Minor food or"]);
     expect(result.suggestedCraftTypologies).toHaveLength(3);
@@ -23,6 +25,6 @@ describe("scanner result tidy-up", () => {
 
   it("falls back to Other and Needs sorting for answers outside the lists", () => {
     const result = tidy({ materialType: "PET bottles (Cocobella)", condition: "pristine, mint", confidence: 3 });
-    expect(result).toMatchObject({ materialType: "Other", condition: "Needs sorting", confidence: 1, contaminationFlags: [], peopleVisible: false });
+    expect(result).toMatchObject({ materialType: "Other", condition: "Needs sorting", confidence: 1, contaminationFlags: [], alsoContains: [], peopleVisible: false });
   });
 });

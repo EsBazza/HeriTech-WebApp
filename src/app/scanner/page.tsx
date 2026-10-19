@@ -181,6 +181,7 @@ function WasteScannerPageContent() {
         aiInferredMaterial: analysisResult.inferredMaterialDetails,
         aiInferredCondition: analysisResult.condition,
         aiConfidence: analysisResult.confidence,
+        alsoContains: analysisResult.alsoContains ?? [],
       }),
     });
     if (result.success) setSavedBatch(result.data);
@@ -286,6 +287,11 @@ function WasteScannerPageContent() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="font-display text-[28px] leading-tight font-semibold text-ink">{translateSync(analysisResult.materialType)}</h2>
+                    {analysisResult.alsoContains?.length > 0 && (
+                      <p className="text-sm text-ink-2 mt-0.5">
+                        {translateSync("Also contains")}: {analysisResult.alsoContains.map((c: string) => translateSync(c).toLowerCase()).join(", ")}
+                      </p>
+                    )}
                     {analysisResult.inferredMaterialDetails && <p className="text-sm text-ink-3 mt-0.5">{translateSync(analysisResult.inferredMaterialDetails)}</p>}
                   </div>
                   {!analysisResult.isSample && (

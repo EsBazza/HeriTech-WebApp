@@ -37,6 +37,7 @@ interface BatchItem {
   gpsLng: number;
   pickupAddress?: string | null;
   weightSource?: "scale" | "ai_estimate";
+  alsoContains?: string[];
   imageUrl: string;
   txHash: string;
   aiInferredMaterial?: string;
@@ -409,6 +410,11 @@ function MaterialsMapPageContent() {
                   <p className="font-semibold text-ink truncate">
                     <TranslatableText>{selectedBatch.aiInferredMaterial || selectedBatch.materialType}</TranslatableText>
                   </p>
+                  {selectedBatch.alsoContains && selectedBatch.alsoContains.length > 0 && (
+                    <p className="text-ink-3 truncate">
+                      {translateSync("Also contains")}: {selectedBatch.alsoContains.map((c) => translateSync(c).toLowerCase()).join(", ")}
+                    </p>
+                  )}
                   <div className="flex items-center space-x-1 text-pine-600">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>

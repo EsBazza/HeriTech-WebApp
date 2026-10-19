@@ -53,6 +53,7 @@ const schema = z.object({
   aiInferredMaterial: fields.optionalText(2000),
   aiInferredCondition: fields.optionalText(300),
   aiConfidence: z.coerce.number().min(0).max(1).optional(),
+  alsoContains: z.array(fields.text(60)).max(2).default([]),
 });
 
 /** POST /api/materials — an LGU officer logs a new batch against an active agreement. */
@@ -100,6 +101,7 @@ export const POST = route(async (request: Request) => {
       aiInferredMaterial: input.aiInferredMaterial,
       aiInferredCondition: input.aiInferredCondition,
       aiConfidence: input.aiConfidence ?? null,
+      alsoContains: input.alsoContains,
       createdAt,
     };
 
