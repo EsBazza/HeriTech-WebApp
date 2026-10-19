@@ -23,16 +23,24 @@ interface BatchMapProps {
   batches: MapBatch[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Route drawn from the user to a batch, if one is open. */
+  route?: google.maps.LatLngLiteral[] | null;
+  /** The user's live position while a route is open. */
+  userPosition?: google.maps.LatLngLiteral | null;
+  /** Changing this number pans the map back to the user. */
+  recenterSignal?: number;
 }
 
 /** Google map of every batch, coloured by status. Clicking a pin selects the batch. */
-export function BatchMap({ batches, selectedId, onSelect }: BatchMapProps) {
+export function BatchMap({ batches, selectedId, onSelect, route, userPosition, recenterSignal }: BatchMapProps) {
   const { translateSync } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef(new Map<string, google.maps.Marker>());
   const onSelectRef = useRef(onSelect);
   const fittedRef = useRef(false);
+  const routeLineRef = useRef<google.maps.Polyline | null>(null);
+  const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,6 +111,48 @@ export function BatchMap({ batches, selectedId, onSelect }: BatchMapProps) {
       fittedRef.current = true;
     }
   }, [batches, selectedId, mapReady]);
+
+  // Draw the route and fit it in view whenever a new one arrives.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+    routeLineRef.current?.setMap(null);
+    routeLineRef.current = null;
+    if (!route?.length) return;
+    const maps = window.google.maps;
+    routeLineRef.current = new maps.Polyline({ map, path: route, strokeColor: "#1a73e8", strokeOpacity: 0.9, strokeWeight: 6, zIndex: 5 });
+    const bounds = new maps.LatLngBounds();
+    route.forEach((point) => bounds.extend(point));
+    map.fitBounds(bounds, 48);
+  }, [route, mapReady]);
+
+  // Live "you are here" dot.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+    if (!userPosition) {
+      userMarkerRef.current?.setMap(null);
+      userMarkerRef.current = null;
+      return;
+    }
+    const maps = window.google.maps;
+    userMarkerRef.current ??= new maps.Marker({
+      map,
+      zIndex: 20,
+      title: translateSync("You are here"),
+      icon: { path: maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#1a73e8", fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 3 },
+    });
+    userMarkerRef.current.setPosition(userPosition);
+  }, [userPosition, mapReady, translateSync]);
+
+  useEffect(() => {
+    if (recenterSignal && userPosition && mapRef.current) {
+      mapRef.current.panTo(userPosition);
+      mapRef.current.setZoom(17);
+    }
+    // Only an explicit recenter request should move the map, not every GPS update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recenterSignal]);
 
   // Bring the selected batch into view.
   useEffect(() => {

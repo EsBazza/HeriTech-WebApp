@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText, TranslatableHeading, TranslatableParagraph } from "@/components/translation/TranslatableText";
@@ -11,6 +11,11 @@ import {
   ShieldCheck,
   QrCode,
   X,
+  Navigation,
+  Crosshair,
+  Car,
+  Footprints,
+  ExternalLink,
 } from "lucide-react";
 import { AccessGuard } from "@/components/AccessGuard";
 import { HandoverCode } from "@/components/handover/HandoverCode";
@@ -18,6 +23,7 @@ import { HandoverVerifyForm } from "@/components/handover/HandoverVerifyForm";
 import { apiJson } from "@/lib/api";
 import { directionsUrl } from "@/lib/googleMaps";
 import { BatchMap } from "@/components/map/BatchMap";
+import { useRoute } from "@/components/map/useRoute";
 import { buttonClass } from "@/components/ui";
 
 interface BatchItem {
@@ -65,6 +71,22 @@ function MaterialsMapPageContent() {
   const [handoverModalOpen, setHandoverModalOpen] = useState(false);
   const [handoverTab, setHandoverTab] = useState<"artisan" | "lgu">("artisan");
   const [handoverSuccess, setHandoverSuccess] = useState<string | null>(null);
+
+  // In-app route from the user's live position to the selected batch.
+  const destination = useMemo(
+    () => (selectedBatch ? { lat: selectedBatch.gpsLat, lng: selectedBatch.gpsLng } : null),
+    [selectedBatch?.gpsLat, selectedBatch?.gpsLng]
+  );
+  const nav = useRoute(destination);
+  const [recenterSignal, setRecenterSignal] = useState(0);
+  const mapSectionRef = useRef<HTMLDivElement>(null);
+  const { stop: stopRoute } = nav;
+  useEffect(() => stopRoute(), [selectedBatch?.id, stopRoute]);
+
+  const showRoute = () => {
+    nav.start();
+    mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const isAdmin = user?.role === "admin";
   const holdsReservation = Boolean(user && selectedBatch?.reservedByArtisanId === user.id);
@@ -155,14 +177,97 @@ function MaterialsMapPageContent() {
         </div>
       </div>
 
-      <BatchMap
-        batches={batches}
-        selectedId={selectedBatch?.id ?? null}
-        onSelect={(id) => {
-          setSelectedBatch(batches.find((b) => b.id === id) ?? null);
-          setReserveSuccess(null);
-        }}
-      />
+      <div ref={mapSectionRef} className="scroll-mt-24 space-y-3">
+        <BatchMap
+          batches={batches}
+          selectedId={selectedBatch?.id ?? null}
+          onSelect={(id) => {
+            setSelectedBatch(batches.find((b) => b.id === id) ?? null);
+            setReserveSuccess(null);
+          }}
+          route={nav.route?.path}
+          userPosition={nav.active ? nav.position : null}
+          recenterSignal={recenterSignal}
+        />
+
+        {nav.active && selectedBatch && (
+          <div className="rounded-lg border border-line bg-surface p-4 shadow-card space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-ink-3">
+                  {translateSync("Route to")} {selectedBatch.id}
+                  {selectedBatch.pickupAddress ? ` · ${selectedBatch.pickupAddress}` : ""}
+                </p>
+                <p className="text-lg font-semibold text-ink tabular">
+                  {nav.route ? `${nav.route.duration} · ${nav.route.distance}` : nav.loading ? translateSync("Finding the best route…") : "—"}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="inline-flex rounded-md border border-line overflow-hidden" role="group" aria-label={translateSync("Travel mode")}>
+                  {([
+                    ["DRIVING", Car, "Drive"],
+                    ["WALKING", Footprints, "Walk"],
+                  ] as const).map(([mode, Icon, label]) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => nav.setMode(mode)}
+                      aria-pressed={nav.mode === mode}
+                      className={`inline-flex items-center gap-1.5 px-3 h-9 text-xs font-medium cursor-pointer ${nav.mode === mode ? "bg-pine-700 text-white" : "bg-surface text-ink-2 hover:bg-paper-2"}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {translateSync(label)}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRecenterSignal((n) => n + 1)}
+                  disabled={!nav.position}
+                  className={buttonClass("secondary", "sm")}
+                >
+                  <Crosshair className="w-3.5 h-3.5" />
+                  {translateSync("Recenter")}
+                </button>
+                <button type="button" onClick={nav.stop} className={buttonClass("ghost", "sm")}>
+                  <X className="w-3.5 h-3.5" />
+                  {translateSync("End route")}
+                </button>
+              </div>
+            </div>
+
+            {nav.error && (
+              <p role="alert" className="text-xs text-danger">
+                {translateSync(nav.error)}
+              </p>
+            )}
+
+            {nav.route && nav.route.steps.length > 0 && (
+              <ol className="max-h-56 overflow-y-auto divide-y divide-line rounded-md border border-line text-sm">
+                {nav.route.steps.map((step, i) => (
+                  <li key={i} className="flex items-start justify-between gap-3 px-3 py-2">
+                    <span className="text-ink-2">
+                      <span className="tabular text-ink-3 mr-2">{i + 1}.</span>
+                      {step.instruction}
+                    </span>
+                    <span className="shrink-0 tabular text-xs text-ink-3">{step.distance}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+
+            <a
+              href={directionsUrl(selectedBatch.gpsLat, selectedBatch.gpsLng)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-ink-3 underline underline-offset-2 hover:text-ink"
+            >
+              {translateSync("Open in the Google Maps app instead")}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        )}
+      </div>
 
       {/* Split Map View */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[600px]">
@@ -271,14 +376,14 @@ function MaterialsMapPageContent() {
                   <p className="font-mono-data text-xs text-ink-2">
                     {selectedBatch.gpsLat.toFixed(4)}°, {selectedBatch.gpsLng.toFixed(4)}°
                   </p>
-                  <a
-                    href={directionsUrl(selectedBatch.gpsLat, selectedBatch.gpsLng)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={buttonClass("secondary", "sm", "w-full")}
+                  <button
+                    type="button"
+                    onClick={nav.active ? nav.stop : showRoute}
+                    className={buttonClass(nav.active ? "secondary" : "primary", "sm", "w-full")}
                   >
-                    {translateSync("Directions in Google Maps")}
-                  </a>
+                    <Navigation className="w-3.5 h-3.5" />
+                    {translateSync(nav.active ? "End route" : "Show route")}
+                  </button>
                 </div>
               </div>
 

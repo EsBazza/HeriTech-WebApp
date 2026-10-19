@@ -55,6 +55,7 @@ export function LocationPicker({ lat, lng, onMove }: LocationPickerProps) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Follow position changes made outside the map (GPS fix, typed coordinates).
