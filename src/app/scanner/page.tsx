@@ -285,65 +285,54 @@ function WasteScannerPageContent() {
                 )}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs text-ink-3">{translateSync("Identified material")}</p>
                     <h2 className="font-display text-[28px] leading-tight font-semibold text-ink">{translateSync(analysisResult.materialType)}</h2>
+                    {analysisResult.inferredMaterialDetails && <p className="text-sm text-ink-3 mt-0.5">{translateSync(analysisResult.inferredMaterialDetails)}</p>}
                   </div>
-                  <Badge tone="pine" className="shrink-0">
-                    {Math.round(analysisResult.confidence * 100)}% {translateSync("confidence")}
-                  </Badge>
+                  {!analysisResult.isSample && (
+                    <Badge tone="pine" className="shrink-0">
+                      {Math.round(analysisResult.confidence * 100)}%
+                    </Badge>
+                  )}
                 </div>
-                {analysisResult.inferredMaterialDetails && <p className="text-sm text-ink-2 leading-relaxed">{translateSync(analysisResult.inferredMaterialDetails)}</p>}
-                {analysisResult.materialSubtypes?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {analysisResult.materialSubtypes.map((subtype: string) => (
-                      <Badge key={subtype}>{translateSync(subtype)}</Badge>
-                    ))}
-                  </div>
-                )}
-                <dl className="grid grid-cols-2 gap-px bg-line border border-line rounded-md overflow-hidden text-sm">
-                  <div className="bg-surface p-3.5">
+
+                <dl className="grid grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden text-sm">
+                  <div className="bg-surface p-3">
                     <dt className="text-xs text-ink-3">{translateSync("Condition")}</dt>
                     <dd className="mt-0.5 font-medium text-ink">{translateSync(analysisResult.condition)}</dd>
                   </div>
-                  <div className="bg-surface p-3.5">
-                    <dt className="text-xs text-ink-3">{translateSync("Estimated weight")}</dt>
+                  <div className="bg-surface p-3">
+                    <dt className="text-xs text-ink-3">{translateSync("Weight")}</dt>
                     <dd className="tabular mt-0.5 font-medium text-ink">
-                      {analysisResult.estimatedWeightKg
-                        ? `~${analysisResult.estimatedWeightKg.bestEstimate} kg (${analysisResult.estimatedWeightKg.low}–${analysisResult.estimatedWeightKg.high})`
-                        : "—"}
+                      {analysisResult.estimatedWeightKg ? `~${analysisResult.estimatedWeightKg.bestEstimate} kg` : "—"}
+                    </dd>
+                  </div>
+                  <div className="bg-surface p-3">
+                    <dt className="text-xs text-ink-3">{translateSync("Status")}</dt>
+                    <dd className={cn("mt-0.5 font-medium", analysisResult.isSample || analysisResult.isOffline ? "text-ink-3" : flags.length ? "text-warn" : "text-success")}>
+                      {analysisResult.isSample || analysisResult.isOffline
+                        ? translateSync("Check by eye")
+                        : flags.length
+                        ? translateSync("Clean first")
+                        : translateSync("Ready")}
                     </dd>
                   </div>
                 </dl>
 
-                {/* Safety triage: only shown when Gemini actually assessed the photo */}
-                {!analysisResult.isSample && !analysisResult.isOffline && (
-                <div className={cn("rounded-md border p-4", flags.length ? "bg-warn-100 border-warn/20" : "bg-success-100 border-success/20")}>
-                  <p className={cn("flex items-center gap-2 text-sm font-medium", flags.length ? "text-warn" : "text-success")}>
-                    {flags.length ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                    {flags.length
-                      ? `${translateSync("Check before release")}: ${flags.length} ${flags.length === 1 ? translateSync("contaminant flagged") : translateSync("contaminants flagged")}`
-                      : translateSync("No contamination detected. Safe to offer to artisans.")}
+                {/* Contamination: only when Gemini actually assessed the photo */}
+                {!analysisResult.isSample && !analysisResult.isOffline && flags.length > 0 && (
+                  <p className="flex items-start gap-2 rounded-md bg-warn-100 border border-warn/20 px-3 py-2.5 text-sm text-warn">
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>
+                      {translateSync("Remove first")}: {flags.map((f) => translateSync(f)).join(", ")}
+                    </span>
                   </p>
-                  {flags.length > 0 && (
-                    <>
-                      <ul className="mt-2 flex flex-wrap gap-1.5">
-                        {flags.map((f) => (
-                          <li key={f}>
-                            <Badge tone="warn">{translateSync(f)}</Badge>
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="text-xs text-ink-2 mt-2">{translateSync("Remove contaminants, or route the batch to recycling instead of the artisan marketplace.")}</p>
-                    </>
-                  )}
-                </div>
                 )}
 
                 {crafts.length > 0 && (
-                  <div>
-                    <p className="text-xs text-ink-3 mb-1.5">{translateSync("Suggested uses")}</p>
-                    <p className="text-sm text-ink-2">{crafts.map((c) => translateSync(c)).join(" · ")}</p>
-                  </div>
+                  <p className="text-sm text-ink-2">
+                    <span className="text-ink-3">{translateSync("Good for")}: </span>
+                    {crafts.map((c) => translateSync(c)).join(" · ")}
+                  </p>
                 )}
               </Card>
 
@@ -408,9 +397,6 @@ function WasteScannerPageContent() {
                           ({analysisResult.estimatedWeightKg.low}–{analysisResult.estimatedWeightKg.high} kg)
                         </span>
                       </span>
-                      {analysisResult.estimatedWeightKg.visualRationale && (
-                        <span className="block text-xs text-ink-3 mt-0.5">{translateSync(analysisResult.estimatedWeightKg.visualRationale)}</span>
-                      )}
                     </button>
                   )}
                   <p className="text-xs text-ink-3">

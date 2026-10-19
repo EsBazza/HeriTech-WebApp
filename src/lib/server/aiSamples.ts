@@ -7,14 +7,15 @@ import "server-only";
  */
 
 export interface ScanAnalysis {
+  /** One of MATERIAL_CATEGORIES, or a labelled sample. */
   materialType: string;
-  materialSubtypes?: string[];
   confidence: number;
   condition: string;
+  /** One short line describing what is in the photo. */
   inferredMaterialDetails: string;
   contaminationFlags?: string[];
   suggestedCraftTypologies?: string[];
-  estimatedWeightKg?: { low: number; high: number; bestEstimate: number; visualRationale: string };
+  estimatedWeightKg?: { low: number; high: number; bestEstimate: number };
   /** True when any person is recognisable in the photo; such photos must not be logged. */
   peopleVisible?: boolean;
 }
