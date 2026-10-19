@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -36,8 +37,10 @@ import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { Button, Card, Spinner, EmptyState, LinkButton, SectionHeader } from "@/components/ui";
 import { apiJson } from "@/lib/api";
-import { Journey3D } from "@/components/map/Journey3D";
 import type { ProductView } from "@/lib/server/views";
+
+// The 3D map only loads in the browser, and only on product pages.
+const Journey3D = dynamic(() => import("@/components/map/Journey3D").then((m) => m.Journey3D), { ssr: false });
 
 export default function ProductDetailPage() {
   const params = useParams();

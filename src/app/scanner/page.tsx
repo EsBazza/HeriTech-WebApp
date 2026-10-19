@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, CheckCircle2, Crosshair, MapPin, Minus, Plus } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { AccessGuard } from "@/components/AccessGuard";
@@ -12,10 +13,10 @@ import { reverseGeocode } from "@/lib/googleMaps";
 import type { ScanAnalysis } from "@/lib/server/aiSamples";
 import type { BatchView } from "@/lib/server/views";
 
+const LocationPicker = dynamic(() => import("@/components/map/LocationPicker").then((m) => m.LocationPicker), { ssr: false });
+
 /** A scan as the screen shows it: Gemini's answer, a labelled sample, or an on-device estimate. */
 type ScanResult = ScanAnalysis & { isSample?: boolean; isOffline?: boolean; model?: string };
-import { LocationPicker } from "@/components/map/LocationPicker";
-
 
 function WasteScannerPageContent() {
   const { translateSync } = useTranslation();
