@@ -20,7 +20,7 @@ const user = (
   id: string,
   role: "buyer" | "artisan" | "lgu" | "admin",
   fullName: string,
-  extra: { workshopName?: string; stationName?: string } = {}
+  extra: { workshopName?: string; workshopLat?: number; workshopLng?: number; stationName?: string } = {}
 ) => ({
   id,
   email: `${id.replace(/_/g, ".")}@example.com`,
@@ -38,9 +38,9 @@ const user = (
 export const SEED_USERS = [
   user("usr_lgu_04", "lgu", "Demo Officer A", { stationName: "Demo City Environment Office" }),
   user("usr_lgu_01", "lgu", "Demo Officer B", { stationName: "Demo Town Environment Office" }),
-  user("usr_art_05", "artisan", "Demo Artisan A", { workshopName: "Demo Workshop A" }),
-  user("usr_art_01", "artisan", "Demo Artisan B", { workshopName: "Demo Workshop B" }),
-  user("usr_art_02", "artisan", "Demo Artisan C", { workshopName: "Demo Workshop C" }),
+  user("usr_art_05", "artisan", "Demo Artisan A", { workshopName: "Demo Workshop A", workshopLat: 15.0612, workshopLng: 120.6418 }),
+  user("usr_art_01", "artisan", "Demo Artisan B", { workshopName: "Demo Workshop B", workshopLat: 15.0157, workshopLng: 120.7354 }),
+  user("usr_art_02", "artisan", "Demo Artisan C", { workshopName: "Demo Workshop C", workshopLat: 14.9923, workshopLng: 120.6620 }),
   user("usr_buy_01", "buyer", "Demo Buyer A"),
   user("usr_buy_02", "buyer", "Demo Buyer B"),
   user("usr_admin_01", "admin", "Demo Administrator"),

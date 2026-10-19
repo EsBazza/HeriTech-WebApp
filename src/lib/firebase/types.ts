@@ -32,6 +32,9 @@ export interface UserDoc {
   avatarUrl: string | null;
   country: string | null;
   workshopName: string | null;
+  /** Workshop position an artisan chose to show on their product pages. */
+  workshopLat?: number | null;
+  workshopLng?: number | null;
   stationName: string | null;
   artisanVerified: boolean;
   verificationStatus: VerificationStatus;
@@ -162,5 +165,5 @@ export interface MessageDoc {
 /** The public subset of a user that other users may see. */
 export type PublicUser = Pick<
   UserDoc,
-  "id" | "fullName" | "role" | "avatarUrl" | "country" | "workshopName" | "stationName" | "artisanVerified"
+  "id" | "fullName" | "role" | "avatarUrl" | "country" | "workshopName" | "workshopLat" | "workshopLng" | "stationName" | "artisanVerified"
 >;

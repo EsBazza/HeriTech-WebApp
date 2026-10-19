@@ -11,6 +11,11 @@ const schema = z.object({
   country: fields.optionalText(80),
   workshopName: fields.optionalText(160),
   stationName: fields.optionalText(160),
+  // An artisan's workshop pin for the 3D journey on product pages; null removes it.
+  workshopLocation: z
+    .object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
+    .nullable()
+    .optional(),
   preferredLanguage: z.string().min(2).max(10).optional(),
 });
 
@@ -25,6 +30,10 @@ export const POST = route(async (request: Request) => {
   if (input.preferredLanguage) updates.preferredLanguage = input.preferredLanguage;
   if (input.country) updates.country = input.country;
   if (user.role === "artisan" && input.workshopName) updates.workshopName = input.workshopName;
+  if (user.role === "artisan" && input.workshopLocation !== undefined) {
+    updates.workshopLat = input.workshopLocation?.lat ?? null;
+    updates.workshopLng = input.workshopLocation?.lng ?? null;
+  }
   if (user.role === "lgu" && input.stationName) updates.stationName = input.stationName;
 
   if (Object.keys(updates).length) await db.users().doc(user.id).update(updates);

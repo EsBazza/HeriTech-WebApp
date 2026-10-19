@@ -36,6 +36,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { Button, Card, Spinner, EmptyState, LinkButton, SectionHeader } from "@/components/ui";
 import { apiJson } from "@/lib/api";
+import { Journey3D } from "@/components/map/Journey3D";
 
 /** Maps an API product to the shop card shape. */
 function toFeedBatch(p: any): FeedMaterialBatch {
@@ -359,6 +360,28 @@ export default function ProductDetailPage() {
           })}
         </div>
       </section>
+
+      {/* Where the material travelled, in Google's photorealistic 3D map */}
+      {product.sourceBatch && (
+        <section className="rounded-lg bg-pine-900 text-white p-5 sm:p-8 space-y-5">
+          <div>
+            <h2 className="font-display text-[30px] font-semibold">{translateSync("Follow the material")}</h2>
+            <p className="text-sm text-white/70 mt-1">
+              {product.sourceBatch.pickupAddress
+                ? `${translateSync("Collected at")} ${product.sourceBatch.pickupAddress}`
+                : translateSync("Collected and logged with GPS by an LGU officer.")}
+            </p>
+          </div>
+          <Journey3D
+            collection={{ lat: product.sourceBatch.gpsLat, lng: product.sourceBatch.gpsLng, label: translateSync("Collected here") }}
+            workshop={
+              product.artisan?.workshopLat != null && product.artisan?.workshopLng != null
+                ? { lat: product.artisan.workshopLat, lng: product.artisan.workshopLng, label: workshop || makerName }
+                : null
+            }
+          />
+        </section>
+      )}
 
       {/* Provenance + split */}
       <div className="grid lg:grid-cols-12 gap-6">

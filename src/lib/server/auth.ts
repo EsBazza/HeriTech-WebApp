@@ -59,6 +59,8 @@ export function toPublicUser(user: UserDoc): PublicUser {
     avatarUrl: user.avatarUrl,
     country: user.country,
     workshopName: user.workshopName,
+    workshopLat: user.workshopLat ?? null,
+    workshopLng: user.workshopLng ?? null,
     stationName: user.stationName,
     artisanVerified: user.artisanVerified,
   };

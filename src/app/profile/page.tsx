@@ -43,6 +43,8 @@ export default function ProfilePage() {
   const [editCountry, setEditCountry] = useState("Philippines");
   const [editAvatarUrl, setEditAvatarUrl] = useState("");
   const [editWorkshop, setEditWorkshop] = useState("");
+  const [editWorkshopLocation, setEditWorkshopLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locatingWorkshop, setLocatingWorkshop] = useState(false);
   const [editStation, setEditStation] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -64,6 +66,7 @@ export default function ProfilePage() {
       setEditCountry(user.country || "Philippines");
       setEditAvatarUrl(user.avatarUrl || "");
       setEditWorkshop(user.workshopName || "");
+      setEditWorkshopLocation(user.workshopLat != null && user.workshopLng != null ? { lat: user.workshopLat, lng: user.workshopLng } : null);
       setEditStation(user.stationName || "");
 
       // Only this user's own records: their purchases, plus listings or batches for their role.
@@ -94,6 +97,7 @@ export default function ProfilePage() {
         avatarUrl: editAvatarUrl,
         workshopName: editWorkshop,
         stationName: editStation,
+        ...(user?.role === "artisan" ? { workshopLocation: editWorkshopLocation } : {}),
       }),
     });
     if (result.success) {
@@ -103,6 +107,25 @@ export default function ProfilePage() {
       setSaveError(result.error ?? "Couldn't save your profile.");
     }
     setSavingProfile(false);
+  };
+
+  const pinWorkshop = () => {
+    if (!navigator.geolocation) {
+      setSaveError("This browser can't share its location.");
+      return;
+    }
+    setLocatingWorkshop(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setEditWorkshopLocation({ lat: parseFloat(p.coords.latitude.toFixed(5)), lng: parseFloat(p.coords.longitude.toFixed(5)) });
+        setLocatingWorkshop(false);
+      },
+      (e) => {
+        setSaveError(`Couldn't get your location (${e.message}).`);
+        setLocatingWorkshop(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   if (!user) {
@@ -619,6 +642,35 @@ export default function ProfilePage() {
                     onChange={(e) => setEditWorkshop(e.target.value)}
                     className="w-full p-2.5 rounded-sm bg-paper border border-[var(--border-mid)] text-sm text-ink"
                   />
+                </div>
+              )}
+
+              {role === "artisan" && (
+                <div className="space-y-1">
+                  <label className="font-semibold text-ink">{translateSync("Workshop location")}</label>
+                  <p className="text-xs text-ink-3">
+                    {translateSync("Optional. Shown on your product pages so buyers can follow the material from the collection point to your workshop.")}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={pinWorkshop}
+                      disabled={locatingWorkshop}
+                      className="px-3 py-2 rounded-sm border border-[var(--border-mid)] bg-paper text-xs font-semibold text-ink hover:bg-paper-2 disabled:opacity-50"
+                    >
+                      {translateSync(locatingWorkshop ? "Locating…" : editWorkshopLocation ? "Update to my current location" : "Use my current location")}
+                    </button>
+                    {editWorkshopLocation && (
+                      <>
+                        <span className="text-xs text-ink-2 tabular">
+                          {editWorkshopLocation.lat.toFixed(4)}°, {editWorkshopLocation.lng.toFixed(4)}°
+                        </span>
+                        <button type="button" onClick={() => setEditWorkshopLocation(null)} className="text-xs text-ink-3 underline">
+                          {translateSync("Remove")}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
