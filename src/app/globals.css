@@ -106,6 +106,7 @@
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
 }
 .js .reveal.is-visible {
   opacity: 1;
@@ -669,4 +670,106 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-pine-300);
+}
+
+/* ─── Home sections: ledger band, spotlight cards, step rail, loop orbit ─── */
+.ledger-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--color-pine-900);
+}
+.ledger-band::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  background:
+    radial-gradient(38% 48% at 18% 32%, rgb(194 96 47 / 0.22), transparent 70%),
+    radial-gradient(34% 46% at 82% 68%, rgb(60 107 82 / 0.5), transparent 70%),
+    radial-gradient(28% 40% at 56% 12%, rgb(143 176 156 / 0.16), transparent 70%);
+  animation: band-drift 24s ease-in-out infinite alternate;
+}
+.ledger-band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgb(255 255 255 / 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(70% 90% at 50% 50%, #000 30%, transparent 85%);
+}
+@keyframes band-drift {
+  from { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
+  to { transform: translate3d(4%, 3%, 0) rotate(6deg); }
+}
+.ledger-thread path { stroke-dasharray: 4 12; animation: thread-flow 2.2s linear infinite; }
+@keyframes thread-flow { to { stroke-dashoffset: -32; } }
+.ledger-pulse { animation: ledger-pulse 2.8s ease-out infinite; }
+@keyframes ledger-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(143 176 156 / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgb(143 176 156 / 0); }
+}
+
+/* Cursor spotlight on cards (pointer devices only) */
+.spotlight { position: relative; isolation: isolate; }
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(194 96 47 / 0.1), transparent 45%);
+}
+.spotlight-dark::before {
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(224 138 90 / 0.18), transparent 50%);
+}
+@media (hover: hover) {
+  .spotlight:hover::before { opacity: 1; }
+}
+.js .reveal.is-visible.lift {
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition-delay: var(--reveal-delay, 0ms), 0s, 0s, 0s;
+}
+@media (hover: hover) {
+  .js .reveal.is-visible.lift:hover { transform: translateY(-4px); }
+}
+.lift { transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease; }
+@media (hover: hover) {
+  .lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-pop); border-color: var(--color-line-strong); }
+}
+
+.text-lantern-gradient {
+  background: linear-gradient(120deg, var(--color-lantern-600), var(--color-lantern) 55%, #e08a5a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* How it works: a rail that fills as the steps come into view */
+.step-rail-fill { transform: scaleX(0); transform-origin: left; transition: transform 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.2s; }
+.steps-in .step-rail-fill { transform: scaleX(1); }
+.step-dot { transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease; }
+.steps-in .step-dot { background-color: var(--color-pine-700); color: #fff; box-shadow: 0 0 0 6px var(--color-paper); }
+.steps-in .step-dot-last { background-color: var(--color-lantern); }
+
+/* Circular system orbit */
+.loop-tracer { animation: loop-spin 10s linear infinite; transform: rotate(-90deg); }
+@keyframes loop-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
+.loop-node-disc { fill: var(--color-pine-800); animation: loop-node 10s linear infinite; animation-delay: inherit; }
+@keyframes loop-node {
+  0%, 2% { fill: var(--color-pine-800); }
+  6%, 16% { fill: var(--color-lantern); }
+  24%, 100% { fill: var(--color-pine-800); }
+}
+.loop-core { animation: loop-breathe 5s ease-in-out infinite; transform-origin: 200px 200px; }
+@keyframes loop-breathe { 0%, 100% { opacity: 0.6; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.06); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ledger-band::before, .ledger-thread path, .ledger-pulse, .loop-tracer, .loop-node-disc, .loop-core { animation: none; }
+  .step-rail-fill { transition: none; transform: scaleX(1); }
+  .lift:hover, .js .reveal.is-visible.lift:hover { transform: none; }
 }

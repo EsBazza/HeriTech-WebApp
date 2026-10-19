@@ -11,6 +11,8 @@ interface HeaderProps {
   description?: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
+  /** "dark" for headers on pine sections. */
+  tone?: "light" | "dark";
 }
 
 export function PageHeader({ eyebrow, title, description, actions, className }: HeaderProps) {
@@ -26,13 +28,14 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
   );
 }
 
-export function SectionHeader({ eyebrow, title, description, actions, className }: HeaderProps) {
+export function SectionHeader({ eyebrow, title, description, actions, className, tone = "light" }: HeaderProps) {
+  const dark = tone === "dark";
   return (
     <div className={cn("flex flex-col sm:flex-row sm:items-end justify-between gap-3", className)}>
       <div className="space-y-1.5 max-w-2xl">
-        {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-        <h2 className="font-display text-3xl leading-tight font-semibold text-ink">{title}</h2>
-        {description && <p className="text-[15px] text-ink-2">{description}</p>}
+        {eyebrow && <Eyebrow className={dark ? "text-pine-300" : undefined}>{eyebrow}</Eyebrow>}
+        <h2 className={cn("font-display text-3xl sm:text-[34px] leading-tight font-semibold", dark ? "text-white" : "text-ink")}>{title}</h2>
+        {description && <p className={cn("text-[15px]", dark ? "text-white/70" : "text-ink-2")}>{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div>}
     </div>

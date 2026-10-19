@@ -39,7 +39,7 @@ interface RevealProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Reveal({ delay = 0, className, style, children, ...props }: RevealProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   return (
-    <div ref={ref} className={cn("reveal", inView && "is-visible", className)} style={{ ...style, transitionDelay: delay ? `${delay}ms` : undefined }} {...props}>
+    <div ref={ref} className={cn("reveal", inView && "is-visible", className)} style={delay ? ({ ...style, "--reveal-delay": `${delay}ms` } as React.CSSProperties) : style} {...props}>
       {children}
     </div>
   );

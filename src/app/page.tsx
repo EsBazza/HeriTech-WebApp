@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Camera, Check, Handshake, Hammer, MousePointer2, QrCode, Search, Sparkles, X, PackageOpen } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, Camera, Check, Flower2, Handshake, HandHeart, Hammer, Lamp, Leaf, Layers, MousePointer2, QrCode, Recycle, Search, ShieldCheck, Smartphone, Sparkles, X, PackageOpen } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
@@ -12,6 +12,9 @@ import { userRole } from "@/lib/roleGuard";
 import { Button, EmptyState, Eyebrow, SectionHeader, Stat, cn, controlClass } from "@/components/ui";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
+import { useInView } from "@/components/motion/Reveal";
+import { spotlight } from "@/components/motion/spotlight";
+import { CircularLoop } from "@/components/home/CircularLoop";
 import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
 import { LanternAssembly } from "@/components/motion/LanternAssembly";
 import { apiJson } from "@/lib/api";
@@ -43,6 +46,7 @@ export default function FeedHomePage() {
   const [selectedTag, setSelectedTag] = useState("All");
   const [visibleCount, setVisibleCount] = useState(6);
   const [serial, setSerial] = useState("");
+  const { ref: stepsRef, inView: stepsIn } = useInView<HTMLOListElement>();
 
   const [stats, setStats] = useState<HomeStats | null>(null);
   const [statsOffline, setStatsOffline] = useState(false);
@@ -155,6 +159,9 @@ export default function FeedHomePage() {
   const problems = [
     {
       figure: "50,000+",
+      value: 50000,
+      suffix: "+",
+      icon: Lamp,
       label: translateSync("sky lanterns released in a single night at Yi Peng, Chiang Mai (2017)."),
       note: translateSync("In 2025 the festival disrupted 161 flights at Chiang Mai airport."),
       source: "Khaosod English",
@@ -162,6 +169,9 @@ export default function FeedHomePage() {
     },
     {
       figure: "508 t",
+      value: 508,
+      suffix: " t",
+      icon: Flower2,
       label: translateSync("of floral offerings collected in Mumbai after Ganesh Chaturthi 2025."),
       note: translateSync("Collected in a single post-immersion drive."),
       source: "Greater Kashmir",
@@ -169,6 +179,9 @@ export default function FeedHomePage() {
     },
     {
       figure: "30+ t",
+      value: 30,
+      suffix: "+ t",
+      icon: Recycle,
       label: translateSync("of temple flower waste processed every day by Phool.co in India (2025)."),
       note: translateSync("Proof that festival leftovers can become products people buy."),
       source: "YourStory",
@@ -178,14 +191,17 @@ export default function FeedHomePage() {
 
   const systemPoints = [
     {
+      icon: Smartphone,
       title: translateSync("Works on any phone"),
       body: translateSync("Runs in the phone browser officers and artisans already use. Nothing to install."),
     },
     {
+      icon: Layers,
       title: translateSync("Any festival, any leftover"),
       body: translateSync("Whatever a festival leaves behind, the same steps apply: agreement, scan, pickup, craft and pass."),
     },
     {
+      icon: ShieldCheck,
       title: translateSync("Proof anyone can check"),
       body: translateSync("Every pass opens a public record with the origin, maker and money split. No account needed."),
     },
@@ -306,17 +322,39 @@ export default function FeedHomePage() {
 
       </TraceReveal>
 
-      {/* PROOF STRIP */}
-      <section className="bg-pine-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
-          <Stat tone="dark" label={translateSync("Material diverted")} value={stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—"} unit="kg" />
-          <Stat tone="dark" label={translateSync("Verified artisans")} value={stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—"} />
-          <Stat tone="dark" label={translateSync("Impact passes issued")} value={stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—"} />
-          <Stat tone="dark" label={translateSync("Charity & app upkeep")} value={stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—"} />
-          <p className="col-span-2 lg:col-span-4 text-xs text-white/60 -mt-2 flex items-center gap-2">
-            <span className={cn("w-1.5 h-1.5 rounded-full", statsOffline ? "bg-warn" : "bg-pine-300")} aria-hidden />
-            {statsOffline ? translateSync("The figures can't load right now.") : translateSync("Live figures from HeriTech's records.")}
-          </p>
+      {/* PROOF STRIP — the live ledger */}
+      <section className="ledger-band text-white">
+        <svg className="ledger-thread absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-24 pointer-events-none" viewBox="0 0 1200 96" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 60 C 200 10, 380 90, 600 48 S 1000 14, 1200 52" fill="none" stroke="rgb(224 138 90 / 0.35)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+        </svg>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-between gap-4 mb-7">
+            <p className="flex items-center gap-2.5 text-sm text-white/75">
+              <span className={cn("w-2 h-2 rounded-full shrink-0", statsOffline ? "bg-warn" : "bg-pine-300 ledger-pulse")} aria-hidden />
+              {statsOffline ? translateSync("The figures can't load right now.") : translateSync("Live figures from HeriTech's records.")}
+            </p>
+            <a href="/impact" className="hidden sm:inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white transition-colors">
+              {translateSync("Open the impact ledger")}
+              <ArrowUpRight className="w-4 h-4" />
+            </a>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { icon: Leaf, label: translateSync("Material diverted"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
+              { icon: BadgeCheck, label: translateSync("Verified artisans"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
+              { icon: QrCode, label: translateSync("Impact passes issued"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
+              { icon: HandHeart, label: translateSync("Charity & app upkeep"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
+            ].map((m, i) => (
+              <Reveal
+                key={i}
+                delay={i * 80}
+                onPointerMove={spotlight}
+                className="spotlight spotlight-dark rounded-lg border border-white/10 bg-white/[0.04] backdrop-blur-sm p-5"
+              >
+                <Stat tone="dark" icon={<m.icon className="w-4 h-4 text-pine-300" />} label={m.label} value={m.value} unit={m.unit} />
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -331,17 +369,39 @@ export default function FeedHomePage() {
             )}
           />
         </Reveal>
-        <div className="lg:col-span-8 grid sm:grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden self-start">
-          {problems.map((p, i) => (
-            <Reveal key={p.figure} delay={i * 90} className="bg-surface p-6">
-              <p className="font-display text-[40px] leading-none font-semibold text-lantern-600">{p.figure}</p>
-              <p className="mt-3 text-sm text-ink-2 leading-relaxed">{p.label}</p>
-              <p className="mt-3 text-xs text-ink-3">{p.note}</p>
-              <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs text-pine-600 underline hover:text-pine-700">
-                {translateSync("Source")}: {p.source}
-              </a>
-            </Reveal>
-          ))}
+        <div className="lg:col-span-8 grid sm:grid-cols-3 gap-4 self-start">
+          {problems.map((p, i) => {
+            const Icon = p.icon;
+            return (
+              <Reveal
+                key={p.figure}
+                delay={i * 90}
+                onPointerMove={spotlight}
+                className="spotlight lift group relative overflow-hidden flex flex-col bg-surface border border-line rounded-lg p-6 shadow-card"
+              >
+                <Icon className="absolute -right-6 -bottom-6 w-32 h-32 text-pine-700/[0.05] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={1.25} aria-hidden />
+                <div className="flex items-center justify-between">
+                  <span className={cn("w-10 h-10 rounded-full flex items-center justify-center", i === 2 ? "bg-pine-100 text-pine-700" : "bg-lantern-100 text-lantern-600")}>
+                    <Icon className="w-5 h-5" strokeWidth={1.75} />
+                  </span>
+                  <span className="font-display text-2xl text-line-strong tabular">{String(i + 1).padStart(2, "0")}</span>
+                </div>
+                <p className="mt-6 font-display text-[44px] leading-none font-semibold text-lantern-gradient">
+                  <span className="sr-only">{p.figure}</span>
+                  <span aria-hidden>
+                    <CountUp value={p.value} format={formatNumber} />
+                    {p.suffix}
+                  </span>
+                </p>
+                <p className="mt-3 text-sm text-ink-2 leading-relaxed">{p.label}</p>
+                <p className="mt-3 text-xs text-ink-3 flex-1">{p.note}</p>
+                <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-5 pt-4 border-t border-line inline-flex items-center gap-1 text-xs font-medium text-pine-600 hover:text-pine-700">
+                  {translateSync("Source")}: {p.source}
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </a>
+              </Reveal>
+            );
+          })}
         </div>
       </section>
 
@@ -354,21 +414,48 @@ export default function FeedHomePage() {
             description={translateSync("Every step is recorded when it happens, so anyone can check the claim on the tag.")}
           />
         </Reveal>
-        <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-md overflow-hidden">
+        <ol ref={stepsRef} className={cn("relative grid sm:grid-cols-2 lg:grid-cols-4 gap-5", stepsIn && "steps-in")}>
+          <span className="hidden lg:block absolute left-[12.5%] right-[12.5%] top-6 h-px bg-line-strong" aria-hidden>
+            <span className="step-rail-fill absolute inset-0 bg-gradient-to-r from-pine-500 via-pine-500 to-lantern" />
+          </span>
           {steps.map((s, i) => {
             const Icon = s.icon;
+            const last = i === steps.length - 1;
             return (
-              <li key={s.title} className="bg-surface">
-                <Reveal delay={i * 90} className="group h-full p-6 flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="w-10 h-10 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center transition-colors duration-200 group-hover:bg-pine-700 group-hover:text-white">
-                      <Icon className="w-5 h-5" strokeWidth={1.75} />
-                    </span>
-                    <span className="font-display text-3xl text-line-strong tabular">{String(i + 1).padStart(2, "0")}</span>
+              <li key={s.title} className="relative flex flex-col">
+                <span
+                  className={cn("step-dot relative z-10 mx-auto w-12 h-12 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center", last && "step-dot-last")}
+                  style={{ transitionDelay: `${300 + i * 380}ms` }}
+                >
+                  <Icon className="w-5 h-5" strokeWidth={1.75} />
+                </span>
+                <Reveal
+                  delay={i * 90}
+                  onPointerMove={spotlight}
+                  className={cn(
+                    "spotlight lift mt-5 flex-1 rounded-lg border p-6 flex flex-col",
+                    last ? "spotlight-dark bg-pine-900 border-pine-900 text-white" : "bg-surface border-line shadow-card"
+                  )}
+                >
+                  <span className={cn("font-display text-sm tabular", last ? "text-pine-300" : "text-ink-3")}>
+                    {translateSync("Step")} {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className={cn("mt-1 font-display text-[22px] leading-snug font-semibold", last ? "text-white" : "text-ink")}>{s.title}</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed flex-1", last ? "text-white/75" : "text-ink-2")}>{s.body}</p>
+                  <div className="mt-5 flex flex-wrap gap-1.5">
+                    {s.tech.split(" · ").map((t) => (
+                      <span
+                        key={t}
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+                          last ? "bg-lantern text-white" : "bg-pine-50 border border-pine-100 text-pine-700"
+                        )}
+                      >
+                        <Sparkles className="w-3 h-3" aria-hidden />
+                        {t}
+                      </span>
+                    ))}
                   </div>
-                  <h3 className="mt-5 text-base font-semibold text-ink font-sans">{s.title}</h3>
-                  <p className="mt-2 text-sm text-ink-2 leading-relaxed flex-1">{s.body}</p>
-                  <p className="mt-4 text-xs text-pine-500 font-medium">{s.tech}</p>
                 </Reveal>
               </li>
             );
@@ -376,31 +463,49 @@ export default function FeedHomePage() {
         </ol>
       </section>
 
-      {/* ONE SYSTEM FOR EVERY FESTIVAL */}
-      <section className="border-t border-line">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 grid lg:grid-cols-12 gap-10">
-          <Reveal className="lg:col-span-4">
-            <SectionHeader
-              eyebrow={translateSync("How it works")}
-              title={translateSync("One system for every festival")}
-              description={translateSync("HeriTech records each step from leftover to finished piece, so anyone can check where it came from.")}
-            />
+      {/* CIRCULAR DIGITAL SYSTEM */}
+      <section className="ledger-band text-white">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="lg:col-span-5 space-y-8">
+            <Reveal>
+              <SectionHeader
+                tone="dark"
+                eyebrow={translateSync("How it works")}
+                title={translateSync("One system for every festival")}
+                description={translateSync("HeriTech records each step from leftover to finished piece, so anyone can check where it came from.")}
+              />
+            </Reveal>
+            <ul className="space-y-3">
+              {systemPoints.map((point, i) => {
+                const Icon = point.icon;
+                return (
+                  <li key={point.title}>
+                    <Reveal
+                      delay={i * 90}
+                      onPointerMove={spotlight}
+                      className="spotlight spotlight-dark flex gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-5 transition-colors hover:border-white/20"
+                    >
+                      <span className="shrink-0 w-10 h-10 rounded-full bg-white/10 text-pine-200 flex items-center justify-center">
+                        <Icon className="w-5 h-5" strokeWidth={1.75} />
+                      </span>
+                      <div>
+                        <h3 className="text-base font-semibold text-white font-sans">{point.title}</h3>
+                        <p className="mt-1 text-sm text-white/70 leading-relaxed">{point.body}</p>
+                      </div>
+                    </Reveal>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <Reveal delay={150} className="lg:col-span-7 max-w-xl mx-auto w-full">
+            <CircularLoop />
           </Reveal>
-          <ul className="lg:col-span-8 grid sm:grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden self-start">
-            {systemPoints.map((point, i) => (
-              <li key={point.title} className="bg-surface">
-                <Reveal delay={i * 90} className="h-full p-6">
-                  <h3 className="text-base font-semibold text-ink font-sans">{point.title}</h3>
-                  <p className="mt-2 text-sm text-ink-2 leading-relaxed">{point.body}</p>
-                </Reveal>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
       {/* SHOP */}
-      <section id="shop" className="scroll-mt-20 border-t border-line bg-paper-2/50">
+      <section id="shop" className="scroll-mt-20 border-t border-line bg-gradient-to-b from-paper-2/70 to-paper">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-8">
           <Reveal>
           <SectionHeader
@@ -411,7 +516,7 @@ export default function FeedHomePage() {
           </Reveal>
 
           {/* Filter bar */}
-          <div className="space-y-3">
+          <div className="space-y-3 rounded-lg border border-line bg-surface/80 backdrop-blur p-3 sm:p-4 shadow-card">
             <div className="flex flex-col md:flex-row md:items-center gap-3">
               <div className="relative md:w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
@@ -514,7 +619,9 @@ export default function FeedHomePage() {
           <p className="text-sm text-ink-3">{translateSync("Developed at University of the Assumption, Pampanga, for EDUtech Asia 2026")}</p>
           <div className="flex items-center gap-8">
             <Image src="/university-of-assumption.png" alt="University of the Assumption" width={56} height={56} className="h-12 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" />
-            <Image src="/EDUtech_asia-REV1200.webp" alt="EDUtech Asia" width={160} height={48} className="h-10 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" />
+            <span className="inline-flex items-center rounded-md bg-pine-900 px-4 py-3">
+              <Image src="/EDUtech_asia-REV1200.webp" alt="EDUtech Asia" width={160} height={23} className="h-6 w-auto object-contain" />
+            </span>
           </div>
         </div>
       </section>
