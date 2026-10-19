@@ -58,50 +58,6 @@
 }
 
 @layer base {
-  :root {
-    /* Legacy aliases — keep un-migrated components on-palette. */
-    --forest-dark: var(--color-pine-900);
-    --forest-mid: var(--color-pine-600);
-    --forest-leaf: var(--color-pine-500);
-    --sage-light: var(--color-pine-300);
-    --sage-bright: var(--color-pine-300);
-    --celadon-cream: var(--color-paper);
-    --celadon-alt: var(--color-paper-2);
-    --mint-glow: var(--color-pine-100);
-
-    --bark: var(--color-ink);
-    --mahogany: var(--color-pine-600);
-    --gold: var(--color-lantern);
-    --gold-light: var(--color-lantern-600);
-    --linen: var(--color-paper-2);
-    --cream: var(--color-paper);
-    --cream-alt: var(--color-paper-2);
-    --forest: var(--color-pine-600);
-    --forest-light: var(--color-pine-500);
-    --sage: var(--color-pine-300);
-    --warm-gray: var(--color-ink-3);
-    --border-light: var(--color-line);
-    --border-mid: var(--color-line-strong);
-
-    --text-heading: var(--color-ink);
-    --text-body: var(--color-ink-2);
-    --text-muted: var(--color-ink-3);
-    --text-on-dark: #f3f1ea;
-    --text-muted-on-dark: rgb(243 241 234 / 0.72);
-
-    --background: var(--color-paper);
-    --foreground: var(--color-ink-2);
-    --primary: var(--color-pine-700);
-    --primary-hover: var(--color-pine-600);
-    --accent: var(--color-lantern);
-    --accent-hover: var(--color-lantern-600);
-    --card: var(--color-surface);
-    --card-foreground: var(--color-ink-2);
-    --border: var(--color-line);
-    --muted: var(--color-ink-3);
-    --muted-light: var(--color-paper-2);
-  }
-
   html {
     scroll-behavior: smooth;
   }
