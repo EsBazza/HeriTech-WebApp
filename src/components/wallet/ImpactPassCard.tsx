@@ -86,7 +86,7 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
           <div className="flex items-end justify-between gap-4 pt-3 border-t border-white/15">
             <div className="min-w-0">
               <p className="text-xs text-white/60">{translateSync("Serial")}</p>
-              <p className="font-mono-data text-base tracking-wide">{serial}</p>
+              <p className="font-mono-data text-base tracking-wide break-all">{serial}</p>
               <p className="mt-1 text-xs text-white/65 leading-snug max-w-[11rem]">{translateSync("Scan to open the public record of this piece.")}</p>
             </div>
             <QRCodeViewer value={verifyUrl} size={104} level="M" className="shrink-0" />

@@ -25,6 +25,8 @@ interface DialogProps {
   /** Set false while a step must not be abandoned (e.g. a payment in flight). */
   dismissible?: boolean;
   className?: string;
+  /** Overrides the scrolling body's padding, e.g. for edge-to-edge lists. */
+  bodyClassName?: string;
 }
 
 const widths = { sm: "sm:max-w-md", md: "sm:max-w-lg", lg: "sm:max-w-2xl" };
@@ -47,6 +49,7 @@ export function Dialog({
   closeLabel = "Close",
   dismissible = true,
   className,
+  bodyClassName,
 }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -143,7 +146,7 @@ export function Dialog({
             </IconButton>
           )}
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5">{children}</div>
+        <div className={cn("flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5", bodyClassName)}>{children}</div>
         {footer && (
           <div className="shrink-0 border-t border-line bg-surface px-5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">{footer}</div>
         )}

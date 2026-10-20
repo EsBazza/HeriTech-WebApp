@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface CartProduct {
   id: string;
@@ -32,6 +32,9 @@ export interface CartContextType {
   closeCart: () => void;
   setIsCartOpen: (open: boolean) => void;
   addToCart: (product: CartProduct) => void;
+  /** The piece just added, for the confirmation toast; null once it is dismissed. */
+  lastAdded: CartProduct | null;
+  dismissLastAdded: () => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
   totalAmount: number;
@@ -48,6 +51,8 @@ const CartContext = createContext<CartContextType>({
   closeCart: () => {},
   setIsCartOpen: () => {},
   addToCart: () => {},
+  lastAdded: null,
+  dismissLastAdded: () => {},
   removeFromCart: () => {},
   clearCart: () => {},
   totalAmount: 0,
@@ -59,6 +64,8 @@ const CartContext = createContext<CartContextType>({
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartProduct[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [lastAdded, setLastAdded] = useState<CartProduct | null>(null);
+  const dismissLastAdded = useCallback(() => setLastAdded(null), []);
 
   useEffect(() => {
     try {
@@ -90,7 +97,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, product];
     });
-    setIsCartOpen(true);
+    // A toast confirms it; opening the drawer would cover the whole phone screen mid-browse.
+    setLastAdded(product);
   };
 
   const removeFromCart = (productId: string) => {
@@ -116,6 +124,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         closeCart,
         setIsCartOpen,
         addToCart,
+        lastAdded,
+        dismissLastAdded,
         removeFromCart,
         clearCart,
         totalAmount,

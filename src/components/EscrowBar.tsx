@@ -10,6 +10,8 @@ import { CountUp } from "@/components/motion/CountUp";
 interface EscrowBarProps {
   /** When provided, each row shows the actual amount for this price. */
   amount?: number;
+  /** HeriTech Circle reward; it comes out of the charity & maintenance row only, so the rows add up to what the buyer pays. */
+  discountPercent?: number;
   /** Names the charity partner in the charity & maintenance row. */
   ngoName?: string;
   /** Hide per-row descriptions for tight spaces (cards, checkout). */
@@ -20,10 +22,10 @@ interface EscrowBarProps {
 }
 
 /** The single artisan / LGU / charity split visual used across the app. */
-export function EscrowBar({ amount, ngoName, compact, animate = false, className }: EscrowBarProps) {
+export function EscrowBar({ amount, discountPercent = 0, ngoName, compact, animate = false, className }: EscrowBarProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const { translateSync, formatCurrency } = useTranslation();
-  const split = amount != null ? calculateEscrowSplit(amount) : null;
+  const split = amount != null ? calculateEscrowSplit(amount, { discountPercent }) : null;
 
   const rows = [
     {

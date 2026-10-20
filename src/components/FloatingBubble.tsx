@@ -6,7 +6,7 @@ import { MessageSquare } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { MessagesPanel } from "./MessagesPanel";
-import { CartPanel } from "./CartPanel";
+import { CartPanel, CartToast } from "./CartPanel";
 
 export function FloatingBubble() {
   const [mounted, setMounted] = useState(false);
@@ -62,6 +62,7 @@ export function FloatingBubble() {
       <MessagesPanel isOpen={isMessagesOpen} onClose={() => setIsMessagesOpen(false)} />
 
       <CartPanel isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <CartToast />
     </>
   );
 

@@ -9,6 +9,7 @@ import { apiJson } from "@/lib/api";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
+import { Spinner } from "@/components/ui";
 import type { BatchView, ProductView } from "@/lib/server/views";
 import type { BuyerOrder } from "@/app/api/orders/route";
 import {
@@ -24,7 +25,7 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, signInWithGoogle, signOut } = useAuth();
+  const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
   const { formatCurrency, formatNumber, translateSync, currentLanguage } = useTranslation();
 
   // Active Tab for Sidebar/Tablet/Mobile (6 views or direct scrolling)
@@ -39,6 +40,12 @@ export default function ProfilePage() {
     window.addEventListener("hashchange", openFromHash);
     return () => window.removeEventListener("hashchange", openFromHash);
   }, []);
+
+  // A buyer's passes are what they come here for, so open on them.
+  const userRole = user?.role;
+  useEffect(() => {
+    if (userRole === "buyer") setActiveTab((tab) => (tab === "personal" ? "impact" : tab));
+  }, [userRole]);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
 
@@ -65,6 +72,11 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
+
+  // Wait for Firebase before deciding, so signed-in users don't flash the sign-in card.
+  if (authLoading) {
+    return <Spinner label={translateSync("Loading your account…")} className="py-32" />;
+  }
 
   if (!user) {
     return (

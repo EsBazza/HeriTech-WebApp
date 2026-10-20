@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -22,6 +22,8 @@ import {
   Layers,
   MoveHorizontal,
   Sparkles,
+  RefreshCw,
+  Box,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
@@ -35,7 +37,7 @@ import { ImpactPassPreview } from "@/components/ImpactPassPreview";
 import { BeforeAfter } from "@/components/motion/BeforeAfter";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
-import { Button, Card, Spinner, EmptyState, LinkButton, SectionHeader } from "@/components/ui";
+import { Button, Card, Spinner, EmptyState, LinkButton, SectionHeader, useMediaQuery } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 import type { ProductView } from "@/lib/server/views";
 
@@ -51,18 +53,36 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<ProductView | null>(null);
   const [related, setRelated] = useState<FeedMaterialBatch[]>([]);
   const [loading, setLoading] = useState(true);
+  // Set when the request failed for a reason other than "not listed", so it can be retried.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
+  // Phones get a buy bar once the main Buy button scrolls away, and load the 3D map only on request.
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [show3D, setShow3D] = useState(false);
+  const [buyVisible, setBuyVisible] = useState(true);
+  const buyObserver = useRef<IntersectionObserver | null>(null);
+  const buyRef = useCallback((el: HTMLDivElement | null) => {
+    buyObserver.current?.disconnect();
+    if (!el) return;
+    buyObserver.current = new IntersectionObserver(([entry]) => setBuyVisible(entry.isIntersecting));
+    buyObserver.current.observe(el);
+  }, []);
+
   const productId = params?.id as string;
 
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     async function loadProduct() {
+      setLoading(true);
+      setLoadError(null);
       const [productRes, catalogueRes] = await Promise.all([
         apiJson<ProductView>(`/api/products/${encodeURIComponent(productId)}`),
         apiJson<ProductView[]>("/api/products"),
       ]);
       const found = (productRes.success && productRes.data) || null;
+      if (!found && productRes.status !== 404) setLoadError(productRes.error ?? "Couldn't load this piece.");
       const catalogue = catalogueRes.data ?? [];
 
       // Related: same festival first, then anything else; unique titles, max 3
@@ -80,10 +100,32 @@ export default function ProductDetailPage() {
       setLoading(false);
     }
     if (productId) loadProduct();
-  }, [productId]);
+  }, [productId, attempt]);
 
   if (loading) {
     return <Spinner label={translateSync("Loading piece…")} className="py-32" />;
+  }
+
+  if (!product && loadError) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20">
+        <EmptyState
+          title={translateSync("We couldn't load this piece")}
+          description={translateSync(loadError)}
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={() => setAttempt((n) => n + 1)}>
+                <RefreshCw className="w-4 h-4" />
+                {translateSync("Try again")}
+              </Button>
+              <LinkButton href="/" variant="secondary">
+                {translateSync("Back to shop")}
+              </LinkButton>
+            </div>
+          }
+        />
+      </div>
+    );
   }
 
   if (!product) {
@@ -244,8 +286,8 @@ export default function ProductDetailPage() {
             {translateSync(product.description || "")}
           </p>
 
-          <div className="space-y-3 rise" style={{ ["--rise-delay" as string]: "200ms" }}>
-            <Button size="lg" className="w-full" onClick={() => setCheckoutModalOpen(true)} disabled={stock === 0}>
+          <div ref={buyRef} className="space-y-3 rise" style={{ ["--rise-delay" as string]: "200ms" }}>
+            <Button variant="accent" size="lg" className="w-full" onClick={() => setCheckoutModalOpen(true)} disabled={stock === 0}>
               <Lock className="w-4 h-4" />
               {translateSync("Buy now")}
             </Button>
@@ -259,7 +301,7 @@ export default function ProductDetailPage() {
               {inCart || justAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
               {justAdded ? translateSync("Added to cart") : inCart ? translateSync("In your cart") : translateSync("Add to cart")}
             </Button>
-            {!user && <p className="text-xs text-ink-3 text-center">{translateSync("You'll sign in with Google at checkout.")}</p>}
+            {!user && <p className="text-sm text-ink-3 text-center">{translateSync("You'll sign in with Google at checkout.")}</p>}
           </div>
 
           {/* What you receive */}
@@ -357,14 +399,29 @@ export default function ProductDetailPage() {
                 : translateSync("Collected and pinned on the map by a local government officer.")}
             </p>
           </div>
-          <Journey3D
-            collection={{ lat: product.sourceBatch.gpsLat, lng: product.sourceBatch.gpsLng, label: translateSync("Collected here") }}
-            workshop={
-              product.artisan?.workshopLat != null && product.artisan?.workshopLng != null
-                ? { lat: product.artisan.workshopLat, lng: product.artisan.workshopLng, label: workshop || makerName }
-                : null
-            }
-          />
+          {isDesktop || show3D ? (
+            <Journey3D
+              collection={{ lat: product.sourceBatch.gpsLat, lng: product.sourceBatch.gpsLng, label: translateSync("Collected here") }}
+              workshop={
+                product.artisan?.workshopLat != null && product.artisan?.workshopLng != null
+                  ? { lat: product.artisan.workshopLat, lng: product.artisan.workshopLng, label: workshop || makerName }
+                  : null
+              }
+            />
+          ) : (
+            // The photorealistic 3D map is heavy on phone data and battery, so it waits for a tap.
+            <button
+              type="button"
+              onClick={() => setShow3D(true)}
+              className="w-full h-[220px] rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-colors"
+            >
+              <span className="w-12 h-12 rounded-full bg-white/10 text-pine-200 flex items-center justify-center">
+                <Box className="w-6 h-6" strokeWidth={1.75} />
+              </span>
+              <span className="text-[15px] font-medium">{translateSync("Show the 3D journey")}</span>
+              <span className="text-sm text-white/70">{translateSync("Google Maps 3D · from collection point to workshop")}</span>
+            </button>
+          )}
         </section>
       )}
 
@@ -438,6 +495,22 @@ export default function ProductDetailPage() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Phone buy bar, above the tab bar, once the main Buy button has scrolled away */}
+      {!isDesktop && !buyVisible && stock > 0 && !checkoutModalOpen && (
+        <div className="fixed inset-x-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] bg-surface/95 backdrop-blur-md border-t border-line px-4 py-3 animate-[sheet-in_0.2s_ease-out]">
+          <div className="flex items-center gap-3 max-w-lg mx-auto">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-ink-3 truncate">{translateSync(product.title)}</p>
+              <p className="tabular font-display text-2xl font-semibold text-ink leading-tight">{formatCurrency(product.price)}</p>
+            </div>
+            <Button variant="accent" onClick={() => setCheckoutModalOpen(true)} className="shrink-0">
+              <Lock className="w-4 h-4" />
+              {translateSync("Buy now")}
+            </Button>
+          </div>
+        </div>
       )}
 
       <CheckoutModal isOpen={checkoutModalOpen} onClose={() => setCheckoutModalOpen(false)} directProduct={cartProduct} />
