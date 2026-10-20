@@ -9,7 +9,7 @@ import { TranslatableHeading, TranslatableParagraph, TranslatableText } from "@/
 import { AccessGuard } from "@/components/AccessGuard";
 import { HandoverCode } from "@/components/handover/HandoverCode";
 import { HandoverVerifyForm, type HandoverResult } from "@/components/handover/HandoverVerifyForm";
-import { Button, Spinner } from "@/components/ui";
+import { Button, Select, Spinner, cn } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 
 interface ReservedBatch {
@@ -66,23 +66,24 @@ function ArtisanHandover() {
       </div>
 
       {batches.length > 1 && (
-        <label className="w-full text-left space-y-1.5 text-sm">
-          <span className="font-medium text-ink-2 flex items-center gap-1.5">
-            <Package className="w-3.5 h-3.5 text-pine-600" />
-            {translateSync("Batch to pick up")}
-          </span>
-          <select
+        <div className="w-full text-left">
+          <Select
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <Package className="w-4 h-4 text-pine-600" />
+                {translateSync("Batch to pick up")}
+              </span>
+            }
             value={selected ?? ""}
             onChange={(e) => setSelected(e.target.value)}
-            className="w-full p-3 rounded-md border border-line bg-paper text-ink"
           >
             {batches.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.id} · {b.weightKg} kg {b.materialType}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </div>
       )}
 
       {selectedBatch && <HandoverCode key={selectedBatch.id} batch={selectedBatch} />}
@@ -147,15 +148,17 @@ function LguHandover() {
 
 function HandoverPageContent() {
   const { user } = useAuth();
+  const { translateSync } = useTranslation();
   const isAdmin = user?.role === "admin";
   const canShowCode = user?.role === "artisan" || isAdmin;
   const canVerify = user?.role === "lgu" || isAdmin;
   const [activeTab, setActiveTab] = useState<"artisan" | "lgu">(canShowCode ? "artisan" : "lgu");
 
   const tabClass = (tab: "artisan" | "lgu") =>
-    `flex-1 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
+    cn(
+      "flex-1 min-h-11 px-2 py-2 rounded-md text-sm font-medium leading-tight transition-all cursor-pointer",
       activeTab === tab ? "bg-pine-700 text-white shadow-card" : "text-ink-2 hover:text-ink"
-    }`;
+    );
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -173,11 +176,11 @@ function HandoverPageContent() {
       </div>
 
       {canShowCode && canVerify && (
-        <div className="flex p-1 bg-surface rounded-lg border border-line max-w-sm">
-          <button onClick={() => setActiveTab("artisan")} className={tabClass("artisan")}>
+        <div className="flex p-1 bg-surface rounded-lg border border-line sm:max-w-sm" role="group" aria-label={translateSync("Pickup role")}>
+          <button onClick={() => setActiveTab("artisan")} aria-pressed={activeTab === "artisan"} className={tabClass("artisan")}>
             <TranslatableText>Artisan: show code</TranslatableText>
           </button>
-          <button onClick={() => setActiveTab("lgu")} className={tabClass("lgu")}>
+          <button onClick={() => setActiveTab("lgu")} aria-pressed={activeTab === "lgu"} className={tabClass("lgu")}>
             <TranslatableText>Officer: scan & release</TranslatableText>
           </button>
         </div>

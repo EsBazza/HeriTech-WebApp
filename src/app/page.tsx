@@ -292,7 +292,7 @@ export default function FeedHomePage() {
                   placeholder={translateSync("Pass serial (HT-XXXX-XXXX)")}
                   className={cn(
                     controlClass,
-                    "h-12 rounded-r-none border-r-0 font-mono-data text-sm bg-white/10 border-white/30 text-white placeholder:text-white/55 focus:border-white focus:ring-white/20 backdrop-blur"
+                    "h-12 rounded-r-none border-r-0 font-mono-data text-base sm:text-sm bg-white/10 border-white/30 text-white placeholder:text-white/55 focus:border-white focus:ring-white/20 backdrop-blur"
                   )}
                 />
                 <button

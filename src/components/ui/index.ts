@@ -9,3 +9,4 @@ export { Skeleton, EmptyState, Spinner } from "./States";
 export { IconButton } from "./IconButton";
 export { Dialog } from "./Dialog";
 export { StickyActionBar } from "./StickyActionBar";
+export { useMediaQuery } from "./useMediaQuery";

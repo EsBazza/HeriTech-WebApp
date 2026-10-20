@@ -13,10 +13,11 @@ export interface MapBatch {
   weightKg: number;
 }
 
+// Google Maps needs literal colours; these match the success, lantern and ink-3 tokens in globals.css.
 const STATUS_COLOR: Record<MapBatch["status"], string> = {
-  available: "#2f7a52",
+  available: "#2f7d4f",
   reserved: "#c2602f",
-  claimed: "#8a918c",
+  claimed: "#5f6661",
 };
 
 interface BatchMapProps {
@@ -162,7 +163,7 @@ export function BatchMap({ batches, selectedId, onSelect, route, userPosition, r
 
   if (error) {
     return (
-      <div className="h-full min-h-[220px] rounded-lg border border-line bg-paper-2 flex items-center justify-center p-6 text-center">
+      <div role="alert" className="h-[260px] sm:h-[380px] rounded-lg border border-line bg-paper-2 flex items-center justify-center p-6 text-center">
         <p className="text-sm text-ink-3">
           {translateSync(error)} {translateSync("The batch list still works.")}
         </p>
@@ -172,8 +173,16 @@ export function BatchMap({ batches, selectedId, onSelect, route, userPosition, r
 
   return (
     <div className="space-y-2">
-      <div ref={containerRef} className="h-[320px] sm:h-[380px] w-full rounded-lg border border-line bg-paper-2" />
-      <ul className="flex flex-wrap gap-4 text-xs text-ink-3">
+      <div className="relative">
+        {/* Shorter on phones so the batch list starts above the fold */}
+        <div ref={containerRef} className="h-[260px] sm:h-[380px] w-full rounded-lg border border-line bg-paper-2" />
+        {!mapReady && (
+          <div className="absolute inset-0 rounded-lg bg-paper-2 animate-pulse flex items-center justify-center" role="status">
+            <span className="text-sm text-ink-3">{translateSync("Loading map…")}</span>
+          </div>
+        )}
+      </div>
+      <ul className="flex flex-wrap gap-4 text-sm text-ink-3">
         {(["available", "reserved", "claimed"] as const).map((status) => (
           <li key={status} className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_COLOR[status] }} aria-hidden />

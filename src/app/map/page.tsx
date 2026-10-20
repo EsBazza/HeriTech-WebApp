@@ -22,7 +22,7 @@ import { apiJson } from "@/lib/api";
 import { directionsUrl } from "@/lib/googleMaps";
 import { BatchMap } from "@/components/map/BatchMap";
 import { useRoute } from "@/components/map/useRoute";
-import { Badge, Button, Card, PageHeader, buttonClass, cn, type BadgeTone } from "@/components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, PageHeader, buttonClass, cn, useMediaQuery, type BadgeTone } from "@/components/ui";
 
 interface BatchItem {
   id: string;
@@ -62,10 +62,15 @@ function MaterialsMapPageContent() {
   const { formatNumber, translateSync } = useTranslation();
   const [batches, setBatches] = useState<BatchItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedBatch, setSelectedBatch] = useState<BatchItem | null>(null);
   const [reserving, setReserving] = useState(false);
   const [reserveSuccess, setReserveSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Phones show the selected batch in a bottom sheet; desktop keeps the side-by-side detail card.
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Contextual Handover Modal State
   const [handoverModalOpen, setHandoverModalOpen] = useState(false);
@@ -83,6 +88,7 @@ function MaterialsMapPageContent() {
   useEffect(() => stopRoute(), [selectedBatch?.id, stopRoute]);
 
   const showRoute = () => {
+    setSheetOpen(false);
     nav.start();
     mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -98,7 +104,7 @@ function MaterialsMapPageContent() {
         setBatches(result.data);
         setSelectedBatch(result.data[0] ?? null);
       } else {
-        setActionError(result.error ?? "Couldn't load material batches.");
+        setLoadError(result.error ?? "Couldn't load material batches.");
       }
       setLoading(false);
     });
@@ -107,6 +113,13 @@ function MaterialsMapPageContent() {
   const replaceBatch = (updated: BatchItem) => {
     setBatches((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
     setSelectedBatch((prev) => (prev?.id === updated.id ? updated : prev));
+  };
+
+  const selectBatch = (batch: BatchItem | null) => {
+    setSelectedBatch(batch);
+    setReserveSuccess(null);
+    setActionError(null);
+    if (batch && !isDesktop) setSheetOpen(true);
   };
 
   // The server records the reservation and messages the logging officer in one transaction.
@@ -119,6 +132,7 @@ function MaterialsMapPageContent() {
       replaceBatch(result.data);
       setReserveSuccess(`Batch ${batchId} is reserved for you. Show this code at the depot.`);
       // Go straight to the pickup code; it is the artisan's next step.
+      setSheetOpen(false);
       setHandoverTab("artisan");
       setHandoverSuccess(null);
       setHandoverModalOpen(true);
@@ -129,9 +143,15 @@ function MaterialsMapPageContent() {
   };
 
   const openHandover = () => {
+    setSheetOpen(false);
     setHandoverTab(canShowCode ? "artisan" : "lgu");
     setHandoverSuccess(null);
     setHandoverModalOpen(true);
+  };
+
+  const closeHandover = () => {
+    setHandoverModalOpen(false);
+    setHandoverSuccess(null);
   };
 
   const statusBadge = (status: string): { label: string; tone: BadgeTone } => {
@@ -147,8 +167,127 @@ function MaterialsMapPageContent() {
     }
   };
 
+  /** Photo, pickup point, facts and tamper check: shared by the desktop card and the phone sheet. */
+  const renderDetail = (batch: BatchItem) => (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <figure className="space-y-1.5">
+          <div className="aspect-video sm:aspect-square rounded-md bg-paper-2 overflow-hidden border border-line">
+            {/* eslint-disable-next-line @next/next/no-img-element -- batch photos are data URLs or Storage URLs */}
+            <img src={batch.imageUrl} alt={batch.title} className="w-full h-full object-cover" />
+          </div>
+          <figcaption className="text-xs text-ink-3 text-center">{translateSync("Photo at collection")}</figcaption>
+        </figure>
+
+        <div className="flex flex-col justify-center gap-3 rounded-md border border-line bg-paper p-4">
+          <p className="flex items-center gap-1.5 text-sm text-ink-3">
+            <MapPin className="w-4 h-4" />
+            {translateSync("Pickup point")}
+          </p>
+          <p className="text-[15px] font-medium text-ink">
+            {batch.pickupAddress || `${batch.gpsLat.toFixed(4)}°, ${batch.gpsLng.toFixed(4)}°`}
+          </p>
+          <Button variant={nav.active ? "secondary" : "primary"} size="sm" className="w-full" onClick={nav.active ? nav.stop : showRoute}>
+            <Navigation className="w-4 h-4" />
+            {translateSync(nav.active ? "End route" : "Show route")}
+          </Button>
+        </div>
+      </div>
+
+      <dl className="divide-y divide-line rounded-md border border-line text-sm">
+        {[
+          {
+            term: batch.weightSource === "ai_estimate" ? "Weight (AI estimate)" : "Weight",
+            value: `${batch.weightSource === "ai_estimate" ? "~" : ""}${formatNumber(batch.weightKg)} kg`,
+          },
+          { term: "Condition", value: translateSync(batch.condition) },
+          {
+            term: batch.aiSource === "on_device" ? "Checked on-device" : "Checked by Gemini",
+            value: [
+              translateSync(batch.aiInferredMaterial || batch.materialType),
+              batch.alsoContains?.length ? `${translateSync("also")} ${batch.alsoContains.map((c) => translateSync(c).toLowerCase()).join(", ")}` : "",
+              // Only the on-device model gives a real class probability; Gemini's self-rating is not shown.
+              batch.aiSource === "on_device" && batch.aiConfidence != null ? `${Math.round(batch.aiConfidence * 100)}%` : "",
+            ]
+              .filter(Boolean)
+              .join(" · "),
+          },
+          { term: "Logged by", value: batch.scannedByOfficer?.fullName || translateSync("Local government officer") },
+        ].map((row) => (
+          <div key={row.term} className="flex items-start justify-between gap-4 px-3.5 py-2.5">
+            <dt className="text-ink-3 shrink-0">{translateSync(row.term)}</dt>
+            <dd className="text-right font-medium text-ink">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <details className="rounded-md border border-line bg-paper text-sm">
+        <summary className="cursor-pointer text-ink-2 font-medium px-3.5 min-h-11 flex items-center">{translateSync("Tamper check")}</summary>
+        <div className="px-3.5 pb-3">
+          <p className="text-ink-3">{translateSync("This code changes if anyone edits where, when or how much was collected.")}</p>
+          <p className="mt-1 font-mono-data text-xs text-ink-2 break-all" title="SHA-256">
+            {batch.txHash}
+          </p>
+        </div>
+      </details>
+    </>
+  );
+
+  /** Reserve, pickup or status, plus feedback for the last action. Pinned in the phone sheet's footer. */
+  const renderAction = (batch: BatchItem) => (
+    <div className="space-y-3">
+      {reserveSuccess && (
+        <p role="status" className="flex items-center gap-2 rounded-md border border-success/20 bg-success-100 p-3 text-sm text-success">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <TranslatableText>{reserveSuccess}</TranslatableText>
+        </p>
+      )}
+      {actionError && (
+        <p role="alert" className="rounded-md bg-danger-100 p-3 text-sm text-danger">
+          {translateSync(actionError)}
+        </p>
+      )}
+
+      {batch.status === "available" ? (
+        user?.role === "artisan" || user?.role === "admin" ? (
+          <Button variant="accent" size="lg" className="w-full" onClick={() => handleReserve(batch.id)} loading={reserving}>
+            {reserving ? translateSync("Reserving…") : translateSync("Reserve this batch")}
+          </Button>
+        ) : (
+          <p className="rounded-md border border-line bg-paper p-3 text-sm text-ink-2">
+            {translateSync("Artisans reserve batches. Once one is reserved, you can verify its pickup here.")}
+          </p>
+        )
+      ) : batch.status === "reserved" ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn/20 bg-warn-100 p-3.5 text-sm text-warn">
+          <div className="min-w-0 flex-1 basis-48">
+            <p className="font-medium">
+              {translateSync("Reserved by")} {batch.reservedByArtisan?.workshopName || batch.reservedByArtisan?.fullName || translateSync("an artisan")}
+            </p>
+            <p className="mt-0.5">
+              {translateSync(
+                holdsReservation ? "Open the pickup screen to show your code at the collection point." : "Waiting for the artisan to pick it up at the collection point."
+              )}
+            </p>
+          </div>
+          {(canShowCode || canVerify) && (
+            <Button size="sm" variant="secondary" className="shrink-0 grow sm:grow-0" onClick={openHandover}>
+              <QrCode className="w-4 h-4" />
+              {translateSync("Open pickup")}
+            </Button>
+          )}
+        </div>
+      ) : (
+        <p className="flex items-center gap-2 rounded-md border border-line bg-paper p-3 text-sm text-ink-2">
+          <CheckCircle2 className="w-4 h-4 text-pine-500 shrink-0" />
+          {translateSync("Picked up by an artisan. Finished pieces appear in the shop.")}
+        </p>
+      )}
+    </div>
+  );
+
   return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <PageHeader
         eyebrow={translateSync("Material map")}
         title={translateSync("Leftover material near you")}
@@ -159,10 +298,7 @@ function MaterialsMapPageContent() {
         <BatchMap
           batches={batches}
           selectedId={selectedBatch?.id ?? null}
-          onSelect={(id) => {
-            setSelectedBatch(batches.find((b) => b.id === id) ?? null);
-            setReserveSuccess(null);
-          }}
+          onSelect={(id) => selectBatch(batches.find((b) => b.id === id) ?? null)}
           route={nav.route?.path}
           userPosition={nav.active ? nav.position : null}
           recenterSignal={recenterSignal}
@@ -172,7 +308,7 @@ function MaterialsMapPageContent() {
           <div className="rounded-lg border border-line bg-surface p-4 shadow-card space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs text-ink-3">
+                <p className="text-sm text-ink-3">
                   {translateSync("Route to")} {selectedBatch.id}
                   {selectedBatch.pickupAddress ? ` · ${selectedBatch.pickupAddress}` : ""}
                 </p>
@@ -180,7 +316,7 @@ function MaterialsMapPageContent() {
                   {nav.route ? `${nav.route.duration} · ${nav.route.distance}` : nav.loading ? translateSync("Finding the best route…") : "—"}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex rounded-md border border-line overflow-hidden" role="group" aria-label={translateSync("Travel mode")}>
                   {([
                     ["DRIVING", Car, "Drive"],
@@ -191,31 +327,29 @@ function MaterialsMapPageContent() {
                       type="button"
                       onClick={() => nav.setMode(mode)}
                       aria-pressed={nav.mode === mode}
-                      className={`inline-flex items-center gap-1.5 px-3 h-9 text-xs font-medium cursor-pointer ${nav.mode === mode ? "bg-pine-700 text-white" : "bg-surface text-ink-2 hover:bg-paper-2"}`}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-3 h-10 text-sm font-medium cursor-pointer",
+                        nav.mode === mode ? "bg-pine-700 text-white" : "bg-surface text-ink-2 hover:bg-paper-2"
+                      )}
                     >
-                      <Icon className="w-3.5 h-3.5" />
+                      <Icon className="w-4 h-4" />
                       {translateSync(label)}
                     </button>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setRecenterSignal((n) => n + 1)}
-                  disabled={!nav.position}
-                  className={buttonClass("secondary", "sm")}
-                >
-                  <Crosshair className="w-3.5 h-3.5" />
+                <button type="button" onClick={() => setRecenterSignal((n) => n + 1)} disabled={!nav.position} className={buttonClass("secondary", "sm")}>
+                  <Crosshair className="w-4 h-4" />
                   {translateSync("Recenter")}
                 </button>
                 <button type="button" onClick={nav.stop} className={buttonClass("ghost", "sm")}>
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                   {translateSync("End route")}
                 </button>
               </div>
             </div>
 
             {nav.error && (
-              <p role="alert" className="text-xs text-danger">
+              <p role="alert" className="text-sm text-danger">
                 {translateSync(nav.error)}
               </p>
             )}
@@ -238,37 +372,50 @@ function MaterialsMapPageContent() {
               href={directionsUrl(selectedBatch.gpsLat, selectedBatch.gpsLng)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-ink-3 underline underline-offset-2 hover:text-ink"
+              className="inline-flex items-center gap-1 min-h-10 text-sm text-ink-3 underline underline-offset-2 hover:text-ink"
             >
               {translateSync("Open in the Google Maps app instead")}
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         )}
       </div>
 
-      {/* Split Map View */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[600px]">
-        {/* Left Col: Interactive Batch List (5 cols) */}
-        <div className="lg:col-span-5 space-y-3 overflow-y-auto max-h-[750px] pr-2">
+      {loadError && (
+        <p role="alert" className="rounded-md bg-danger-100 p-3 text-sm text-danger">
+          {translateSync(loadError)}
+        </p>
+      )}
+
+      {/* Split view on desktop; on phones the list is the page and the detail opens as a sheet */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:min-h-[600px]">
+        <div className="lg:col-span-5 space-y-3 lg:overflow-y-auto lg:max-h-[750px] lg:pr-2">
+          <h2 className="lg:hidden text-base font-semibold text-ink font-sans">
+            {translateSync("Batches")}
+            {!loading && <span className="text-ink-3 font-normal"> · {batches.length}</span>}
+          </h2>
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-3" role="status" aria-label={translateSync("Loading batches")}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-line rounded-lg animate-pulse" />
+                <div key={i} className="h-28 bg-paper-2 rounded-lg animate-pulse" />
               ))}
             </div>
+          ) : batches.length === 0 && !loadError ? (
+            <EmptyState
+              icon={<MapPin className="w-5 h-5" />}
+              title={translateSync("No batches yet")}
+              description={translateSync("Batches appear here once a local government officer scans and logs leftover festival material.")}
+            />
           ) : (
             batches.map((batch) => {
-              const isSelected = selectedBatch?.id === batch.id;
+              const isSelected = isDesktop && selectedBatch?.id === batch.id;
               return (
                 <button
                   type="button"
                   key={batch.id}
-                  onClick={() => {
-                    setSelectedBatch(batch);
-                    setReserveSuccess(null);
-                  }}
-                  aria-pressed={isSelected}
+                  onClick={() => selectBatch(batch)}
+                  aria-pressed={isDesktop ? isSelected : undefined}
+                  aria-haspopup={isDesktop ? undefined : "dialog"}
                   className={cn(
                     "w-full text-left p-4 rounded-lg border bg-surface transition-colors cursor-pointer",
                     isSelected ? "border-pine-500 ring-1 ring-pine-500 shadow-card" : "border-line hover:border-line-strong"
@@ -277,7 +424,7 @@ function MaterialsMapPageContent() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <span className="text-xs font-mono-data text-ink-3">{batch.id}</span>
-                      <h3 className="text-sm font-semibold text-ink mt-0.5">
+                      <h3 className="text-[15px] font-semibold text-ink mt-0.5">
                         <TranslatableText>{batch.title}</TranslatableText>
                       </h3>
                     </div>
@@ -285,7 +432,7 @@ function MaterialsMapPageContent() {
                       {statusBadge(batch.status).label}
                     </Badge>
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3 text-xs text-ink-3">
+                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-ink-3">
                     <span className="flex items-center gap-1 min-w-0 truncate">
                       <MapPin className="w-3.5 h-3.5 shrink-0" />
                       {batch.pickupAddress || <TranslatableText>{batch.agreement?.festival || "Festival"}</TranslatableText>}
@@ -298,8 +445,8 @@ function MaterialsMapPageContent() {
           )}
         </div>
 
-        {/* Right Col: Batch Detail & Map Telemetry (7 cols) */}
-        <div className="lg:col-span-7">
+        {/* Desktop detail */}
+        <div className="hidden lg:block lg:col-span-7">
           {selectedBatch ? (
             <Card className="p-5 sm:p-6 space-y-5 lg:sticky lg:top-24">
               <div className="flex items-start justify-between gap-3">
@@ -310,200 +457,112 @@ function MaterialsMapPageContent() {
                   </h2>
                   <p className="text-sm text-ink-3 mt-0.5">
                     <TranslatableText>{selectedBatch.agreement?.festival || ""}</TranslatableText>
-                    {selectedBatch.agreement?.country && <> · <TranslatableText>{selectedBatch.agreement.country}</TranslatableText></>}
+                    {selectedBatch.agreement?.country && (
+                      <>
+                        {" "}
+                        · <TranslatableText>{selectedBatch.agreement.country}</TranslatableText>
+                      </>
+                    )}
                   </p>
                 </div>
                 <Badge tone={statusBadge(selectedBatch.status).tone} className="shrink-0">
                   {statusBadge(selectedBatch.status).label}
                 </Badge>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <figure className="space-y-1.5">
-                  <div className="aspect-video sm:aspect-square rounded-md bg-paper-2 overflow-hidden border border-line">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- batch photos are data URLs or Storage URLs */}
-                    <img src={selectedBatch.imageUrl} alt={selectedBatch.title} className="w-full h-full object-cover" />
-                  </div>
-                  <figcaption className="text-xs text-ink-3 text-center">{translateSync("Photo at collection")}</figcaption>
-                </figure>
-
-                <div className="flex flex-col justify-center gap-3 rounded-md border border-line bg-paper p-4">
-                  <p className="flex items-center gap-1.5 text-xs text-ink-3">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {translateSync("Pickup point")}
-                  </p>
-                  <p className="text-sm font-medium text-ink">
-                    {selectedBatch.pickupAddress || `${selectedBatch.gpsLat.toFixed(4)}°, ${selectedBatch.gpsLng.toFixed(4)}°`}
-                  </p>
-                  <Button variant={nav.active ? "secondary" : "primary"} size="sm" className="w-full" onClick={nav.active ? nav.stop : showRoute}>
-                    <Navigation className="w-3.5 h-3.5" />
-                    {translateSync(nav.active ? "End route" : "Show route")}
-                  </Button>
-                </div>
-              </div>
-
-              <dl className="divide-y divide-line rounded-md border border-line text-sm">
-                {[
-                  {
-                    term: selectedBatch.weightSource === "ai_estimate" ? "Weight (AI estimate)" : "Weight",
-                    value: `${selectedBatch.weightSource === "ai_estimate" ? "~" : ""}${formatNumber(selectedBatch.weightKg)} kg`,
-                  },
-                  { term: "Condition", value: translateSync(selectedBatch.condition) },
-                  {
-                    term: selectedBatch.aiSource === "on_device" ? "Checked on-device" : "Checked by Gemini",
-                    value: [
-                      translateSync(selectedBatch.aiInferredMaterial || selectedBatch.materialType),
-                      selectedBatch.alsoContains?.length
-                        ? `${translateSync("also")} ${selectedBatch.alsoContains.map((c) => translateSync(c).toLowerCase()).join(", ")}`
-                        : "",
-                      // Only the on-device model gives a real class probability; Gemini's self-rating is not shown.
-                      selectedBatch.aiSource === "on_device" && selectedBatch.aiConfidence != null ? `${Math.round(selectedBatch.aiConfidence * 100)}%` : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" · "),
-                  },
-                  { term: "Logged by", value: selectedBatch.scannedByOfficer?.fullName || translateSync("Local government officer") },
-                ].map((row) => (
-                  <div key={row.term} className="flex items-start justify-between gap-4 px-3.5 py-2.5">
-                    <dt className="text-ink-3 shrink-0">{translateSync(row.term)}</dt>
-                    <dd className="text-right font-medium text-ink">{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
-
-              <details className="rounded-md border border-line bg-paper px-3.5 py-2.5 text-xs">
-                <summary className="cursor-pointer text-ink-2 font-medium">{translateSync("Tamper check")}</summary>
-                <p className="mt-1.5 text-ink-3">{translateSync("This code changes if anyone edits where, when or how much was collected.")}</p>
-                <p className="mt-1 font-mono-data text-ink-2 break-all" title="SHA-256">{selectedBatch.txHash}</p>
-              </details>
-
-              {reserveSuccess && (
-                <p role="status" className="flex items-center gap-2 rounded-md border border-success/20 bg-success-100 p-3 text-sm text-success">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <TranslatableText>{reserveSuccess}</TranslatableText>
-                </p>
-              )}
-              {actionError && (
-                <p role="alert" className="rounded-md bg-danger-100 p-3 text-sm text-danger">
-                  {translateSync(actionError)}
-                </p>
-              )}
-
-              {selectedBatch.status === "available" ? (
-                user?.role === "artisan" || user?.role === "admin" ? (
-                  <Button size="lg" className="w-full" onClick={() => handleReserve(selectedBatch.id)} loading={reserving}>
-                    {reserving ? translateSync("Reserving…") : translateSync("Reserve this batch")}
-                  </Button>
-                ) : (
-                  <p className="rounded-md border border-line bg-paper p-3 text-sm text-ink-2">
-                    {translateSync("Sign in as an artisan to reserve batches.")}
-                  </p>
-                )
-              ) : selectedBatch.status === "reserved" ? (
-                <div className="flex items-center justify-between gap-3 rounded-md border border-warn/20 bg-warn-100 p-3.5 text-sm text-warn">
-                  <div className="min-w-0">
-                    <p className="font-medium">
-                      {translateSync("Reserved by")} {selectedBatch.reservedByArtisan?.workshopName || selectedBatch.reservedByArtisan?.fullName || translateSync("an artisan")}
-                    </p>
-                    <p className="text-xs mt-0.5">
-                      {translateSync(
-                        holdsReservation
-                          ? "Open the pickup screen to show your code at the collection point."
-                          : "Waiting for the artisan to pick it up at the collection point."
-                      )}
-                    </p>
-                  </div>
-                  {(canShowCode || canVerify) && (
-                    <Button size="sm" variant="secondary" className="shrink-0" onClick={openHandover}>
-                      <QrCode className="w-4 h-4" />
-                      {translateSync("Open pickup")}
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <p className="flex items-center gap-2 rounded-md border border-line bg-paper p-3 text-sm text-ink-2">
-                  <CheckCircle2 className="w-4 h-4 text-pine-500 shrink-0" />
-                  {translateSync("Picked up by an artisan. Finished pieces appear in the shop.")}
-                </p>
-              )}
+              {renderDetail(selectedBatch)}
+              {renderAction(selectedBatch)}
             </Card>
           ) : (
-            <div className="h-full flex items-center justify-center p-12 bg-surface rounded-lg border border-line text-center text-ink-3">
-              <TranslatableText>Select a batch to see its details</TranslatableText>
-            </div>
+            !loading && (
+              <div className="h-full flex items-center justify-center p-12 bg-surface rounded-lg border border-line text-center text-ink-3">
+                <TranslatableText>Select a batch to see its details</TranslatableText>
+              </div>
+            )
           )}
         </div>
       </div>
 
-      {/* CONTEXTUAL REAL SCANNABLE QR HANDOVER MODAL */}
-      {handoverModalOpen && selectedBatch && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface rounded-lg max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-pop border border-line relative">
-            <button
-              onClick={() => {
-                setHandoverModalOpen(false);
-                setHandoverSuccess(null);
-              }}
-              className="absolute top-6 right-6 p-2 rounded-full text-ink-3 hover:text-ink-2 hover:bg-paper-2"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* Phone detail sheet, with the main action pinned in its footer */}
+      {selectedBatch && (
+        <Dialog
+          open={sheetOpen && !isDesktop}
+          onClose={() => setSheetOpen(false)}
+          closeLabel={translateSync("Close")}
+          title={<TranslatableText>{selectedBatch.title}</TranslatableText>}
+          description={
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Badge tone={statusBadge(selectedBatch.status).tone}>{statusBadge(selectedBatch.status).label}</Badge>
+              <span className="font-mono-data">{selectedBatch.id}</span>
+              {selectedBatch.agreement?.festival && <TranslatableText>{selectedBatch.agreement.festival}</TranslatableText>}
+            </span>
+          }
+          footer={renderAction(selectedBatch)}
+        >
+          <div className="space-y-5">{renderDetail(selectedBatch)}</div>
+        </Dialog>
+      )}
 
-            <div className="border-b border-line pb-3">
-              <div className="flex items-center space-x-2 text-xs font-bold text-pine-600">
-                <QrCode className="w-4 h-4" />
-                <TranslatableText>QR handover</TranslatableText>
-              </div>
-              <TranslatableHeading level={3} className="text-xl font-semibold text-ink mt-1">
-                Pickup handover: {selectedBatch.id}
-              </TranslatableHeading>
-            </div>
-
+      {/* QR pickup handover */}
+      {selectedBatch && (
+        <Dialog
+          open={handoverModalOpen}
+          onClose={closeHandover}
+          closeLabel={translateSync("Close")}
+          title={translateSync("Pickup handover")}
+          description={
+            <span className="inline-flex items-center gap-1.5">
+              <QrCode className="w-4 h-4" />
+              <span className="font-mono-data">{selectedBatch.id}</span>
+            </span>
+          }
+        >
+          <div className="space-y-5">
             {/* Mode Switcher, only when this user can do both sides */}
             {canShowCode && canVerify && (
-              <div className="flex p-1 bg-paper rounded-lg border border-line">
-                <button
-                  onClick={() => setHandoverTab("artisan")}
-                  className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${
-                    handoverTab === "artisan" ? "bg-pine-700 text-white shadow-card" : "text-ink-2 hover:text-ink"
-                  }`}
-                >
-                  <TranslatableText>Artisan: show code</TranslatableText>
-                </button>
-                <button
-                  onClick={() => setHandoverTab("lgu")}
-                  className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${
-                    handoverTab === "lgu" ? "bg-pine-700 text-white shadow-card" : "text-ink-2 hover:text-ink"
-                  }`}
-                >
-                  <TranslatableText>Officer: scan & release</TranslatableText>
-                </button>
+              <div className="flex p-1 bg-paper rounded-lg border border-line" role="group" aria-label={translateSync("Pickup role")}>
+                {([
+                  ["artisan", "Artisan: show code"],
+                  ["lgu", "Officer: scan & release"],
+                ] as const).map(([tab, label]) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setHandoverTab(tab)}
+                    aria-pressed={handoverTab === tab}
+                    className={cn(
+                      "flex-1 min-h-10 px-2 rounded-md text-sm font-semibold transition-all cursor-pointer",
+                      handoverTab === tab ? "bg-pine-700 text-white shadow-card" : "text-ink-2 hover:text-ink"
+                    )}
+                  >
+                    {translateSync(label)}
+                  </button>
+                ))}
               </div>
             )}
 
             {handoverSuccess ? (
-              <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg text-center space-y-3">
+              <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg text-center space-y-3" role="status">
                 <CheckCircle2 className="w-10 h-10 text-pine-500 mx-auto" />
-                <TranslatableHeading level={4} className="text-base font-bold text-ink">Picked up</TranslatableHeading>
-                <p className="text-xs text-pine-700"><TranslatableText>{handoverSuccess}</TranslatableText></p>
-                <button
-                  onClick={() => {
-                    setHandoverModalOpen(false);
-                    setHandoverSuccess(null);
-                  }}
-                  className="px-5 py-2 rounded-md bg-pine-700 text-white text-xs font-bold"
-                >
-                  <TranslatableText>Done</TranslatableText>
-                </button>
+                <TranslatableHeading level={3} className="text-lg font-semibold text-ink font-sans">
+                  Picked up
+                </TranslatableHeading>
+                <p className="text-sm text-pine-700">
+                  <TranslatableText>{handoverSuccess}</TranslatableText>
+                </p>
+                <Button onClick={closeHandover}>{translateSync("Done")}</Button>
               </div>
             ) : handoverTab === "artisan" && canShowCode ? (
               <HandoverCode batch={selectedBatch} />
             ) : (
               <div className="space-y-4">
-                <div className="p-3 bg-paper rounded-md space-y-1 text-xs">
-                  <TranslatableText className="text-xs text-ink-3 font-bold">Batch awaiting pickup</TranslatableText>
-                  <p className="font-bold text-ink"><TranslatableText>{selectedBatch.title}</TranslatableText></p>
-                  <p className="font-mono-data text-ink-3">{formatNumber(selectedBatch.weightKg)} kg <TranslatableText>{selectedBatch.materialType}</TranslatableText></p>
+                <div className="p-3 bg-paper rounded-md space-y-1 text-sm">
+                  <TranslatableText className="text-ink-3">Batch awaiting pickup</TranslatableText>
+                  <p className="font-semibold text-ink">
+                    <TranslatableText>{selectedBatch.title}</TranslatableText>
+                  </p>
+                  <p className="font-mono-data text-ink-3">
+                    {formatNumber(selectedBatch.weightKg)} kg <TranslatableText>{selectedBatch.materialType}</TranslatableText>
+                  </p>
                 </div>
                 <HandoverVerifyForm
                   onVerified={(result, message) => {
@@ -515,7 +574,7 @@ function MaterialsMapPageContent() {
               </div>
             )}
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

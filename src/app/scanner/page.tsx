@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, CheckCircle2, Crosshair, MapPin, Minus, Plus } from "lucide-react";
+import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, CheckCircle2, Crosshair, MapPin, Minus, Plus, RotateCcw } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { AccessGuard } from "@/components/AccessGuard";
-import { Badge, Button, Card, EmptyState, Input, PageHeader, Select, cn, controlClass } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, LinkButton, PageHeader, Select, StickyActionBar, buttonClass, cn, controlClass } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 import { compressImage } from "@/lib/image";
 import { classifyOffline } from "@/lib/offlineClassifier";
@@ -45,7 +46,11 @@ function WasteScannerPageContent() {
   // Active release agreements the batch can be logged against.
   const [agreements, setAgreements] = useState<Array<{ id: string; title: string; festival: string; status: string }>>([]);
   const [agreementId, setAgreementId] = useState("");
+  // Each error shows next to the control that caused it, so it isn't off-screen on a phone.
   const [error, setError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [logError, setLogError] = useState<string | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiJson<typeof agreements>("/api/agreements").then((result) => {
@@ -88,12 +93,13 @@ function WasteScannerPageContent() {
   // Pins the batch to the device's GPS position. `silent` skips the error message on failure.
   const handleUseRealtimeLocation = (silent = false) => {
     if (!navigator.geolocation) {
-      if (!silent) setError("This browser can't share its location. Type the coordinates instead.");
+      if (!silent) setLocationError("This browser can't share its location. Type the coordinates instead.");
       setShowCoordinates(true);
       return;
     }
     setIsLocating(true);
     setLocationSuccess(null);
+    setLocationError(null);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = parseFloat(position.coords.latitude.toFixed(6));
@@ -104,13 +110,19 @@ function WasteScannerPageContent() {
         setIsLocating(false);
       },
       (gpsError) => {
-        if (!silent) setError(`Couldn't get your location (${gpsError.message}). Type the coordinates instead.`);
+        if (!silent) setLocationError(`Couldn't get your location (${gpsError.message}). Type the coordinates instead.`);
         setShowCoordinates(true);
         setIsLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
+
+  // On phones the result stacks under the capture card, so bring it into view.
+  const showResult = () =>
+    requestAnimationFrame(() => {
+      if (window.matchMedia("(max-width: 1023px)").matches) resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 
   const analyze = async (imageBase64: string) => {
     setAnalyzing(true);
@@ -123,6 +135,7 @@ function WasteScannerPageContent() {
     if (result.success && result.data) {
       setAnalysisResult(result.data);
       setAnalyzing(false);
+      showResult();
       return;
     }
 
@@ -136,6 +149,7 @@ function WasteScannerPageContent() {
         inferredMaterialDetails: "",
         isOffline: true,
       });
+      showResult();
     } else {
       setError(result.error ?? "The AI scan failed.");
     }
@@ -170,7 +184,7 @@ function WasteScannerPageContent() {
   const handleLogBatch = async () => {
     if (!analysisResult || !weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible) return;
     setSaving(true);
-    setError(null);
+    setLogError(null);
     const result = await apiJson<BatchView>("/api/materials", {
       method: "POST",
       body: JSON.stringify({
@@ -192,8 +206,19 @@ function WasteScannerPageContent() {
       }),
     });
     if (result.success && result.data) setSavedBatch(result.data);
-    else setError(result.error ?? "Couldn't log the batch.");
+    else setLogError(result.error ?? "Couldn't log the batch.");
     setSaving(false);
+  };
+
+  const startOver = () => {
+    setPreviewUrl(null);
+    setAnalysisResult(null);
+    setSavedBatch(null);
+    setWeightKg("");
+    setWeightSource("scale");
+    setError(null);
+    setLogError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const flags: string[] = analysisResult?.contaminationFlags ?? [];
@@ -260,6 +285,14 @@ function WasteScannerPageContent() {
                 </option>
               ))}
             </Select>
+            {agreements.length === 0 && (
+              <p className="-mt-3 text-sm text-ink-3">
+                {translateSync("A batch must be logged against a release agreement.")}{" "}
+                <Link href="/agreements" className="text-pine-700 font-medium underline underline-offset-2">
+                  {translateSync("Create one")}
+                </Link>
+              </p>
+            )}
 
             {error && (
               <p role="alert" className="text-sm text-danger">
@@ -275,7 +308,7 @@ function WasteScannerPageContent() {
 
           {/* Result */}
           {analysisResult ? (
-            <div className="space-y-6">
+            <div ref={resultRef} className="space-y-6 scroll-mt-20">
               <Card className="p-5 sm:p-6 space-y-5">
                 {analysisResult.peopleVisible && (
                   <p role="alert" className="rounded-md bg-danger-100 border border-danger/20 p-3 text-sm text-danger">
@@ -311,7 +344,7 @@ function WasteScannerPageContent() {
                   )}
                 </div>
 
-                <dl className="grid grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden text-sm">
+                <dl className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-line border border-line rounded-md overflow-hidden text-sm">
                   <div className="bg-surface p-3">
                     <dt className="text-xs text-ink-3">{translateSync("Condition")}</dt>
                     <dd className="mt-0.5 font-medium text-ink">{translateSync(analysisResult.condition)}</dd>
@@ -380,7 +413,7 @@ function WasteScannerPageContent() {
                           setWeightKg(e.target.value);
                           setWeightSource("scale");
                         }}
-                        className={cn(controlClass, "h-14 pr-12 tabular text-2xl font-semibold text-center")}
+                        className={cn(controlClass, "h-14 pr-12 tabular text-2xl sm:text-2xl font-semibold text-center")}
                         placeholder="0.0"
                       />
                       <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-ink-3">kg</span>
@@ -439,7 +472,7 @@ function WasteScannerPageContent() {
                             }}
                             placeholder={lookingUpPlace ? translateSync("Finding the place name…") : translateSync("Name this pickup point")}
                             aria-label={translateSync("Collection point")}
-                            className="w-full bg-transparent font-medium text-ink outline-none border-b border-transparent focus:border-pine-300"
+                            className={cn(controlClass, "mt-1 h-11 font-medium")}
                           />
                           <p className="text-xs text-ink-3 tabular">
                             {pickupLat.toFixed(5)}°, {pickupLng.toFixed(5)}°
@@ -451,20 +484,32 @@ function WasteScannerPageContent() {
                         </p>
                       )}
                     </div>
-                    <button
-                      type="button"
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => {
                         setCollectionPointEdited(false);
                         handleUseRealtimeLocation();
                       }}
                       disabled={isLocating}
-                      className="shrink-0 inline-flex items-center gap-1 text-xs text-pine-600 hover:text-pine-700 cursor-pointer disabled:opacity-50"
                     >
-                      <Crosshair className="w-3.5 h-3.5" />
+                      <Crosshair className="w-4 h-4" />
                       {translateSync(isLocating ? "Locating…" : "Use my location")}
-                    </button>
+                    </Button>
+                    {!showCoordinates && (
+                      <Button variant="ghost" size="sm" onClick={() => setShowCoordinates(true)}>
+                        {translateSync("Enter coordinates manually")}
+                      </Button>
+                    )}
                   </div>
-                  {locationSuccess && <p className="text-xs text-success">{translateSync(locationSuccess)}</p>}
+                  {locationSuccess && <p className="text-sm text-success">{translateSync(locationSuccess)}</p>}
+                  {locationError && (
+                    <p role="alert" className="text-sm text-danger">
+                      {translateSync(locationError)}
+                    </p>
+                  )}
 
                   {pickupLat !== null && pickupLng !== null && (
                     <LocationPicker
@@ -479,15 +524,11 @@ function WasteScannerPageContent() {
                     />
                   )}
 
-                  {showCoordinates ? (
+                  {showCoordinates && (
                     <div className="grid grid-cols-2 gap-3">
                       <Input label={translateSync("Latitude")} type="number" step="0.0001" min={-90} max={90} value={pickupLat ?? ""} onChange={(e) => setPickupLat(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
                       <Input label={translateSync("Longitude")} type="number" step="0.0001" min={-180} max={180} value={pickupLng ?? ""} onChange={(e) => setPickupLng(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
                     </div>
-                  ) : (
-                    <button type="button" onClick={() => setShowCoordinates(true)} className="text-xs text-ink-3 underline underline-offset-2 hover:text-ink cursor-pointer">
-                      {translateSync("Enter coordinates manually")}
-                    </button>
                   )}
                 </div>
 
@@ -513,18 +554,35 @@ function WasteScannerPageContent() {
                         </div>
                       )}
                     </dl>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <LinkButton href="/map" size="sm">
+                        <MapPin className="w-4 h-4" />
+                        {translateSync("View on map")}
+                      </LinkButton>
+                      <button type="button" onClick={startOver} className={buttonClass("secondary", "sm")}>
+                        <RotateCcw className="w-4 h-4" />
+                        {translateSync("Scan another")}
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible} loading={saving}>
-                    {!saving && <FileCheck2 className="w-4 h-4" />}
-                    {saving ? translateSync("Logging batch…") : `${translateSync("Log batch")} · ${weightKg || 0} kg`}
-                  </Button>
+                  <StickyActionBar className="-mx-5 px-5 sm:-mx-6 sm:px-6 space-y-2">
+                    {logError && (
+                      <p role="alert" className="text-sm text-danger">
+                        {translateSync(logError)}
+                      </p>
+                    )}
+                    <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible} loading={saving}>
+                      {!saving && <FileCheck2 className="w-4 h-4" />}
+                      {saving ? translateSync("Logging batch…") : `${translateSync("Log batch")} · ${weightKg || 0} kg`}
+                    </Button>
+                  </StickyActionBar>
                 )}
               </Card>
             </div>
           ) : (
             <EmptyState
-              className="lg:min-h-[420px] justify-center"
+              className="hidden lg:flex lg:min-h-[420px] justify-center"
               icon={<Sparkles className="w-5 h-5" />}
               title={translateSync("Results appear here")}
               description={translateSync("Add a photo and run the analysis. You'll see the material type, condition, contamination flags and an estimated weight.")}

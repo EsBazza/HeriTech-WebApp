@@ -203,6 +203,10 @@ export function HandoverCode({ batch }: { batch: HandoverBatch }) {
           {translateSync("Valid for")} {mm}:{String(ss).padStart(2, "0")}
         </p>
       )}
+      {/* The ticking clock stays silent; screen readers hear only these two changes. */}
+      <p className="sr-only" aria-live="polite">
+        {expired ? translateSync("This code has expired") : lowTime ? translateSync("Less than 5 minutes left on this code") : ""}
+      </p>
 
       {!expired && (
         <div className={cn("grid w-full gap-2", canShareFiles ? "grid-cols-2" : "grid-cols-1")}>
