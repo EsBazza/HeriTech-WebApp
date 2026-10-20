@@ -230,7 +230,7 @@ export default function PublicVerificationPage() {
             </a>
           )}
         </div>
-        <ProvenanceTimeline events={events} />
+        <ProvenanceTimeline events={events} animate />
       </Card>
 
       {/* Maker + split */}

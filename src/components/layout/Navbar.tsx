@@ -260,10 +260,8 @@ function MobileMenu() {
   const [open, setOpen] = useState(false);
   const close = React.useCallback(() => setOpen(false), []);
   const role = userRole(user);
-  const links = [
-    ...roleLinks(role, translateSync),
-    { name: user ? translateSync("Profile & passes") : translateSync("Sign in"), href: "/profile", icon: User },
-  ];
+  // Guests already have the sign-in button at the top of the sheet.
+  const links = [...roleLinks(role, translateSync), ...(user ? [{ name: translateSync("Profile & passes"), href: "/profile", icon: User }] : [])];
 
   // Close when a link navigates.
   useEffect(() => close(), [pathname, close]);

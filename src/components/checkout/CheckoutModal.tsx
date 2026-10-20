@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Lock, Truck, MessageSquare, AlertCircle, Gift } from "lucide-react";
+import { Lock, Truck, MessageSquare, AlertCircle, Gift } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart, type CartProduct } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
@@ -11,6 +11,7 @@ import { calculateEscrowSplit } from "@/lib/escrow";
 import { LOYALTY, progressSummary, type LoyaltyState } from "@/lib/loyalty";
 import { EscrowBar } from "@/components/EscrowBar";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
+import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { Button, Dialog, Input, cn, buttonClass } from "@/components/ui";
 
 interface OrderResult {
@@ -246,8 +247,8 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
       {/* STEP 2: Order completed */}
       {step === 2 && orderResult && (
         <div className="space-y-6">
-          <div className="flex items-start gap-3" role="status">
-            <CheckCircle2 className="w-6 h-6 text-success shrink-0 mt-0.5" />
+          <div className="flex items-start gap-4" role="status">
+            <SuccessBurst size={48} scraps className="mt-0.5" />
             <p className="text-[15px] text-ink-2">
               {translateSync("You diverted")} <strong className="text-ink">{formatNumber(totalKg)} kg</strong>{" "}
               {translateSync("of festival material and supported")} <strong className="text-ink">{translateSync(checkoutItems[0]?.artisanName || "the artisan")}</strong>.{" "}

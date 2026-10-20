@@ -60,21 +60,31 @@ export function BottomTabBar() {
   const tabs = (TABS_BY_ROLE[role] ?? GUEST_TABS).map((id) => ({ id, ...all[id] }));
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" || pathname.startsWith("/products") : pathname.startsWith(href));
+  const activeIndex = tabs.findIndex((t) => !t.event && isActive(t.href));
 
   return (
     <nav
       aria-label="Mobile navigation"
       className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-surface/95 backdrop-blur-md border-t border-line pb-[env(safe-area-inset-bottom,0px)]"
     >
-      <div className="grid h-16 max-w-lg mx-auto" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+      <div className="relative grid h-16 max-w-lg mx-auto" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+        {/* One indicator that slides to the active tab */}
+        {activeIndex >= 0 && (
+          <span
+            className="absolute top-0 h-0.5 transition-[left] duration-300 ease-sheet"
+            style={{ left: `${(activeIndex / tabs.length) * 100}%`, width: `${100 / tabs.length}%` }}
+            aria-hidden
+          >
+            <span className="block mx-auto w-1/2 h-full rounded-full bg-pine-700" />
+          </span>
+        )}
         {tabs.map((tab) => {
           const active = !tab.event && isActive(tab.href);
           const Icon = tab.icon;
           const dot = tab.event === "open-messages" && hasNew;
           const inner = (
             <>
-              {active && <span className="absolute top-0 inset-x-1/4 h-0.5 rounded-full bg-pine-700" />}
-              <span className="relative">
+              <span className={cn("relative transition-transform duration-200", active && "-translate-y-0.5")}>
                 <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 2.1 : 1.75} />
                 {dot && <span className="absolute -top-0.5 -right-1 h-2.5 w-2.5 rounded-full bg-lantern ring-2 ring-surface" aria-hidden />}
               </span>

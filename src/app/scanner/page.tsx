@@ -3,13 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, CheckCircle2, Crosshair, MapPin, Minus, Plus, RotateCcw } from "lucide-react";
+import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, Crosshair, MapPin, Minus, Plus, RotateCcw } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { AccessGuard } from "@/components/AccessGuard";
 import { Badge, Button, Card, EmptyState, Input, LinkButton, PageHeader, Select, StickyActionBar, buttonClass, cn, controlClass } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 import { compressImage } from "@/lib/image";
 import { classifyOffline } from "@/lib/offlineClassifier";
+import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { reverseGeocode } from "@/lib/googleMaps";
 import type { ScanAnalysis } from "@/lib/server/aiSamples";
 import type { BatchView } from "@/lib/server/views";
@@ -268,6 +269,10 @@ function WasteScannerPageContent() {
                   </div>
                 </div>
               )}
+              {previewUrl && analyzing && (
+                // Warm light sweeps across the photo while Gemini looks at it
+                <span className="analyse-sweep absolute inset-0 pointer-events-none" aria-hidden />
+              )}
               {previewUrl && (
                 <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-md bg-surface/95 px-3 h-9 text-sm font-medium text-ink shadow-card">
                   <Upload className="w-4 h-4" />
@@ -309,7 +314,7 @@ function WasteScannerPageContent() {
           {/* Result */}
           {analysisResult ? (
             <div ref={resultRef} className="space-y-6 scroll-mt-20">
-              <Card className="p-5 sm:p-6 space-y-5">
+              <Card className="p-5 sm:p-6 space-y-5 stagger-in">
                 {analysisResult.peopleVisible && (
                   <p role="alert" className="rounded-md bg-danger-100 border border-danger/20 p-3 text-sm text-danger">
                     {translateSync("People are visible in this photo. Batch photos are public, so retake it close-up on the material before logging.")}
@@ -534,8 +539,8 @@ function WasteScannerPageContent() {
 
                 {savedBatch ? (
                   <div className="rounded-md bg-success-100 border border-success/20 p-4 space-y-2" role="status">
-                    <p className="flex items-center gap-2 text-sm font-medium text-success">
-                      <CheckCircle2 className="w-4 h-4" />
+                    <p className="flex items-center gap-3 text-[15px] font-medium text-success">
+                      <SuccessBurst size={40} scraps />
                       {translateSync("Batch saved")}
                     </p>
                     <dl className="text-xs text-ink-2 space-y-1">

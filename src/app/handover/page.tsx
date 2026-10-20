@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Package, QrCode } from "lucide-react";
+import { Package, QrCode } from "lucide-react";
+import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableHeading, TranslatableParagraph, TranslatableText } from "@/components/translation/TranslatableText";
@@ -98,9 +99,7 @@ function LguHandover() {
   if (result) {
     return (
       <div className="handover-success p-6 sm:p-8 bg-success-100/60 border border-success/20 rounded-lg space-y-5 text-center max-w-lg mx-auto" role="status">
-        <div className="w-14 h-14 bg-success text-white rounded-full flex items-center justify-center mx-auto shadow-pop">
-          <CheckCircle2 className="w-7 h-7" />
-        </div>
+        <SuccessBurst size={64} scraps className="mx-auto" />
         <div>
           <TranslatableHeading level={3} className="font-display text-[28px] leading-tight font-semibold text-ink">
             Picked up

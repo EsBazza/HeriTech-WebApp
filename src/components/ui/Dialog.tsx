@@ -97,6 +97,40 @@ export function Dialog({
     };
   }, [open]);
 
+  // Phone sheets can be dragged down by their handle or header to close, like a native sheet.
+  const drag = useRef<{ y: number; dy: number; t: number } | null>(null);
+  const sheetDraggable = variant === "sheet" && !fullOnMobile && dismissible;
+
+  const onDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!sheetDraggable || window.matchMedia("(min-width: 640px)").matches) return;
+    if ((e.target as HTMLElement).closest("button, a, input, select, textarea")) return;
+    drag.current = { y: e.clientY, dy: 0, t: Date.now() };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onDragMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const panel = panelRef.current;
+    if (!d || !panel) return;
+    d.dy = Math.max(0, e.clientY - d.y);
+    panel.style.transition = "none";
+    panel.style.transform = `translateY(${d.dy}px)`;
+  };
+  const onDragEnd = () => {
+    const d = drag.current;
+    const panel = panelRef.current;
+    drag.current = null;
+    if (!d || !panel) return;
+    const flicked = d.dy / Math.max(1, Date.now() - d.t) > 0.6 && d.dy > 40;
+    if (d.dy > 110 || flicked) {
+      panel.style.transition = "transform 0.2s ease-in";
+      panel.style.transform = "translateY(100%)";
+      setTimeout(() => onCloseRef.current(), 180);
+    } else {
+      panel.style.transition = "transform 0.35s var(--ease-spring)";
+      panel.style.transform = "";
+    }
+  };
+
   if (!open || typeof document === "undefined") return null;
 
   const drawer = variant === "drawer";
@@ -119,39 +153,51 @@ export function Dialog({
         className={cn(
           "relative flex flex-col w-full bg-surface shadow-pop outline-none",
           drawer
-            ? "h-full sm:max-w-[400px] animate-[drawer-in_0.22s_ease-out]"
+            ? "h-full sm:max-w-[400px] animate-[drawer-in_0.28s_var(--ease-sheet)]"
             : cn(
                 widths[size],
-                "sm:rounded-xl sm:max-h-[min(90dvh,860px)] animate-[sheet-in_0.22s_ease-out]",
-                fullOnMobile ? "h-[100dvh] sm:h-auto" : "max-h-[92dvh] rounded-t-xl"
+                "sm:rounded-xl sm:max-h-[min(90dvh,860px)] animate-[sheet-in_0.32s_var(--ease-sheet)]",
+                fullOnMobile ? "h-[100dvh] sm:h-auto" : "max-h-[92dvh] rounded-t-xl",
               ),
-          className
+          className,
         )}
       >
-        {!drawer && !fullOnMobile && <span className="sm:hidden mx-auto mt-2 h-1 w-10 rounded-full bg-line-strong" aria-hidden />}
-        <div className="flex items-start gap-3 px-5 pb-3 border-b border-line shrink-0 pt-[max(1rem,env(safe-area-inset-top,0px))] sm:pt-4">
-          <div className="min-w-0 flex-1 pt-1.5">
-            <h2 id={titleId} className="font-display text-2xl font-semibold leading-tight text-ink">
-              {title}
-            </h2>
-            {description && (
-              <div id={descId} className="text-sm text-ink-3 mt-1">
-                {description}
-              </div>
+        <div
+          className={cn("shrink-0 border-b border-line", sheetDraggable && "touch-none sm:touch-auto")}
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+        >
+          {sheetDraggable && <span className="sm:hidden block mx-auto mt-2 h-1 w-10 rounded-full bg-line-strong" aria-hidden />}
+          <div
+            className={cn(
+              "flex items-start gap-3 px-5 pb-3 sm:pt-4",
+              // Only full-height panels reach the status bar
+              drawer || fullOnMobile ? "pt-[max(1rem,env(safe-area-inset-top,0px))]" : "pt-3",
+            )}
+          >
+            <div className="min-w-0 flex-1 pt-1.5">
+              <h2 id={titleId} className="font-display text-2xl font-semibold leading-tight text-ink">
+                {title}
+              </h2>
+              {description && (
+                <div id={descId} className="text-sm text-ink-3 mt-1">
+                  {description}
+                </div>
+              )}
+            </div>
+            {dismissible && (
+              <IconButton aria-label={closeLabel} onClick={onClose} className="-mr-2">
+                <X className="w-5 h-5" />
+              </IconButton>
             )}
           </div>
-          {dismissible && (
-            <IconButton aria-label={closeLabel} onClick={onClose} className="-mr-2">
-              <X className="w-5 h-5" />
-            </IconButton>
-          )}
         </div>
         <div className={cn("flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5", bodyClassName)}>{children}</div>
-        {footer && (
-          <div className="shrink-0 border-t border-line bg-surface px-5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">{footer}</div>
-        )}
+        {footer && <div className="shrink-0 border-t border-line bg-surface px-5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">{footer}</div>}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

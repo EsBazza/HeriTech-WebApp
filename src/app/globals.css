@@ -54,6 +54,12 @@
   /* sm chips · md controls · lg cards · xl sheets and dialogs */
   --radius-xl: 24px;
 
+  /* Motion: ease-out-soft for things entering, ease-spring for sheets and buttons, ease-glow for lantern light */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-glow: cubic-bezier(0.2, 0.9, 0.3, 1);
+
   --shadow-card: 0 0 0 1px rgb(27 31 28 / 0.02), 0 1px 2px rgb(27 31 28 / 0.05);
   --shadow-pop: 0 12px 32px -8px rgb(20 40 30 / 0.18), 0 2px 6px rgb(20 40 30 / 0.06);
 }
@@ -504,13 +510,195 @@
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: calc(var(--i) * 220ms);
+  transition-delay: calc(var(--i) * 280ms);
 }
 .js .journey .journey-line {
   transform: scaleY(0);
   transform-origin: top;
-  transition: transform 0.5s ease-out;
-  transition-delay: calc(var(--i) * 220ms + 180ms);
+  transition: transform 0.45s ease-out;
+  transition-delay: calc(var(--i) * 280ms + 220ms);
+}
+
+/* ─── Lantern string: each recorded step lights up like a lantern, in order ─── */
+.journey-lamp {
+  box-shadow: 0 0 0 4px rgb(194 96 47 / 0.08), 0 0 14px 0 rgb(240 150 70 / 0.22);
+}
+.js .journey .journey-lamp {
+  filter: grayscale(1);
+  opacity: 0.45;
+  box-shadow: none;
+  transition: filter 0.35s ease-out, opacity 0.35s ease-out;
+  transition-delay: calc(var(--i) * 280ms);
+}
+.js .journey.is-visible .journey-lamp {
+  filter: none;
+  opacity: 1;
+  animation: lamp-ignite 1s var(--ease-glow) calc(var(--i) * 280ms) both;
+}
+@keyframes lamp-ignite {
+  0% {
+    box-shadow: 0 0 0 0 rgb(240 150 70 / 0), 0 0 0 0 rgb(240 150 70 / 0);
+  }
+  40% {
+    box-shadow: 0 0 0 9px rgb(240 150 70 / 0.28), 0 0 26px 8px rgb(240 150 70 / 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 4px rgb(194 96 47 / 0.08), 0 0 14px 0 rgb(240 150 70 / 0.22);
+  }
+}
+/* The latest step keeps a slow breathing halo */
+.journey-halo {
+  position: absolute;
+  inset: -5px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgb(240 150 70 / 0.35) 0%, transparent 70%);
+  animation: lamp-breathe 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.js .journey:not(.is-visible) .journey-halo {
+  opacity: 0;
+  animation: none;
+}
+@keyframes lamp-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+/* Compact horizontal string for sheets and cards */
+.lantern-dot {
+  transition: background-color 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+.lantern-dot[data-lit="true"] {
+  box-shadow: 0 0 0 3px rgb(194 96 47 / 0.12), 0 0 10px 0 rgb(240 150 70 / 0.35);
+}
+.lantern-dot[data-current="true"] {
+  animation: dot-breathe 2.6s ease-in-out infinite;
+}
+@keyframes dot-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgb(194 96 47 / 0.12), 0 0 8px 0 rgb(240 150 70 / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgb(194 96 47 / 0.16), 0 0 16px 2px rgb(240 150 70 / 0.5);
+  }
+}
+
+/* ─── Success burst: ring pops, check draws, a few festival scraps float up ─── */
+.success-ring {
+  animation:
+    burst-pop 0.45s var(--ease-spring) both,
+    burst-glow 1.3s ease-out 0.15s both;
+}
+@keyframes burst-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes burst-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgb(47 125 79 / 0.45), 0 0 0 0 rgb(240 150 70 / 0);
+  }
+  45% {
+    box-shadow: 0 0 0 14px rgb(47 125 79 / 0), 0 0 30px 10px rgb(240 150 70 / 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgb(47 125 79 / 0), 0 0 0 0 rgb(240 150 70 / 0);
+  }
+}
+.success-check {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  animation: check-draw 0.4s ease-out 0.28s forwards;
+}
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.success-scrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  opacity: 0;
+  animation: scrap-rise 1.2s cubic-bezier(0.2, 0.7, 0.3, 1) calc(0.25s + var(--d, 0s)) both;
+  pointer-events: none;
+}
+@keyframes scrap-rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x, 0px)), calc(-50% - var(--y, 70px))) scale(1) rotate(var(--r, 90deg));
+  }
+}
+
+/* Button that has just done its job: a short warm glow */
+.just-done {
+  animation: just-done 0.9s var(--ease-glow) both;
+}
+@keyframes just-done {
+  0% {
+    box-shadow: 0 0 0 0 rgb(240 150 70 / 0);
+  }
+  40% {
+    box-shadow: 0 0 0 6px rgb(240 150 70 / 0.25), 0 0 24px 4px rgb(240 150 70 / 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(240 150 70 / 0);
+  }
+}
+
+/* While Gemini looks at a photo: warm light sweeps across it */
+.analyse-sweep {
+  background: linear-gradient(100deg, transparent 30%, rgb(255 214 160 / 0.45) 50%, transparent 70%);
+  background-size: 250% 100%;
+  animation: analyse-sweep 1.6s ease-in-out infinite;
+}
+@keyframes analyse-sweep {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+/* Result rows arrive one after another */
+.stagger-in > * {
+  animation: rise 0.5s var(--ease-out-soft) both;
+}
+.stagger-in > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+.stagger-in > *:nth-child(3) {
+  animation-delay: 160ms;
+}
+.stagger-in > *:nth-child(4) {
+  animation-delay: 240ms;
+}
+.stagger-in > *:nth-child(5) {
+  animation-delay: 320ms;
+}
+.stagger-in > *:nth-child(n + 6) {
+  animation-delay: 400ms;
 }
 .js .journey.is-visible .journey-step {
   opacity: 1;
@@ -569,10 +757,31 @@
 @media (prefers-reduced-motion: reduce) {
   .js .journey .journey-step,
   .js .journey .journey-line,
+  .js .journey .journey-lamp,
   .js .split-anim .split-seg {
     opacity: 1;
+    filter: none;
     transform: none;
     transition: none;
+    animation: none;
+  }
+  .js .journey .journey-lamp {
+    box-shadow: 0 0 0 4px rgb(194 96 47 / 0.08), 0 0 14px 0 rgb(240 150 70 / 0.22);
+  }
+  .journey-halo,
+  .lantern-dot[data-current="true"],
+  .analyse-sweep {
+    animation: none;
+  }
+  .success-ring,
+  .success-check,
+  .just-done,
+  .stagger-in > * {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .success-scrap {
+    display: none;
   }
   .pass-sheen {
     animation: none;
@@ -606,7 +815,7 @@
 @keyframes sheet-in {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(32px);
   }
   to {
     opacity: 1;

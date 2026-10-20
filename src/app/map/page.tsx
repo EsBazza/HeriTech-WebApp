@@ -22,6 +22,8 @@ import { apiJson } from "@/lib/api";
 import { directionsUrl } from "@/lib/googleMaps";
 import { BatchMap } from "@/components/map/BatchMap";
 import { useRoute } from "@/components/map/useRoute";
+import { LanternString } from "@/components/ProvenanceTimeline";
+import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, buttonClass, cn, useMediaQuery, type BadgeTone } from "@/components/ui";
 
 interface BatchItem {
@@ -65,6 +67,8 @@ function MaterialsMapPageContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedBatch, setSelectedBatch] = useState<BatchItem | null>(null);
   const [reserving, setReserving] = useState(false);
+  // The batch whose Reserve button is showing its "Reserved" confirmation before the pickup code opens.
+  const [justReserved, setJustReserved] = useState<string | null>(null);
   const [reserveSuccess, setReserveSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -128,18 +132,23 @@ function MaterialsMapPageContent() {
     setReserveSuccess(null);
     setActionError(null);
     const result = await apiJson<BatchItem>(`/api/materials/${batchId}/reserve`, { method: "POST" });
+    setReserving(false);
     if (result.success && result.data) {
-      replaceBatch(result.data);
-      setReserveSuccess(`Batch ${batchId} is reserved for you. Show this code at the depot.`);
-      // Go straight to the pickup code; it is the artisan's next step.
-      setSheetOpen(false);
-      setHandoverTab("artisan");
-      setHandoverSuccess(null);
-      setHandoverModalOpen(true);
+      const reserved = result.data;
+      // Let the button glow "Reserved" for a beat, then go straight to the pickup code: the artisan's next step.
+      setJustReserved(batchId);
+      setTimeout(() => {
+        setJustReserved(null);
+        replaceBatch(reserved);
+        setReserveSuccess(`Batch ${batchId} is reserved for you. Show this code at the depot.`);
+        setSheetOpen(false);
+        setHandoverTab("artisan");
+        setHandoverSuccess(null);
+        setHandoverModalOpen(true);
+      }, 750);
     } else {
       setActionError(result.error ?? "Reservation failed.");
     }
-    setReserving(false);
   };
 
   const openHandover = () => {
@@ -168,8 +177,13 @@ function MaterialsMapPageContent() {
   };
 
   /** Photo, pickup point, facts and tamper check: shared by the desktop card and the phone sheet. */
+  const journeySteps = [translateSync("Logged"), translateSync("Reserved"), translateSync("Picked up"), translateSync("In the shop")];
+  const reachedStep = (status: BatchItem["status"]) => (status === "claimed" ? 2 : status === "reserved" ? 1 : 0);
+
   const renderDetail = (batch: BatchItem) => (
     <>
+      <LanternString steps={journeySteps} reached={reachedStep(batch.status)} label={translateSync("Batch journey")} className="py-1" />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <figure className="space-y-1.5">
           <div className="aspect-video sm:aspect-square rounded-md bg-paper-2 overflow-hidden border border-line">
@@ -248,7 +262,12 @@ function MaterialsMapPageContent() {
         </p>
       )}
 
-      {batch.status === "available" ? (
+      {justReserved === batch.id ? (
+        <div role="status" className={buttonClass("primary", "lg", "w-full just-done bg-success hover:bg-success cursor-default")}>
+          <CheckCircle2 className="w-5 h-5" />
+          {translateSync("Reserved")}
+        </div>
+      ) : batch.status === "available" ? (
         user?.role === "artisan" || user?.role === "admin" ? (
           <Button variant="accent" size="lg" className="w-full" onClick={() => handleReserve(batch.id)} loading={reserving}>
             {reserving ? translateSync("Reserving…") : translateSync("Reserve this batch")}
@@ -542,7 +561,7 @@ function MaterialsMapPageContent() {
 
             {handoverSuccess ? (
               <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg text-center space-y-3" role="status">
-                <CheckCircle2 className="w-10 h-10 text-pine-500 mx-auto" />
+                <SuccessBurst size={64} scraps className="mx-auto" />
                 <TranslatableHeading level={3} className="text-lg font-semibold text-ink font-sans">
                   Picked up
                 </TranslatableHeading>
