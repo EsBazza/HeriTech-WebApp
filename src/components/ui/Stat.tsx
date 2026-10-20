@@ -19,7 +19,8 @@ export function Stat({ label, value, unit, hint, icon, className, tone = "light"
         {icon}
         <span>{label}</span>
       </div>
-      <div className={cn("tabular font-display text-[34px] leading-none font-semibold", dark ? "text-white" : "text-ink")}>
+      {/* Shrinks on narrow phones so a currency figure fits half the width */}
+      <div className={cn("tabular font-display text-[clamp(1.6rem,7.5vw,2.125rem)] leading-none font-semibold break-words", dark ? "text-white" : "text-ink")}>
         {value}
         {unit && <span className={cn("ml-1.5 font-sans text-sm font-medium", dark ? "text-white/70" : "text-ink-3")}>{unit}</span>}
       </div>

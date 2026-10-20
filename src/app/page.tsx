@@ -9,7 +9,7 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
 import { EscrowBar } from "@/components/EscrowBar";
 import { userRole } from "@/lib/roleGuard";
-import { Button, EmptyState, Eyebrow, SectionHeader, Stat, cn, controlClass } from "@/components/ui";
+import { Button, EmptyState, Eyebrow, SectionHeader, Skeleton, Stat, cn, controlClass } from "@/components/ui";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { useInView } from "@/components/motion/Reveal";
@@ -146,7 +146,7 @@ export default function FeedHomePage() {
         onClick={() => setSelectedTag(active ? "All" : tag)}
         aria-pressed={active}
         className={cn(
-          "h-9 px-3.5 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer border",
+          "relative h-10 px-4 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer border shrink-0 after:absolute after:-inset-y-0.5 after:inset-x-0 after:content-['']",
           active ? "bg-pine-700 border-pine-700 text-white" : "bg-surface border-line text-ink-2 hover:border-pine-300"
         )}
       >
@@ -244,7 +244,7 @@ export default function FeedHomePage() {
         {/* Leftovers → lantern. Hover (or "Craft it") assembles it. */}
         <div
           aria-hidden
-          className="absolute z-[1] left-1/2 top-2 -translate-x-1/2 origin-top scale-[0.45] sm:scale-[0.6] lg:scale-100 lg:translate-x-0 lg:left-[calc(72%-220px)] lg:top-[calc(44%-260px)] w-[440px] h-[560px] pointer-events-none"
+          className="absolute z-[1] left-1/2 top-2 -translate-x-1/2 origin-top scale-[0.4] sm:scale-[0.6] lg:scale-100 lg:translate-x-0 lg:left-[calc(72%-220px)] lg:top-[calc(44%-260px)] w-[440px] h-[560px] pointer-events-none"
         >
           <LanternAssembly className="left-0 top-0" />
           <div className="absolute left-1/2 top-[372px] -translate-x-1/2 whitespace-nowrap hidden lg:block">
@@ -259,18 +259,18 @@ export default function FeedHomePage() {
           </div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[620px] lg:min-h-[min(84vh,760px)] flex items-end lg:items-center pt-64 sm:pt-80 pb-14 lg:py-20">
-          <div className="max-w-xl space-y-7">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:min-h-[620px] lg:min-h-[min(84vh,760px)] flex items-end lg:items-center pt-52 sm:pt-80 pb-10 sm:pb-14 lg:py-20">
+          <div className="max-w-xl space-y-5 sm:space-y-7">
             <div className="rise" style={{ ["--rise-delay" as string]: "0ms" }}>
               <Eyebrow className="text-pine-200">{translateSync("EDUtech Asia 2026 · Planet Protectors Challenge")}</Eyebrow>
             </div>
             <h1
-              className="rise font-display text-[46px] sm:text-[60px] lg:text-[68px] leading-[1.0] font-semibold text-white tracking-[-0.01em]"
+              className="rise font-display text-[40px] sm:text-[60px] lg:text-[68px] leading-[1.0] font-semibold text-white tracking-[-0.01em]"
               style={{ ["--rise-delay" as string]: "80ms" }}
             >
               {translateSync("Festival waste,")} <span className="italic text-pine-200">{translateSync("traced")}</span> {translateSync("into heritage craft.")}
             </h1>
-            <p className="rise text-lg text-white/80 leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
+            <p className="rise text-base sm:text-lg text-white/80 leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
               {translateSync(
                 "HeriTech is a circular digital system that logs festival materials at collection, routes them to local artisans, and gives every finished piece a public record of where it came from and who got paid."
               )}
@@ -526,15 +526,15 @@ export default function FeedHomePage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={translateSync("Search crafts, festivals, materials")}
                   aria-label={translateSync("Search crafts")}
-                  className={cn(controlClass, "h-10 pl-9 pr-9")}
+                  className={cn(controlClass, "h-11 pl-9 pr-11")}
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-sm text-ink-3 hover:text-ink cursor-pointer" aria-label={translateSync("Clear search")}>
+                  <button onClick={() => setSearchQuery("")} className="absolute right-0.5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-sm text-ink-3 hover:text-ink cursor-pointer" aria-label={translateSync("Clear search")}>
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none md:flex-1">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5 -mx-4 px-4 md:mx-0 md:px-0 md:flex-1 [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
                 {materialTags.map(chip)}
                 <span className="w-px h-5 bg-line-strong shrink-0 mx-1" aria-hidden />
                 {countryTags.map(chip)}
@@ -553,7 +553,21 @@ export default function FeedHomePage() {
           </div>
 
           {productsState === "loading" ? (
-            <p className="py-12 text-center text-sm text-ink-3">{translateSync("Loading pieces…")}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" role="status" aria-label={translateSync("Loading pieces…")}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="rounded-md border border-line bg-surface overflow-hidden">
+                  <Skeleton className="aspect-[4/3] rounded-none" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <div className="flex items-center justify-between pt-2">
+                      <Skeleton className="h-7 w-20" />
+                      <Skeleton className="h-10 w-28 rounded-md" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : productsState === "error" ? (
             <EmptyState
               icon={<PackageOpen className="w-5 h-5" />}

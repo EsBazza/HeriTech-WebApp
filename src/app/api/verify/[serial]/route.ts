@@ -1,63 +1,12 @@
-import { db } from "@/lib/server/firestore";
-import { notFound, ok, route } from "@/lib/server/http";
-import { withProductRelations } from "@/lib/server/views";
+import { ok, route } from "@/lib/server/http";
+import { passRecord } from "@/lib/server/passRecord";
+
+export type { PassRecord } from "@/lib/server/passRecord";
 
 /**
  * GET /api/verify/:serial — the public impact record behind a pass QR code.
  * Shows the maker, origin batch and money split. The buyer stays anonymous.
  */
-async function passRecord(serial: string) {
-  const pass = (await db.passes().doc(serial.toUpperCase()).get()).data();
-  if (!pass) throw notFound("No impact pass with that serial.");
-
-  const order = (await db.orders().doc(pass.orderId).get()).data();
-  const product = order && (await db.products().doc(order.productId).get()).data();
-  if (!order || !product) throw notFound("The order behind this pass could not be found.");
-
-  const [{ artisan, sourceBatch }] = await withProductRelations([product]);
-
-  return {
-      serial: pass.serial,
-      issuedAt: pass.issuedAt,
-      tamperEvidentHarvestHash: pass.harvestHash,
-      product: {
-        id: product.id,
-        title: product.title,
-        description: product.description,
-        price: product.price,
-        kgDiverted: product.kgDiverted * order.quantity,
-      },
-      escrowAudit: {
-        totalAmount: order.amountPaid,
-        artisanPayout: order.artisanPayout,
-        lguShare: order.lguShare,
-        charityMaintenanceShare: order.charityMaintenanceShare,
-        ngoFundName: product.ngoFundName,
-        paymentMode: order.paymentMode,
-      },
-      maker: {
-        name: artisan?.fullName ?? null,
-        workshop: artisan?.workshopName ?? null,
-        country: artisan?.country ?? null,
-        verified: artisan?.artisanVerified ?? false,
-      },
-      originHarvest: sourceBatch && {
-        batchId: sourceBatch.id,
-        materialType: sourceBatch.materialType,
-        condition: sourceBatch.condition,
-        weightKg: sourceBatch.weightKg,
-        festival: sourceBatch.agreement?.festival ?? null,
-        country: sourceBatch.agreement?.country ?? null,
-        gpsCoordinates: { lat: sourceBatch.gpsLat, lng: sourceBatch.gpsLng },
-        harvestLoggedAt: sourceBatch.createdAt,
-        loggedByOfficer: sourceBatch.scannedByOfficer?.fullName ?? null,
-        municipalityStation: sourceBatch.scannedByOfficer?.stationName ?? null,
-      },
-    };
-}
-
-export type PassRecord = Awaited<ReturnType<typeof passRecord>>;
-
 export const GET = route(async (_request: Request, { params }: { params: Promise<{ serial: string }> }) => {
   const { serial } = await params;
   return ok(await passRecord(serial), { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" } });

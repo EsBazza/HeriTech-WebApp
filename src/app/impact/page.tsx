@@ -126,7 +126,7 @@ export default function ImpactLeaderboardPage() {
           title={translateSync("Leaderboard")}
           description={translateSync("Ranked by verified material diverted")}
           actions={
-            <div className="flex items-center gap-1 p-1 rounded-md bg-paper-2 border border-line" role="tablist">
+            <div className="flex w-full sm:w-auto items-center gap-1 p-1 rounded-md bg-paper-2 border border-line" role="group" aria-label={translateSync("Show")}>
               {[
                 { id: "all", label: translateSync("All") },
                 { id: "artisan", label: translateSync("Artisans") },
@@ -136,11 +136,10 @@ export default function ImpactLeaderboardPage() {
                 return (
                   <button
                     key={tab.id}
-                    role="tab"
-                    aria-selected={active}
+                    aria-pressed={active}
                     onClick={() => setSelectedFilter(tab.id as FilterRole)}
                     className={cn(
-                      "h-8 px-3 rounded-sm text-sm transition-colors cursor-pointer",
+                      "flex-1 sm:flex-none min-h-10 px-3 py-1.5 rounded-sm text-sm leading-tight transition-colors cursor-pointer",
                       active ? "bg-surface text-ink font-medium shadow-card" : "text-ink-3 hover:text-ink"
                     )}
                   >
@@ -153,6 +152,20 @@ export default function ImpactLeaderboardPage() {
         />
 
         <Card className="overflow-hidden">
+          {loading && (
+            <div className="divide-y divide-line" role="status" aria-label={translateSync("Loading leaderboard")}>
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 px-4 sm:px-6 py-4">
+                  <Skeleton className="w-6 h-6 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/4" />
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
+            </div>
+          )}
           {!loading && filteredData.length === 0 && (
             <p className="px-6 py-8 text-sm text-ink-3 text-center">{translateSync("No collections recorded yet.")}</p>
           )}

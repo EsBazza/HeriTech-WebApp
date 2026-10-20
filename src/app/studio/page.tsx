@@ -6,22 +6,24 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
 import { StudioListings, type StudioProduct as Product } from "@/components/studio/StudioListings";
+import { Link2, MapPin, PlusCircle, Sparkles, ImagePlus, Pencil, Trash2, X, AlertTriangle, Upload, Link as LinkIcon, FileImage } from "lucide-react";
+import { SPLIT, calculateEscrowSplit } from "@/lib/escrow";
+import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import {
-  Palette,
-  CheckCircle2,
-  Link2,
-  PlusCircle,
-  Sparkles,
-  Loader2,
-  ImagePlus,
-  Pencil,
-  Trash2,
-  X,
-  AlertTriangle,
-  Upload,
-  Link as LinkIcon,
-  FileImage,
-} from "lucide-react";
+  Button,
+  Card,
+  Dialog,
+  EmptyState,
+  IconButton,
+  Input,
+  LinkButton,
+  PageHeader,
+  Select,
+  Skeleton,
+  StickyActionBar,
+  Textarea,
+  cn,
+} from "@/components/ui";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const BLANK_FORM = {
@@ -52,7 +54,7 @@ import { compressImage } from "@/lib/image";
 // ─── Component ────────────────────────────────────────────────────────────────
 function ArtisanStudioPageContent() {
   const { user, loading: authLoading } = useAuth();
-  const { translateSync } = useTranslation();
+  const { translateSync, formatCurrency } = useTranslation();
   const role = userRole(user);
 
   // --- Source batches ---
@@ -87,6 +89,9 @@ function ArtisanStudioPageContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
+  // After publishing, the result banner is far above the button on a phone, so bring it into view.
+  const showBanner = () => requestAnimationFrame(() => bannerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
 
   const isAuthorized = role === "artisan" || role === "admin";
 
@@ -226,13 +231,15 @@ function ArtisanStudioPageContent() {
       : await apiJson("/api/products", { method: "POST", body: JSON.stringify(payload) });
 
     if (result.success) {
-      setSuccessMessage(editingId ? `"${form.title}" updated.` : `"${form.title}" is now on the marketplace.`);
+      const message = editingId ? `"${form.title}" updated.` : `"${form.title}" is now in the shop.`;
       resetForm();
+      setSuccessMessage(message);
       loadMyProducts();
     } else {
       setErrorMessage(result.error ?? "Something went wrong.");
     }
     setSubmitting(false);
+    showBanner();
   };
 
   // ─── Delete ──────────────────────────────────────────────────────────────────
@@ -255,157 +262,133 @@ function ArtisanStudioPageContent() {
   };
 
   // ─── Render ──────────────────────────────────────────────────────────────────
-  return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+  const payout = calculateEscrowSplit(parseFloat(form.price || "0") || 0).artisanPayout;
+  const noBatches = !batchesLoading && claimedBatches.length === 0 && !editingId;
 
-      {/* ── Header ── */}
-      <div>
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
-          <Palette className="w-3.5 h-3.5" />
-          <span>Studio</span>
-        </div>
-        <h1 className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
-          {translateSync("Artisan studio")}
-        </h1>
-        <p className="text-base text-ink-2 mt-2 max-w-2xl">
-          {translateSync(
-            "Turn claimed festival material into listed pieces. Each piece stays linked to the batch it was made from."
-          )}
-        </p>
+  const stepHeading = (n: number, title: string, hint?: string) => (
+    <legend className="flex items-start gap-3 mb-4">
+      <span className="w-7 h-7 rounded-full bg-pine-700 text-white text-sm font-semibold flex items-center justify-center shrink-0 tabular">{n}</span>
+      <span className="pt-0.5">
+        <span className="block text-base font-semibold text-ink">{title}</span>
+        {hint && <span className="block text-sm text-ink-3 mt-0.5">{hint}</span>}
+      </span>
+    </legend>
+  );
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <PageHeader
+        eyebrow={translateSync("Studio")}
+        title={translateSync("Artisan studio")}
+        description={translateSync("Turn claimed festival material into listed pieces. Each piece stays linked to the batch it was made from.")}
+      />
+
+      {/* Result of the last action; scrolled into view after publishing */}
+      <div ref={bannerRef} className="scroll-mt-24 space-y-3 empty:hidden">
+        {successMessage && (
+          <div role="status" className="flex items-center gap-3 p-4 bg-pine-50 border border-pine-200 rounded-md text-[15px] text-pine-800">
+            <SuccessBurst size={36} />
+            <span className="flex-1">{translateSync(successMessage)}</span>
+            <IconButton aria-label={translateSync("Dismiss")} onClick={() => setSuccessMessage(null)} className="-my-2 -mr-2">
+              <X className="w-4 h-4" />
+            </IconButton>
+          </div>
+        )}
+        {errorMessage && (
+          <div role="alert" className="flex items-start gap-3 p-4 bg-danger-100 border border-danger/20 rounded-md text-sm text-danger">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            <span className="flex-1">{translateSync(errorMessage)}</span>
+            <IconButton tone="danger" aria-label={translateSync("Dismiss")} onClick={() => setErrorMessage(null)} className="-my-3 -mr-2">
+              <X className="w-4 h-4" />
+            </IconButton>
+          </div>
+        )}
       </div>
 
-      {/* ── Global success / error banners ── */}
-      {successMessage && (
-        <div className="flex items-start space-x-3 p-4 bg-pine-50 border border-pine-200 rounded-md text-sm text-pine-700">
-          <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-pine-500" />
-          <span>{successMessage}</span>
-          <button onClick={() => setSuccessMessage(null)} className="ml-auto text-pine-500 hover:text-pine-600">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="flex items-start space-x-3 p-4 bg-danger-100 border border-danger/20 rounded-md text-sm text-danger">
-          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-danger" />
-          <span>{errorMessage}</span>
-          <button onClick={() => setErrorMessage(null)} className="ml-auto text-danger hover:text-danger">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* ════════════════════════════════════════
-          SECTION 1 — LISTING FORM
-      ════════════════════════════════════════ */}
-      <div ref={formRef} className="bg-surface rounded-lg border border-line shadow-card overflow-hidden">
-        {/* Form header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface">
-          <div className="flex items-center space-x-2">
-            {editingId ? (
-              <Pencil className="w-4 h-4 text-lantern-600" />
-            ) : (
-              <PlusCircle className="w-4 h-4 text-pine-600" />
+      {noBatches ? (
+        <EmptyState
+          icon={<Link2 className="w-5 h-5" />}
+          title={translateSync("Pick up a batch first")}
+          description={translateSync("Every piece is linked to the festival material it was made from. Reserve a batch on the material map and collect it, then list your piece here.")}
+          action={
+            <LinkButton href="/map">
+              <MapPin className="w-4 h-4" />
+              {translateSync("Open the material map")}
+            </LinkButton>
+          }
+        />
+      ) : (
+        <Card ref={formRef} className="overflow-hidden scroll-mt-24">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-line">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-ink font-sans">
+              {editingId ? <Pencil className="w-4 h-4 text-lantern-600" /> : <PlusCircle className="w-4 h-4 text-pine-600" />}
+              {editingId ? translateSync("Edit piece") : translateSync("List a new piece")}
+            </h2>
+            {editingId && (
+              <Button variant="ghost" size="sm" onClick={resetForm}>
+                <X className="w-4 h-4" />
+                {translateSync("Cancel edit")}
+              </Button>
             )}
-            <span className="text-sm font-bold text-ink">
-              {editingId
-                ? translateSync("Edit Upcycled Piece")
-                : translateSync("List a New Upcycled Piece")}
-            </span>
-          </div>
-          {editingId && (
-            <button
-              onClick={resetForm}
-              className="flex items-center space-x-1 text-xs text-ink-3 hover:text-ink-2"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>{translateSync("Cancel Edit")}</span>
-            </button>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
-
-          {/* Row 1 — Title + Price */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-ink-2">
-                {translateSync("Product Title")} <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={form.title}
-                onChange={(e) => setField("title", e.target.value)}
-                placeholder={translateSync("Name of the piece")}
-                className="w-full p-3 rounded-md border border-line bg-paper font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
-              />
-            </div>
-            <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-ink-2">
-                {translateSync("Fair-Trade Retail Price (USD)")} <span className="text-danger">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                value={form.price}
-                onChange={(e) => setField("price", e.target.value)}
-                className="w-full p-3 rounded-md border border-line bg-paper font-mono-data font-bold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
-              />
-              <span className="text-xs text-ink-3">
-                {translateSync("You receive")}{" "}
-                <strong>70% (${(parseFloat(form.price || "0") * 0.7).toFixed(2)})</strong>{" "}
-                {translateSync("upon sale.")}
-              </span>
-            </div>
           </div>
 
-          {/* ── IMAGE SECTION (DUAL OPTION: FILE UPLOAD OR URL) ── */}
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <label className="text-xs font-bold text-ink-2 flex items-center space-x-1.5">
-                <ImagePlus className="w-3.5 h-3.5 text-lantern-600" />
-                <span>{translateSync("Product Image")}</span>
-                <span className="text-xs text-ink-3 font-normal">
-                  ({translateSync("Choose Upload or URL")})
-                </span>
-              </label>
+          <form onSubmit={handleSubmit} className="p-5 sm:p-8 space-y-8">
+            {/* 1 — Source batch: fills tags and kg below */}
+            <fieldset>
+              {stepHeading(1, translateSync("Source batch"), translateSync("The material this piece was made from. Tags and weight fill in from it."))}
+              {batchesLoading ? (
+                <Skeleton className="h-11 rounded-sm" />
+              ) : (
+                <Select
+                  label={translateSync("Batch you picked up")}
+                  required
+                  value={form.selectedBatchId}
+                  onChange={(e) => {
+                    const batch = claimedBatches.find((b) => b.id === e.target.value);
+                    if (batch) setForm((f) => ({ ...f, ...fieldsFromBatch(batch, f.kgDiverted) }));
+                  }}
+                  disabled={!!editingId}
+                  hint={editingId ? translateSync("The source batch can't be changed after publishing.") : undefined}
+                >
+                  {claimedBatches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.id} · {b.weightKg} kg {b.materialType}
+                      {b.agreement?.festival ? ` · ${b.agreement.festival}` : ""}
+                    </option>
+                  ))}
+                  {editingId && !claimedBatches.some((b) => b.id === form.selectedBatchId) && <option value={form.selectedBatchId}>{form.selectedBatchId}</option>}
+                </Select>
+              )}
+            </fieldset>
 
-              {/* Segmented Mode Selector */}
-              <div className="inline-flex p-0.5 rounded-lg bg-paper-2 border border-line text-xs">
-                <button
-                  type="button"
-                  onClick={() => setImageMode("file")}
-                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-xs ${
-                    imageMode === "file"
-                      ? "bg-surface text-lantern-600 shadow-card"
-                      : "text-ink-3 hover:text-ink"
-                  }`}
-                >
-                  <Upload className="w-3 h-3" />
-                  <span>{translateSync("Upload File (.jpg, .png)")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setImageMode("url")}
-                  className={`flex items-center space-x-1.5 px-3 py-1 rounded-md font-bold transition-all text-xs ${
-                    imageMode === "url"
-                      ? "bg-surface text-lantern-600 shadow-card"
-                      : "text-ink-3 hover:text-ink"
-                  }`}
-                >
-                  <LinkIcon className="w-3 h-3" />
-                  <span>{translateSync("Image URL")}</span>
-                </button>
+            {/* 2 — Photo */}
+            <fieldset>
+              {stepHeading(2, translateSync("Photo"), translateSync("A clear photo of the finished piece. Buyers see it next to the material it came from."))}
+              <div className="inline-flex p-1 rounded-md bg-paper-2 border border-line mb-3" role="group" aria-label={translateSync("Photo source")}>
+                {([
+                  ["file", Upload, "Upload a photo"],
+                  ["url", LinkIcon, "Paste a link"],
+                ] as const).map(([mode, Icon, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setImageMode(mode)}
+                    aria-pressed={imageMode === mode}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 min-h-10 px-3 rounded-sm text-sm font-medium transition-colors cursor-pointer",
+                      imageMode === mode ? "bg-surface text-ink shadow-card" : "text-ink-3 hover:text-ink"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {translateSync(label)}
+                  </button>
+                ))}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Option 1: File Upload Mode */}
-              {imageMode === "file" ? (
-                <div className="space-y-2">
-                  <div
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {imageMode === "file" ? (
+                  <button
+                    type="button"
                     onDragOver={(e) => {
                       e.preventDefault();
                       setIsDragging(true);
@@ -417,308 +400,189 @@ function ArtisanStudioPageContent() {
                       handleFileChange(e.dataTransfer.files?.[0]);
                     }}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`relative aspect-auto h-44 rounded-md border-2 border-dashed p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-                      isDragging
-                        ? "border-line-strong bg-paper-2"
-                        : "border-line bg-paper hover:bg-paper-2 hover:border-line-strong"
-                    }`}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-                      onChange={(e) => handleFileChange(e.target.files?.[0])}
-                      className="hidden"
-                    />
-                    <div className="w-10 h-10 rounded-full bg-paper-2 text-lantern-600 flex items-center justify-center mb-2 shadow-card">
-                      <Upload className="w-5 h-5" />
-                    </div>
-                    <p className="text-xs font-bold text-ink">
-                      {translateSync("Click to upload or drag & drop")}
-                    </p>
-                    <p className="text-xs text-ink-3 mt-1">
-                      {translateSync("Supports .JPG, .JPEG, or .PNG files")}
-                    </p>
-                    {fileName && (
-                      <div className="mt-2 inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-surface border border-line text-xs font-semibold text-lantern-600">
-                        <FileImage className="w-3 h-3" />
-                        <span className="truncate max-w-[150px]">{fileName}</span>
-                      </div>
+                    className={cn(
+                      "h-44 rounded-md border-2 border-dashed p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors",
+                      isDragging ? "border-pine-500 bg-pine-50" : "border-line-strong bg-paper hover:border-pine-300"
                     )}
-                  </div>
-                  <p className="text-xs text-ink-3">
-                    {translateSync("Images are automatically optimized and embedded for the marketplace.")}
-                  </p>
-                </div>
-              ) : (
-                /* Option 2: Image URL Mode */
-                <div className="space-y-2">
-                  <input
+                  >
+                    <span className="w-11 h-11 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center mb-2">
+                      <Upload className="w-5 h-5" />
+                    </span>
+                    <span className="text-[15px] font-medium text-ink">{translateSync("Take or choose a photo")}</span>
+                    <span className="text-sm text-ink-3 mt-0.5">{translateSync("JPG or PNG. It's resized for the shop.")}</span>
+                    {fileName && (
+                      <span className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface border border-line text-xs font-medium text-ink-2">
+                        <FileImage className="w-3.5 h-3.5" />
+                        <span className="truncate max-w-[160px]">{fileName}</span>
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <Input
+                    label={translateSync("Photo link")}
                     type="url"
-                    value={form.imageUrl}
+                    value={form.imageUrl.startsWith("data:") ? "" : form.imageUrl}
                     onChange={(e) => {
                       setField("imageUrl", e.target.value);
                       setFileName(null);
                     }}
-                    placeholder="https://example.com/your-craft-photo.jpg"
-                    className="w-full p-3 rounded-md border border-line bg-paper text-xs text-ink focus:outline-none focus:ring-2 focus:ring-line-strong/30"
+                    placeholder="https://"
+                    hint={translateSync("A link to a photo of your own piece.")}
                   />
-                  <p className="text-xs text-ink-3 leading-relaxed">
-                    {translateSync(
-                      "Paste a link to a photo of your own piece. Buyers see it on the listing."
-                    )}
-                  </p>
-                </div>
-              )}
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                  onChange={(e) => handleFileChange(e.target.files?.[0])}
+                  className="hidden"
+                />
 
-              {/* Live Preview Box */}
-              <div className="relative aspect-square sm:aspect-auto sm:h-44 rounded-md overflow-hidden border-2 border-dashed border-line bg-paper flex items-center justify-center">
-                {form.imageUrl && !imagePreviewError ? (
-                  <>
-                    <Image
-                      src={form.imageUrl}
-                      alt="Product preview"
-                      fill
-                      className="object-cover rounded-md"
-                      onError={() => setImagePreviewError(true)}
-                      unoptimized
-                    />
-                    <div className="absolute top-2 right-2 flex items-center space-x-1">
-                      <button
-                        type="button"
+                {/* Live preview */}
+                <div className="relative aspect-[4/3] sm:aspect-auto sm:h-44 rounded-md overflow-hidden border border-line bg-paper flex items-center justify-center">
+                  {form.imageUrl && !imagePreviewError ? (
+                    <>
+                      <Image
+                        src={form.imageUrl}
+                        alt={translateSync("Photo preview")}
+                        fill
+                        className="object-cover"
+                        onError={() => setImagePreviewError(true)}
+                        unoptimized
+                      />
+                      <IconButton
+                        tone="inverse"
+                        aria-label={translateSync("Remove photo")}
                         onClick={() => {
                           setField("imageUrl", "");
                           setFileName(null);
                         }}
-                        className="p-1 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors"
-                        title={translateSync("Remove photo")}
+                        className="absolute top-1 right-1 bg-pine-900/60 hover:bg-pine-900/80"
                       >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                        <X className="w-4 h-4" />
+                      </IconButton>
+                    </>
+                  ) : (
+                    <div className="text-center p-4 space-y-1.5">
+                      <ImagePlus className="w-8 h-8 text-ink-3 mx-auto" />
+                      <p className="text-sm text-ink-3">
+                        {imagePreviewError ? translateSync("That photo couldn't be loaded. Try another file or link.") : translateSync("Your photo appears here")}
+                      </p>
                     </div>
-                  </>
-                ) : (
-                  <div className="text-center p-4 space-y-1.5">
-                    <ImagePlus className="w-8 h-8 text-ink-3 mx-auto" />
-                    <p className="text-xs text-ink-3">
-                      {imagePreviewError
-                        ? translateSync("Image could not be loaded. Try a different file or URL.")
-                        : translateSync("Live preview will appear here")}
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </fieldset>
 
-          {/* Source Batch */}
-          <div className="space-y-1.5 text-xs">
-            <label className="font-bold text-ink-2 flex items-center space-x-1.5">
-              <Link2 className="w-3.5 h-3.5 text-pine-600" />
-              <span>
-                {translateSync("Link to Source Material Batch")} <span className="text-danger">*</span>
-              </span>
-            </label>
-            {batchesLoading ? (
-              <div className="flex items-center space-x-2 text-ink-3 p-3">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{translateSync("Loading batches...")}</span>
-              </div>
-            ) : claimedBatches.length === 0 ? (
-              <p className="text-ink-3 p-3 bg-paper rounded-md border border-line">
-                {translateSync("No material batches claimed yet. Claim a batch on the map to get started.")}
-              </p>
-            ) : (
-              <select
-                value={form.selectedBatchId}
-                onChange={(e) => {
-                  const batch = claimedBatches.find((b) => b.id === e.target.value);
-                  if (batch) setForm((f) => ({ ...f, ...fieldsFromBatch(batch, f.kgDiverted) }));
-                }}
-                disabled={!!editingId}
-                className="w-full p-3 rounded-md border border-line bg-surface font-mono-data text-xs font-semibold text-ink disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-pine-500/30"
-              >
-                {claimedBatches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    [{b.id}] {b.title} ({b.weightKg} kg {b.materialType}) — {b.agreement?.festival} ({b.agreement?.country})
-                  </option>
-                ))}
-              </select>
-            )}
-            {editingId && (
-              <p className="text-xs text-warn">
-                {translateSync("Source batch cannot be changed after publishing.")}
-              </p>
-            )}
-          </div>
+            {/* 3 — Story and price */}
+            <fieldset className="space-y-5">
+              {stepHeading(3, translateSync("Story and price"))}
+              <Input label={translateSync("Name of the piece")} required value={form.title} onChange={(e) => setField("title", e.target.value)} />
 
-          {/* Description / AI */}
-          <div className="space-y-1.5 text-xs">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-ink-2">
-                {translateSync("Product Bio & Material Origin Story")}
-              </label>
-              <button
-                type="button"
-                onClick={handleGenerateAIStory}
-                disabled={generatingStory || !selectedBatch}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-pine-50 border border-pine-300 text-pine-600 text-xs font-bold hover:bg-pine-100 transition-colors disabled:opacity-50 cursor-pointer shadow-card"
-              >
-                {generatingStory ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>{translateSync("Drafting...")}</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5 text-warn" />
-                    <span>{translateSync("Auto-generate with Gemini")}</span>
-                  </>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label htmlFor="studio-story" className="text-sm font-medium text-ink">
+                    {translateSync("Its story")}
+                  </label>
+                  <Button type="button" variant="secondary" size="sm" onClick={handleGenerateAIStory} disabled={!selectedBatch} loading={generatingStory}>
+                    {!generatingStory && <Sparkles className="w-4 h-4 text-lantern-600" />}
+                    {generatingStory ? translateSync("Drafting…") : translateSync("Draft with Gemini")}
+                  </Button>
+                </div>
+                {storyIsSample && (
+                  <p className="text-sm text-warn">{translateSync("Demo sample: Gemini was unavailable, so this is a prepared example. Edit it before publishing.")}</p>
                 )}
-              </button>
-            </div>
-            {storyIsSample && (
-              <p className="text-xs text-warn">
-                {translateSync("Demo sample: Gemini was unavailable, so this is a prepared example. Edit it before publishing.")}
-              </p>
-            )}
-            <textarea
-              rows={4}
-              value={form.description}
-              onChange={(e) => setField("description", e.target.value)}
-              placeholder={translateSync(
-                "Describe your upcycling technique, natural dyes, or click the Gemini button above to auto-generate the cultural origin story..."
-              )}
-              className="w-full p-3 rounded-md border border-line bg-paper text-ink leading-relaxed focus:outline-none focus:ring-2 focus:ring-pine-500/30"
-            />
-          </div>
+                <Textarea
+                  id="studio-story"
+                  rows={5}
+                  value={form.description}
+                  onChange={(e) => setField("description", e.target.value)}
+                  placeholder={translateSync("How you made it and where the material came from. Or let Gemini draft it from the batch record.")}
+                  className={cn("leading-relaxed", generatingStory && "analyse-sweep")}
+                />
+              </div>
 
-          {/* Row — kg + NGO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-ink-2">
-                {translateSync("Kilograms Diverted per Item")}
-              </label>
-              <input
-                type="number"
-                step="0.05"
-                min="0"
-                value={form.kgDiverted}
-                onChange={(e) => setField("kgDiverted", e.target.value)}
-                className="w-full p-3 rounded-md border border-line bg-paper font-mono-data font-bold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <Input
+                  label={translateSync("Price (USD)")}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={form.price}
+                  onChange={(e) => setField("price", e.target.value)}
+                  className="tabular"
+                  hint={`${translateSync("You receive")} ${formatCurrency(payout)} (${SPLIT.artisan}%) ${translateSync("when it sells.")}`}
+                />
+                <Input
+                  label={translateSync("Material kept out of landfill (kg)")}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.05"
+                  min="0"
+                  value={form.kgDiverted}
+                  onChange={(e) => setField("kgDiverted", e.target.value)}
+                  className="tabular"
+                  hint={selectedBatch ? `${translateSync("Up to")} ${selectedBatch.weightKg} kg ${translateSync("from this batch")}` : undefined}
+                />
+              </div>
+
+              <Input
+                label={translateSync("Material tags")}
+                value={form.materialTags}
+                onChange={(e) => setField("materialTags", e.target.value)}
+                hint={translateSync("Separate with commas. Buyers can filter the shop by these.")}
               />
-            </div>
-            <div className="space-y-1.5 text-xs">
-              <label className="font-bold text-ink-2">
-                {translateSync("10% Designated NGO Fund")}
-              </label>
-              <input
-                type="text"
+              <Input
+                label={translateSync("Charity partner (optional)")}
                 value={form.ngoFundName}
                 onChange={(e) => setField("ngoFundName", e.target.value)}
-                className="w-full p-3 rounded-md border border-line bg-paper font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-pine-500/30"
+                hint={`${translateSync("Named on the receipt. It shares the")} ${SPLIT.charityMaintenance}% ${translateSync("charity & app upkeep part of each sale.")}`}
               />
-            </div>
-          </div>
+            </fieldset>
 
-          {/* Material Tags */}
-          <div className="space-y-1.5 text-xs">
-            <label className="font-bold text-ink-2">
-              {translateSync("Material Tags (comma-separated)")}
-            </label>
-            <input
-              type="text"
-              value={form.materialTags}
-              onChange={(e) => setField("materialTags", e.target.value)}
-              placeholder={translateSync("Materials used, separated by commas")}
-              className="w-full p-3 rounded-md border border-line bg-paper text-ink font-medium focus:outline-none focus:ring-2 focus:ring-pine-500/30"
-            />
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`w-full py-4 rounded-md font-bold text-xs shadow-card transition-all flex items-center justify-center space-x-2 disabled:opacity-50 ${
-              editingId
-                ? "bg-pine-700 hover:bg-pine-800 text-white"
-                : "bg-pine-700 hover:bg-pine-600 text-white"
-            }`}
-          >
-            {submitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{editingId ? translateSync("Saving changes...") : translateSync("Publishing...")}</span>
-              </>
-            ) : editingId ? (
-              <>
-                <Pencil className="w-4 h-4" />
-                <span>{translateSync("Save Changes")}</span>
-              </>
-            ) : (
-              <>
-                <PlusCircle className="w-4 h-4" />
-                <span>{translateSync("Publish to the shop")}</span>
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-
-      <StudioListings
-        products={myProducts}
-        loading={productsLoading}
-        editingId={editingId}
-        onRefresh={loadMyProducts}
-        onEdit={startEdit}
-        onDelete={confirmDelete}
-      />
-
-      {/* ════════════════════════════════════════
-          DELETE CONFIRMATION MODAL
-      ════════════════════════════════════════ */}
-      {deletingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-surface rounded-lg shadow-pop max-w-sm w-full p-6 space-y-4">
-            <div className="w-12 h-12 bg-danger-100 border border-danger/20 rounded-full flex items-center justify-center mx-auto">
-              <Trash2 className="w-5 h-5 text-danger" />
-            </div>
-            <div className="text-center space-y-1.5">
-              <h3 className="font-bold text-ink text-base">
-                {translateSync("Remove this piece?")}
-              </h3>
-              <p className="text-sm text-ink-3">
-                <strong className="text-ink-2">&ldquo;{deleteConfirmTitle}&rdquo;</strong>{" "}
-                {translateSync("will be removed from the marketplace. This cannot be undone.")}
-              </p>
-            </div>
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={() => setDeletingId(null)}
-                disabled={deleting}
-                className="flex-1 py-2.5 rounded-md border border-line text-sm font-semibold text-ink-2 hover:bg-paper transition-colors"
-              >
-                {translateSync("Cancel")}
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex-1 py-2.5 rounded-md bg-danger hover:bg-danger text-white text-sm font-bold transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-60"
-              >
-                {deleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    <span>{translateSync("Remove")}</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+            <StickyActionBar className="-mx-5 px-5 sm:-mx-8 sm:px-8">
+              <Button type="submit" variant="accent" size="lg" className="w-full" loading={submitting} disabled={!form.selectedBatchId}>
+                {!submitting && (editingId ? <Pencil className="w-4 h-4" /> : <PlusCircle className="w-4 h-4" />)}
+                {submitting
+                  ? editingId
+                    ? translateSync("Saving changes…")
+                    : translateSync("Publishing…")
+                  : editingId
+                  ? translateSync("Save changes")
+                  : translateSync("Publish to the shop")}
+              </Button>
+            </StickyActionBar>
+          </form>
+        </Card>
       )}
 
+      <StudioListings products={myProducts} loading={productsLoading} editingId={editingId} onRefresh={loadMyProducts} onEdit={startEdit} onDelete={confirmDelete} />
+
+      <Dialog
+        open={Boolean(deletingId)}
+        onClose={() => !deleting && setDeletingId(null)}
+        dismissible={!deleting}
+        size="sm"
+        closeLabel={translateSync("Close")}
+        title={translateSync("Remove this piece?")}
+        footer={
+          <div className="flex gap-3">
+            <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)} disabled={deleting}>
+              {translateSync("Cancel")}
+            </Button>
+            <Button variant="danger" className="flex-1" onClick={handleDelete} loading={deleting}>
+              {!deleting && <Trash2 className="w-4 h-4" />}
+              {translateSync("Remove")}
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-[15px] text-ink-2">
+          <strong className="text-ink">&ldquo;{deleteConfirmTitle}&rdquo;</strong> {translateSync("will be taken off the shop. Passes already sold for it still verify.")}
+        </p>
+      </Dialog>
     </div>
   );
 }

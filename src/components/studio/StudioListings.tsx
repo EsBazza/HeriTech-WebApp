@@ -3,8 +3,9 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, ImagePlus, Package, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { Eye, ImagePlus, Package, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { Badge, Button, EmptyState, IconButton, Skeleton, buttonClass, cn } from "@/components/ui";
 
 export interface StudioProduct {
   id: string;
@@ -32,156 +33,114 @@ interface StudioListingsProps {
 
 /** The artisan's published pieces, with view, edit and delete actions. */
 export function StudioListings({ products, loading, editingId, onRefresh, onEdit, onDelete }: StudioListingsProps) {
-  const { translateSync, formatCurrency } = useTranslation();
+  const { translateSync, formatCurrency, formatNumber } = useTranslation();
 
   return (
-    <div className="space-y-4">
-      {/* Section header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Package className="w-4 h-4 text-lantern-600" />
-          <h2 className="text-base font-semibold text-ink">
-            {translateSync("My Published Pieces")}
-          </h2>
-          {!loading && (
-            <span className="text-xs font-bold text-lantern-600 bg-paper-2 px-2 py-0.5 rounded-full border border-line-strong">
-              {products.length}
-            </span>
-          )}
-        </div>
-        <button
-          onClick={onRefresh}
-          className="flex items-center space-x-1 text-xs text-ink-3 hover:text-ink-2 transition-colors"
-          title="Refresh"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
+    <section className="space-y-4" aria-labelledby="studio-listings">
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="studio-listings" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
+          <Package className="w-5 h-5 text-pine-600" />
+          {translateSync("Your published pieces")}
+          {!loading && <Badge tone="pine">{products.length}</Badge>}
+        </h2>
+        <Button variant="ghost" size="sm" onClick={onRefresh} aria-label={translateSync("Refresh your pieces")}>
+          <RefreshCw className="w-4 h-4" />
           <span className="hidden sm:inline">{translateSync("Refresh")}</span>
-        </button>
+        </Button>
       </div>
 
-      {/* Loading skeleton */}
       {loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" role="status" aria-label={translateSync("Loading your pieces")}>
           {[1, 2].map((i) => (
-            <div key={i} className="h-48 rounded-lg bg-paper-2 animate-pulse" />
-          ))}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!loading && products.length === 0 && (
-        <div className="text-center py-16 border-2 border-dashed border-line rounded-lg space-y-3">
-          <Package className="w-10 h-10 text-ink-3 mx-auto" />
-          <p className="text-sm font-semibold text-ink-3">
-            {translateSync("No pieces published yet")}
-          </p>
-          <p className="text-xs text-ink-3">
-            {translateSync("Fill in the form above to list your first upcycled craft.")}
-          </p>
-        </div>
-      )}
-
-      {/* Product cards */}
-      {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className={`bg-surface rounded-lg border overflow-hidden shadow-card transition-shadow hover:shadow-card ${
-                editingId === product.id
-                  ? "border-line-strong ring-2 ring-line-strong/20"
-                  : "border-line"
-              }`}
-            >
-              {/* Product image */}
-              <div className="relative aspect-video w-full bg-paper">
-                {product.images?.[0] ? (
-                  <Image
-                    src={product.images[0]}
-                    alt={product.title}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImagePlus className="w-10 h-10 text-ink-3" />
-                  </div>
-                )}
-                {/* Price badge */}
-                <div className="absolute top-2.5 right-2.5 bg-surface/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-card border border-line">
-                  <span className="text-xs font-bold text-lantern-600">
-                    {formatCurrency(product.price)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Card body */}
-              <div className="p-4 space-y-3">
-                <div>
-                  <h3 className="font-bold text-sm text-ink leading-snug line-clamp-1">
-                    {product.title}
-                  </h3>
-                  <p className="text-xs text-ink-3 mt-0.5 line-clamp-2 leading-relaxed">
-                    {product.description || translateSync("No description.")}
-                  </p>
-                </div>
-
-                {/* Tags */}
-                {product.materialTags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {product.materialTags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 rounded-full bg-paper-2 text-xs font-semibold text-lantern-600 tracking-wide"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Meta row */}
-                <div className="flex items-center justify-between text-xs text-ink-3 pt-1 border-t border-line">
-                  <span>{product.kgDiverted} kg {translateSync("diverted")}</span>
-                  <span className="font-mono-data">
-                    {product.sourceBatch?.agreement?.festival ?? product.sourceBatchId}
-                  </span>
-                </div>
-
-                {/* Action buttons */}
-                <div className="flex items-center gap-2 pt-1">
-                  <Link
-                    href={`/products/${product.id}`}
-                    target="_blank"
-                    className="flex items-center space-x-1 px-3 py-2 rounded-lg border border-line text-xs font-semibold text-ink-2 hover:bg-paper transition-colors"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    <span>{translateSync("View")}</span>
-                  </Link>
-
-                  <button
-                    onClick={() => onEdit(product)}
-                    disabled={editingId === product.id}
-                    className="flex items-center space-x-1 px-3 py-2 rounded-lg bg-paper-2 text-xs font-bold text-lantern-600 hover:bg-paper-2 transition-colors disabled:opacity-50"
-                  >
-                    <Pencil className="w-3 h-3" />
-                    <span>{translateSync("Edit")}</span>
-                  </button>
-
-                  <button
-                    onClick={() => onDelete(product)}
-                    className="flex items-center space-x-1 px-3 py-2 rounded-lg bg-danger-100 text-xs font-bold text-danger hover:bg-danger-100 transition-colors ml-auto"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    <span>{translateSync("Delete")}</span>
-                  </button>
-                </div>
+            <div key={i} className="rounded-md border border-line bg-surface overflow-hidden">
+              <Skeleton className="aspect-video rounded-none" />
+              <div className="p-4 space-y-2">
+                <Skeleton className="h-5 w-2/3" />
+                <Skeleton className="h-4 w-full" />
               </div>
             </div>
           ))}
         </div>
       )}
-    </div>
+
+      {!loading && products.length === 0 && (
+        <EmptyState
+          icon={<Package className="w-5 h-5" />}
+          title={translateSync("No pieces published yet")}
+          description={translateSync("Pieces you publish appear here, with the batch they came from.")}
+        />
+      )}
+
+      {!loading && products.length > 0 && (
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {products.map((product) => {
+            const editing = editingId === product.id;
+            return (
+              <li
+                key={product.id}
+                className={cn(
+                  "bg-surface rounded-md border overflow-hidden shadow-card transition-colors",
+                  editing ? "border-lantern ring-2 ring-lantern/30" : "border-line hover:border-line-strong"
+                )}
+              >
+                <div className="relative aspect-video w-full bg-paper">
+                  {product.images?.[0] ? (
+                    <Image src={product.images[0]} alt={product.title} fill className="object-cover" unoptimized />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImagePlus className="w-10 h-10 text-ink-3" />
+                    </div>
+                  )}
+                  <span className="absolute top-2.5 right-2.5 bg-surface/95 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-card border border-line tabular text-sm font-semibold text-ink">
+                    {formatCurrency(product.price)}
+                  </span>
+                  {editing && (
+                    <Badge tone="accent" className="absolute top-2.5 left-2.5">
+                      {translateSync("Editing")}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-ink leading-snug line-clamp-1 font-sans">{product.title}</h3>
+                    <p className="text-sm text-ink-3 mt-0.5 line-clamp-2 leading-relaxed">{product.description || translateSync("No story yet.")}</p>
+                  </div>
+
+                  {product.materialTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {product.materialTags.slice(0, 3).map((tag) => (
+                        <Badge key={tag}>{tag}</Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-3 text-sm text-ink-3 pt-2 border-t border-line">
+                    <span className="tabular">
+                      {formatNumber(product.kgDiverted)} kg {translateSync("diverted")}
+                    </span>
+                    <span className="truncate">{product.sourceBatch?.agreement?.festival ?? product.sourceBatchId}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Link href={`/products/${product.id}`} className={buttonClass("secondary", "sm")}>
+                      <Eye className="w-4 h-4" />
+                      {translateSync("View")}
+                    </Link>
+                    <Button variant="secondary" size="sm" onClick={() => onEdit(product)} disabled={editing}>
+                      <Pencil className="w-4 h-4" />
+                      {translateSync("Edit")}
+                    </Button>
+                    <IconButton tone="danger" onClick={() => onDelete(product)} aria-label={`${translateSync("Remove")}: ${product.title}`} className="ml-auto">
+                      <Trash2 className="w-[18px] h-[18px]" />
+                    </IconButton>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
