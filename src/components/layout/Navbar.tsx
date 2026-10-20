@@ -4,14 +4,30 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LogOut, ShieldCheck, ShoppingBag, User, Check } from "lucide-react";
+import {
+  BarChart3,
+  Check,
+  ChevronDown,
+  FileSignature,
+  LogOut,
+  MapPin,
+  Menu,
+  MessageSquare,
+  Palette,
+  QrCode,
+  ScanLine,
+  ShieldCheck,
+  ShoppingBag,
+  Store,
+  User,
+} from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/context/CartContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
-import { cn } from "@/components/ui";
+import { buttonClass, cn, Dialog, IconButton } from "@/components/ui";
 
 type DemoRole = keyof typeof DEMO_ACCOUNTS;
 
@@ -57,7 +73,7 @@ function CartButton() {
   return (
     <button
       onClick={() => setIsCartOpen(true)}
-      className="relative w-10 h-10 rounded-md flex items-center justify-center text-ink-2 hover:bg-pine-50 hover:text-ink transition-colors cursor-pointer"
+      className="relative w-11 h-11 rounded-md flex items-center justify-center text-ink-2 hover:bg-pine-50 hover:text-ink transition-colors cursor-pointer"
       aria-label={`${translateSync("Open cart")} (${itemCount})`}
     >
       <ShoppingBag className="w-5 h-5" strokeWidth={1.75} />
@@ -163,12 +179,14 @@ function AccountMenu() {
             <User className="w-4 h-4 text-ink-3" />
             {translateSync("Profile & passes")}
           </Link>
-          {role === "admin" && (
-            <Link href="/admin" onClick={close} className="flex items-center gap-2.5 px-4 h-10 text-sm text-ink-2 hover:bg-pine-50" role="menuitem">
-              <ShieldCheck className="w-4 h-4 text-ink-3" />
-              {translateSync("Admin console")}
-            </Link>
-          )}
+          {roleLinks(role, translateSync)
+            .filter((l) => !l.primary)
+            .map((l) => (
+              <Link key={l.href} href={l.href} onClick={close} className="flex items-center gap-2.5 px-4 h-10 text-sm text-ink-2 hover:bg-pine-50" role="menuitem">
+                <l.icon className="w-4 h-4 text-ink-3" />
+                {l.name}
+              </Link>
+            ))}
 
           {demoMode && (
             <div className="border-t border-line mt-2 pt-2 px-4">
@@ -216,25 +234,152 @@ function AccountMenu() {
   );
 }
 
+/** Pages each role can open. Map → artisan/lgu/admin, studio → artisan/admin, scanner and agreements → lgu/admin. */
+function roleLinks(role: string, t: (s: string) => string) {
+  return [
+    { name: t("Shop"), href: "/", icon: Store, show: true, primary: true },
+    { name: t("Impact"), href: "/impact", icon: BarChart3, show: true, primary: true },
+    { name: t("Material map"), href: "/map", icon: MapPin, show: role === "artisan" || role === "lgu" || role === "admin", primary: true },
+    { name: t("Studio"), href: "/studio", icon: Palette, show: role === "artisan" || role === "admin", primary: true },
+    { name: t("Scanner"), href: "/scanner", icon: ScanLine, show: role === "lgu" || role === "admin", primary: true },
+    { name: t("Pickup code"), href: "/handover", icon: QrCode, show: role === "artisan" || role === "lgu" || role === "admin", primary: false },
+    { name: t("Agreements"), href: "/agreements", icon: FileSignature, show: role === "lgu" || role === "admin", primary: false },
+    { name: t("Admin console"), href: "/admin", icon: ShieldCheck, show: role === "admin", primary: false },
+  ].filter((l) => l.show);
+}
+
+function isActivePath(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" || pathname.startsWith("/products") : pathname.startsWith(href);
+}
+
+/** Phones only: everything the desktop header and account menu hold, in one sheet. */
+function MobileMenu() {
+  const pathname = usePathname();
+  const { user, loading, demoMode, signInWithGoogle, signInAsDemo, signOut } = useAuth();
+  const { translateSync } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const close = React.useCallback(() => setOpen(false), []);
+  const role = userRole(user);
+  const links = [
+    ...roleLinks(role, translateSync),
+    { name: user ? translateSync("Profile & passes") : translateSync("Sign in"), href: "/profile", icon: User },
+  ];
+
+  // Close when a link navigates.
+  useEffect(() => close(), [pathname, close]);
+
+  return (
+    <>
+      <IconButton aria-label={translateSync("Open menu")} aria-expanded={open} onClick={() => setOpen(true)} className="md:hidden">
+        <Menu className="w-5 h-5" />
+      </IconButton>
+      <Dialog open={open} onClose={close} title={translateSync("Menu")} closeLabel={translateSync("Close")} size="sm">
+        {loading ? (
+          <div className="h-16 rounded-md bg-paper-2 animate-pulse" aria-hidden />
+        ) : user ? (
+          <div className="flex items-center gap-3 p-3 rounded-md bg-paper">
+            <span className="w-11 h-11 rounded-full bg-pine-700 text-white text-sm font-semibold flex items-center justify-center shrink-0">
+              {(user.fullName || user.email || "U").slice(0, 2).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[15px] font-medium text-ink truncate">{user.fullName}</p>
+              <p className="text-sm text-ink-3 truncate">{translateSync(ROLE_LABELS[role] ?? role)}</p>
+            </div>
+          </div>
+        ) : (
+          <button onClick={signInWithGoogle} className={buttonClass("primary", "lg", "w-full")}>
+            {translateSync("Sign in with Google")}
+          </button>
+        )}
+
+        <nav aria-label={translateSync("Menu")} className="mt-4 -mx-2">
+          {links.map((link) => {
+            const active = isActivePath(pathname, link.href);
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={close}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-3 px-3 min-h-12 rounded-md text-[16px] transition-colors",
+                  active ? "bg-pine-50 text-pine-700 font-medium" : "text-ink-2 hover:bg-pine-50"
+                )}
+              >
+                <Icon className="w-5 h-5 text-ink-3 shrink-0" strokeWidth={1.75} />
+                {link.name}
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => {
+              close();
+              window.dispatchEvent(new CustomEvent("open-messages"));
+            }}
+            className="w-full flex items-center gap-3 px-3 min-h-12 rounded-md text-[16px] text-ink-2 hover:bg-pine-50 cursor-pointer"
+          >
+            <MessageSquare className="w-5 h-5 text-ink-3 shrink-0" strokeWidth={1.75} />
+            {translateSync("Messages and assistant")}
+          </button>
+        </nav>
+
+        {demoMode && (
+          <div className="mt-4 pt-4 border-t border-line">
+            <p className="text-sm text-ink-3 pb-2">{translateSync(user ? "Demo: switch account" : "Demo accounts for presentations")}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(DEMO_ACCOUNTS) as DemoRole[]).map((r) => {
+                const current = user?.id === DEMO_ACCOUNTS[r];
+                return (
+                  <button
+                    key={r}
+                    onClick={() => {
+                      close();
+                      if (!current) signInAsDemo(r);
+                    }}
+                    aria-pressed={current}
+                    className={cn(
+                      "min-h-11 px-3 py-2 rounded-md text-sm font-medium flex items-center justify-between gap-2 text-left cursor-pointer border",
+                      current ? "bg-pine-100 border-pine-200 text-pine-700" : "border-line text-ink-2 hover:border-pine-300"
+                    )}
+                  >
+                    {translateSync(ROLE_LABELS[r])}
+                    {current && <Check className="w-4 h-4 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {user && (
+          <button
+            onClick={() => {
+              close();
+              signOut();
+            }}
+            className="mt-4 w-full flex items-center gap-3 px-3 min-h-12 rounded-md text-[16px] text-danger hover:bg-danger-100 cursor-pointer"
+          >
+            <LogOut className="w-5 h-5" />
+            {translateSync("Sign out")}
+          </button>
+        )}
+      </Dialog>
+    </>
+  );
+}
+
 export function Navbar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { translateSync } = useTranslation();
   const role = userRole(user);
 
-  // Role rules unchanged: map → artisan/lgu/admin, studio → artisan/admin, scanner → lgu/admin
-  const navLinks = [
-    { name: translateSync("Shop"), href: "/", show: true },
-    { name: translateSync("Impact"), href: "/impact", show: true },
-    { name: translateSync("Material map"), href: "/map", show: role === "artisan" || role === "lgu" || role === "admin" },
-    { name: translateSync("Studio"), href: "/studio", show: role === "artisan" || role === "admin" },
-    { name: translateSync("Scanner"), href: "/scanner", show: role === "lgu" || role === "admin" },
-  ].filter((l) => l.show);
-
-  const isActive = (href: string) => (href === "/" ? pathname === "/" || pathname.startsWith("/products") : pathname.startsWith(href));
+  const navLinks = roleLinks(role, translateSync).filter((l) => l.primary);
+  const isActive = (href: string) => isActivePath(pathname, href);
 
   return (
-    <header className="sticky top-0 z-40 bg-paper/90 backdrop-blur-md border-b border-line">
+    <header className="sticky top-0 z-40 bg-paper/90 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top,0px)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-6">
         <Logo />
 
@@ -258,12 +403,13 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
           <LanguageSelector variant="compact" />
           <CartButton />
           <div className="hidden md:block">
             <AccountMenu />
           </div>
+          <MobileMenu />
         </div>
       </div>
     </header>

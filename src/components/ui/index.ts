@@ -6,3 +6,6 @@ export { Input, Select, Textarea, controlClass } from "./Field";
 export { Eyebrow, PageHeader, SectionHeader } from "./Headers";
 export { Stat } from "./Stat";
 export { Skeleton, EmptyState, Spinner } from "./States";
+export { IconButton } from "./IconButton";
+export { Dialog } from "./Dialog";
+export { StickyActionBar } from "./StickyActionBar";

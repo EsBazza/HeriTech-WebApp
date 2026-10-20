@@ -140,7 +140,7 @@ export function QrScanner({ onResult, onCancel, onImportPhoto }: QrScannerProps)
           <div
             aria-hidden
             className={cn(
-              "pointer-events-none absolute inset-[16%] rounded-xl border-2 transition-colors duration-200",
+              "pointer-events-none absolute inset-[16%] rounded-lg border-2 transition-colors duration-200",
               found ? "border-success bg-success/15" : "border-white/85"
             )}
           >

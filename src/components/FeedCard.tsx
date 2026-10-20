@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Leaf, MapPin, Plus, QrCode, ScanLine } from "lucide-react";
+import { Check, Leaf, MapPin, Plus, QrCode } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { UserRole } from "@/lib/roleGuard";
@@ -133,8 +133,8 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
           <span className="tabular font-display text-2xl font-semibold text-ink">{formatCurrency(batch.price)}</span>
 
           {role === "lgu" ? (
-            <Link href="/scanner" className={buttonClass("secondary", "sm")}>
-              <ScanLine className="w-4 h-4" />
+            <Link href="/handover" className={buttonClass("secondary", "sm")}>
+              <QrCode className="w-4 h-4" />
               {translateSync("Verify handover")}
             </Link>
           ) : (

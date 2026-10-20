@@ -11,14 +11,22 @@ import { DemoBanner } from "@/components/DemoBanner";
 import { IntroSplash } from "@/components/motion/IntroSplash";
 import { INTRO_HEAD_SCRIPT } from "@/lib/intro";
 
+const title = "HeriTech — Traceable heritage craft from festival waste";
+const description =
+  "HeriTech traces festival waste from collection to finished craft, pays artisans fairly and shows where every sale's money goes.";
+
 export const metadata: Metadata = {
-  title: "HeriTech — Traceable heritage craft from festival waste",
-  description:
-    "HeriTech traces festival waste from collection to finished craft, pays artisans fairly and shows where every sale's money goes.",
+  title,
+  description,
+  openGraph: { title, description, siteName: "HeriTech", type: "website" },
+  twitter: { card: "summary", title, description },
 };
 
-/** Colours the phone's status bar to match the app when installed. */
-export const viewport: Viewport = { themeColor: "#1f3a2b" };
+/**
+ * Colours the phone's status bar to match the app when installed, and lets the
+ * page reach under notches so the env(safe-area-inset-*) paddings take effect.
+ */
+export const viewport: Viewport = { themeColor: "#1f3a2b", viewportFit: "cover" };
 
 export default function RootLayout({
   children,

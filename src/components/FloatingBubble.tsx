@@ -49,14 +49,13 @@ export function FloatingBubble() {
             setIsMessagesOpen(true);
             setHasNew(false);
           }}
-          className="fixed z-40 right-4 bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 md:right-6 h-12 pl-4 pr-5 rounded-full bg-pine-700 hover:bg-pine-600 text-white shadow-pop flex items-center gap-2 text-sm font-medium transition-colors cursor-pointer"
-          aria-label={translateSync("Open messages and HeriTech assistant")}
+          // Desktop only: on phones Messages lives in the tab bar or the header menu, so nothing floats over content.
+          className="hidden md:flex fixed z-40 bottom-6 right-6 h-12 pl-4 pr-5 rounded-full bg-pine-700 hover:bg-pine-600 text-white shadow-pop items-center gap-2 text-sm font-medium transition-colors cursor-pointer"
+          aria-label={translateSync(hasNew ? "New message: open messages" : "Open messages and HeriTech assistant")}
         >
           <MessageSquare className="w-5 h-5" strokeWidth={1.75} />
-          <span className="hidden sm:inline">{translateSync(hasNew ? "New message" : "Ask HeriTech")}</span>
-          {hasNew && (
-            <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-lantern ring-2 ring-paper" aria-label={translateSync("New message")} />
-          )}
+          <span>{translateSync(hasNew ? "New message" : "Ask HeriTech")}</span>
+          {hasNew && <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-lantern ring-2 ring-paper" aria-hidden />}
         </button>
       )}
 

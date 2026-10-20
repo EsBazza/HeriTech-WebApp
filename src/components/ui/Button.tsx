@@ -7,20 +7,22 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "accent";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-medium rounded-md transition-colors duration-150 ease-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none whitespace-nowrap";
+  "relative inline-flex items-center justify-center gap-2 font-medium rounded-md text-center leading-tight transition-colors duration-150 ease-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none";
 
 const variants: Record<Variant, string> = {
   primary: "bg-pine-700 text-white hover:bg-pine-600",
   secondary: "bg-surface text-ink border border-line-strong hover:border-pine-500 hover:text-pine-700",
   ghost: "text-ink-2 hover:bg-pine-50 hover:text-ink",
-  danger: "bg-danger text-white hover:bg-[#931c13]",
+  danger: "bg-danger text-white hover:bg-danger-600",
   accent: "bg-lantern text-white hover:bg-lantern-600",
 };
 
+// Heights are minimums so long or translated labels wrap instead of overflowing.
+// sm is 40px to look compact, with an invisible 44px touch area.
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-11 px-4 text-[15px]",
-  lg: "h-12 px-6 text-base",
+  sm: "min-h-10 py-1.5 px-3 text-sm after:absolute after:-inset-y-0.5 after:inset-x-0 after:content-['']",
+  md: "min-h-11 py-2 px-4 text-[15px]",
+  lg: "min-h-12 py-2.5 px-6 text-base",
 };
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md", className?: string) {

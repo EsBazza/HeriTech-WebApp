@@ -11,6 +11,7 @@
   --color-pine-700: #1f3a2b;
   --color-pine-600: #2b4d3a;
   --color-pine-500: #3c6b52;
+  --color-pine-400: #5f8a72;
   --color-pine-300: #8fb09c;
   --color-pine-200: #c4d8cb;
   --color-pine-100: #e3ede6;
@@ -35,6 +36,7 @@
   --color-warn: #9a6416;
   --color-warn-100: #f8edd8;
   --color-danger: #b42318;
+  --color-danger-600: #931c13;
   --color-danger-100: #fbe6e4;
 
   /* Fixed 70/20/10 split colors */
@@ -49,9 +51,8 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --radius-xl: 16px;
-  --radius-2xl: 16px;
-  --radius-3xl: 20px;
+  /* sm chips · md controls · lg cards · xl sheets and dialogs */
+  --radius-xl: 24px;
 
   --shadow-card: 0 0 0 1px rgb(27 31 28 / 0.02), 0 1px 2px rgb(27 31 28 / 0.05);
   --shadow-pop: 0 12px 32px -8px rgb(20 40 30 / 0.18), 0 2px 6px rgb(20 40 30 / 0.06);
@@ -598,6 +599,26 @@
   .scan-line {
     animation: none;
     top: 50%;
+  }
+}
+
+/* Dialog: a sheet rises on phones; a drawer slides in from the side */
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
   }
 }
 

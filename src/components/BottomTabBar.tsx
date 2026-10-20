@@ -1,45 +1,63 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Store, BarChart3, MapPin, Palette, ScanLine, MessageSquare, ShieldCheck, User, type LucideIcon } from "lucide-react";
+import { Store, BarChart3, FileSignature, MapPin, Palette, QrCode, ScanLine, MessageSquare, ShieldCheck, User, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
 import { cn } from "@/components/ui";
 
 interface Tab {
-  id: string;
   name: string;
   href: string;
   icon: LucideIcon;
-  show: boolean;
   /** Dispatches a window event instead of navigating. */
   event?: string;
 }
+
+// At most five tabs, ordered by each role's demo path. Everything else is in the header menu.
+const TABS_BY_ROLE: Record<string, string[]> = {
+  buyer: ["home", "impact", "messages", "profile"],
+  artisan: ["home", "map", "handover", "studio", "profile"],
+  lgu: ["map", "scanner", "handover", "agreements", "profile"],
+  admin: ["home", "map", "scanner", "admin", "profile"],
+};
+const GUEST_TABS = ["home", "impact", "profile"];
 
 export function BottomTabBar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { translateSync } = useTranslation();
   const role = userRole(user);
+  // Set when the maker's message arrives after checkout; cleared when Messages opens.
+  const [hasNew, setHasNew] = useState(false);
 
-  const roleTabs: Tab[] = [
-    { id: "studio", name: translateSync("Studio"), href: "/studio", icon: Palette, show: role === "artisan" || role === "admin" },
-    { id: "scanner", name: translateSync("Scanner"), href: "/scanner", icon: ScanLine, show: role === "lgu" },
-    { id: "map", name: translateSync("Map"), href: "/map", icon: MapPin, show: role === "artisan" || role === "lgu" },
-    { id: "admin", name: translateSync("Admin"), href: "/admin", icon: ShieldCheck, show: role === "admin" },
-    { id: "messages", name: translateSync("Messages"), href: "/messages", icon: MessageSquare, show: role === "buyer", event: "open-messages" },
-  ];
+  useEffect(() => {
+    const onNew = () => setHasNew(true);
+    const onOpen = () => setHasNew(false);
+    window.addEventListener("new-message", onNew);
+    window.addEventListener("open-messages", onOpen);
+    return () => {
+      window.removeEventListener("new-message", onNew);
+      window.removeEventListener("open-messages", onOpen);
+    };
+  }, []);
 
-  // Max five tabs: Shop, Impact, up to two role tabs, Profile.
-  const tabs: Tab[] = [
-    { id: "home", name: translateSync("Shop"), href: "/", icon: Store, show: true },
-    { id: "impact", name: translateSync("Impact"), href: "/impact", icon: BarChart3, show: true },
-    ...roleTabs.filter((t) => t.show).slice(0, 2),
-    { id: "profile", name: user ? translateSync("Profile") : translateSync("Sign in"), href: "/profile", icon: User, show: true },
-  ];
+  const all: Record<string, Tab> = {
+    home: { name: translateSync("Shop"), href: "/", icon: Store },
+    impact: { name: translateSync("Impact"), href: "/impact", icon: BarChart3 },
+    map: { name: translateSync("Map"), href: "/map", icon: MapPin },
+    scanner: { name: translateSync("Scan"), href: "/scanner", icon: ScanLine },
+    handover: { name: translateSync("Pickup"), href: "/handover", icon: QrCode },
+    agreements: { name: translateSync("Agreements"), href: "/agreements", icon: FileSignature },
+    studio: { name: translateSync("Studio"), href: "/studio", icon: Palette },
+    admin: { name: translateSync("Admin"), href: "/admin", icon: ShieldCheck },
+    messages: { name: translateSync("Messages"), href: "/messages", icon: MessageSquare, event: "open-messages" },
+    profile: { name: user ? translateSync("Me") : translateSync("Sign in"), href: "/profile", icon: User },
+  };
+  const tabs = (TABS_BY_ROLE[role] ?? GUEST_TABS).map((id) => ({ id, ...all[id] }));
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" || pathname.startsWith("/products") : pathname.startsWith(href));
 
@@ -52,10 +70,14 @@ export function BottomTabBar() {
         {tabs.map((tab) => {
           const active = !tab.event && isActive(tab.href);
           const Icon = tab.icon;
+          const dot = tab.event === "open-messages" && hasNew;
           const inner = (
             <>
               {active && <span className="absolute top-0 inset-x-1/4 h-0.5 rounded-full bg-pine-700" />}
-              <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 2.1 : 1.75} />
+              <span className="relative">
+                <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 2.1 : 1.75} />
+                {dot && <span className="absolute -top-0.5 -right-1 h-2.5 w-2.5 rounded-full bg-lantern ring-2 ring-surface" aria-hidden />}
+              </span>
               <span className={cn("text-xs leading-none mt-1.5 truncate max-w-full px-1", active && "font-semibold")}>{tab.name}</span>
             </>
           );
@@ -65,7 +87,13 @@ export function BottomTabBar() {
           );
 
           return tab.event ? (
-            <button key={tab.id} type="button" className={cls} onClick={() => window.dispatchEvent(new CustomEvent(tab.event!))}>
+            <button
+              key={tab.id}
+              type="button"
+              className={cls}
+              aria-label={dot ? `${tab.name}: ${translateSync("New message")}` : undefined}
+              onClick={() => window.dispatchEvent(new CustomEvent(tab.event!))}
+            >
               {inner}
             </button>
           ) : (

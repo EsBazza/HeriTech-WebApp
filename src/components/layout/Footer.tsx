@@ -53,11 +53,11 @@ export function Footer() {
         <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
           {columns.map((col) => (
             <div key={col.title}>
-              <h4 className="text-sm font-semibold text-white mb-3 font-sans">{col.title}</h4>
-              <ul className="space-y-2.5 text-sm">
+              <h2 className="text-sm font-semibold text-white mb-1.5 font-sans">{col.title}</h2>
+              <ul className="text-sm">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="hover:text-white transition-colors">
+                    <Link href={l.href} className="inline-flex items-center min-h-10 hover:text-white transition-colors">
                       {l.label}
                     </Link>
                   </li>
@@ -79,7 +79,7 @@ export function Footer() {
               </span>
             ))}
           </div>
-          <p className="text-white/60 md:mr-40">
+          <p className="text-white/60 lg:mr-44">
             © 2026 HeriTech · {translateSync("University of the Assumption")} · EDUtech Asia 2026
           </p>
         </div>
