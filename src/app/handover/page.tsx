@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Package, QrCode } from "lucide-react";
+import { Package } from "lucide-react";
 import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
@@ -10,7 +10,7 @@ import { TranslatableHeading, TranslatableParagraph, TranslatableText } from "@/
 import { AccessGuard } from "@/components/AccessGuard";
 import { HandoverCode } from "@/components/handover/HandoverCode";
 import { HandoverVerifyForm, type HandoverResult } from "@/components/handover/HandoverVerifyForm";
-import { Button, Select, Spinner, cn } from "@/components/ui";
+import { Button, PageHeader, Select, Spinner, cn } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 
 interface ReservedBatch {
@@ -161,18 +161,13 @@ function HandoverPageContent() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <div>
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-pine-500">
-          <QrCode className="w-3.5 h-3.5" />
-          <TranslatableText>Pickup</TranslatableText>
-        </div>
-        <TranslatableHeading level={1} className="font-display text-4xl sm:text-[44px] leading-[1.05] font-semibold text-ink mt-2">
-          Pickup handover
-        </TranslatableHeading>
-        <TranslatableParagraph className="text-base text-ink-2 mt-2 max-w-2xl">
-          The artisan shows a pickup code and the local government officer scans it before handing over the material. Every pickup is recorded.
-        </TranslatableParagraph>
-      </div>
+      <PageHeader
+        eyebrow={translateSync("Pickup")}
+        title={translateSync("Pickup handover")}
+        description={translateSync(
+          "The artisan shows a pickup code and the local government officer scans it before handing over the material. Every pickup is recorded."
+        )}
+      />
 
       {canShowCode && canVerify && (
         <div className="flex p-1 bg-surface rounded-lg border border-line sm:max-w-sm" role="group" aria-label={translateSync("Pickup role")}>

@@ -156,7 +156,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
       new maps.Marker({ map, position: collection, title: collection.label });
       if (workshop) {
         new maps.Marker({ map, position: workshop, title: workshop.label });
-        new maps.Polyline({ map, path: [collection, workshop], strokeColor: "#e0763a", strokeWeight: 4 });
+        new maps.Polyline({ map, path: [collection, workshop], strokeColor: "#c2602f", strokeWeight: 4 });
         const bounds = new maps.LatLngBounds();
         bounds.extend(collection);
         bounds.extend(workshop);
@@ -192,7 +192,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
             new Polyline3DElement({
               path: arc(collection, workshop),
               altitudeMode: "RELATIVE_TO_GROUND",
-              strokeColor: "#e0763a",
+              strokeColor: "#c2602f",
               strokeWidth: 6,
               outerColor: "#ffffff",
               outerWidth: 0.4,

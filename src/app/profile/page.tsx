@@ -9,7 +9,7 @@ import { apiJson } from "@/lib/api";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
-import { Spinner } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, LinkButton, Skeleton, Spinner, Stat, cn } from "@/components/ui";
 import type { BatchView, ProductView } from "@/lib/server/views";
 import type { BuyerOrder } from "@/app/api/orders/route";
 import {
@@ -26,7 +26,7 @@ import {
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
-  const { formatCurrency, formatNumber, translateSync, currentLanguage } = useTranslation();
+  const { formatCurrency, formatNumber, formatDate, translateSync, currentLanguage } = useTranslation();
 
   // Active Tab for Sidebar/Tablet/Mobile (6 views or direct scrolling)
   const [activeTab, setActiveTab] = useState<string>("personal");
@@ -119,329 +119,232 @@ export default function ProfilePage() {
   }
 
   const role = user.role || "buyer";
-  const roleLabel =
-    role === "artisan"
-      ? "Artisan"
-      : role === "lgu"
-      ? "Local government officer"
-      : role === "admin"
-      ? "Administrator"
-      : "Buyer";
+  const roleLabel = translateSync(role === "artisan" ? "Artisan" : role === "lgu" ? "Local government officer" : role === "admin" ? "Administrator" : "Buyer");
 
   // Materials this user has actually worked with: tags on their listings, or batches they logged.
   const materialsHandled: string[] = [
-    ...new Set<string>(
-      role === "artisan" ? artisanProducts.flatMap((p) => p.materialTags ?? []) : lguBatches.map((b) => b.materialType)
-    ),
+    ...new Set<string>(role === "artisan" ? artisanProducts.flatMap((p) => p.materialTags ?? []) : lguBatches.map((b) => b.materialType)),
   ].slice(0, 8);
 
-  // Activity stats from this user's own records
-  const totalBatchesScanned = lguBatches.length;
-  const totalOrdersCompleted = orders.length;
+  // Activity stats from this user's own records, only the ones that apply to their role
   const purchasedKg = orders.reduce((acc, o) => acc + (o.product?.kgDiverted ?? 0) * (o.quantity ?? 1), 0);
   const totalKgDiverted =
-    role === "artisan" ? artisanProducts.reduce((acc, p) => acc + (p.kgDiverted ?? 0), 0) : role === "lgu" ? lguBatches.reduce((acc, b) => acc + (b.weightKg ?? 0), 0) : purchasedKg;
-
-  const navigationItems = [
-    { id: "personal", label: "Personal info", icon: User },
-    ...(role === "artisan" || role === "lgu" || role === "admin"
-      ? [{ id: "cooperative", label: "Cooperative record", icon: Layers }]
-      : []),
-    { id: "activity", label: "Activity summary", icon: Sliders },
-    { id: "impact", label: "My Impact Passes", icon: FileText },
-    { id: "settings", label: "Account settings", icon: Globe },
+    role === "artisan"
+      ? artisanProducts.reduce((acc, p) => acc + (p.kgDiverted ?? 0), 0)
+      : role === "lgu"
+      ? lguBatches.reduce((acc, b) => acc + (b.weightKg ?? 0), 0)
+      : purchasedKg;
+  const activityStats = [
+    ...(role === "lgu" ? [{ label: translateSync("Batches logged"), value: formatNumber(lguBatches.length) }] : []),
+    ...(role === "artisan" ? [{ label: translateSync("Pieces listed"), value: formatNumber(artisanProducts.length) }] : []),
+    { label: translateSync("Orders placed"), value: formatNumber(orders.length) },
+    {
+      label: translateSync(role === "lgu" ? "Material logged" : role === "artisan" ? "Material in your pieces" : "Material your purchases saved"),
+      value: formatNumber(totalKgDiverted),
+      unit: "kg",
+    },
   ];
 
+  const navigationItems = [
+    { id: "impact", label: translateSync("Impact Passes"), icon: FileText },
+    { id: "personal", label: translateSync("Personal info"), icon: User },
+    ...(role === "artisan" || role === "lgu" || role === "admin" ? [{ id: "cooperative", label: translateSync("Workshop or station"), icon: Layers }] : []),
+    { id: "activity", label: translateSync("Activity"), icon: Sliders },
+    { id: "settings", label: translateSync("Settings"), icon: Globe },
+  ];
+
+  const field = (label: string, value: React.ReactNode) => (
+    <div className="space-y-1">
+      <dt className="text-sm text-ink-3">{label}</dt>
+      <dd className="text-[15px] font-medium text-ink break-words">{value}</dd>
+    </div>
+  );
+
+  const sectionTitle = (title: string, aside?: React.ReactNode) => (
+    <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3 border-b border-line">
+      <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
+      {aside}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen py-10 sm:py-14 px-4 sm:px-8 lg:px-12">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* 1. PROFILE HEADER */}
-        <section className="bg-surface border border-line rounded-md p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="flex items-center space-x-4">
-            {/* Avatar Circle */}
+    <div className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+        {/* Header */}
+        <Card className="p-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div className="flex items-center gap-4 min-w-0">
             {user.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- avatars can be any https host
-              <img
-                src={user.avatarUrl}
-                alt={user.fullName}
-                className="w-16 h-16 rounded-full object-cover border border-line-strong/30"
-              />
+              <img src={user.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover border border-line shrink-0" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-pine-700 text-white flex items-center justify-center font-display text-2xl font-bold border border-lantern/30">
+              <span className="w-16 h-16 rounded-full bg-pine-700 text-white flex items-center justify-center font-display text-2xl font-semibold shrink-0">
                 {user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
-              </div>
+              </span>
             )}
-
-            <div className="space-y-1">
-              <h1 className="font-display text-2xl sm:text-3xl font-medium text-ink leading-tight">
-                {user.fullName || "Registered Member"}
-              </h1>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-pine-700/10 text-lantern-600 border border-line-strong/20">
-                  {roleLabel}
-                </span>
+            <div className="space-y-1.5 min-w-0">
+              <h1 className="font-display text-[28px] sm:text-3xl font-semibold text-ink leading-tight truncate">{user.fullName || translateSync("HeriTech member")}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="pine">{roleLabel}</Badge>
                 {user.artisanVerified && (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-pine-500/10 text-pine-500 border border-pine-300/25">
-                    Verified artisan
-                  </span>
+                  <Badge tone="success">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    {translateSync("Verified artisan")}
+                  </Badge>
                 )}
               </div>
             </div>
           </div>
+          <Button variant="secondary" onClick={() => setEditModalOpen(true)} className="w-full sm:w-auto">
+            <Edit3 className="w-4 h-4" />
+            {translateSync("Edit profile")}
+          </Button>
+        </Card>
 
-          <button
-            onClick={() => setEditModalOpen(true)}
-            className="px-4 py-2.5 rounded-md border border-line-strong hover:border-line-strong text-lantern-600 hover:bg-paper-2 text-xs font-bold transition-colors flex items-center space-x-1.5 cursor-pointer min-h-[44px]"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>Edit profile</span>
-          </button>
-        </section>
-
-        {/* Responsive Navigation Selector */}
-        {/* Mobile Dropdown View Switcher (<640px) */}
-        <div className="sm:hidden space-y-1">
-          <label className="text-xs font-bold text-ink-3">
-            Select section
-          </label>
-          <select
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value)}
-            aria-label="Select profile section"
-            className="w-full p-3 rounded-md bg-surface border border-line-strong text-sm font-medium text-ink min-h-[44px]"
-          >
-            {navigationItems.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Tablet Horizontal Tabs (640px - 1023px) */}
-        <div className="hidden sm:flex lg:hidden overflow-x-auto border-b border-line pb-1 gap-2">
+        {/* Section switcher: scrolling tabs on phones and tablets, a sidebar on desktop */}
+        <nav
+          aria-label={translateSync("Profile sections")}
+          className="lg:hidden -mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-none [mask-image:linear-gradient(to_right,black_88%,transparent)] sm:[mask-image:none]"
+        >
           {navigationItems.map((item) => {
             const active = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`px-4 py-2.5 text-xs font-bold rounded-md whitespace-nowrap transition-colors min-h-[44px] ${
-                  active
-                    ? "bg-pine-700 text-white"
-                    : "text-ink-3 hover:bg-paper-2 hover:text-ink"
-                }`}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-2 min-h-11 px-4 rounded-full text-sm font-medium whitespace-nowrap border transition-colors cursor-pointer",
+                  active ? "bg-pine-700 border-pine-700 text-white" : "bg-surface border-line text-ink-2 hover:border-pine-300"
+                )}
               >
+                <item.icon className="w-4 h-4" />
                 {item.label}
               </button>
             );
           })}
-        </div>
+        </nav>
 
-        {/* Desktop Sidebar + Content Layout (>=1024px) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Desktop Left Sidebar */}
-          <aside className="hidden lg:block lg:col-span-4 space-y-1 bg-surface border border-line rounded-md p-3 h-fit">
-            <div className="px-3 py-2 text-xs font-bold text-ink-3 border-b border-line mb-2">
-              Profile sections
-            </div>
-            {navigationItems.map((item) => {
-              const active = activeTab === item.id;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 text-xs font-bold rounded-md transition-colors text-left cursor-pointer min-h-[44px] ${
-                    active
-                      ? "bg-pine-700 text-white"
-                      : "text-ink-3 hover:bg-paper-2 hover:text-ink"
-                  }`}
-                >
-                  <div className="flex items-center space-x-2.5">
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-                </button>
-              );
-            })}
-          </aside>
+          <nav aria-label={translateSync("Profile sections")} className="hidden lg:block lg:col-span-4">
+            <Card className="p-2 space-y-1 h-fit">
+              {navigationItems.map((item) => {
+                const active = activeTab === item.id;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "w-full flex items-center justify-between gap-3 px-3.5 min-h-12 text-[15px] rounded-md transition-colors text-left cursor-pointer",
+                      active ? "bg-pine-700 text-white font-medium" : "text-ink-2 hover:bg-paper-2 hover:text-ink"
+                    )}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Icon className="w-4 h-4" />
+                      {item.label}
+                    </span>
+                    <ChevronRight className="w-4 h-4 opacity-60" />
+                  </button>
+                );
+              })}
+            </Card>
+          </nav>
 
-          {/* Right Content Pane (Render All Sections or Focus Active) */}
-          <main className="lg:col-span-8 space-y-8">
-            {/* 2. PERSONAL INFO SECTION */}
-            {(activeTab === "personal" || activeTab === "all") && (
-              <section className="bg-surface border border-line rounded-md p-6 sm:p-8 space-y-6">
-                <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-line">
-                  Personal info
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-ink-3">
-                      Full name
-                    </p>
-                    <p className="text-[15px] font-medium text-ink">
-                      {user.fullName || "Not specified"}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-ink-3">
-                      Email address
-                    </p>
-                    <p className="text-[15px] font-mono-data text-ink truncate">
-                      {user.email}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-ink-3">
-                      Region or location
-                    </p>
-                    <p className="text-[15px] font-medium text-ink">
-                      {user.country || "Philippines"}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-ink-3">
-                      Language preference
-                    </p>
-                    <p className="text-[15px] font-medium text-ink">
-                      {currentLanguage?.name || "English (en)"}
-                    </p>
-                  </div>
-                </div>
-              </section>
+          <div className="lg:col-span-8 space-y-8">
+            {activeTab === "personal" && (
+              <Card className="p-5 sm:p-8 space-y-6">
+                {sectionTitle(translateSync("Personal info"))}
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {field(translateSync("Full name"), user.fullName || translateSync("Not set yet."))}
+                  {field(translateSync("Email"), <span className="font-mono-data">{user.email}</span>)}
+                  {field(translateSync("Country"), user.country ? translateSync(user.country) : translateSync("Not set yet."))}
+                  {field(translateSync("Language"), currentLanguage?.name || "English")}
+                </dl>
+              </Card>
             )}
 
-            {/* 3. COOPERATIVE / ORGANIZATION SECTION (Artisan / LGU) */}
-            {(activeTab === "cooperative" || activeTab === "all") &&
-              (role === "artisan" || role === "lgu" || role === "admin") && (
-                <section className="bg-surface border border-line rounded-md p-6 sm:p-8 space-y-6">
-                  <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-line">
-                    Cooperative record
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-ink-3">
-                        {role === "lgu" ? "Municipal station" : "Cooperative name"}
-                      </p>
-                      <p className="text-[15px] font-medium text-ink">
-                        {user.workshopName || user.stationName || translateSync("Not set yet. Add it with Edit profile.")}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-ink-3">
-                        Verification
-                      </p>
-                      <div className="pt-0.5">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-pine-500/10 text-pine-500 border border-pine-300/25 inline-block">
-                          {translateSync(role === "artisan" ? (user.artisanVerified ? "Verified artisan" : "Artisan") : role === "lgu" ? "Verified local government officer" : "Administrator")}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-ink-3">
-                        Materials handled
-                      </p>
-                      {materialsHandled.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5 pt-0.5">
-                          {materialsHandled.map((material) => (
-                            <span key={material} className="text-xs font-semibold px-2 py-0.5 rounded-md bg-paper-2 text-ink border border-line">
-                              {translateSync(material)}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-ink-3">{translateSync("None yet.")}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-ink-3">
-                        Country
-                      </p>
-                      <p className="text-[15px] font-medium text-ink">
-                        {user.country || translateSync("Not set yet.")}
-                      </p>
-                    </div>
-                  </div>
-                </section>
-              )}
-
-            {/* 4. ACTIVITY SUMMARY SECTION */}
-            {(activeTab === "activity" || activeTab === "all") && (
-              <section className="bg-surface border border-line rounded-md p-6 sm:p-8 space-y-6">
-                <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-line">
-                  Activity summary
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 bg-paper-2 border border-line rounded-md space-y-1">
-                    <p className="text-[12px] font-medium text-ink-3">
-                      Batches scanned
-                    </p>
-                    <p className="font-display text-2xl font-semibold text-ink">
-                      {totalBatchesScanned}
-                    </p>
-                  </div>
-
-                  <div className="p-4 bg-paper-2 border border-line rounded-md space-y-1">
-                    <p className="text-[12px] font-medium text-ink-3">
-                      Orders completed
-                    </p>
-                    <p className="font-display text-2xl font-semibold text-ink">
-                      {totalOrdersCompleted}
-                    </p>
-                  </div>
-
-                  <div className="p-4 bg-paper-2 border border-line rounded-md space-y-1">
-                    <p className="text-[12px] font-medium text-ink-3">
-                      Kilograms diverted
-                    </p>
-                    <p className="font-display text-2xl font-semibold text-pine-500">
-                      {formatNumber(totalKgDiverted)} kg
-                    </p>
-                  </div>
-                </div>
-              </section>
+            {activeTab === "cooperative" && (role === "artisan" || role === "lgu" || role === "admin") && (
+              <Card className="p-5 sm:p-8 space-y-6">
+                {sectionTitle(translateSync("Workshop or station"))}
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {field(
+                    translateSync(role === "lgu" ? "Municipal station" : "Workshop or cooperative"),
+                    user.workshopName || user.stationName || translateSync("Not set yet. Add it with Edit profile.")
+                  )}
+                  {field(
+                    translateSync("Verification"),
+                    <Badge tone="success">
+                      {translateSync(role === "artisan" ? (user.artisanVerified ? "Verified artisan" : "Artisan") : role === "lgu" ? "Verified local government officer" : "Administrator")}
+                    </Badge>
+                  )}
+                  {field(
+                    translateSync("Materials handled"),
+                    materialsHandled.length > 0 ? (
+                      <span className="flex flex-wrap gap-1.5 pt-0.5">
+                        {materialsHandled.map((material) => (
+                          <Badge key={material}>{translateSync(material)}</Badge>
+                        ))}
+                      </span>
+                    ) : (
+                      <span className="text-ink-3 font-normal">{translateSync("None yet.")}</span>
+                    )
+                  )}
+                  {field(translateSync("Country"), user.country ? translateSync(user.country) : translateSync("Not set yet."))}
+                </dl>
+              </Card>
             )}
 
-            {/* 5. IMPACT RECORD SECTION */}
-            {(activeTab === "impact" || activeTab === "all") && (
-              <section className="bg-surface border border-line rounded-md p-6 sm:p-8 space-y-6">
-                <div className="flex items-center justify-between pb-3 border-b border-line">
-                  <h2 className="font-display text-xl font-medium text-ink">
-                    {translateSync("Your Impact Passes")}
-                  </h2>
-                  <span className="text-xs font-mono-data text-ink-3">
-                    {translateSync("Your purchases")}
-                  </span>
+            {activeTab === "activity" && (
+              <Card className="p-5 sm:p-8 space-y-6">
+                {sectionTitle(translateSync("Activity"))}
+                <div className={cn("grid grid-cols-1 gap-4", activityStats.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+                  {activityStats.map((s) => (
+                    <div key={s.label} className="p-4 bg-paper border border-line rounded-md">
+                      {loadingData ? <Skeleton className="h-14" /> : <Stat label={s.label} value={s.value} unit={s.unit} />}
+                    </div>
+                  ))}
                 </div>
+              </Card>
+            )}
+
+            {activeTab === "impact" && (
+              <Card id="passes" className="p-5 sm:p-8 space-y-6 scroll-mt-24">
+                {sectionTitle(
+                  translateSync("Your Impact Passes"),
+                  !loadingData && orders.length > 0 && (
+                    <span className="text-sm text-ink-3 tabular">
+                      {orders.length} {translateSync(orders.length === 1 ? "purchase" : "purchases")}
+                    </span>
+                  )
+                )}
 
                 <LoyaltyCard />
 
                 {loadingData ? (
-                  <p className="text-xs text-ink-3">{translateSync("Loading…")}</p>
+                  <div className="grid gap-6 md:grid-cols-2" role="status" aria-label={translateSync("Loading your passes")}>
+                    <Skeleton className="h-72 rounded-lg" />
+                    <Skeleton className="h-72 rounded-lg hidden md:block" />
+                  </div>
                 ) : orders.length === 0 ? (
-                  <p className="text-sm text-ink-2">
-                    {translateSync("No purchases yet. Each piece you buy comes with a Verified Impact Pass, listed here.")}
-                  </p>
+                  <EmptyState
+                    icon={<FileText className="w-5 h-5" />}
+                    title={translateSync("No passes yet")}
+                    description={translateSync("Each piece you buy comes with a Verified Impact Pass that shows where its material came from. It appears here.")}
+                    action={<LinkButton href="/#shop">{translateSync("Browse the shop")}</LinkButton>}
+                  />
                 ) : (
-                  <div id="passes" className="grid gap-8 md:grid-cols-2 scroll-mt-24">
+                  <div className="grid gap-8 md:grid-cols-2">
                     {orders.map((order) => (
                       <div key={order.id} className="space-y-2">
-                        <p className="flex flex-wrap items-center gap-x-2 text-xs text-ink-3">
-                          <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                        <p className="flex flex-wrap items-center gap-x-2 text-sm text-ink-3">
+                          <span>{formatDate(new Date(order.createdAt))}</span>
                           <span aria-hidden>·</span>
-                          <span>
+                          <span className="tabular">
                             {order.quantity} × {formatCurrency(order.unitPrice ?? order.amountPaid / (order.quantity || 1))}
                           </span>
                           <span aria-hidden>·</span>
-                          <span className="font-medium text-ink-2">
+                          <span className="font-medium text-ink-2 tabular">
                             {translateSync("Paid")} {formatCurrency(order.amountPaid)}
                           </span>
                         </p>
@@ -464,42 +367,26 @@ export default function ProfilePage() {
                     ))}
                   </div>
                 )}
-              </section>
+              </Card>
             )}
 
-            {/* 6. ACCOUNT SETTINGS SECTION */}
-            {(activeTab === "settings" || activeTab === "all") && (
-              <section className="bg-surface border border-line rounded-md p-6 sm:p-8 space-y-6">
-                <h2 className="font-display text-xl font-medium text-ink pb-3 border-b border-line">
-                  Account settings
-                </h2>
-
-                <div className="space-y-4">
-                  {/* Language Selector row */}
-                  <div className="flex items-center justify-between py-3 border-b border-line">
-                    <div>
-                      <p className="text-sm font-medium text-ink">Interface language</p>
-                      <p className="text-xs text-ink-3">
-                        Change the active UI translation across the platform
-                      </p>
-                    </div>
-                    <LanguageSelector variant="compact" />
+            {activeTab === "settings" && (
+              <Card className="p-5 sm:p-8 space-y-6">
+                {sectionTitle(translateSync("Settings"))}
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-line">
+                  <div>
+                    <p className="text-[15px] font-medium text-ink">{translateSync("Language")}</p>
+                    <p className="text-sm text-ink-3">{translateSync("Changes the language across HeriTech on this device.")}</p>
                   </div>
-
-                  {/* Destructive Sign Out Button */}
-                  <div className="pt-4">
-                    <button
-                      onClick={signOut}
-                      className="w-full py-3 rounded-md bg-danger/20 hover:bg-danger/30 text-danger border border-danger/30 text-xs font-bold transition-colors flex items-center justify-center space-x-2 cursor-pointer min-h-[44px]"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Sign out of HeriTech</span>
-                    </button>
-                  </div>
+                  <LanguageSelector />
                 </div>
-              </section>
+                <Button variant="secondary" onClick={signOut} className="w-full text-danger hover:text-danger hover:border-danger">
+                  <LogOut className="w-4 h-4" />
+                  {translateSync("Sign out of HeriTech")}
+                </Button>
+              </Card>
             )}
-          </main>
+          </div>
         </div>
       </div>
 

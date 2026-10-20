@@ -402,7 +402,7 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
-          <LanguageSelector variant="compact" />
+          <LanguageSelector />
           <CartButton />
           <div className="hidden md:block">
             <AccountMenu />

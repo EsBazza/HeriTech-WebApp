@@ -86,7 +86,7 @@ export function AccessGuard({ children, allowedRoles, pageTitle = "this page", r
                 {translateSync("Demo: sign in as")} {translateSync(ROLE_NAMES[role])}
               </Button>
             ))}
-          {authError && <p className="text-sm text-danger">{translateSync(authError)}</p>}
+          {authError && <p role="alert" className="text-sm text-danger">{translateSync(authError)}</p>}
           <LinkButton href="/" variant="secondary" size="lg" className="w-full">
             <ArrowLeft className="w-4 h-4" />
             {translateSync("Back to shop")}

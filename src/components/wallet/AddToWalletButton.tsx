@@ -29,7 +29,7 @@ export function AddToWalletButton({ serial, className }: { serial: string; class
     };
   }, [serial]);
 
-  if (error) return <p className="text-xs text-ink-3">{translateSync(error)}</p>;
+  if (error) return <p className="text-sm text-ink-3" role="status">{translateSync(error)}</p>;
 
   return (
     <a
@@ -46,28 +46,5 @@ export function AddToWalletButton({ serial, className }: { serial: string; class
       <Wallet className="h-5 w-5" aria-hidden />
       {saveUrl ? translateSync("Add to Google Wallet") : translateSync("Preparing Wallet pass…")}
     </a>
-  );
-}
-
-/** Compact variant for lists: fetches the link on tap and navigates in the same tab. */
-export function AddToWalletLink({ serial }: { serial: string }) {
-  const { translateSync } = useTranslation();
-  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
-
-  return (
-    <button
-      type="button"
-      disabled={state === "loading"}
-      onClick={async () => {
-        setState("loading");
-        const result = await apiJson<{ saveUrl: string }>(`/api/wallet/${encodeURIComponent(serial)}`);
-        if (result.success && result.data) window.location.assign(result.data.saveUrl);
-        else setState("error");
-      }}
-      className="inline-flex items-center gap-1 text-xs font-medium text-ink-2 hover:text-ink disabled:opacity-60 cursor-pointer"
-    >
-      <Wallet className="h-3.5 w-3.5" aria-hidden />
-      {state === "error" ? translateSync("Wallet unavailable") : translateSync("Add to Wallet")}
-    </button>
   );
 }

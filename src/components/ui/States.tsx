@@ -15,7 +15,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center text-center px-6 py-14 border border-dashed border-line-strong rounded-md bg-surface/60", className)}>
+    <div className={cn("flex flex-col items-center text-center px-5 sm:px-6 py-12 sm:py-14 border border-dashed border-line-strong rounded-md bg-surface/60", className)}>
       {icon && <div className="w-11 h-11 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center mb-4">{icon}</div>}
       <h3 className="text-lg font-semibold text-ink font-sans">{title}</h3>
       {description && <div className="text-sm text-ink-3 mt-1 max-w-sm">{description}</div>}
@@ -26,9 +26,9 @@ export function EmptyState({ icon, title, description, action, className }: Empt
 
 export function Spinner({ label, className }: { label?: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-3 py-20 text-sm text-ink-3", className)}>
+    <div role="status" aria-live="polite" className={cn("flex flex-col items-center justify-center gap-3 py-20 text-sm text-ink-3", className)}>
       <span className="w-8 h-8 rounded-full border-2 border-pine-200 border-t-pine-700 animate-spin" aria-hidden />
-      {label}
+      {label ?? <span className="sr-only">Loading…</span>}
     </div>
   );
 }

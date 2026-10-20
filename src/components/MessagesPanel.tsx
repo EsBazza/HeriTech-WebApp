@@ -99,8 +99,38 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [botError, setBotError] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [threadsLoading, setThreadsLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+
+  // While open: lock the page behind, move focus into the panel, and give it back on close.
+  useEffect(() => {
+    if (!isOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.focus();
+    return () => {
+      document.body.style.overflow = overflow;
+      previouslyFocused?.focus?.();
+    };
+  }, [isOpen]);
+
+  // Escape steps back: from a conversation to the inbox, then closes.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (activeThreadId) {
+        setActiveThreadId(null);
+        setInputMessage("");
+        setBotError(null);
+      } else onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, activeThreadId, onClose]);
 
   // Load the assistant thread and drafts from localStorage on mount
   useEffect(() => {
@@ -141,7 +171,9 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   // Refresh conversations with people each time the panel opens
   useEffect(() => {
     if (!isOpen || !user) return;
+    setThreadsLoading(true);
     apiJson<ServerMessage[]>("/api/messages").then((result) => {
+      setThreadsLoading(false);
       if (!result.success) return;
       const serverThreads = threadsFromServer(result.data ?? [], user.id);
       setThreads((prev) => {
@@ -335,17 +367,19 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
       <div onClick={closeAll} className="fixed inset-0 bg-pine-900/40 backdrop-blur-[2px] z-50" aria-hidden="true" />
 
       <aside
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="messages-title"
-        className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-surface shadow-pop z-50 flex flex-col"
+        className="fixed top-0 right-0 h-[100dvh] w-full sm:w-[400px] bg-surface shadow-pop z-50 flex flex-col outline-none animate-[drawer-in_0.28s_var(--ease-sheet)]"
       >
-        <div className="h-16 px-4 border-b border-line flex items-center justify-between shrink-0">
+        <div className="h-16 box-content pt-[env(safe-area-inset-top,0px)] px-4 border-b border-line flex items-center justify-between shrink-0">
           <div className="flex items-center gap-1 min-w-0">
             {activeThreadId && (
               <button
                 onClick={handleBackToInbox}
-                className="w-10 h-10 -ml-2 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer"
+                className="w-11 h-11 -ml-2 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer"
                 aria-label={translateSync("Back to inbox")}
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -361,7 +395,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
 
           <button
             onClick={closeAll}
-            className="w-10 h-10 -mr-2 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer"
+            className="w-11 h-11 -mr-2 rounded-md flex items-center justify-center text-ink-3 hover:bg-paper-2 hover:text-ink cursor-pointer"
             aria-label={translateSync("Close messages")}
           >
             <X className="w-5 h-5" />
@@ -369,7 +403,16 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
         </div>
 
         {!activeThreadId ? (
-          <div className="flex-1 overflow-y-auto divide-y divide-line">
+          <div className="flex-1 overflow-y-auto overscroll-contain divide-y divide-line pb-[env(safe-area-inset-bottom,0px)]">
+            {threadsLoading && threads.length <= 1 && (
+              <div className="px-4 py-3.5 flex items-center gap-3" role="status" aria-label={translateSync("Loading conversations")}>
+                <span className="w-10 h-10 rounded-full bg-paper-2 animate-pulse shrink-0" />
+                <span className="flex-1 space-y-2">
+                  <span className="block h-4 w-1/2 rounded-sm bg-paper-2 animate-pulse" />
+                  <span className="block h-3 w-3/4 rounded-sm bg-paper-2 animate-pulse" />
+                </span>
+              </div>
+            )}
             {threads.map((t) => {
               const hasDraft = Boolean(drafts[t.id]?.trim());
               const last = t.messages[t.messages.length - 1]?.content;
@@ -414,10 +457,10 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-paper">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-3 bg-paper" aria-live="polite">
               {activeThread?.messages?.map((m, idx) => (
                 <div key={idx} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
-                  {m.isSystem && <span className="mb-1 px-1 text-[11px] text-ink-3">{translateSync("Automatic message")}</span>}
+                  {m.isSystem && <span className="mb-1 px-1 text-xs text-ink-3">{translateSync("Automatic message")}</span>}
                   <div
                     className={`max-w-[85%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed whitespace-pre-wrap ${
                       m.role === "user" ? "bg-pine-700 text-white rounded-br-sm" : "bg-surface border border-line text-ink-2 rounded-bl-sm"
@@ -450,7 +493,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
               <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-line flex items-center gap-2 shrink-0">
+            <form onSubmit={handleSendMessage} className="px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] border-t border-line flex items-center gap-2 shrink-0">
               <input
                 type="text"
                 value={inputMessage}

@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { Button, Input } from "@/components/ui";
+import { Button, Dialog, Input } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 
 interface EditProfileModalProps {
@@ -22,7 +21,7 @@ export function EditProfileModal({ onClose }: EditProfileModalProps) {
   const [workshop, setWorkshop] = useState(user?.workshopName ?? "");
   const [station, setStation] = useState(user?.stationName ?? "");
   const [workshopLocation, setWorkshopLocation] = useState<{ lat: number; lng: number } | null>(
-    user?.workshopLat != null && user?.workshopLng != null ? { lat: user.workshopLat, lng: user.workshopLng } : null
+    user?.workshopLat != null && user?.workshopLng != null ? { lat: user.workshopLat, lng: user.workshopLng } : null,
   );
   const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -46,7 +45,7 @@ export function EditProfileModal({ onClose }: EditProfileModalProps) {
         setError(`Couldn't get your location (${e.message}).`);
         setLocating(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
@@ -75,82 +74,72 @@ export function EditProfileModal({ onClose }: EditProfileModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-profile-title"
-        onClick={(e) => e.stopPropagation()}
-        className="bg-surface border border-line rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-pop"
-      >
-        <div className="flex items-center justify-between border-b border-line pb-3">
-          <h3 id="edit-profile-title" className="font-display text-xl font-medium text-ink">
-            {translateSync("Edit personal info")}
-          </h3>
-          <button onClick={onClose} aria-label={translateSync("Close")} className="p-1 rounded-md text-ink-3 hover:text-ink cursor-pointer">
-            <X className="w-5 h-5" />
-          </button>
+    <Dialog
+      open
+      onClose={onClose}
+      dismissible={!saving}
+      closeLabel={translateSync("Close")}
+      title={translateSync("Edit profile")}
+      footer={
+        <div className="flex gap-3">
+          <Button type="button" variant="secondary" className="flex-1" onClick={onClose} disabled={saving}>
+            {translateSync("Cancel")}
+          </Button>
+          <Button type="submit" form="edit-profile-form" className="flex-1" loading={saving}>
+            {translateSync(saving ? "Saving…" : "Save changes")}
+          </Button>
         </div>
+      }
+    >
+      <form id="edit-profile-form" onSubmit={save} className="space-y-4">
+        <Input label={translateSync("Full name")} required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        <Input label={translateSync("Country")} required value={country} onChange={(e) => setCountry(e.target.value)} />
+        <Input
+          label={translateSync("Profile photo link (optional)")}
+          type="url"
+          value={avatarUrl}
+          onChange={(e) => setAvatarUrl(e.target.value)}
+          placeholder="https://"
+        />
 
-        <form onSubmit={save} className="space-y-4">
-          <Input label={translateSync("Full name")} required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          <Input label={translateSync("Country")} required value={country} onChange={(e) => setCountry(e.target.value)} />
-          <Input
-            label={translateSync("Avatar image URL")}
-            type="url"
-            value={avatarUrl}
-            onChange={(e) => setAvatarUrl(e.target.value)}
-            placeholder="https://example.com/avatar.jpg"
-          />
+        {(role === "artisan" || role === "admin") && (
+          <Input label={translateSync("Workshop name")} value={workshop} onChange={(e) => setWorkshop(e.target.value)} />
+        )}
 
-          {(role === "artisan" || role === "admin") && (
-            <Input label={translateSync("Workshop name")} value={workshop} onChange={(e) => setWorkshop(e.target.value)} />
-          )}
-
-          {role === "artisan" && (
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-ink">{translateSync("Workshop location")}</p>
-              <p className="text-xs text-ink-3">
-                {translateSync("Optional. Shown on your product pages so buyers can follow the material from the collection point to your workshop.")}
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button type="button" variant="secondary" size="sm" onClick={pinWorkshop} loading={locating}>
-                  {translateSync(locating ? "Locating…" : workshopLocation ? "Update to my current location" : "Use my current location")}
-                </Button>
-                {workshopLocation && (
-                  <>
-                    <span className="text-xs text-ink-2 tabular">
-                      {workshopLocation.lat.toFixed(4)}°, {workshopLocation.lng.toFixed(4)}°
-                    </span>
-                    <button type="button" onClick={() => setWorkshopLocation(null)} className="text-xs text-ink-3 underline cursor-pointer">
-                      {translateSync("Remove")}
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {(role === "lgu" || role === "admin") && (
-            <Input label={translateSync("Local government office")} value={station} onChange={(e) => setStation(e.target.value)} />
-          )}
-
-          {error && (
-            <p role="alert" className="text-sm text-danger">
-              {translateSync(error)}
+        {role === "artisan" && (
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium text-ink">{translateSync("Workshop location")}</p>
+            <p className="text-sm text-ink-3">
+              {translateSync("Optional. Shown on your product pages so buyers can follow the material from the collection point to your workshop.")}
             </p>
-          )}
-
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
-            <Button type="button" variant="secondary" onClick={onClose}>
-              {translateSync("Cancel")}
-            </Button>
-            <Button type="submit" loading={saving}>
-              {translateSync(saving ? "Saving…" : "Save changes")}
-            </Button>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="button" variant="secondary" size="sm" onClick={pinWorkshop} loading={locating}>
+                {translateSync(locating ? "Locating…" : workshopLocation ? "Update to my current location" : "Use my current location")}
+              </Button>
+              {workshopLocation && (
+                <>
+                  <span className="text-sm text-ink-2 tabular">
+                    {workshopLocation.lat.toFixed(4)}°, {workshopLocation.lng.toFixed(4)}°
+                  </span>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setWorkshopLocation(null)}>
+                    {translateSync("Remove")}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+
+        {(role === "lgu" || role === "admin") && (
+          <Input label={translateSync("Local government office")} value={station} onChange={(e) => setStation(e.target.value)} />
+        )}
+
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {translateSync(error)}
+          </p>
+        )}
+      </form>
+    </Dialog>
   );
 }
