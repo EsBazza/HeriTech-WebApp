@@ -1130,15 +1130,15 @@
   width: 124%;
   height: 124%;
   object-fit: cover;
-  filter: blur(14px) saturate(1.35) brightness(0.72);
+  filter: blur(2px) saturate(1.15) brightness(0.85);
   transform: scale(1.04);
   /* Pulls in from a deeper blur when the pass appears, then drifts very slowly */
   animation: pass-focus 1.8s var(--ease-out) both, pass-drift 18s ease-in-out 1.8s infinite alternate;
   transition: filter 0.8s var(--ease-out);
 }
 @keyframes pass-focus {
-  from { filter: blur(34px) saturate(1) brightness(0.5); transform: scale(1.2); }
-  to { filter: blur(14px) saturate(1.35) brightness(0.72); transform: scale(1.04); }
+  from { filter: blur(22px) saturate(0.9) brightness(0.55); transform: scale(1.18); }
+  to { filter: blur(2px) saturate(1.15) brightness(0.85); transform: scale(1.04); }
 }
 @keyframes pass-drift {
   from { transform: scale(1.04) translate3d(0, 0, 0); }
@@ -1150,7 +1150,7 @@
   inset: 0;
   background: linear-gradient(170deg, #f2a65a 0%, #c4471e 40%, #1f3a2b 85%);
   mix-blend-mode: color;
-  opacity: 0.35;
+  opacity: 0.22;
   transition: opacity 0.8s var(--ease-out);
   pointer-events: none;
 }
@@ -1174,11 +1174,26 @@
   inset: 0;
   pointer-events: none;
 }
-/* Even tint over the whole card (no dark fade), so the photo shows behind every detail */
+/* Card shape: ISO ID-1 (85.6 x 54 mm), like a bank or transit card */
+.id-card {
+  aspect-ratio: 85.6 / 54;
+  border-radius: 4.6% / 7.3%;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.25) inset, 0 18px 36px -14px rgb(11 20 15 / 0.55), 0 4px 10px -4px rgb(11 20 15 / 0.35);
+}
+/* A thin bevelled edge, as on a printed card */
+.pass-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18), inset 0 -2px 6px rgb(0 0 0 / 0.25);
+}
+/* The photo stays clear on the right; a soft wash on the left and foot keeps the text crisp */
 .pass-photo .pass-scrim {
   background:
-    radial-gradient(120% 80% at 50% 0%, transparent 40%, rgb(11 20 15 / 0.25) 100%),
-    rgb(11 20 15 / 0.28);
+    linear-gradient(90deg, rgb(11 20 15 / 0.78) 0%, rgb(11 20 15 / 0.55) 42%, rgb(11 20 15 / 0.05) 72%),
+    linear-gradient(0deg, rgb(11 20 15 / 0.7) 0%, rgb(11 20 15 / 0) 46%),
+    linear-gradient(180deg, rgb(11 20 15 / 0.45) 0%, rgb(11 20 15 / 0) 22%);
 }
 /* Fine film grain, so the softened photo reads as print, not as a low-res image */
 .pass-grain {
@@ -1189,13 +1204,14 @@
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-.pass-title { text-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
+.pass-title { text-shadow: 0 1px 10px rgb(0 0 0 / 0.5); }
+.pass-serial { text-shadow: 0 1px 6px rgb(0 0 0 / 0.5); }
 .pass-rule { transform-origin: left; animation: pass-rule 0.8s var(--ease-out) 1.2s both; }
 @keyframes pass-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* Looking closer: the piece sharpens and takes back its own colours */
 @media (hover: hover) and (pointer: fine) {
-  .pass-stage:hover .pass-bg { filter: blur(8px) saturate(1.45) brightness(0.78); }
-  .pass-stage:hover .pass-duotone { opacity: 0.15; }
+  .pass-stage:hover .pass-bg { filter: blur(0) saturate(1.2) brightness(0.9); }
+  .pass-stage:hover .pass-duotone { opacity: 0.1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pass-bg, .pass-light, .pass-rule { animation: none; }
