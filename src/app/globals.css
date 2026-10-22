@@ -1,67 +1,141 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────
-   HeriTech design tokens — "Refined Heritage"
-   Use these via Tailwind utilities: bg-paper, text-ink, border-line,
-   bg-pine-700, text-lantern, rounded-md, shadow-card …
+   HeriTech design tokens — "Lantern Ink" (Heritage Lantern 3.0)
+   Lantern light on an indigo festival night: washi paper ground,
+   indigo chrome, one ember action per screen, pine for impact.
+   The "pine-*" names are the brand scale (now indigo) so existing
+   utilities keep working. Night values live in the blocks below.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  --color-pine-900: #14281e;
-  --color-pine-800: #1a3125;
-  --color-pine-700: #1f3a2b;
-  --color-pine-600: #2b4d3a;
-  --color-pine-500: #3c6b52;
-  --color-pine-400: #5f8a72;
-  --color-pine-300: #8fb09c;
-  --color-pine-200: #c4d8cb;
-  --color-pine-100: #e3ede6;
-  --color-pine-50: #f1f6f2;
+  /* Brand scale (indigo night) */
+  --color-pine-900: #14172b;
+  --color-pine-800: #181c36;
+  --color-pine-700: #1c2140;
+  --color-pine-600: #2a3160;
+  --color-pine-500: #4a5391;
+  --color-pine-400: #6e76ae;
+  --color-pine-300: #8d93c4;
+  --color-pine-200: #c9cce3;
+  --color-pine-100: #e7e8f3;
+  --color-pine-50: #f3f3f9;
 
-  --color-paper: #f7f4ee;
-  --color-paper-2: #efeae0;
-  --color-surface: #ffffff;
-  --color-line: #e4ded3;
-  --color-line-strong: #d3cbbd;
+  /* Brand-coloured text and icons, and soft brand borders (they flip at night) */
+  --color-brand: #1c2140;
+  --color-brand-2: #4a5391;
+  --color-brand-line: #c9cce3;
 
-  --color-ink: #1b1f1c;
-  --color-ink-2: #3f4742;
-  --color-ink-3: #5f6661;
+  --color-paper: #f6f1e7;
+  --color-paper-2: #ece5d6;
+  --color-surface: #fffdf8;
+  --color-line: #e2d9c7;
+  --color-line-strong: #cfc4ae;
 
-  --color-lantern: #c2602f;
-  --color-lantern-600: #a64f24;
-  --color-lantern-100: #f8e7dc;
+  --color-ink: #1a1b26;
+  --color-ink-2: #444655;
+  --color-ink-3: #63657a;
 
-  --color-success: #2f7d4f;
-  --color-success-100: #e2f1e7;
-  --color-warn: #9a6416;
+  /* Ember: the one action per screen. lantern = button fill (white text 4.9:1),
+     lantern-600 = ember text and links, lantern-700 = pressed/hover fill. */
+  --color-lantern: #c4471e;
+  --color-lantern-600: #a33a17;
+  --color-lantern-700: #a33a17;
+  --color-lantern-100: #f9e2d7;
+  /* Lantern light: highlights only, never text on paper */
+  --color-glow: #f2a65a;
+
+  /* Impact: kilograms kept from waste, the artisan's share */
+  --color-impact: #2f6b4f;
+  --color-impact-100: #e3efe8;
+
+  --color-success: #2f6b4f;
+  --color-success-100: #e3efe8;
+  --color-success-solid: #2f6b4f;
+  --color-warn: #8a5a12;
   --color-warn-100: #f8edd8;
+  --color-warn-solid: #8a5a12;
   --color-danger: #b42318;
   --color-danger-600: #931c13;
   --color-danger-100: #fbe6e4;
+  --color-danger-solid: #b42318;
 
-  /* Fixed 70/20/10 split colors */
-  --color-split-artisan: #1f3a2b;
-  --color-split-platform: #8fb09c;
-  --color-split-ngo: #c2602f;
+  /* Money split 70/25/5: artisan, local government, charity & upkeep */
+  --color-split-artisan: #2f6b4f;
+  --color-split-platform: #8d93c4;
+  --color-split-ngo: #c4471e;
 
-  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
+  /* sm chips · md controls · lg cards · xl sheets and dialogs; actions and arches are full */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  /* sm chips · md controls · lg cards · xl sheets and dialogs */
+  --radius-md: 8px;
+  --radius-lg: 14px;
   --radius-xl: 24px;
 
-  /* Motion: ease-out-soft for things entering, ease-spring for sheets and buttons, ease-glow for lantern light */
-  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Motion: three curves (ease-out for entering and leaving, ease-in-out for moving
+     on screen, drawer for sheets), plus plain ease for colour. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Older names, kept so existing utilities resolve to the same three curves */
+  --ease-out-soft: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-glow: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --ease-glow: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
 
-  --shadow-card: 0 0 0 1px rgb(27 31 28 / 0.02), 0 1px 2px rgb(27 31 28 / 0.05);
-  --shadow-pop: 0 12px 32px -8px rgb(20 40 30 / 0.18), 0 2px 6px rgb(20 40 30 / 0.06);
+  --shadow-card: 0 0 0 1px rgb(26 27 38 / 0.02), 0 1px 2px rgb(26 27 38 / 0.05);
+  --shadow-pop: 0 12px 32px -8px rgb(20 23 43 / 0.2), 0 2px 6px rgb(20 23 43 / 0.06);
+}
+
+/* ─── Night: the same festival after dark ───────────────────────
+   Auto (no choice saved) follows the phone; a saved Day or Night wins.
+   The head script sets data-theme before the first paint. */
+@layer theme {
+  :root[data-theme="night"] {
+    color-scheme: dark;
+    --color-pine-900: #0f1222;
+    --color-pine-800: #161a33;
+    --color-pine-700: #3a4170;
+    --color-pine-600: #4a5391;
+    --color-pine-500: #8d93c4;
+    --color-pine-400: #6e76ae;
+    --color-pine-300: #8d93c4;
+    --color-pine-200: #c9cce3;
+    --color-pine-100: #2a3058;
+    --color-pine-50: #1f2443;
+    --color-brand: #e7e8f3;
+    --color-brand-2: #a9aed6;
+    --color-brand-line: #434a7e;
+    --color-paper: #14172b;
+    --color-paper-2: #1a1e38;
+    --color-surface: #1e2240;
+    --color-line: #2e3460;
+    --color-line-strong: #434a7e;
+    --color-ink: #f3eee4;
+    --color-ink-2: #d9d6e4;
+    --color-ink-3: #b9b6cc;
+    --color-lantern: #c4471e;
+    --color-lantern-600: #f2a65a;
+    --color-lantern-700: #a33a17;
+    --color-lantern-100: #3a2530;
+    --color-impact: #6fbf91;
+    --color-impact-100: #1f3a33;
+    --color-success: #6fbf91;
+    --color-success-100: #1f3a33;
+    --color-success-solid: #2f6b4f;
+    --color-warn: #e3b062;
+    --color-warn-100: #3a3020;
+    --color-warn-solid: #8a5a12;
+    --color-danger: #f28b82;
+    --color-danger-600: #931c13;
+    --color-danger-100: #3d2228;
+    --color-danger-solid: #b42318;
+    --color-split-artisan: #6fbf91;
+    --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
+  }
 }
 
 @layer base {
@@ -101,14 +175,54 @@
     color: var(--color-ink);
   }
 
+  /* Reduced motion means gentler, not frozen: keyframe movement ends at once,
+     transitions keep only fades and colour, so changes are still visible. */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-property: opacity, color, background-color, border-color, fill, stroke, box-shadow !important;
       scroll-behavior: auto !important;
     }
   }
+}
+
+/* Colours ease over only while someone switches day/night, never on page load */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: background-color 240ms ease, color 240ms ease, border-color 240ms ease, fill 240ms ease !important;
+}
+.theme-thumb {
+  transition: transform 220ms var(--ease-out), background-color 240ms ease;
+}
+
+/* ─── Lantern Ink shapes ─── */
+/* Arched frame for craft photos: a soft lantern/doorway top */
+.arch {
+  border-radius: 50% 50% var(--radius-md) var(--radius-md) / 26% 26% var(--radius-md) var(--radius-md);
+}
+/* Ticket cut for Impact Passes: two notches at the stitched line (set --notch-y) */
+.ticket {
+  --notch: 11px;
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 var(--notch-y, 70%), #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% var(--notch-y, 70%), #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 var(--notch-y, 70%), #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% var(--notch-y, 70%), #0000 98%, #000) right / 51% 100% no-repeat;
+}
+/* The logo's tree is dark ink; at night it sits on a small washi plate */
+:root[data-theme="night"] .logo-plate {
+  background: #f6f1e7;
+  border-radius: 9999px;
+  padding: 2px;
+}
+/* Stitched divider, like the seams on upcycled cloth */
+.stitch {
+  border: 0;
+  border-top: 2px dashed var(--color-line);
 }
 
 /* ─── Motion ─────────────────────────────────────────────────
@@ -118,8 +232,8 @@
 /* Scroll reveal — hidden only when JS is running (html.js) */
 .js .reveal {
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(10px);
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
   transition-delay: var(--reveal-delay, 0ms);
 }
 .js .reveal.is-visible {
@@ -137,7 +251,7 @@
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -145,7 +259,7 @@
   }
 }
 .rise {
-  animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: rise 0.4s var(--ease-out) both;
   animation-delay: var(--rise-delay, 0ms);
 }
 
@@ -158,9 +272,9 @@
     transform: scale(1.14) translate3d(-2%, -1.5%, 0);
   }
 }
+/* Was an endless drift; the photo now holds still. */
 .kenburns {
-  animation: kenburns 26s ease-in-out infinite alternate;
-  will-change: transform;
+  transform: scale(1.04);
 }
 
 /* Soft drifting glow behind the hero (lantern light on paper) */
@@ -178,7 +292,6 @@
   border-radius: 9999px;
   filter: blur(64px);
   pointer-events: none;
-  animation: drift 22s ease-in-out infinite;
 }
 
 /* Gentle float for the sample pass card */
@@ -191,8 +304,9 @@
     transform: translateY(-6px);
   }
 }
+/* Was an endless bob; the card now sits still. */
 .float {
-  animation: float 7s ease-in-out infinite;
+  transform: none;
 }
 
 /* Pass card: ledger rows confirm one after another */
@@ -207,7 +321,7 @@
   }
 }
 .confirm {
-  animation: confirm 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: confirm 0.5s var(--ease-out) both;
   animation-delay: var(--confirm-delay, 0ms);
 }
 
@@ -280,7 +394,7 @@
 }
 .intro-fade {
   opacity: 0;
-  animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: rise 0.6s var(--ease-out) forwards;
   animation-delay: var(--rise-delay, 0s);
 }
 
@@ -338,7 +452,7 @@
 .trace[data-state="hover"] .trace-camera,
 .trace[data-state="full"] .trace-camera {
   transform: scale(1.05);
-  transition: transform 2.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 2.4s var(--ease-out);
 }
 .trace-color {
   -webkit-mask-image: radial-gradient(circle var(--trace-r) at var(--trace-x) var(--trace-y), #000 60%, transparent 100%);
@@ -353,7 +467,7 @@
 .trace[data-state="full"] .trace-tag {
   opacity: 1;
   transform: none;
-  transition: opacity 0.45s ease-out, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.45s ease-out, transform 0.45s var(--ease-out);
   transition-delay: calc(1350ms + var(--tag-delay, 0ms));
 }
 
@@ -403,7 +517,6 @@
   width: 100%;
   height: 100%;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
-  animation: litter-drift 7s ease-in-out infinite alternate;
   transition: filter 0.6s ease-out, box-shadow 0.6s ease-out;
   filter: saturate(0.55) brightness(0.8);
 }
@@ -446,9 +559,8 @@
 .trace[data-state="full"] .lantern-glow {
   opacity: 1;
   transform: scale(1);
-  animation:
-    lantern-ignite 0.9s cubic-bezier(0.2, 0.9, 0.3, 1) 0.85s both,
-    lantern-flicker 3.2s ease-in-out 2.2s infinite;
+  /* Lights once and stays lit */
+  animation: lantern-ignite 0.9s var(--ease-out) 0.85s both;
 }
 @keyframes lantern-ignite {
   0% {
@@ -478,7 +590,7 @@
 .trace[data-state="full"] .lantern-body {
   opacity: 0.94;
   transform: scale(1);
-  transition: opacity 0.5s ease-out 0.85s, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.8s;
+  transition: opacity 0.5s ease-out 0.85s, transform 0.7s var(--ease-out) 0.8s;
 }
 @keyframes lantern-flicker {
   0%,
@@ -516,41 +628,41 @@
 .js .journey .journey-step {
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: calc(var(--i) * 280ms);
+  transition: opacity 0.3s ease-out, transform 0.3s var(--ease-out);
+  transition-delay: calc(var(--i) * 120ms);
 }
 .js .journey .journey-line {
   transform: scaleY(0);
   transform-origin: top;
-  transition: transform 0.45s ease-out;
-  transition-delay: calc(var(--i) * 280ms + 220ms);
+  transition: transform 0.3s var(--ease-out);
+  transition-delay: calc(var(--i) * 120ms + 100ms);
 }
 
 /* ─── Lantern string: each recorded step lights up like a lantern, in order ─── */
 .journey-lamp {
-  box-shadow: 0 0 0 4px rgb(194 96 47 / 0.08), 0 0 14px 0 rgb(240 150 70 / 0.22);
+  box-shadow: 0 0 0 4px rgb(196 71 30 / 0.08), 0 0 14px 0 rgb(242 166 90 / 0.22);
 }
 .js .journey .journey-lamp {
   filter: grayscale(1);
   opacity: 0.45;
   box-shadow: none;
-  transition: filter 0.35s ease-out, opacity 0.35s ease-out;
-  transition-delay: calc(var(--i) * 280ms);
+  transition: filter 0.3s ease-out, opacity 0.3s ease-out;
+  transition-delay: calc(var(--i) * 120ms);
 }
 .js .journey.is-visible .journey-lamp {
   filter: none;
   opacity: 1;
-  animation: lamp-ignite 1s var(--ease-glow) calc(var(--i) * 280ms) both;
+  animation: lamp-ignite 0.6s var(--ease-out) calc(var(--i) * 120ms) both;
 }
 @keyframes lamp-ignite {
   0% {
-    box-shadow: 0 0 0 0 rgb(240 150 70 / 0), 0 0 0 0 rgb(240 150 70 / 0);
+    box-shadow: 0 0 0 0 rgb(242 166 90 / 0), 0 0 0 0 rgb(242 166 90 / 0);
   }
   40% {
-    box-shadow: 0 0 0 9px rgb(240 150 70 / 0.28), 0 0 26px 8px rgb(240 150 70 / 0.45);
+    box-shadow: 0 0 0 9px rgb(242 166 90 / 0.28), 0 0 26px 8px rgb(242 166 90 / 0.45);
   }
   100% {
-    box-shadow: 0 0 0 4px rgb(194 96 47 / 0.08), 0 0 14px 0 rgb(240 150 70 / 0.22);
+    box-shadow: 0 0 0 4px rgb(196 71 30 / 0.08), 0 0 14px 0 rgb(242 166 90 / 0.22);
   }
 }
 /* The latest step keeps a slow breathing halo */
@@ -558,8 +670,7 @@
   position: absolute;
   inset: -5px;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgb(240 150 70 / 0.35) 0%, transparent 70%);
-  animation: lamp-breathe 3.2s ease-in-out infinite;
+  background: radial-gradient(circle, rgb(242 166 90 / 0.35) 0%, transparent 70%);
   pointer-events: none;
 }
 .js .journey:not(.is-visible) .journey-halo {
@@ -583,18 +694,18 @@
   transition: background-color 0.3s ease-out, box-shadow 0.3s ease-out;
 }
 .lantern-dot[data-lit="true"] {
-  box-shadow: 0 0 0 3px rgb(194 96 47 / 0.12), 0 0 10px 0 rgb(240 150 70 / 0.35);
+  box-shadow: 0 0 0 3px rgb(196 71 30 / 0.12), 0 0 10px 0 rgb(242 166 90 / 0.35);
 }
 .lantern-dot[data-current="true"] {
-  animation: dot-breathe 2.6s ease-in-out infinite;
+  box-shadow: 0 0 0 4px rgb(196 71 30 / 0.16), 0 0 14px 2px rgb(242 166 90 / 0.45);
 }
 @keyframes dot-breathe {
   0%,
   100% {
-    box-shadow: 0 0 0 3px rgb(194 96 47 / 0.12), 0 0 8px 0 rgb(240 150 70 / 0.3);
+    box-shadow: 0 0 0 3px rgb(196 71 30 / 0.12), 0 0 8px 0 rgb(242 166 90 / 0.3);
   }
   50% {
-    box-shadow: 0 0 0 5px rgb(194 96 47 / 0.16), 0 0 16px 2px rgb(240 150 70 / 0.5);
+    box-shadow: 0 0 0 5px rgb(196 71 30 / 0.16), 0 0 16px 2px rgb(242 166 90 / 0.5);
   }
 }
 
@@ -616,13 +727,13 @@
 }
 @keyframes burst-glow {
   0% {
-    box-shadow: 0 0 0 0 rgb(47 125 79 / 0.45), 0 0 0 0 rgb(240 150 70 / 0);
+    box-shadow: 0 0 0 0 rgb(47 107 79 / 0.45), 0 0 0 0 rgb(242 166 90 / 0);
   }
   45% {
-    box-shadow: 0 0 0 14px rgb(47 125 79 / 0), 0 0 30px 10px rgb(240 150 70 / 0.35);
+    box-shadow: 0 0 0 14px rgb(47 107 79 / 0), 0 0 30px 10px rgb(242 166 90 / 0.35);
   }
   100% {
-    box-shadow: 0 0 0 18px rgb(47 125 79 / 0), 0 0 0 0 rgb(240 150 70 / 0);
+    box-shadow: 0 0 0 18px rgb(47 107 79 / 0), 0 0 0 0 rgb(242 166 90 / 0);
   }
 }
 .success-check {
@@ -663,13 +774,13 @@
 }
 @keyframes just-done {
   0% {
-    box-shadow: 0 0 0 0 rgb(240 150 70 / 0);
+    box-shadow: 0 0 0 0 rgb(242 166 90 / 0);
   }
   40% {
-    box-shadow: 0 0 0 6px rgb(240 150 70 / 0.25), 0 0 24px 4px rgb(240 150 70 / 0.35);
+    box-shadow: 0 0 0 6px rgb(242 166 90 / 0.25), 0 0 24px 4px rgb(242 166 90 / 0.35);
   }
   100% {
-    box-shadow: 0 0 0 0 rgb(240 150 70 / 0);
+    box-shadow: 0 0 0 0 rgb(242 166 90 / 0);
   }
 }
 
@@ -690,22 +801,22 @@
 
 /* Result rows arrive one after another */
 .stagger-in > * {
-  animation: rise 0.5s var(--ease-out-soft) both;
+  animation: rise 0.3s var(--ease-out) both;
 }
 .stagger-in > *:nth-child(2) {
-  animation-delay: 80ms;
+  animation-delay: 50ms;
 }
 .stagger-in > *:nth-child(3) {
-  animation-delay: 160ms;
+  animation-delay: 100ms;
 }
 .stagger-in > *:nth-child(4) {
-  animation-delay: 240ms;
+  animation-delay: 150ms;
 }
 .stagger-in > *:nth-child(5) {
-  animation-delay: 320ms;
+  animation-delay: 200ms;
 }
 .stagger-in > *:nth-child(n + 6) {
-  animation-delay: 400ms;
+  animation-delay: 250ms;
 }
 .js .journey.is-visible .journey-step {
   opacity: 1;
@@ -719,13 +830,13 @@
 .js .split-anim .split-seg {
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.5s var(--ease-out);
 }
 .js .split-anim .split-seg:nth-child(2) {
-  transition-delay: 0.25s;
+  transition-delay: 0.12s;
 }
 .js .split-anim .split-seg:nth-child(3) {
-  transition-delay: 0.5s;
+  transition-delay: 0.24s;
 }
 .js .split-anim.is-visible .split-seg {
   transform: none;
@@ -737,8 +848,8 @@
 }
 .pass-card {
   background:
-    radial-gradient(120% 90% at 100% 0%, rgb(194 96 47 / 0.35) 0%, transparent 55%),
-    linear-gradient(150deg, #24453a 0%, #14281e 70%);
+    radial-gradient(120% 90% at 100% 0%, rgb(196 71 30 / 0.35) 0%, transparent 55%),
+    linear-gradient(150deg, #2a3160 0%, #14172b 70%);
   transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
   transition: transform 0.25s ease-out;
   transform-style: preserve-3d;
@@ -748,7 +859,8 @@
   inset: -40%;
   background: linear-gradient(105deg, transparent 42%, rgb(255 255 255 / 0.14) 50%, transparent 58%);
   transform: translateX(-60%);
-  animation: pass-sheen 6s ease-in-out 1.2s infinite;
+  /* One sweep when the pass appears, then still */
+  animation: pass-sheen 1.6s var(--ease-in-out) 0.6s both;
   pointer-events: none;
 }
 @keyframes pass-sheen {
@@ -773,7 +885,7 @@
     animation: none;
   }
   .js .journey .journey-lamp {
-    box-shadow: 0 0 0 4px rgb(194 96 47 / 0.08), 0 0 14px 0 rgb(240 150 70 / 0.22);
+    box-shadow: 0 0 0 4px rgb(196 71 30 / 0.08), 0 0 14px 0 rgb(242 166 90 / 0.22);
   }
   .journey-halo,
   .lantern-dot[data-current="true"],
@@ -809,7 +921,7 @@
   }
 }
 .handover-success {
-  animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: rise 0.45s var(--ease-out) both;
 }
 @media (prefers-reduced-motion: reduce) {
   .scan-line {
@@ -840,13 +952,17 @@
 
 /* A freshly issued pass slides up into view */
 .pass-reveal {
-  animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: rise 0.6s var(--ease-out) both;
 }
 
-/* Cormorant defaults to old-style figures; keep numbers level everywhere */
+/* Fraunces: a soft, sturdy serif. Sizes were set for Cormorant, which runs smaller,
+   so the x-height is matched to keep every heading's layout. */
 .font-display {
   font-family: var(--font-display);
   font-variant-numeric: lining-nums;
+  font-size-adjust: 0.44;
+  font-variation-settings: "SOFT" 50, "WONK" 0;
+  letter-spacing: -0.01em;
 }
 
 .font-body {
@@ -897,10 +1013,9 @@
   inset: -40%;
   z-index: -1;
   background:
-    radial-gradient(38% 48% at 18% 32%, rgb(194 96 47 / 0.22), transparent 70%),
-    radial-gradient(34% 46% at 82% 68%, rgb(60 107 82 / 0.5), transparent 70%),
-    radial-gradient(28% 40% at 56% 12%, rgb(143 176 156 / 0.16), transparent 70%);
-  animation: band-drift 24s ease-in-out infinite alternate;
+    radial-gradient(38% 48% at 18% 32%, rgb(196 71 30 / 0.22), transparent 70%),
+    radial-gradient(34% 46% at 82% 68%, rgb(74 83 145 / 0.5), transparent 70%),
+    radial-gradient(28% 40% at 56% 12%, rgb(141 147 196 / 0.16), transparent 70%);
 }
 .ledger-band::after {
   content: "";
@@ -915,12 +1030,13 @@
   from { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
   to { transform: translate3d(4%, 3%, 0) rotate(6deg); }
 }
-.ledger-thread path { stroke-dasharray: 4 12; animation: thread-flow 2.2s linear infinite; }
+.ledger-thread path { stroke-dasharray: 4 12; }
 @keyframes thread-flow { to { stroke-dashoffset: -32; } }
-.ledger-pulse { animation: ledger-pulse 2.8s ease-out infinite; }
+/* Live-figures dot: one pulse when the figures arrive */
+.ledger-pulse { animation: ledger-pulse 1.4s ease-out 1; }
 @keyframes ledger-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(143 176 156 / 0.55); }
-  70%, 100% { box-shadow: 0 0 0 7px rgb(143 176 156 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(141 147 196 / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgb(141 147 196 / 0); }
 }
 
 /* Cursor spotlight on cards (pointer devices only) */
@@ -934,50 +1050,51 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
-  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(194 96 47 / 0.1), transparent 45%);
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(196 71 30 / 0.1), transparent 45%);
 }
 .spotlight-dark::before {
-  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(224 138 90 / 0.18), transparent 50%);
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(240 138 93 / 0.18), transparent 50%);
 }
 @media (hover: hover) {
   .spotlight:hover::before { opacity: 1; }
 }
 .js .reveal.is-visible.lift {
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: opacity 0.4s var(--ease-out), transform 0.2s var(--ease-out), box-shadow 0.2s ease, border-color 0.2s ease;
   transition-delay: var(--reveal-delay, 0ms), 0s, 0s, 0s;
 }
-@media (hover: hover) {
-  .js .reveal.is-visible.lift:hover { transform: translateY(-4px); }
+@media (hover: hover) and (pointer: fine) {
+  .js .reveal.is-visible.lift:hover { transform: translateY(-2px); }
 }
-.lift { transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease; }
-@media (hover: hover) {
-  .lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-pop); border-color: var(--color-line-strong); }
+.lift { transition: transform 0.2s var(--ease-out), box-shadow 0.2s ease, border-color 0.2s ease; }
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); border-color: var(--color-line-strong); }
 }
 
 .text-lantern-gradient {
-  background: linear-gradient(120deg, var(--color-lantern-600), var(--color-lantern) 55%, #e08a5a);
+  background: linear-gradient(120deg, var(--color-lantern-600), var(--color-lantern) 55%, #f08a5d);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 /* How it works: a rail that fills as the steps come into view */
-.step-rail-fill { transform: scaleX(0); transform-origin: left; transition: transform 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.2s; }
+.step-rail-fill { transform: scaleX(0); transform-origin: left; transition: transform 0.9s var(--ease-in-out) 0.1s; }
 .steps-in .step-rail-fill { transform: scaleX(1); }
 .step-dot { transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease; }
 .steps-in .step-dot { background-color: var(--color-pine-700); color: #fff; box-shadow: 0 0 0 6px var(--color-paper); }
 .steps-in .step-dot-last { background-color: var(--color-lantern); }
 
 /* Circular system orbit */
-.loop-tracer { animation: loop-spin 10s linear infinite; transform: rotate(-90deg); }
+/* The loop is traced once to explain the cycle, then rests */
+.loop-tracer { animation: loop-spin 6s var(--ease-in-out) 1 both; transform: rotate(-90deg); }
 @keyframes loop-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
-.loop-node-disc { fill: var(--color-pine-800); animation: loop-node 10s linear infinite; animation-delay: inherit; }
+.loop-node-disc { fill: var(--color-pine-800); animation: loop-node 6s linear 1; animation-delay: inherit; }
 @keyframes loop-node {
   0%, 2% { fill: var(--color-pine-800); }
   6%, 16% { fill: var(--color-lantern); }
   24%, 100% { fill: var(--color-pine-800); }
 }
-.loop-core { animation: loop-breathe 5s ease-in-out infinite; transform-origin: 200px 200px; }
+.loop-core { opacity: 0.85; transform-origin: 200px 200px; }
 @keyframes loop-breathe { 0%, 100% { opacity: 0.6; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.06); } }
 
 @media (prefers-reduced-motion: reduce) {

@@ -24,6 +24,7 @@ import {
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/context/CartContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
@@ -61,7 +62,7 @@ function useDismiss(open: boolean, close: () => void) {
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2.5 shrink-0" aria-label="HeriTech home">
-      <Image src="/logo_heritech-removebg-preview.png" alt="" width={36} height={36} className="w-9 h-9 object-contain" priority />
+      <Image src="/logo_heritech-removebg-preview.png" alt="" width={36} height={36} className="logo-plate w-9 h-9 object-contain" priority />
       <span className="font-display text-[22px] font-semibold text-ink leading-none">HeriTech</span>
     </Link>
   );
@@ -95,7 +96,7 @@ function AccountMenu() {
   const role = userRole(user);
 
   if (loading) {
-    return <div className="w-9 h-9 rounded-full border-2 border-pine-200 border-t-pine-700 animate-spin" aria-label="Loading account" />;
+    return <div className="w-9 h-9 rounded-full border-2 border-brand-line border-t-pine-700 animate-spin" aria-label="Loading account" />;
   }
 
   if (!user) {
@@ -203,7 +204,7 @@ function AccountMenu() {
                       }}
                       className={cn(
                         "h-8 px-2 rounded-sm text-xs font-medium flex items-center justify-between cursor-pointer border",
-                        current ? "bg-pine-100 border-pine-200 text-pine-700" : "border-line text-ink-2 hover:border-pine-300"
+                        current ? "bg-pine-100 border-brand-line text-brand" : "border-line text-ink-2 hover:border-pine-300"
                       )}
                     >
                       {translateSync(ROLE_LABELS[r])}
@@ -302,7 +303,7 @@ function MobileMenu() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-3 px-3 min-h-12 rounded-md text-[16px] transition-colors",
-                  active ? "bg-pine-50 text-pine-700 font-medium" : "text-ink-2 hover:bg-pine-50"
+                  active ? "bg-pine-50 text-brand font-medium" : "text-ink-2 hover:bg-pine-50"
                 )}
               >
                 <Icon className="w-5 h-5 text-ink-3 shrink-0" strokeWidth={1.75} />
@@ -338,7 +339,7 @@ function MobileMenu() {
                     aria-pressed={current}
                     className={cn(
                       "min-h-11 px-3 py-2 rounded-md text-sm font-medium flex items-center justify-between gap-2 text-left cursor-pointer border",
-                      current ? "bg-pine-100 border-pine-200 text-pine-700" : "border-line text-ink-2 hover:border-pine-300"
+                      current ? "bg-pine-100 border-brand-line text-brand" : "border-line text-ink-2 hover:border-pine-300"
                     )}
                   >
                     {translateSync(ROLE_LABELS[r])}
@@ -349,6 +350,11 @@ function MobileMenu() {
             </div>
           </div>
         )}
+
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <span className="text-sm font-medium text-ink-2">{translateSync("Appearance")}</span>
+          <ThemeSwitch />
+        </div>
 
         {user && (
           <button
@@ -395,7 +401,7 @@ export function Navbar() {
                 )}
               >
                 {link.name}
-                {active && <span className="absolute left-3 right-3 bottom-0 h-0.5 bg-pine-700 rounded-full" />}
+                {active && <span className="absolute left-3 right-3 bottom-0 h-0.5 bg-brand rounded-full" />}
               </Link>
             );
           })}

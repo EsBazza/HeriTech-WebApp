@@ -274,7 +274,7 @@ function WasteScannerPageContent() {
             const active = stepNow >= n;
             return (
               <li key={label} className="space-y-2">
-                <div className={cn("h-1 rounded-full", active ? "bg-pine-700" : "bg-paper-2")} />
+                <div className={cn("h-1 rounded-full", active ? "bg-brand" : "bg-paper-2")} />
                 <span className={cn("text-sm", stepNow === n ? "text-ink font-medium" : "text-ink-3")}>
                   {n}. {label}
                 </span>
@@ -292,7 +292,7 @@ function WasteScannerPageContent() {
                 <img src={previewUrl} alt={translateSync("Captured material")} className="w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
-                  <span className="w-14 h-14 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center">
+                  <span className="w-14 h-14 rounded-full bg-pine-100 text-brand flex items-center justify-center">
                     <Camera className="w-7 h-7" strokeWidth={1.75} />
                   </span>
                   <div>
@@ -330,7 +330,7 @@ function WasteScannerPageContent() {
             {agreements.length === 0 && (
               <p className="-mt-3 text-sm text-ink-3">
                 {translateSync("A batch must be logged against a release agreement.")}{" "}
-                <Link href="/agreements" className="text-pine-700 font-medium underline underline-offset-2">
+                <Link href="/agreements" className="text-brand font-medium underline underline-offset-2">
                   {translateSync("Create one")}
                 </Link>
               </p>
@@ -507,7 +507,7 @@ function WasteScannerPageContent() {
                       }}
                       className={cn(
                         "w-full rounded-md border px-3 py-2 text-left text-sm transition-colors cursor-pointer",
-                        weightSource === "ai_estimate" ? "border-pine-300 bg-pine-50 text-pine-800" : "border-line bg-paper hover:border-pine-300"
+                        weightSource === "ai_estimate" ? "border-pine-300 bg-pine-50 text-brand" : "border-line bg-paper hover:border-pine-300"
                       )}
                     >
                       <span className="flex flex-wrap items-center gap-x-1.5 font-medium">
@@ -533,7 +533,7 @@ function WasteScannerPageContent() {
 
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 rounded-md border border-line bg-paper p-3">
-                    <span className="mt-0.5 w-8 h-8 shrink-0 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center">
+                    <span className="mt-0.5 w-8 h-8 shrink-0 rounded-full bg-pine-100 text-brand flex items-center justify-center">
                       <MapPin className="w-4 h-4" />
                     </span>
                     <div className="min-w-0 flex-1">

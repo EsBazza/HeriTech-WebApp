@@ -240,7 +240,7 @@ export default function FeedHomePage() {
         )}
       >
         {/* Scrim keeps the copy readable over any part of the photo */}
-        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgb(20_40_30/0.97)_0%,rgb(20_40_30/0.85)_55%,rgb(20_40_30/0.15)_85%,rgb(20_40_30/0)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_40_30/0.95)_0%,rgb(20_40_30/0.8)_34%,rgb(20_40_30/0.2)_62%,rgb(20_40_30/0)_100%)] pointer-events-none" />
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgb(20_23_43/0.97)_0%,rgb(20_23_43/0.85)_55%,rgb(20_23_43/0.15)_85%,rgb(20_23_43/0)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_23_43/0.95)_0%,rgb(20_23_43/0.8)_34%,rgb(20_23_43/0.2)_62%,rgb(20_23_43/0)_100%)] pointer-events-none" />
 
         {/* Leftovers → lantern. Hover (or "Craft it") assembles it. */}
         <div
@@ -269,7 +269,7 @@ export default function FeedHomePage() {
               className="rise font-display text-[40px] sm:text-[60px] lg:text-[68px] leading-[1.0] font-semibold text-white tracking-[-0.01em]"
               style={{ ["--rise-delay" as string]: "80ms" }}
             >
-              {translateSync("Festival waste,")} <span className="italic text-pine-200">{translateSync("traced")}</span> {translateSync("into heritage craft.")}
+              {translateSync("Festival waste,")} {translateSync("traced")} {translateSync("into heritage craft.")}
             </h1>
             <p className="rise text-base sm:text-lg text-white/80 leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
               {translateSync(
@@ -278,7 +278,7 @@ export default function FeedHomePage() {
             </p>
 
             <div className="rise flex flex-col sm:flex-row gap-3" style={{ ["--rise-delay" as string]: "240ms" }}>
-              <a href="#shop" className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md bg-white text-pine-900 font-medium hover:bg-pine-50 transition-colors">
+              <a href="#shop" className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-white text-pine-900 font-medium hover:bg-pine-50 transition-colors">
                 {translateSync("Browse crafts")}
                 <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
@@ -292,15 +292,15 @@ export default function FeedHomePage() {
                   onChange={(e) => setSerial(e.target.value.toUpperCase())}
                   autoCapitalize="characters"
                   spellCheck={false}
-                  placeholder={translateSync("Pass serial (HT-XXXX-XXXX)")}
+                  placeholder="HT-XXXX-XXXX"
                   className={cn(
                     controlClass,
-                    "h-12 rounded-r-none border-r-0 font-mono-data text-base sm:text-sm bg-white/10 border-white/30 text-white placeholder:text-white/55 focus:border-white focus:ring-white/20 backdrop-blur"
+                    "h-12 rounded-l-full rounded-r-none border-r-0 pl-5 font-mono-data text-base sm:text-sm bg-white/10 border-white/30 text-white placeholder:text-white/55 focus:border-white focus:ring-white/20 backdrop-blur"
                   )}
                 />
                 <button
                   type="submit"
-                  className="h-12 px-4 rounded-r-md border border-white/30 bg-white/10 text-white font-medium hover:bg-white/20 transition-colors cursor-pointer whitespace-nowrap backdrop-blur"
+                  className="h-12 px-5 rounded-r-full border border-white/30 bg-white/10 text-white font-medium hover:bg-white/20 transition-colors cursor-pointer whitespace-nowrap backdrop-blur"
                 >
                   {translateSync("Verify")}
                 </button>
@@ -328,7 +328,7 @@ export default function FeedHomePage() {
       {/* PROOF STRIP — the live ledger */}
       <section className="ledger-band text-white">
         <svg className="ledger-thread absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-24 pointer-events-none" viewBox="0 0 1200 96" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 60 C 200 10, 380 90, 600 48 S 1000 14, 1200 52" fill="none" stroke="rgb(224 138 90 / 0.35)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+          <path d="M0 60 C 200 10, 380 90, 600 48 S 1000 14, 1200 52" fill="none" stroke="rgb(240 138 93 / 0.35)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
         </svg>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between gap-4 mb-7">
@@ -382,9 +382,9 @@ export default function FeedHomePage() {
                 onPointerMove={spotlight}
                 className="spotlight lift group relative overflow-hidden flex flex-col bg-surface border border-line rounded-lg p-6 shadow-card"
               >
-                <Icon className="absolute -right-6 -bottom-6 w-32 h-32 text-pine-700/[0.05] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={1.25} aria-hidden />
+                <Icon className="absolute -right-6 -bottom-6 w-32 h-32 text-brand/[0.05] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={1.25} aria-hidden />
                 <div className="flex items-center justify-between">
-                  <span className={cn("w-10 h-10 rounded-full flex items-center justify-center", i === 2 ? "bg-pine-100 text-pine-700" : "bg-lantern-100 text-lantern-600")}>
+                  <span className={cn("w-10 h-10 rounded-full flex items-center justify-center", i === 2 ? "bg-pine-100 text-brand" : "bg-lantern-100 text-lantern-600")}>
                     <Icon className="w-5 h-5" strokeWidth={1.75} />
                   </span>
                   <span className="font-display text-2xl text-line-strong tabular">{String(i + 1).padStart(2, "0")}</span>
@@ -398,7 +398,7 @@ export default function FeedHomePage() {
                 </p>
                 <p className="mt-3 text-sm text-ink-2 leading-relaxed">{p.label}</p>
                 <p className="mt-3 text-xs text-ink-3 flex-1">{p.note}</p>
-                <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-5 pt-4 border-t border-line inline-flex items-center gap-1 text-xs font-medium text-pine-600 hover:text-pine-700">
+                <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-5 pt-4 border-t border-line inline-flex items-center gap-1 text-xs font-medium text-brand-2 hover:text-brand">
                   {translateSync("Source")}: {p.source}
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </a>
@@ -427,7 +427,7 @@ export default function FeedHomePage() {
             return (
               <li key={s.title} className="relative flex flex-col">
                 <span
-                  className={cn("step-dot relative z-10 mx-auto w-12 h-12 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center", last && "step-dot-last")}
+                  className={cn("step-dot relative z-10 mx-auto w-12 h-12 rounded-full bg-pine-100 text-brand flex items-center justify-center", last && "step-dot-last")}
                   style={{ transitionDelay: `${300 + i * 380}ms` }}
                 >
                   <Icon className="w-5 h-5" strokeWidth={1.75} />
@@ -451,7 +451,7 @@ export default function FeedHomePage() {
                         key={t}
                         className={cn(
                           "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
-                          last ? "bg-lantern text-white" : "bg-pine-50 border border-pine-100 text-pine-700"
+                          last ? "bg-lantern text-white" : "bg-pine-50 border border-brand-line text-brand"
                         )}
                       >
                         <Sparkles className="w-3 h-3" aria-hidden />
@@ -548,7 +548,7 @@ export default function FeedHomePage() {
                 {filteredBatches.length} {filteredBatches.length === 1 ? translateSync("piece") : translateSync("pieces")}
               </span>
               {hasFilters && (
-                <button onClick={resetFilters} className="text-pine-600 hover:text-pine-700 font-medium cursor-pointer">
+                <button onClick={resetFilters} className="text-brand-2 hover:text-brand font-medium cursor-pointer">
                   {translateSync("Clear filters")}
                 </button>
               )}

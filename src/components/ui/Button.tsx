@@ -7,14 +7,14 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "accent";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "relative inline-flex items-center justify-center gap-2 font-medium rounded-md text-center leading-tight transition-[color,background-color,border-color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed select-none";
+  "relative inline-flex items-center justify-center gap-2 font-medium rounded-full text-center leading-tight transition-[color,background-color,border-color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed select-none";
 
 const variants: Record<Variant, string> = {
   primary: "bg-pine-700 text-white hover:bg-pine-600",
-  secondary: "bg-surface text-ink border border-line-strong hover:border-pine-500 hover:text-pine-700",
+  secondary: "bg-surface text-ink border border-line-strong hover:border-pine-500 hover:text-brand",
   ghost: "text-ink-2 hover:bg-pine-50 hover:text-ink",
-  danger: "bg-danger text-white hover:bg-danger-600",
-  accent: "bg-lantern text-white hover:bg-lantern-600",
+  danger: "bg-danger-solid text-white hover:bg-danger-600",
+  accent: "bg-lantern text-white hover:bg-lantern-700",
 };
 
 // Heights are minimums so long or translated labels wrap instead of overflowing.

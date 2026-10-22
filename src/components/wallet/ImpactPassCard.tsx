@@ -35,7 +35,7 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
 
   return (
     <div className={cn("@container space-y-3", className)}>
-      <article className="pass-card relative overflow-hidden rounded-[18px] text-white shadow-pop" aria-label={`${translateSync("Verified Impact Pass")} ${serial}`}>
+      <article className="pass-card ticket relative overflow-hidden rounded-[18px] text-white" style={{ ["--notch-y" as string]: "calc(100% - 154px)" }} aria-label={`${translateSync("Verified Impact Pass")} ${serial}`}>
         <span aria-hidden className="pass-sheen" />
         <div className="relative p-5 space-y-4">
           <div className="flex items-center justify-between gap-3">
@@ -83,7 +83,7 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
             )}
           </dl>
 
-          <div className="flex items-end justify-between gap-4 pt-3 border-t border-white/15">
+          <div className="flex items-end justify-between gap-4 pt-3 border-t-2 border-dashed border-white/20">
             <div className="min-w-0">
               <p className="text-xs text-white/60">{translateSync("Serial")}</p>
               <p className="font-mono-data text-base tracking-wide break-all">{serial}</p>

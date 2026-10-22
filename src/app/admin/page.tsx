@@ -21,8 +21,8 @@ const ROLE_LABEL: Record<string, string> = { buyer: "Buyer", artisan: "Artisan",
 const ROLE_TONE: Record<string, BadgeTone> = { buyer: "neutral", artisan: "accent", lgu: "pine", admin: "warn" };
 
 // Recharts needs literal colours; these are the pine-500, line, and split tokens from globals.css.
-const CHART = { collected: "#3c6b52", target: "#d3cbbd", grid: "#e4ded3", tick: "#5f6661" };
-const SPLIT_COLORS = ["#1f3a2b", "#8fb09c", "#c2602f"];
+const CHART = { collected: "#4a5391", target: "#cfc4ae", grid: "#e2d9c7", tick: "#63657a" };
+const SPLIT_COLORS = ["#2f6b4f", "#8d93c4", "#c4471e"];
 
 /** A step that needs a second tap: rejecting an applicant or changing someone's role. */
 interface PendingAction {
@@ -114,8 +114,8 @@ function AdminDashboardPageContent() {
       />
 
       {actionMessage && (
-        <p role="status" className="flex items-center gap-2 p-4 rounded-md bg-pine-50 border border-pine-200 text-sm text-pine-800">
-          <CheckCircle2 className="w-5 h-5 text-pine-500 shrink-0" />
+        <p role="status" className="flex items-center gap-2 p-4 rounded-md bg-pine-50 border border-brand-line text-sm text-brand">
+          <CheckCircle2 className="w-5 h-5 text-brand-2 shrink-0" />
           <TranslatableText>{actionMessage}</TranslatableText>
         </p>
       )}
@@ -129,7 +129,7 @@ function AdminDashboardPageContent() {
       {/* Applications */}
       <section className="space-y-4" aria-labelledby="admin-apps">
         <h2 id="admin-apps" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
-          <Clock className="w-5 h-5 text-pine-500" />
+          <Clock className="w-5 h-5 text-brand-2" />
           {translateSync("Applications to join")}
         </h2>
 
@@ -149,7 +149,7 @@ function AdminDashboardPageContent() {
                   <Card className="h-full p-5 sm:p-6 flex flex-col gap-4">
                     <div className="flex items-start gap-3">
                       <span
-                        className={`w-11 h-11 rounded-md flex items-center justify-center shrink-0 ${isArtisan ? "bg-lantern-100 text-lantern-600" : "bg-pine-100 text-pine-700"}`}
+                        className={`w-11 h-11 rounded-md flex items-center justify-center shrink-0 ${isArtisan ? "bg-lantern-100 text-lantern-600" : "bg-pine-100 text-brand"}`}
                       >
                         {isArtisan ? <Palette className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
                       </span>
@@ -236,7 +236,7 @@ function AdminDashboardPageContent() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 id="admin-users" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
-              <Users className="w-5 h-5 text-pine-500" />
+              <Users className="w-5 h-5 text-brand-2" />
               {translateSync("People and roles")}
             </h2>
             <p className="text-sm text-ink-3 mt-0.5">{translateSync("Change what each person can do: buyer, artisan, local government officer or admin.")}</p>
@@ -344,7 +344,7 @@ function AdminDashboardPageContent() {
       <section className="space-y-6 pt-8 border-t border-line" aria-labelledby="admin-overview">
         <div>
           <h2 id="admin-overview" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
-            <TrendingUp className="w-5 h-5 text-pine-600" />
+            <TrendingUp className="w-5 h-5 text-brand-2" />
             {translateSync("Payments and material")}
           </h2>
           <p className="text-sm text-ink-3 mt-0.5">{translateSync("Total sales, how every sale was split, and festival collection.")}</p>

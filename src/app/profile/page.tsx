@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { apiJson } from "@/lib/api";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
@@ -88,7 +89,7 @@ export default function ProfilePage() {
       <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
         <div className="max-w-md w-full bg-surface border border-line rounded-md shadow-card p-8 space-y-6">
           <div className="text-center space-y-3">
-            <span className="w-12 h-12 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center mx-auto">
+            <span className="w-12 h-12 rounded-full bg-pine-100 text-brand flex items-center justify-center mx-auto">
               <User className="w-5 h-5" />
             </span>
             <h1 className="font-display text-[32px] leading-tight font-semibold text-ink">{translateSync("Your HeriTech account")}</h1>
@@ -101,7 +102,7 @@ export default function ProfilePage() {
               translateSync("Your total kg diverted and donations made"),
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-pine-500 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-brand-2 shrink-0 mt-0.5" />
                 {t}
               </li>
             ))}
@@ -114,7 +115,7 @@ export default function ProfilePage() {
           </button>
           <p className="text-xs text-ink-3 text-center">
             {translateSync("Just browsing?")}{" "}
-            <Link href="/" className="text-pine-600 hover:text-pine-700 font-medium">
+            <Link href="/" className="text-brand-2 hover:text-brand font-medium">
               {translateSync("Explore the shop")}
             </Link>
           </p>
@@ -397,6 +398,13 @@ export default function ProfilePage() {
                     <p className="text-sm text-ink-3">{translateSync("Changes the language across HeriTech on this device.")}</p>
                   </div>
                   <LanguageSelector />
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-line">
+                  <div>
+                    <p className="text-[15px] font-medium text-ink">{translateSync("Appearance")}</p>
+                    <p className="text-sm text-ink-3">{translateSync("Auto follows your phone's setting.")}</p>
+                  </div>
+                  <ThemeSwitch />
                 </div>
                 <Button variant="secondary" onClick={signOut} className="w-full text-danger hover:text-danger hover:border-danger">
                   <LogOut className="w-4 h-4" />

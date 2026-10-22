@@ -15,9 +15,9 @@ export interface MapBatch {
 
 // Google Maps needs literal colours; these match the success, lantern and ink-3 tokens in globals.css.
 const STATUS_COLOR: Record<MapBatch["status"], string> = {
-  available: "#2f7d4f",
-  reserved: "#c2602f",
-  claimed: "#5f6661",
+  available: "#2f6b4f",
+  reserved: "#c4471e",
+  claimed: "#63657a",
 };
 
 interface BatchMapProps {
@@ -101,7 +101,7 @@ export function BatchMap({ batches, selectedId, onSelect, route, userPosition, r
         scale: selected ? 11 : 8,
         fillColor: STATUS_COLOR[batch.status],
         fillOpacity: 1,
-        strokeColor: selected ? "#1b1f1c" : "#ffffff",
+        strokeColor: selected ? "#1a1b26" : "#ffffff",
         strokeWeight: selected ? 3 : 2,
       });
     }

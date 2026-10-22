@@ -83,7 +83,7 @@ export default function PrivacyPage() {
       <Section title="Deleting your account">
         <p>
           You can delete your account at any time in the app (Profile → Settings → Delete my account) or on the{" "}
-          <Link href="/delete-account" className="text-pine-600 underline underline-offset-2 hover:text-pine-700">
+          <Link href="/delete-account" className="text-brand-2 underline underline-offset-2 hover:text-brand">
             account deletion page
           </Link>
           . Your profile, sign-in, messages and loyalty progress are deleted straight away. Orders and Impact Passes stay as anonymous public records, with
@@ -95,7 +95,7 @@ export default function PrivacyPage() {
         <Section title="Contact">
           <p>
             Questions about your data:{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-pine-600 underline underline-offset-2 hover:text-pine-700">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-brand-2 underline underline-offset-2 hover:text-brand">
               {CONTACT_EMAIL}
             </a>
             .

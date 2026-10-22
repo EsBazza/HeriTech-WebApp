@@ -66,7 +66,7 @@ export function IntroSplash() {
         </svg>
 
         <div className="intro-logo absolute inset-[38px] flex items-center justify-center">
-          <Image src="/logo_heritech-removebg-preview.png" alt="" width={124} height={124} priority className="w-full h-full object-contain" />
+          <Image src="/logo_heritech-removebg-preview.png" alt="" width={124} height={124} priority className="logo-plate w-full h-full object-contain" />
         </div>
 
         {NODES.map((n, i) => {
@@ -74,7 +74,7 @@ export function IntroSplash() {
           return (
             <span
               key={n.label}
-              className="intro-node absolute w-9 h-9 -ml-[18px] -mt-[18px] rounded-full bg-surface border border-pine-200 text-pine-700 shadow-card flex items-center justify-center"
+              className="intro-node absolute w-9 h-9 -ml-[18px] -mt-[18px] rounded-full bg-surface border border-brand-line text-brand shadow-card flex items-center justify-center"
               style={{ left: `${(n.x / 200) * 100}%`, top: `${(n.y / 200) * 100}%`, ["--node-delay" as string]: `${NODE_DELAY(i)}s` }}
             >
               <Icon className="w-4 h-4" strokeWidth={1.75} />

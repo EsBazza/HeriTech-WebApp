@@ -435,7 +435,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
                   className="w-full px-4 py-3.5 flex items-start gap-3 text-left transition-colors cursor-pointer hover:bg-pine-50"
                 >
                   {t.isBot ? (
-                    <div className="w-10 h-10 rounded-full shrink-0 bg-pine-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full shrink-0 bg-[#f6f1e7] flex items-center justify-center">
                       <Image src="/logo_heritech-removebg-preview.png" alt="" width={28} height={28} className="w-7 h-7 object-contain" />
                     </div>
                   ) : (

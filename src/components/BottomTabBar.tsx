@@ -75,7 +75,7 @@ export function BottomTabBar() {
             style={{ left: `${(activeIndex / tabs.length) * 100}%`, width: `${100 / tabs.length}%` }}
             aria-hidden
           >
-            <span className="block mx-auto w-1/2 h-full rounded-full bg-pine-700" />
+            <span className="block mx-auto w-1/2 h-full rounded-full bg-brand" />
           </span>
         )}
         {tabs.map((tab) => {
@@ -93,7 +93,7 @@ export function BottomTabBar() {
           );
           const cls = cn(
             "relative flex flex-col items-center justify-center transition-colors cursor-pointer",
-            active ? "text-pine-700" : "text-ink-3 hover:text-ink"
+            active ? "text-brand" : "text-ink-3 hover:text-ink"
           );
 
           return tab.event ? (

@@ -46,7 +46,7 @@ function rng(seed: number) {
   };
 }
 
-const PAPER = ["#c2602f", "#d9823b", "#e3a24a", "#b84b2c", "#efd9b4", "#d06a35"];
+const PAPER = ["#c4471e", "#d9823b", "#e3a24a", "#b84b2c", "#efd9b4", "#d06a35"];
 const BAMBOO = "#b89a63";
 const PETAL = ["#e8a33a", "#f0b84c", "#d9822b"];
 

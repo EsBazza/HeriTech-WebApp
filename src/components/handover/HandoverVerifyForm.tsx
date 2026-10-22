@@ -158,7 +158,7 @@ export function HandoverVerifyForm({ onVerified }: Props) {
           dragging ? "border-pine-500 bg-pine-50" : "border-line-strong bg-paper hover:border-pine-300"
         )}
       >
-        <span className="mx-auto mb-2 flex w-10 h-10 items-center justify-center rounded-full bg-pine-100 text-pine-700">
+        <span className="mx-auto mb-2 flex w-10 h-10 items-center justify-center rounded-full bg-pine-100 text-brand">
           {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageUp className="w-5 h-5" />}
         </span>
         <span className="block text-sm font-medium text-ink">
@@ -185,7 +185,7 @@ export function HandoverVerifyForm({ onVerified }: Props) {
           className="mt-3 space-y-3"
         >
           <label htmlFor="handover-code" className="font-medium text-ink-2 flex items-center gap-1.5">
-            <ScanLine className="w-4 h-4 text-pine-600" />
+            <ScanLine className="w-4 h-4 text-brand-2" />
             {translateSync("Artisan's pickup code")}
           </label>
           <textarea

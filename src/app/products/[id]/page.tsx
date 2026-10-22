@@ -257,13 +257,13 @@ export default function ProductDetailPage() {
         <div className="lg:col-span-7 rise">
           {materialImage ? (
             <BeforeAfter
-              className="aspect-[4/3] lg:aspect-[5/6] rounded-lg border border-line bg-paper-2"
+              className="arch aspect-[4/3] lg:aspect-[5/6] border border-line bg-paper-2"
               label={translateSync("Compare the collected material with the finished piece")}
               before={{ src: materialImage, label: batchId ? `${translateSync("Collected material")} · ${batchId}` : translateSync("Collected material") }}
               after={{ src: cartProduct.image, label: translateSync("Finished piece") }}
             />
           ) : (
-            <div className="relative aspect-[4/3] lg:aspect-[5/6] rounded-lg bg-paper-2 overflow-hidden border border-line">
+            <div className="arch relative aspect-[4/3] lg:aspect-[5/6] bg-paper-2 overflow-hidden border border-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={cartProduct.image} alt={translateSync(product.title)} className="w-full h-full object-cover" />
             </div>
@@ -280,7 +280,7 @@ export default function ProductDetailPage() {
         <div className="lg:col-span-5 lg:row-span-2 space-y-6">
           <div className="space-y-3 rise" style={{ ["--rise-delay" as string]: "80ms" }}>
             {festival && (
-              <p className="inline-flex items-center gap-1.5 rounded-full bg-pine-50 border border-pine-100 px-2.5 py-1 text-xs font-medium text-pine-700">
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-pine-50 border border-brand-line px-2.5 py-1 text-xs font-medium text-brand">
                 <Sparkles className="w-3.5 h-3.5" />
                 {translateSync("Recovered from")} {translateSync(festival)}
               </p>
@@ -322,7 +322,7 @@ export default function ProductDetailPage() {
               variant="secondary"
               onClick={handleAdd}
               disabled={stock === 0 || inCart}
-              className={inCart || justAdded ? "w-full text-pine-700 border-pine-300" : "w-full"}
+              className={inCart || justAdded ? "w-full text-brand border-pine-300" : "w-full"}
             >
               {inCart || justAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
               {justAdded ? translateSync("Added to cart") : inCart ? translateSync("In your cart") : translateSync("Add to cart")}
@@ -340,7 +340,7 @@ export default function ProductDetailPage() {
           <ul className="divide-y divide-line border-y border-line text-sm">
             {!freeClaim && (
             <li className="flex items-start gap-3 py-3">
-              <HandCoins className="w-[18px] h-[18px] text-pine-500 shrink-0 mt-0.5" />
+              <HandCoins className="w-[18px] h-[18px] text-impact shrink-0 mt-0.5" />
               <span>
                 <span className="text-ink font-medium">
                   {formatCurrency(artisanShare)} {translateSync("goes to the maker")}
@@ -352,7 +352,7 @@ export default function ProductDetailPage() {
             </li>
             )}
             <li className="flex items-start gap-3 py-3">
-              <Truck className="w-[18px] h-[18px] text-pine-500 shrink-0 mt-0.5" />
+              <Truck className="w-[18px] h-[18px] text-brand-2 shrink-0 mt-0.5" />
               <span>
                 <span className="text-ink font-medium">
                   {freeClaim
@@ -382,7 +382,7 @@ export default function ProductDetailPage() {
         <div className="lg:col-span-7">
           <Card className="p-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
-              <span className="w-12 h-12 rounded-full bg-pine-100 text-pine-700 font-semibold flex items-center justify-center shrink-0">
+              <span className="w-12 h-12 rounded-full bg-pine-100 text-brand font-semibold flex items-center justify-center shrink-0">
                 {makerName.slice(0, 2).toUpperCase()}
               </span>
               <div className="min-w-0">
@@ -525,7 +525,7 @@ export default function ProductDetailPage() {
             <SectionHeader
               title={translateSync("More recovered pieces")}
               actions={
-                <Link href="/#shop" className="inline-flex items-center gap-1 text-sm font-medium text-pine-600 hover:text-pine-700">
+                <Link href="/#shop" className="inline-flex items-center gap-1 text-sm font-medium text-brand-2 hover:text-brand">
                   {translateSync("View all")}
                   <ArrowRight className="w-4 h-4" />
                 </Link>

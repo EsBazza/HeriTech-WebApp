@@ -137,11 +137,11 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
       </div>
       {discount > 0 && (
         <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm bg-pine-50">
-          <span className="flex items-center gap-2 text-pine-700">
+          <span className="flex items-center gap-2 text-brand">
             <Gift className="w-4 h-4" />
             {translateSync("HeriTech Circle reward")} · {LOYALTY.discountPercent}%
           </span>
-          <span className="tabular font-semibold text-pine-700">−{formatCurrency(discount)}</span>
+          <span className="tabular font-semibold text-brand">−{formatCurrency(discount)}</span>
         </div>
       )}
     </div>
@@ -165,7 +165,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             const current = step === n;
             return (
               <li key={label} className="space-y-1.5" aria-current={current ? "step" : undefined}>
-                <div className={cn("h-1 rounded-full", done || current ? "bg-pine-700" : "bg-paper-2")} />
+                <div className={cn("h-1 rounded-full", done || current ? "bg-brand" : "bg-paper-2")} />
                 <span className={cn("text-sm", current ? "text-ink font-medium" : "text-ink-3")}>
                   {n}. {label}
                 </span>
@@ -210,7 +210,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
 
           <fieldset className="space-y-4">
             <legend className="flex items-center gap-2 text-sm font-medium text-ink mb-3">
-              <Truck className="w-4 h-4 text-pine-500" />
+              <Truck className="w-4 h-4 text-brand-2" />
               {translateSync("Deliver to")}
             </legend>
             <Input label={translateSync("Recipient name")} required value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
@@ -267,7 +267,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             </p>
           </div>
 
-          <div className="flex items-start gap-3 rounded-md border border-pine-200 bg-pine-50 px-4 py-3 text-sm text-pine-800">
+          <div className="flex items-start gap-3 rounded-md border border-brand-line bg-pine-50 px-4 py-3 text-sm text-brand">
             <Gift className="w-4 h-4 mt-0.5 shrink-0" />
             <p>
               {orderResult.discount > 0 && (

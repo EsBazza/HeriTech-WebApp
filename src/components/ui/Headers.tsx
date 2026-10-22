@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "./cn";
 
 export function Eyebrow({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
-  return <span className={cn("block text-xs font-semibold uppercase tracking-wide text-pine-500", className)} {...props} />;
+  return <span className={cn("block text-xs font-semibold uppercase tracking-wide text-brand-2", className)} {...props} />;
 }
 
 interface HeaderProps {

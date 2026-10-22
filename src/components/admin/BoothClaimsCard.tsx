@@ -44,7 +44,7 @@ export function BoothClaimsCard() {
     <section className="space-y-4" aria-labelledby="admin-booth">
       <div>
         <h2 id="admin-booth" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
-          <Gift className="w-5 h-5 text-pine-500" />
+          <Gift className="w-5 h-5 text-brand-2" />
           {translateSync("Showcase booth giveaway")}
         </h2>
         <p className="text-sm text-ink-3 mt-1">

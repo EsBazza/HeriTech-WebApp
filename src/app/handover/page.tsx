@@ -48,7 +48,7 @@ function ArtisanHandover() {
         <TranslatableParagraph className="text-sm text-ink-2">
           You have no batches waiting for pickup. Reserve one on the material map first.
         </TranslatableParagraph>
-        <Link href="/map" className="text-sm font-semibold text-pine-700 underline">
+        <Link href="/map" className="text-sm font-semibold text-brand underline">
           {translateSync("Open the material map")}
         </Link>
       </div>
@@ -71,7 +71,7 @@ function ArtisanHandover() {
           <Select
             label={
               <span className="inline-flex items-center gap-1.5">
-                <Package className="w-4 h-4 text-pine-600" />
+                <Package className="w-4 h-4 text-brand-2" />
                 {translateSync("Batch to pick up")}
               </span>
             }

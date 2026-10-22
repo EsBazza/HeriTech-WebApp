@@ -126,7 +126,7 @@ function AgreementsPageContent() {
                   </div>
 
                   <p className="flex items-center gap-2 text-sm text-ink-2">
-                    <MapPin className="w-4 h-4 text-pine-600 shrink-0" />
+                    <MapPin className="w-4 h-4 text-brand-2 shrink-0" />
                     <span>
                       <TranslatableText>{agreement.festival}</TranslatableText> · <TranslatableText>{agreement.country}</TranslatableText>
                     </span>
@@ -147,7 +147,7 @@ function AgreementsPageContent() {
                       aria-valuenow={percentage}
                       aria-label={translateSync("Share of the agreed amount collected")}
                     >
-                      <div style={{ width: `${percentage}%` }} className="h-full bg-pine-700 transition-[width] duration-700 rounded-full" />
+                      <div style={{ width: `${percentage}%` }} className="h-full bg-brand transition-[width] duration-700 rounded-full" />
                     </div>
                   </div>
 

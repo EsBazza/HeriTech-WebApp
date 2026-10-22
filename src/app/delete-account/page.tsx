@@ -55,13 +55,13 @@ export default function DeleteAccountPage() {
         {CONTACT_EMAIL ? (
           <>
             {translateSync("Can't sign in any more? Email")}{" "}
-            <a href={`mailto:${CONTACT_EMAIL}?subject=Delete%20my%20HeriTech%20account`} className="text-pine-600 underline underline-offset-2">
+            <a href={`mailto:${CONTACT_EMAIL}?subject=Delete%20my%20HeriTech%20account`} className="text-brand-2 underline underline-offset-2">
               {CONTACT_EMAIL}
             </a>{" "}
             {translateSync("from the address on your account and we'll delete it within 30 days.")}
           </>
         ) : null}{" "}
-        <Link href="/privacy" className="text-pine-600 underline underline-offset-2">
+        <Link href="/privacy" className="text-brand-2 underline underline-offset-2">
           {translateSync("Privacy policy")}
         </Link>
       </p>

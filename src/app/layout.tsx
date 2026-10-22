@@ -10,6 +10,7 @@ import { BottomTabBar } from "@/components/BottomTabBar";
 import { DemoBanner } from "@/components/DemoBanner";
 import { IntroSplash } from "@/components/motion/IntroSplash";
 import { INTRO_HEAD_SCRIPT } from "@/lib/intro";
+import { THEME_HEAD_SCRIPT } from "@/lib/theme";
 
 const title = "HeriTech — Traceable heritage craft from festival waste";
 const description =
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
  * Colours the phone's status bar to match the app when installed, and lets the
  * page reach under notches so the env(safe-area-inset-*) paddings take effect.
  */
-export const viewport: Viewport = { themeColor: "#1f3a2b", viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#1c2140", viewportFit: "cover" };
 
 export default function RootLayout({
   children,
@@ -37,13 +38,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Marks JS as available so scroll-reveal content can start hidden without hurting no-JS readers */}
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');" + INTRO_HEAD_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');" + THEME_HEAD_SCRIPT + INTRO_HEAD_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Root layout in the App Router, so this loads on every page; the canvas pickup code also needs the real "DM Sans" family name. */}
+        {/* Root layout in the App Router, so this loads on every page; the canvas pickup code also needs the real "Figtree" family name. */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Figtree:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
       </head>

@@ -82,10 +82,10 @@ describe("Google Wallet save links", () => {
     expect(object.groupingInfo).toEqual({ groupingId: "heritech-impact" });
   });
 
-  it("falls back to HeriTech green and no banner when the product has no photo", () => {
+  it("falls back to HeriTech indigo and no banner when the product has no photo", () => {
     const { claims } = decode(impactPassSaveUrl({ ...pass, ownerName: null, backgroundColor: null, hasHeroImage: false }, "https://heritech.example"));
     const object = claims.payload.genericObjects[0];
-    expect(object.hexBackgroundColor).toBe("#1f3a2b");
+    expect(object.hexBackgroundColor).toBe("#1c2140");
     expect(object.heroImage).toBeUndefined();
     expect(object.imageModulesData).toBeDefined();
     expect(object.textModulesData.some((m: { id: string }) => m.id === "owner")).toBe(false);

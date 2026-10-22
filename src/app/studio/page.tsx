@@ -294,7 +294,7 @@ function ArtisanStudioPageContent() {
       {/* Result of the last action; scrolled into view after publishing */}
       <div ref={bannerRef} className="scroll-mt-24 space-y-3 empty:hidden">
         {successMessage && (
-          <div role="status" className="flex items-center gap-3 p-4 bg-pine-50 border border-pine-200 rounded-md text-[15px] text-pine-800">
+          <div role="status" className="flex items-center gap-3 p-4 bg-pine-50 border border-brand-line rounded-md text-[15px] text-brand">
             <SuccessBurst size={36} />
             <span className="flex-1">{translateSync(successMessage)}</span>
             <IconButton aria-label={translateSync("Dismiss")} onClick={() => setSuccessMessage(null)} className="-my-2 -mr-2">
@@ -329,7 +329,7 @@ function ArtisanStudioPageContent() {
         <Card ref={formRef} className="overflow-hidden scroll-mt-24">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-line">
             <h2 className="flex items-center gap-2 text-base font-semibold text-ink font-sans">
-              {editingId ? <Pencil className="w-4 h-4 text-lantern-600" /> : <PlusCircle className="w-4 h-4 text-pine-600" />}
+              {editingId ? <Pencil className="w-4 h-4 text-lantern-600" /> : <PlusCircle className="w-4 h-4 text-brand-2" />}
               {editingId ? translateSync("Edit piece") : translateSync("List a new piece")}
             </h2>
             {editingId && (
@@ -413,7 +413,7 @@ function ArtisanStudioPageContent() {
                       isDragging ? "border-pine-500 bg-pine-50" : "border-line-strong bg-paper hover:border-pine-300"
                     )}
                   >
-                    <span className="w-11 h-11 rounded-full bg-pine-100 text-pine-700 flex items-center justify-center mb-2">
+                    <span className="w-11 h-11 rounded-full bg-pine-100 text-brand flex items-center justify-center mb-2">
                       <Upload className="w-5 h-5" />
                     </span>
                     <span className="text-[15px] font-medium text-ink">{translateSync("Take or choose a photo")}</span>

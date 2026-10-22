@@ -30,7 +30,7 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
         footer={
           items.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-pine-700">
+              <div className="flex items-center gap-2 text-sm text-brand">
                 <Leaf className="w-4 h-4 shrink-0" />
                 {formatNumber(totalKgDiverted)} {translateSync("kg of festival material kept out of landfill")}
               </div>

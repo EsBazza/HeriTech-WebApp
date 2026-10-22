@@ -37,7 +37,7 @@ export function ImpactPassPreview({ title, origin, maker, material, kgDiverted }
 
   return (
     <div className="pass-stage" onPointerMove={onMove} onPointerLeave={reset}>
-      <div ref={ref} className="pass-card relative overflow-hidden rounded-[18px] text-white p-5 shadow-pop">
+      <div ref={ref} className="pass-card ticket relative overflow-hidden rounded-[18px] text-white p-5" style={{ ["--notch-y" as string]: "calc(100% - 96px)" }}>
         <span aria-hidden className="pass-sheen" />
         <div className="relative flex items-center justify-between">
           <span className="flex items-center gap-2">
@@ -73,9 +73,9 @@ export function ImpactPassPreview({ title, origin, maker, material, kgDiverted }
           </div>
         </dl>
 
-        <div className="relative mt-5 pt-4 border-t border-white/15 flex items-center justify-between gap-4">
+        <div className="relative mt-5 pt-4 border-t-2 border-dashed border-white/20 flex items-center justify-between gap-4">
           <p className="text-xs text-white/70 leading-relaxed">
-            {translateSync("Serial and QR code are issued at purchase. Anyone can scan it to check this record.")}
+            {translateSync("Serial and QR code are issued with the piece. Anyone can scan it to check this record.")}
           </p>
           <span className="w-14 h-14 shrink-0 rounded-md bg-white text-pine-900 flex items-center justify-center">
             <QrCode className="w-8 h-8" strokeWidth={1.5} />

@@ -5,7 +5,7 @@ export type BadgeTone = "neutral" | "pine" | "success" | "warn" | "danger" | "ac
 
 const tones: Record<BadgeTone, string> = {
   neutral: "bg-paper-2 text-ink-2 border-line",
-  pine: "bg-pine-100 text-pine-700 border-pine-200",
+  pine: "bg-pine-100 text-brand border-brand-line",
   success: "bg-success-100 text-success border-success/20",
   warn: "bg-warn-100 text-warn border-warn/20",
   danger: "bg-danger-100 text-danger border-danger/20",

@@ -63,20 +63,20 @@ export function BeforeAfter({ before, after, label, className, children }: Befor
         className={cn("absolute top-0 bottom-0 w-0.5 -ml-px bg-white/90 shadow-[0_0_12px_rgb(0_0_0/0.35)] pointer-events-none", intro && "transition-[left] duration-[1200ms] ease-[cubic-bezier(0.65,0,0.35,1)]")}
         style={{ left: "var(--pos)" }}
       >
-        <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-ink shadow-pop flex items-center justify-center transition-transform duration-200 group-hover:scale-105 group-has-[:focus-visible]:ring-2 group-has-[:focus-visible]:ring-pine-500">
+        <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-pine-900 shadow-pop flex items-center justify-center transition-transform duration-200 group-hover:scale-105 group-has-[:focus-visible]:ring-2 group-has-[:focus-visible]:ring-pine-500">
           <MoveHorizontal className="w-5 h-5" />
         </span>
       </div>
 
       {/* Side labels */}
       <span
-        className="pointer-events-none absolute left-4 top-4 rounded-full bg-pine-900/75 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition-opacity duration-300 max-w-[calc(50%-1.25rem)] truncate"
+        className="pointer-events-none absolute left-4 bottom-4 rounded-full bg-pine-900/75 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition-opacity duration-300 max-w-[calc(50%-1.25rem)] truncate"
         style={{ opacity: pos > 18 ? 1 : 0 }}
       >
         {before.label}
       </span>
       <span
-        className="pointer-events-none absolute right-4 top-4 rounded-full bg-surface/95 px-3 py-1.5 text-xs font-medium text-ink shadow-card transition-opacity duration-300 max-w-[calc(50%-1.25rem)] truncate"
+        className="pointer-events-none absolute right-4 bottom-4 rounded-full bg-surface/95 px-3 py-1.5 text-xs font-medium text-ink shadow-card transition-opacity duration-300 max-w-[calc(50%-1.25rem)] truncate"
         style={{ opacity: pos < 82 ? 1 : 0 }}
       >
         {after.label}

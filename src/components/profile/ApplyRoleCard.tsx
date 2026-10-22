@@ -101,7 +101,7 @@ export function ApplyRoleCard() {
                   active ? "border-pine-500 bg-pine-50 ring-1 ring-pine-500" : "border-line bg-surface hover:border-pine-300"
                 )}
               >
-                <Icon className="w-5 h-5 text-pine-700 shrink-0 mt-0.5" />
+                <Icon className="w-5 h-5 text-brand shrink-0 mt-0.5" />
                 <span>
                   <span className="block text-[15px] font-medium text-ink">{translateSync(o.label)}</span>
                   <span className="block text-sm text-ink-3">{translateSync(o.body)}</span>

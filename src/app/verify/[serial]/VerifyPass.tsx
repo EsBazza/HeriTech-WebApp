@@ -134,7 +134,7 @@ export function VerifyPass({ serial }: { serial: string }) {
           />
           <Button type="submit">{translateSync("Verify")}</Button>
         </form>
-        <Link href="/" className="inline-flex items-center gap-1.5 min-h-11 text-sm text-pine-600 hover:text-pine-700">
+        <Link href="/" className="inline-flex items-center gap-1.5 min-h-11 text-sm text-brand-2 hover:text-brand">
           <ArrowLeft className="w-4 h-4" />
           {translateSync("Back to HeriTech")}
         </Link>
@@ -265,7 +265,7 @@ export function VerifyPass({ serial }: { serial: string }) {
 
         <div className="bg-pine-900 text-white px-5 sm:px-8 py-6 sm:py-8">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 pl-2 pr-3 py-1 text-sm text-pine-100">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 pl-2 pr-3 py-1 text-sm text-white/90">
               <ShieldCheck className="w-4 h-4 text-pine-200" strokeWidth={2} />
               {translateSync("Verified Impact Pass")}
             </span>
@@ -276,7 +276,7 @@ export function VerifyPass({ serial }: { serial: string }) {
               </span>
             )}
             {data.integrity === "changed" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-warn px-3 py-1 text-sm text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-warn-solid px-3 py-1 text-sm text-white">
                 <ShieldAlert className="w-4 h-4" />
                 {translateSync("Collection record was edited after logging")}
               </span>
@@ -355,7 +355,7 @@ export function VerifyPass({ serial }: { serial: string }) {
         <Card className="md:col-span-2 p-5 sm:p-6 space-y-3">
           <h2 className="text-sm font-semibold text-ink font-sans">{translateSync("Maker")}</h2>
           <div className="flex items-center gap-3">
-            <span className="w-11 h-11 rounded-full bg-pine-100 text-pine-700 font-semibold text-sm flex items-center justify-center shrink-0">
+            <span className="w-11 h-11 rounded-full bg-pine-100 text-brand font-semibold text-sm flex items-center justify-center shrink-0">
               {(maker.name || "A").slice(0, 2).toUpperCase()}
             </span>
             <div className="min-w-0">

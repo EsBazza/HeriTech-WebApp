@@ -103,7 +103,7 @@ export function LanguageSelector({ className }: { className?: string }) {
                         onClick={() => handleLanguageChange(language.code)}
                         className={cn(
                           "w-full flex items-center gap-3 px-3 min-h-12 rounded-md text-left transition-colors cursor-pointer",
-                          selected ? "bg-pine-100 text-pine-700" : "hover:bg-pine-50 text-ink-2"
+                          selected ? "bg-pine-100 text-brand" : "hover:bg-pine-50 text-ink-2"
                         )}
                       >
                         <span className="w-8 h-6 rounded-sm bg-paper-2 text-ink-2 text-xs font-semibold flex items-center justify-center shrink-0 uppercase">
@@ -113,7 +113,7 @@ export function LanguageSelector({ className }: { className?: string }) {
                           <span className="block text-sm font-medium truncate">{language.nativeName}</span>
                           <span className="block text-xs text-ink-3 truncate">{language.name}</span>
                         </span>
-                        {selected && <Check className="w-4 h-4 text-pine-700 shrink-0" />}
+                        {selected && <Check className="w-4 h-4 text-brand shrink-0" />}
                       </button>
                     );
                   })}

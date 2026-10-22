@@ -39,7 +39,7 @@ export function StudioListings({ products, loading, editingId, onRefresh, onEdit
     <section className="space-y-4" aria-labelledby="studio-listings">
       <div className="flex items-center justify-between gap-3">
         <h2 id="studio-listings" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
-          <Package className="w-5 h-5 text-pine-600" />
+          <Package className="w-5 h-5 text-brand-2" />
           {translateSync("Your published pieces")}
           {!loading && <Badge tone="pine">{products.length}</Badge>}
         </h2>

@@ -285,7 +285,7 @@ function MaterialsMapPageContent() {
       )}
 
       {justReserved === batch.id ? (
-        <div role="status" className={buttonClass("primary", "lg", "w-full just-done bg-success hover:bg-success cursor-default")}>
+        <div role="status" className={buttonClass("primary", "lg", "w-full just-done bg-success-solid hover:bg-success-solid cursor-default")}>
           <CheckCircle2 className="w-5 h-5" />
           {translateSync("Reserved")}
         </div>
@@ -332,7 +332,7 @@ function MaterialsMapPageContent() {
         </div>
       ) : (
         <p className="flex items-center gap-2 rounded-md border border-line bg-paper p-3 text-sm text-ink-2">
-          <CheckCircle2 className="w-4 h-4 text-pine-500 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-brand-2 shrink-0" />
           {translateSync("Picked up by an artisan. Finished pieces appear in the shop.")}
         </p>
       )}
@@ -620,12 +620,12 @@ function MaterialsMapPageContent() {
             )}
 
             {handoverSuccess ? (
-              <div className="p-6 bg-pine-50 border border-pine-200 rounded-lg text-center space-y-3" role="status">
+              <div className="p-6 bg-pine-50 border border-brand-line rounded-lg text-center space-y-3" role="status">
                 <SuccessBurst size={64} scraps className="mx-auto" />
                 <TranslatableHeading level={3} className="text-lg font-semibold text-ink font-sans">
                   Picked up
                 </TranslatableHeading>
-                <p className="text-sm text-pine-700">
+                <p className="text-sm text-brand">
                   <TranslatableText>{handoverSuccess}</TranslatableText>
                 </p>
                 <Button onClick={closeHandover}>{translateSync("Done")}</Button>

@@ -42,7 +42,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid gap-10 lg:grid-cols-12">
         <div className="lg:col-span-5 space-y-4">
           <Link href="/" className="inline-flex items-center gap-3">
-            <Image src="/logo_heritech-removebg-preview.png" alt="" width={40} height={40} className="w-10 h-10 object-contain" />
+            <Image src="/logo_heritech-removebg-preview.png" alt="" width={40} height={40} className="logo-plate w-10 h-10 object-contain" />
             <span className="font-display text-2xl font-semibold text-white">HeriTech</span>
           </Link>
           <p className="text-sm leading-relaxed max-w-sm">
