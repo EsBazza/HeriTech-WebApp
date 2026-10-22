@@ -8,6 +8,38 @@ import { cn } from "@/components/ui";
 
 const OPTIONS: ThemePreference[] = ["auto", "day", "night"];
 
+/** Compact desktop toggle in the navbar: flips between Day and Night (Auto lives in the full switch). */
+export function ThemeToggleButton({ className }: { className?: string }) {
+  const { translateSync } = useTranslation();
+  const [night, setNight] = useState(false);
+
+  useEffect(() => {
+    setNight(document.documentElement.dataset.theme === "night");
+  }, []);
+
+  const toggle = () => {
+    const next = !night;
+    setNight(next);
+    applyThemePreference(next ? "night" : "day");
+  };
+
+  const label = translateSync(night ? "Switch to day" : "Switch to night");
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={label}
+      title={label}
+      className={cn(
+        "w-11 h-11 rounded-full inline-flex items-center justify-center text-ink-2 hover:text-ink hover:bg-paper-2 transition-colors cursor-pointer",
+        className
+      )}
+    >
+      {night ? <Sun className="w-5 h-5" aria-hidden /> : <Moon className="w-5 h-5" aria-hidden />}
+    </button>
+  );
+}
+
 /** Auto / Day / Night segmented control. The thumb slides; colours ease only while switching. */
 export function ThemeSwitch({ className }: { className?: string }) {
   const { translateSync } = useTranslation();

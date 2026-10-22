@@ -24,7 +24,7 @@ import {
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/context/CartContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
-import { ThemeSwitch } from "@/components/ThemeSwitch";
+import { ThemeSwitch, ThemeToggleButton } from "@/components/ThemeSwitch";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
@@ -408,6 +408,7 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
+          <ThemeToggleButton className="hidden md:inline-flex" />
           <LanguageSelector />
           <CartButton />
           <div className="hidden md:block">
