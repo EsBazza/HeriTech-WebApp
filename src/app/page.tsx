@@ -250,7 +250,7 @@ export default function FeedHomePage() {
           className="absolute z-[1] left-1/2 top-2 -translate-x-1/2 origin-top scale-[0.4] sm:scale-[0.6] lg:scale-100 lg:translate-x-0 lg:left-[calc(72%-220px)] lg:top-[calc(44%-260px)] w-[440px] h-[560px] pointer-events-none"
         >
           <LanternAssembly className="left-0 top-0" />
-          <div className="absolute left-1/2 top-[372px] -translate-x-1/2 whitespace-nowrap hidden lg:block">
+          <div className="absolute left-1/2 top-[436px] -translate-x-1/2 whitespace-nowrap hidden lg:block">
             <span className="trace-when-idle absolute left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-pine-900/70 border border-white/15 px-3.5 py-1.5 text-sm text-white/85 backdrop-blur">
               <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
               {translateSync("Leftovers after the festival")}
