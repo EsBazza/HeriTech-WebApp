@@ -2,28 +2,27 @@
 
 /* ─────────────────────────────────────────────────────────────
    HeriTech design tokens — "Lantern Ink" (Heritage Lantern 3.0)
-   Lantern light on an indigo festival night: washi paper ground,
-   indigo chrome, one ember action per screen, pine for impact.
-   The "pine-*" names are the brand scale (now indigo) so existing
-   utilities keep working. Night values live in the blocks below.
+   Lantern light on a pine festival night: washi paper ground,
+   pine chrome, one ember action per screen. Night values live
+   in the block below.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  /* Brand scale (indigo night) */
-  --color-pine-900: #14172b;
-  --color-pine-800: #181c36;
-  --color-pine-700: #1c2140;
-  --color-pine-600: #2a3160;
-  --color-pine-500: #4a5391;
-  --color-pine-400: #6e76ae;
-  --color-pine-300: #8d93c4;
-  --color-pine-200: #c9cce3;
-  --color-pine-100: #e7e8f3;
-  --color-pine-50: #f3f3f9;
+  /* Brand scale (pine) */
+  --color-pine-900: #14281e;
+  --color-pine-800: #1a3125;
+  --color-pine-700: #1f3a2b;
+  --color-pine-600: #2b4d3a;
+  --color-pine-500: #3c6b52;
+  --color-pine-400: #5f8a72;
+  --color-pine-300: #8fb09c;
+  --color-pine-200: #c4d8cb;
+  --color-pine-100: #e3ede6;
+  --color-pine-50: #f1f6f2;
 
   /* Brand-coloured text and icons, and soft brand borders (they flip at night) */
-  --color-brand: #1c2140;
-  --color-brand-2: #4a5391;
-  --color-brand-line: #c9cce3;
+  --color-brand: #1f3a2b;
+  --color-brand-2: #3c6b52;
+  --color-brand-line: #c4d8cb;
 
   --color-paper: #f6f1e7;
   --color-paper-2: #ece5d6;
@@ -31,9 +30,9 @@
   --color-line: #e2d9c7;
   --color-line-strong: #cfc4ae;
 
-  --color-ink: #1a1b26;
-  --color-ink-2: #444655;
-  --color-ink-3: #63657a;
+  --color-ink: #1b1f1c;
+  --color-ink-2: #3f4742;
+  --color-ink-3: #5f6661;
 
   /* Ember: the one action per screen. lantern = button fill (white text 4.9:1),
      lantern-600 = ember text and links, lantern-700 = pressed/hover fill. */
@@ -60,8 +59,8 @@
   --color-danger-solid: #b42318;
 
   /* Money split 70/25/5: artisan, local government, charity & upkeep */
-  --color-split-artisan: #2f6b4f;
-  --color-split-platform: #8d93c4;
+  --color-split-artisan: #1f3a2b;
+  --color-split-platform: #8fb09c;
   --color-split-ngo: #c4471e;
 
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
@@ -85,45 +84,45 @@
   --ease-glow: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
 
-  --shadow-card: 0 0 0 1px rgb(26 27 38 / 0.02), 0 1px 2px rgb(26 27 38 / 0.05);
-  --shadow-pop: 0 12px 32px -8px rgb(20 23 43 / 0.2), 0 2px 6px rgb(20 23 43 / 0.06);
+  --shadow-card: 0 0 0 1px rgb(27 31 28 / 0.02), 0 1px 2px rgb(27 31 28 / 0.05);
+  --shadow-pop: 0 12px 32px -8px rgb(20 40 30 / 0.18), 0 2px 6px rgb(20 40 30 / 0.06);
 }
 
-/* ─── Night: the same festival after dark ───────────────────────
+/* ─── Night: the same festival after dark, under pine trees ─────
    Auto (no choice saved) follows the phone; a saved Day or Night wins.
    The head script sets data-theme before the first paint. */
 @layer theme {
   :root[data-theme="night"] {
     color-scheme: dark;
-    --color-pine-900: #0f1222;
-    --color-pine-800: #161a33;
-    --color-pine-700: #3a4170;
-    --color-pine-600: #4a5391;
-    --color-pine-500: #8d93c4;
-    --color-pine-400: #6e76ae;
-    --color-pine-300: #8d93c4;
-    --color-pine-200: #c9cce3;
-    --color-pine-100: #2a3058;
-    --color-pine-50: #1f2443;
-    --color-brand: #e7e8f3;
-    --color-brand-2: #a9aed6;
-    --color-brand-line: #434a7e;
-    --color-paper: #14172b;
-    --color-paper-2: #1a1e38;
-    --color-surface: #1e2240;
-    --color-line: #2e3460;
-    --color-line-strong: #434a7e;
-    --color-ink: #f3eee4;
-    --color-ink-2: #d9d6e4;
-    --color-ink-3: #b9b6cc;
+    --color-pine-900: #0b140f;
+    --color-pine-800: #12201a;
+    --color-pine-700: #2f5a44;
+    --color-pine-600: #3c6b52;
+    --color-pine-500: #8fb09c;
+    --color-pine-400: #5f8a72;
+    --color-pine-300: #8fb09c;
+    --color-pine-200: #c4d8cb;
+    --color-pine-100: #22382c;
+    --color-pine-50: #1a2c22;
+    --color-brand: #e3ede6;
+    --color-brand-2: #a3c7b1;
+    --color-brand-line: #3e5647;
+    --color-paper: #101a14;
+    --color-paper-2: #142019;
+    --color-surface: #17241d;
+    --color-line: #2a3d32;
+    --color-line-strong: #3e5647;
+    --color-ink: #f1eee6;
+    --color-ink-2: #d4dad4;
+    --color-ink-3: #aab6ae;
     --color-lantern: #c4471e;
     --color-lantern-600: #f2a65a;
     --color-lantern-700: #a33a17;
-    --color-lantern-100: #3a2530;
-    --color-impact: #6fbf91;
-    --color-impact-100: #1f3a33;
-    --color-success: #6fbf91;
-    --color-success-100: #1f3a33;
+    --color-lantern-100: #3a2520;
+    --color-impact: #7cc79c;
+    --color-impact-100: #1d3027;
+    --color-success: #7cc79c;
+    --color-success-100: #1d3027;
     --color-success-solid: #2f6b4f;
     --color-warn: #e3b062;
     --color-warn-100: #3a3020;
@@ -132,7 +131,8 @@
     --color-danger-600: #931c13;
     --color-danger-100: #3d2228;
     --color-danger-solid: #b42318;
-    --color-split-artisan: #6fbf91;
+    --color-split-artisan: #7cc79c;
+    --color-split-platform: #3c6b52;
     --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
   }
@@ -849,7 +849,7 @@
 .pass-card {
   background:
     radial-gradient(120% 90% at 100% 0%, rgb(196 71 30 / 0.35) 0%, transparent 55%),
-    linear-gradient(150deg, #2a3160 0%, #14172b 70%);
+    linear-gradient(150deg, #2b4d3a 0%, #14281e 70%);
   transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
   transition: transform 0.25s ease-out;
   transform-style: preserve-3d;
@@ -1014,8 +1014,8 @@
   z-index: -1;
   background:
     radial-gradient(38% 48% at 18% 32%, rgb(196 71 30 / 0.22), transparent 70%),
-    radial-gradient(34% 46% at 82% 68%, rgb(74 83 145 / 0.5), transparent 70%),
-    radial-gradient(28% 40% at 56% 12%, rgb(141 147 196 / 0.16), transparent 70%);
+    radial-gradient(34% 46% at 82% 68%, rgb(60 107 82 / 0.5), transparent 70%),
+    radial-gradient(28% 40% at 56% 12%, rgb(143 176 156 / 0.16), transparent 70%);
 }
 .ledger-band::after {
   content: "";
@@ -1035,8 +1035,8 @@
 /* Live-figures dot: one pulse when the figures arrive */
 .ledger-pulse { animation: ledger-pulse 1.4s ease-out 1; }
 @keyframes ledger-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(141 147 196 / 0.55); }
-  70%, 100% { box-shadow: 0 0 0 7px rgb(141 147 196 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(143 176 156 / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgb(143 176 156 / 0); }
 }
 
 /* Cursor spotlight on cards (pointer devices only) */

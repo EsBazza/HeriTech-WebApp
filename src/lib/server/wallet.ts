@@ -98,7 +98,7 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
     id: objectId,
     classId,
     state: "ACTIVE",
-    hexBackgroundColor: pass.backgroundColor ?? "#1c2140",
+    hexBackgroundColor: pass.backgroundColor ?? "#1f3a2b",
     cardTitle: text("HeriTech Impact Pass"),
     header: text(pass.productTitle),
     subheader: text(pass.makerName ? `Made by ${pass.makerName}` : "Verified upcycled piece"),
@@ -214,7 +214,7 @@ export function loyaltyCardSaveUrl(member: LoyaltyMember, appUrl: string): strin
     issuerName: "HeriTech",
     programName: "HeriTech Circle",
     programLogo: logo,
-    hexBackgroundColor: "#1c2140",
+    hexBackgroundColor: "#1f3a2b",
     reviewStatus: "UNDER_REVIEW",
   };
   const loyaltyObject = {

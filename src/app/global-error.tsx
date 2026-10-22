@@ -7,13 +7,13 @@
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, minHeight: "100vh", display: "grid", placeItems: "center", background: "#f6f1e7", color: "#444655", fontFamily: "system-ui, sans-serif", padding: 16 }}>
+      <body style={{ margin: 0, minHeight: "100vh", display: "grid", placeItems: "center", background: "#f6f1e7", color: "#3f4742", fontFamily: "system-ui, sans-serif", padding: 16 }}>
         <div style={{ maxWidth: 420, textAlign: "center" }}>
-          <h1 style={{ color: "#1a1b26", fontSize: 24, margin: "0 0 8px" }}>HeriTech couldn&apos;t load</h1>
+          <h1 style={{ color: "#1b1f1c", fontSize: 24, margin: "0 0 8px" }}>HeriTech couldn&apos;t load</h1>
           <p style={{ margin: "0 0 20px", lineHeight: 1.5 }}>Please check your connection and try again.</p>
           <button
             onClick={reset}
-            style={{ minHeight: 44, padding: "0 20px", border: 0, borderRadius: 10, background: "#1c2140", color: "#fff", fontSize: 15, cursor: "pointer" }}
+            style={{ minHeight: 44, padding: "0 20px", border: 0, borderRadius: 10, background: "#1f3a2b", color: "#fff", fontSize: 15, cursor: "pointer" }}
           >
             Try again
           </button>

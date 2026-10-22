@@ -5,11 +5,11 @@ import { cn } from "@/components/ui";
 const SCRAPS = [
   { x: "-46px", y: "62px", r: "120deg", d: "0s", c: "#eadfc8", w: 9, h: 7, br: "2px" },
   { x: "-22px", y: "80px", r: "-80deg", d: "0.06s", c: "#e8925a", w: 8, h: 8, br: "9999px 9999px 9999px 2px" },
-  { x: "4px", y: "88px", r: "200deg", d: "0.02s", c: "#8d93c4", w: 10, h: 5, br: "2px" },
+  { x: "4px", y: "88px", r: "200deg", d: "0.02s", c: "#8fb09c", w: 10, h: 5, br: "2px" },
   { x: "28px", y: "76px", r: "-140deg", d: "0.1s", c: "#c99a6b", w: 4, h: 12, br: "9999px" },
   { x: "50px", y: "58px", r: "90deg", d: "0.04s", c: "#eadfc8", w: 8, h: 6, br: "2px" },
   { x: "-36px", y: "40px", r: "-200deg", d: "0.14s", c: "#c4471e", w: 6, h: 6, br: "9999px 9999px 9999px 2px" },
-  { x: "38px", y: "36px", r: "160deg", d: "0.12s", c: "#8d93c4", w: 7, h: 4, br: "1px" },
+  { x: "38px", y: "36px", r: "160deg", d: "0.12s", c: "#8fb09c", w: 7, h: 4, br: "1px" },
 ];
 
 /**

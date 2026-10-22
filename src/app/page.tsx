@@ -240,7 +240,7 @@ export default function FeedHomePage() {
         )}
       >
         {/* Scrim keeps the copy readable over any part of the photo */}
-        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgb(20_23_43/0.97)_0%,rgb(20_23_43/0.85)_55%,rgb(20_23_43/0.15)_85%,rgb(20_23_43/0)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_23_43/0.95)_0%,rgb(20_23_43/0.8)_34%,rgb(20_23_43/0.2)_62%,rgb(20_23_43/0)_100%)] pointer-events-none" />
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgb(20_40_30/0.97)_0%,rgb(20_40_30/0.85)_55%,rgb(20_40_30/0.15)_85%,rgb(20_40_30/0)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_40_30/0.95)_0%,rgb(20_40_30/0.8)_34%,rgb(20_40_30/0.2)_62%,rgb(20_40_30/0)_100%)] pointer-events-none" />
 
         {/* Leftovers → lantern. Hover (or "Craft it") assembles it. */}
         <div

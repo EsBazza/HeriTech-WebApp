@@ -33,7 +33,7 @@ export async function pickupCardBlob(qr: HTMLCanvasElement, batch: HandoverBatch
   ctx.fillStyle = "#f6f1e7";
   ctx.fillRect(0, 0, W, H);
   // Header band
-  ctx.fillStyle = "#14172b";
+  ctx.fillStyle = "#14281e";
   ctx.fillRect(0, 0, W, 200);
   ctx.fillStyle = "#ffffff";
   ctx.font = font(700, 54);
@@ -57,12 +57,12 @@ export async function pickupCardBlob(qr: HTMLCanvasElement, batch: HandoverBatch
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(qr, tx + 30, ty + 30, tile - 60, tile - 60);
 
-  ctx.fillStyle = "#1a1b26";
+  ctx.fillStyle = "#1b1f1c";
   ctx.textAlign = "center";
   ctx.font = font(700, 48);
   ctx.fillText(`Batch ${batch.id}`, W / 2, 1180);
   ctx.font = font(500, 32);
-  ctx.fillStyle = "#444655";
+  ctx.fillStyle = "#3f4742";
   ctx.fillText(`${batch.weightKg} kg · ${batch.materialType}`, W / 2, 1236);
   ctx.fillStyle = "#a33a17";
   ctx.font = font(600, 32);
@@ -71,7 +71,7 @@ export async function pickupCardBlob(qr: HTMLCanvasElement, batch: HandoverBatch
     W / 2,
     1300
   );
-  ctx.fillStyle = "#63657a";
+  ctx.fillStyle = "#5f6661";
   ctx.font = font(400, 28);
   ctx.fillText("Show this to the local government officer at the collection point.", W / 2, 1376);
 

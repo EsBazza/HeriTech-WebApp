@@ -103,15 +103,15 @@ Types live in `src/lib/firebase/types.ts`. Dates are stored as Firestore Timesta
 
 ## 8. Design system
 
-"Lantern Ink" (Heritage Lantern 3.0): lantern light on an indigo festival night.
+"Lantern Ink" (Heritage Lantern 3.0): lantern light on a pine festival night.
 
-- Day: washi paper `#F6F1E7`, ink `#1A1B26`, indigo `#1C2140` (chrome and primary buttons), ember `#C4471E` (the one action per screen), impact pine `#2F6B4F` (kilograms and the artisan's share), glow `#F2A65A` (highlights only)
-- Night: the same roles on indigo `#14172B`; it follows the phone (Auto) or a saved Day/Night choice from the menu or Profile → Settings. `THEME_HEAD_SCRIPT` sets `<html data-theme>` before the first paint.
-- Split colours: artisan `#2F6B4F`, LGU `#8D93C4`, charity & upkeep `#C4471E`
+- Day: washi paper `#F6F1E7`, ink `#1B1F1C`, pine `#1F3A2B` (chrome and primary buttons), ember `#C4471E` (the one action per screen), impact pine `#2F6B4F` (kilograms and the artisan's share), glow `#F2A65A` (highlights only)
+- Night: the same roles on deep pine `#101A14`; it follows the phone (Auto) or a saved Day/Night choice from the menu or Profile → Settings. `THEME_HEAD_SCRIPT` sets `<html data-theme>` before the first paint.
+- Split colours: artisan `#1F3A2B`, LGU `#8FB09C`, charity & upkeep `#C4471E`
 - Type: Fraunces (display), Figtree (UI), IBM Plex Mono (serials and figures)
 - Shapes: pill buttons, arched photo frames (`.arch`), ticket-cut passes (`.ticket`), stitched dividers
 - Motion: three curves (`--ease-out`, `--ease-in-out`, `--ease-drawer`), entrances 300–400 ms, no endless loops except "working" indicators; reduced motion keeps fades and colour and drops movement
-- The `pine-*` utilities are the brand scale (now indigo); use `text-brand` / `text-brand-2` for brand-coloured text so it stays readable at night, and the `*-solid` status colours under white text.
+- The `pine-*` utilities are the brand scale; use `text-brand` / `text-brand-2` for brand-coloured text so it stays readable at night, and the `*-solid` status colours under white text.
 - Tokens are defined in `src/app/globals.css`.
 
 ---

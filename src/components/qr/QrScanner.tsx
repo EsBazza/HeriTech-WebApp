@@ -144,7 +144,7 @@ export function QrScanner({ onResult, onCancel, onImportPhoto }: QrScannerProps)
               found ? "border-success bg-success/15" : "border-white/85"
             )}
           >
-            {!found && ready && <span className="scan-line absolute inset-x-3 h-0.5 rounded-full bg-pine-300/90 shadow-[0_0_12px_rgb(141_147_196/0.9)]" />}
+            {!found && ready && <span className="scan-line absolute inset-x-3 h-0.5 rounded-full bg-pine-300/90 shadow-[0_0_12px_rgb(143_176_156/0.9)]" />}
             {found && (
               <span className="absolute inset-0 flex items-center justify-center">
                 <span className="w-14 h-14 rounded-full bg-success-solid text-white flex items-center justify-center shadow-pop">

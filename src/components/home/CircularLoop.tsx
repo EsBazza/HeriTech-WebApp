@@ -32,14 +32,14 @@ export function CircularLoop() {
       </defs>
 
       <circle cx={C} cy={C} r={R + 34} fill="none" stroke="rgb(255 255 255 / 0.06)" />
-      <circle cx={C} cy={C} r={R} fill="none" stroke="rgb(141 147 196 / 0.35)" strokeWidth="1.5" strokeDasharray="2 7" strokeLinecap="round" />
+      <circle cx={C} cy={C} r={R} fill="none" stroke="rgb(143 176 156 / 0.35)" strokeWidth="1.5" strokeDasharray="2 7" strokeLinecap="round" />
       <g className="loop-tracer" style={{ transformOrigin: `${C}px ${C}px` }}>
         <circle cx={C} cy={C} r={R} fill="none" stroke="#f08a5d" strokeWidth="3" strokeLinecap="round" strokeDasharray={`90 ${2 * Math.PI * R}`} />
       </g>
 
       {/* Core: the one ledger everything writes to */}
       <circle cx={C} cy={C} r="78" fill="url(#loop-core)" className="loop-core" />
-      <circle cx={C} cy={C} r="54" fill="#14172b" stroke="rgb(255 255 255 / 0.14)" />
+      <circle cx={C} cy={C} r="54" fill="#14281e" stroke="rgb(255 255 255 / 0.14)" />
       <text x={C} y={C - 4} textAnchor="middle" className="fill-white font-display" fontSize="21" fontWeight="600">
         HeriTech
       </text>
@@ -57,10 +57,10 @@ export function CircularLoop() {
         const Icon = s.icon;
         return (
           <g key={i} className="loop-node" style={{ animationDelay: `${i * 2}s` }}>
-            <circle cx={x} cy={y} r="25" className="loop-node-disc" stroke="rgb(141 147 196 / 0.5)" strokeWidth="1.5" />
+            <circle cx={x} cy={y} r="25" className="loop-node-disc" stroke="rgb(143 176 156 / 0.5)" strokeWidth="1.5" />
             <Icon x={x - 11} y={y - 11} width={22} height={22} color="#ffffff" strokeWidth={1.75} aria-hidden />
             <text x={lx} y={i === 0 ? ly - 2 : ly + 5} textAnchor={anchor} fill="rgb(255 255 255 / 0.85)" fontSize="15" fontWeight="500">
-              <tspan fill="rgb(141 147 196)" fontSize="12">{`0${i + 1} `}</tspan>
+              <tspan fill="rgb(143 176 156)" fontSize="12">{`0${i + 1} `}</tspan>
               {s.label}
             </text>
           </g>

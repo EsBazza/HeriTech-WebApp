@@ -21,8 +21,8 @@ const ROLE_LABEL: Record<string, string> = { buyer: "Buyer", artisan: "Artisan",
 const ROLE_TONE: Record<string, BadgeTone> = { buyer: "neutral", artisan: "accent", lgu: "pine", admin: "warn" };
 
 // Recharts needs literal colours; these are the pine-500, line, and split tokens from globals.css.
-const CHART = { collected: "#4a5391", target: "#cfc4ae", grid: "#e2d9c7", tick: "#63657a" };
-const SPLIT_COLORS = ["#2f6b4f", "#8d93c4", "#c4471e"];
+const CHART = { collected: "#3c6b52", target: "#cfc4ae", grid: "#e2d9c7", tick: "#5f6661" };
+const SPLIT_COLORS = ["#1f3a2b", "#8fb09c", "#c4471e"];
 
 /** A step that needs a second tap: rejecting an applicant or changing someone's role. */
 interface PendingAction {

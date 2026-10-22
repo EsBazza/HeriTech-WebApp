@@ -17,7 +17,7 @@ export interface MapBatch {
 const STATUS_COLOR: Record<MapBatch["status"], string> = {
   available: "#2f6b4f",
   reserved: "#c4471e",
-  claimed: "#63657a",
+  claimed: "#5f6661",
 };
 
 interface BatchMapProps {
@@ -101,7 +101,7 @@ export function BatchMap({ batches, selectedId, onSelect, route, userPosition, r
         scale: selected ? 11 : 8,
         fillColor: STATUS_COLOR[batch.status],
         fillOpacity: 1,
-        strokeColor: selected ? "#1a1b26" : "#ffffff",
+        strokeColor: selected ? "#1b1f1c" : "#ffffff",
         strokeWeight: selected ? 3 : 2,
       });
     }
