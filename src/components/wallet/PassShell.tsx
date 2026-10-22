@@ -85,7 +85,7 @@ export function PassShell({ image, title, badge, children, ariaLabel, notchFromB
           </div>
 
           {/* Room for the piece to show through before the details begin */}
-          <div aria-hidden className={image ? "h-36" : "h-2"} />
+          <div aria-hidden className={image ? "h-20" : "h-2"} />
 
           <div className="flex items-end justify-between gap-2">
             <p className="pass-title font-display text-[23px] leading-[1.1] font-semibold">{translateSync(title)}</p>

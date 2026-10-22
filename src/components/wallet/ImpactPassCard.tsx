@@ -41,7 +41,7 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
         image={image}
         title={title}
         ariaLabel={`${translateSync("Verified Impact Pass")} ${serial}`}
-        notchFromBottom={130}
+        notchFromBottom={146}
         badge={
           <span className="inline-flex items-center gap-1 rounded-full bg-pine-900/60 backdrop-blur-sm border border-white/15 px-2.5 py-1 text-xs text-pine-200">
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -49,40 +49,42 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
           </span>
         }
       >
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-[13px]">
+        <dl className="grid grid-cols-2 gap-1.5 text-[13px]">
           {maker && (
-            <div className="min-w-0">
-              <dt className="text-xs text-white/60">{translateSync("Made by")}</dt>
-              <dd className="truncate">{translateSync(maker)}</dd>
+            <div className="col-span-2 rounded-xl bg-white/[0.08] border border-white/10 backdrop-blur-md px-3 py-2 min-w-0">
+              <dt className="text-[11px] uppercase tracking-wide text-white/60">{translateSync("Made by")}</dt>
+              <dd className="truncate font-medium">{translateSync(maker)}</dd>
             </div>
           )}
           {origin && (
-            <div className="min-w-0">
-              <dt className="text-xs text-white/60">{translateSync("Origin")}</dt>
-              <dd className="truncate">{origin}</dd>
+            <div className="col-span-2 rounded-xl bg-white/[0.08] border border-white/10 backdrop-blur-md px-3 py-2 min-w-0">
+              <dt className="text-[11px] uppercase tracking-wide text-white/60">{translateSync("Origin")}</dt>
+              <dd className="truncate font-medium">{origin}</dd>
             </div>
           )}
           {kgDiverted != null && (
-            <div>
-              <dt className="text-xs text-white/60">{translateSync("Diverted")}</dt>
-              <dd className="tabular">{formatNumber(kgDiverted)} kg</dd>
+            <div className="rounded-xl bg-white/[0.08] border border-white/10 backdrop-blur-md px-3 py-2 min-w-0">
+              <dt className="text-[11px] uppercase tracking-wide text-white/60">{translateSync("Diverted")}</dt>
+              <dd className="tabular font-medium">{formatNumber(kgDiverted)} kg</dd>
             </div>
           )}
           {issuedAt && (
-            <div>
-              <dt className="text-xs text-white/60">{translateSync("Issued")}</dt>
-              <dd>{formatDate(new Date(issuedAt))}</dd>
+            <div className="rounded-xl bg-white/[0.08] border border-white/10 backdrop-blur-md px-3 py-2 min-w-0">
+              <dt className="text-[11px] uppercase tracking-wide text-white/60">{translateSync("Issued")}</dt>
+              <dd className="truncate font-medium">{formatDate(new Date(issuedAt))}</dd>
             </div>
           )}
         </dl>
 
-        <div className="mt-3 flex items-end justify-between gap-3 pt-3 border-t-2 border-dashed border-white/25">
-          <div className="min-w-0">
-            <p className="text-xs text-white/60">{translateSync("Serial")}</p>
-            <p className="font-mono-data text-[15px] tracking-wide break-all">{serial}</p>
-            <p className="mt-1 text-xs text-white/65 leading-snug max-w-[11rem]">{translateSync("Scan to open the public record of this piece.")}</p>
+        <div className="mt-3 pt-3 border-t-2 border-dashed border-white/25">
+          <div className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.08] border border-white/10 backdrop-blur-md p-2.5">
+            <div className="min-w-0 pl-1">
+              <p className="text-[11px] uppercase tracking-wide text-white/60">{translateSync("Serial")}</p>
+              <p className="font-mono-data text-[15px] tracking-wide break-all">{serial}</p>
+              <p className="mt-1 text-xs text-white/70 leading-snug">{translateSync("Scan to open the public record.")}</p>
+            </div>
+            <QRCodeViewer value={verifyUrl} size={76} level="M" className="shrink-0" />
           </div>
-          <QRCodeViewer value={verifyUrl} size={84} level="M" className="shrink-0" />
         </div>
       </PassShell>
 

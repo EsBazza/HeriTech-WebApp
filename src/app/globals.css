@@ -1123,34 +1123,34 @@
   }
 }
 
-/* Photo pass: the piece fills the card, softened into a toned silhouette */
+/* Photo pass: the piece's photo, blurred, is the background of the whole card */
 .pass-bg {
   position: absolute;
-  inset: -6%;
-  width: 112%;
-  height: 112%;
+  inset: -12%;
+  width: 124%;
+  height: 124%;
   object-fit: cover;
-  filter: blur(1.5px) grayscale(0.45) contrast(1.15) brightness(0.82);
-  transform: scale(1.02);
-  /* Pulls into focus when the pass appears, then drifts very slowly */
-  animation: pass-focus 2s var(--ease-out) both, pass-drift 18s ease-in-out 2s infinite alternate;
+  filter: blur(14px) saturate(1.35) brightness(0.72);
+  transform: scale(1.04);
+  /* Pulls in from a deeper blur when the pass appears, then drifts very slowly */
+  animation: pass-focus 1.8s var(--ease-out) both, pass-drift 18s ease-in-out 1.8s infinite alternate;
   transition: filter 0.8s var(--ease-out);
 }
 @keyframes pass-focus {
-  from { filter: blur(18px) grayscale(1) contrast(1.15) brightness(0.6); transform: scale(1.18); }
-  to { filter: blur(1.5px) grayscale(0.45) contrast(1.15) brightness(0.82); transform: scale(1.02); }
+  from { filter: blur(34px) saturate(1) brightness(0.5); transform: scale(1.2); }
+  to { filter: blur(14px) saturate(1.35) brightness(0.72); transform: scale(1.04); }
 }
 @keyframes pass-drift {
-  from { transform: scale(1.02) translate3d(0, 0, 0); }
-  to { transform: scale(1.09) translate3d(-2%, -2%, 0); }
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.12) translate3d(-3%, -2%, 0); }
 }
-/* Duotone: shadows in pine, highlights in lantern amber */
+/* A light pine-and-amber tone keeps every card in the HeriTech palette */
 .pass-duotone {
   position: absolute;
   inset: 0;
-  background: linear-gradient(170deg, #f2a65a 0%, #c4471e 38%, #1f3a2b 78%);
+  background: linear-gradient(170deg, #f2a65a 0%, #c4471e 40%, #1f3a2b 85%);
   mix-blend-mode: color;
-  opacity: 0.65;
+  opacity: 0.35;
   transition: opacity 0.8s var(--ease-out);
   pointer-events: none;
 }
@@ -1158,7 +1158,7 @@
 .pass-light {
   position: absolute;
   inset: -30% -60%;
-  background: radial-gradient(40% 30% at 50% 50%, rgb(255 214 150 / 0.35), transparent 70%);
+  background: radial-gradient(40% 30% at 50% 50%, rgb(255 214 150 / 0.3), transparent 70%);
   mix-blend-mode: screen;
   transform: translate3d(-45%, -10%, 0);
   animation: pass-light 3.2s var(--ease-in-out) 0.4s both;
@@ -1167,17 +1167,18 @@
 @keyframes pass-light {
   0% { opacity: 0; transform: translate3d(-45%, -10%, 0); }
   30% { opacity: 1; }
-  100% { opacity: 0.35; transform: translate3d(30%, 6%, 0); }
+  100% { opacity: 0.3; transform: translate3d(30%, 6%, 0); }
 }
 .pass-scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
+/* Even tint over the whole card (no dark fade), so the photo shows behind every detail */
 .pass-photo .pass-scrim {
   background:
-    linear-gradient(180deg, rgb(11 20 15 / 0.6) 0%, rgb(11 20 15 / 0) 26%),
-    linear-gradient(180deg, rgb(20 40 30 / 0) 30%, rgb(20 40 30 / 0.7) 52%, rgb(11 20 15 / 0.93) 72%);
+    radial-gradient(120% 80% at 50% 0%, transparent 40%, rgb(11 20 15 / 0.25) 100%),
+    rgb(11 20 15 / 0.28);
 }
 /* Fine film grain, so the softened photo reads as print, not as a low-res image */
 .pass-grain {
@@ -1193,8 +1194,8 @@
 @keyframes pass-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* Looking closer: the piece sharpens and takes back its own colours */
 @media (hover: hover) and (pointer: fine) {
-  .pass-stage:hover .pass-bg { filter: blur(0) grayscale(0) contrast(1.05) brightness(0.9); }
-  .pass-stage:hover .pass-duotone { opacity: 0.2; }
+  .pass-stage:hover .pass-bg { filter: blur(8px) saturate(1.45) brightness(0.78); }
+  .pass-stage:hover .pass-duotone { opacity: 0.15; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pass-bg, .pass-light, .pass-rule { animation: none; }
