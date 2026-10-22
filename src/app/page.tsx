@@ -241,6 +241,8 @@ export default function FeedHomePage() {
       >
         {/* Scrim keeps the copy readable over any part of the photo */}
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgb(20_40_30/0.97)_0%,rgb(20_40_30/0.85)_55%,rgb(20_40_30/0.15)_85%,rgb(20_40_30/0)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_40_30/0.95)_0%,rgb(20_40_30/0.8)_34%,rgb(20_40_30/0.2)_62%,rgb(20_40_30/0)_100%)] pointer-events-none" />
+        {/* Fade the photo into the ledger band so the two read as one scene */}
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-pine-900 to-transparent pointer-events-none" />
 
         {/* Leftovers → lantern. Hover (or "Craft it") assembles it. */}
         <div
@@ -328,25 +330,25 @@ export default function FeedHomePage() {
       {/* PROOF STRIP — the live ledger */}
       <section className="ledger-band text-white">
         <svg className="ledger-thread absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-24 pointer-events-none" viewBox="0 0 1200 96" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 60 C 200 10, 380 90, 600 48 S 1000 14, 1200 52" fill="none" stroke="rgb(240 138 93 / 0.35)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+          <path d="M0 60 C 200 10, 380 90, 600 48 S 1000 14, 1200 52" fill="none" stroke="rgb(242 166 90 / 0.3)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
         </svg>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between gap-4 mb-7">
             <p className="flex items-center gap-2.5 text-sm text-white/75">
               <span className={cn("w-2 h-2 rounded-full shrink-0", statsOffline ? "bg-warn" : "bg-pine-300 ledger-pulse")} aria-hidden />
-              {statsOffline ? translateSync("The figures can't load right now.") : translateSync("Live figures from HeriTech's records.")}
+              {statsOffline ? translateSync("The ledger can't be reached right now.") : translateSync("Live from the HeriTech ledger")}
             </p>
             <a href="/impact" className="hidden sm:inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white transition-colors">
-              {translateSync("Open the impact ledger")}
+              {translateSync("See the full impact ledger")}
               <ArrowUpRight className="w-4 h-4" />
             </a>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { icon: Leaf, label: translateSync("Material collected"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
-              { icon: BadgeCheck, label: translateSync("Verified artisans"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
-              { icon: QrCode, label: translateSync("Impact passes issued"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
-              { icon: HandHeart, label: translateSync("Charity & app upkeep"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
+              { icon: Leaf, label: translateSync("Festival material traced"), hint: translateSync("Weighed and logged at collection points"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
+              { icon: BadgeCheck, label: translateSync("Verified artisans"), hint: translateSync("Approved before they can claim material"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
+              { icon: QrCode, label: translateSync("Impact passes issued"), hint: translateSync("Each one publicly scannable"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
+              { icon: HandHeart, label: translateSync("Raised for charity & upkeep"), hint: translateSync("5% of every sale, on the record"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
             ].map((m, i) => (
               <Reveal
                 key={i}
@@ -354,7 +356,10 @@ export default function FeedHomePage() {
                 onPointerMove={spotlight}
                 className="spotlight spotlight-dark rounded-lg border border-white/10 bg-white/[0.04] backdrop-blur-sm p-5"
               >
-                <Stat tone="dark" icon={<m.icon className="w-4 h-4 text-pine-300" />} label={m.label} value={m.value} unit={m.unit} />
+                <span className="ledger-icon mb-3 w-8 h-8 rounded-full flex items-center justify-center" aria-hidden>
+                  <m.icon className="w-4 h-4" strokeWidth={1.75} />
+                </span>
+                <Stat tone="dark" label={m.label} value={m.value} unit={m.unit} hint={m.hint} />
               </Reveal>
             ))}
           </div>
@@ -419,7 +424,7 @@ export default function FeedHomePage() {
         </Reveal>
         <ol ref={stepsRef} className={cn("relative grid sm:grid-cols-2 lg:grid-cols-4 gap-5", stepsIn && "steps-in")}>
           <span className="hidden lg:block absolute left-[12.5%] right-[12.5%] top-6 h-px bg-line-strong" aria-hidden>
-            <span className="step-rail-fill absolute inset-0 bg-gradient-to-r from-pine-500 via-pine-500 to-lantern" />
+            <span className="step-rail-fill absolute inset-0 bg-gradient-to-r from-pine-500 via-pine-500 to-[rgb(242_166_90)]" />
           </span>
           {steps.map((s, i) => {
             const Icon = s.icon;
@@ -626,21 +631,24 @@ export default function FeedHomePage() {
             <span className="text-sm text-ink-3">{translateSync("Example: a piece sold for")}</span>
             <span className="tabular font-display text-3xl font-semibold text-ink">{formatCurrency(85)}</span>
           </div>
-          <EscrowBar amount={85} />
+          <EscrowBar amount={85} animate />
         </Reveal>
       </section>
 
       {/* PARTNERS */}
-      <section className="border-t border-line">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-sm text-ink-3">{translateSync("Developed at University of the Assumption, Pampanga, for EDUtech Asia 2026")}</p>
-          <div className="flex items-center gap-8">
-            <Image src="/university-of-assumption.png" alt="University of the Assumption" width={56} height={56} className="h-12 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" />
-            <span className="inline-flex items-center rounded-md bg-pine-900 px-4 py-3">
-              <Image src="/EDUtech_asia-REV1200.webp" alt="EDUtech Asia" width={160} height={23} className="h-6 w-auto object-contain" />
-            </span>
-          </div>
-        </div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <Reveal className="rounded-lg border border-line bg-surface shadow-card px-6 py-6 flex flex-col md:flex-row items-center justify-center gap-5 md:gap-8 text-center md:text-left">
+          <Image src="/university-of-assumption.png" alt="University of the Assumption" width={56} height={56} className="partner-seal h-12 w-auto object-contain" />
+          <p className="text-sm text-ink-2">
+            <span className="font-medium text-ink">{translateSync("Built at University of the Assumption, Pampanga")}</span>
+            <span className="hidden md:inline text-ink-3"> · </span>
+            <br className="md:hidden" />
+            {translateSync("Presented at EDUtech Asia 2026")}
+          </p>
+          <span className="inline-flex items-center rounded-md bg-pine-900 px-4 py-3">
+            <Image src="/EDUtech_asia-REV1200.webp" alt="EDUtech Asia" width={160} height={23} className="h-6 w-auto object-contain" />
+          </span>
+        </Reveal>
       </section>
     </div>
   );

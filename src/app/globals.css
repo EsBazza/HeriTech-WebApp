@@ -63,9 +63,9 @@
   --color-split-platform: #8fb09c;
   --color-split-ngo: #c4471e;
 
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-sans: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
   /* sm chips · md controls · lg cards · xl sheets and dialogs; actions and arches are full */
   --radius-sm: 6px;
@@ -955,14 +955,10 @@
   animation: rise 0.6s var(--ease-out) both;
 }
 
-/* Fraunces: a soft, sturdy serif. Sizes were set for Cormorant, which runs smaller,
-   so the x-height is matched to keep every heading's layout. */
+/* Cormorant defaults to old-style figures; keep numbers level everywhere */
 .font-display {
   font-family: var(--font-display);
   font-variant-numeric: lining-nums;
-  font-size-adjust: 0.44;
-  font-variation-settings: "SOFT" 50, "WONK" 0;
-  letter-spacing: -0.01em;
 }
 
 .font-body {
@@ -1001,42 +997,62 @@
 }
 
 /* ─── Home sections: ledger band, spotlight cards, step rail, loop orbit ─── */
+/* The hero's palette: the photo scrim (pine-900) lit by the lantern's amber */
+:root {
+  --glow-amber: 242 166 90;
+  --glow-pine: 143 176 156;
+}
 .ledger-band {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  margin-top: -1px;
   background: var(--color-pine-900);
 }
+/* Light falling from the hero's lantern, plus a cool balance on the far side */
 .ledger-band::before {
   content: "";
   position: absolute;
-  inset: -40%;
+  inset: 0;
   z-index: -1;
   background:
-    radial-gradient(38% 48% at 18% 32%, rgb(196 71 30 / 0.22), transparent 70%),
-    radial-gradient(34% 46% at 82% 68%, rgb(60 107 82 / 0.5), transparent 70%),
-    radial-gradient(28% 40% at 56% 12%, rgb(143 176 156 / 0.16), transparent 70%);
+    radial-gradient(42% 120% at 50% 0%, rgb(var(--glow-amber) / 0.16), transparent 70%),
+    radial-gradient(30% 90% at 8% 100%, rgb(var(--glow-pine) / 0.1), transparent 70%);
+  animation: band-breathe 6s ease-in-out infinite;
 }
+@media (min-width: 1024px) {
+  .ledger-band::before {
+    background:
+      radial-gradient(34% 130% at 72% 0%, rgb(var(--glow-amber) / 0.16), transparent 70%),
+      radial-gradient(28% 100% at 8% 100%, rgb(var(--glow-pine) / 0.1), transparent 70%);
+  }
+}
+/* Warm paper grain, faded at the edges */
 .ledger-band::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: radial-gradient(rgb(255 255 255 / 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(rgb(247 240 225 / 0.06) 1px, transparent 1px);
   background-size: 22px 22px;
   mask-image: radial-gradient(70% 90% at 50% 50%, #000 30%, transparent 85%);
 }
+@keyframes band-breathe {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.ledger-icon { background: rgb(var(--glow-amber) / 0.12); color: rgb(var(--glow-amber)); }
 @keyframes band-drift {
   from { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
   to { transform: translate3d(4%, 3%, 0) rotate(6deg); }
 }
-.ledger-thread path { stroke-dasharray: 4 12; }
+.ledger-thread path { stroke-dasharray: 4 12; animation: thread-flow 2.4s linear infinite; }
 @keyframes thread-flow { to { stroke-dashoffset: -32; } }
 /* Live-figures dot: one pulse when the figures arrive */
 .ledger-pulse { animation: ledger-pulse 1.4s ease-out 1; }
 @keyframes ledger-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(143 176 156 / 0.55); }
-  70%, 100% { box-shadow: 0 0 0 7px rgb(143 176 156 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(var(--glow-amber) / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgb(var(--glow-amber) / 0); }
 }
 
 /* Cursor spotlight on cards (pointer devices only) */
@@ -1053,7 +1069,7 @@
   background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(196 71 30 / 0.1), transparent 45%);
 }
 .spotlight-dark::before {
-  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(240 138 93 / 0.18), transparent 50%);
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(var(--glow-amber) / 0.16), transparent 50%);
 }
 @media (hover: hover) {
   .spotlight:hover::before { opacity: 1; }
@@ -1069,6 +1085,30 @@
 @media (hover: hover) and (pointer: fine) {
   .lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); border-color: var(--color-line-strong); }
 }
+
+.traced-badge { position: relative; overflow: hidden; }
+.traced-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 214 160 / 0.45) 50%, transparent 70%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .group:hover .traced-badge::after { animation: analyse-sweep 0.9s ease-out 1 both; }
+}
+
+/* Navbar: solid with a hairline shadow once the page scrolls */
+.site-header { transition: background-color 0.15s ease, box-shadow 0.15s ease; }
+.site-header-row { transition: height 0.15s ease; }
+.site-header[data-scrolled="true"] { background-color: var(--color-paper); box-shadow: 0 1px 0 var(--color-line), 0 6px 18px -12px rgb(20 40 30 / 0.25); }
+.site-header[data-scrolled="true"] .site-header-row { height: 3.75rem; }
+
+/* Partner credits: the seal comes into colour on hover */
+.partner-seal { filter: grayscale(1); opacity: 0.85; transition: filter 0.3s ease, opacity 0.3s ease; }
+.partner-seal:hover { filter: none; opacity: 1; }
 
 .text-lantern-gradient {
   background: linear-gradient(120deg, var(--color-lantern-600), var(--color-lantern) 55%, #f08a5d);
@@ -1098,7 +1138,8 @@
 @keyframes loop-breathe { 0%, 100% { opacity: 0.6; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.06); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .ledger-band::before, .ledger-thread path, .ledger-pulse, .loop-tracer, .loop-node-disc, .loop-core { animation: none; }
+  .ledger-band::before, .ledger-thread path, .ledger-pulse, .loop-tracer, .loop-node-disc, .loop-core, .group:hover .traced-badge::after { animation: none; }
+  .site-header, .site-header-row { transition: none; }
   .step-rail-fill { transition: none; transform: scaleX(1); }
   .lift:hover, .js .reveal.is-visible.lift:hover { transform: none; }
 }

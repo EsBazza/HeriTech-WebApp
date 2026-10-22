@@ -28,7 +28,7 @@ export async function pickupCardBlob(qr: HTMLCanvasElement, batch: HandoverBatch
   c.height = H;
   const ctx = c.getContext("2d");
   if (!ctx) return null;
-  const font = (weight: number, size: number) => `${weight} ${size}px "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif`;
+  const font = (weight: number, size: number) => `${weight} ${size}px "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif`;
 
   ctx.fillStyle = "#f6f1e7";
   ctx.fillRect(0, 0, W, H);

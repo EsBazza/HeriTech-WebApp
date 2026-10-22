@@ -26,15 +26,15 @@ export function CircularLoop() {
     <svg viewBox="-80 -14 560 428" className="loop-orbit w-full h-auto" role="img" aria-label={translateSync("The HeriTech loop: agreement, scan, pickup, craft and pass, all on one ledger")}>
       <defs>
         <radialGradient id="loop-core" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#c4471e" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#c4471e" stopOpacity="0" />
+          <stop offset="0%" stopColor="#f2a65a" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#f2a65a" stopOpacity="0" />
         </radialGradient>
       </defs>
 
       <circle cx={C} cy={C} r={R + 34} fill="none" stroke="rgb(255 255 255 / 0.06)" />
       <circle cx={C} cy={C} r={R} fill="none" stroke="rgb(143 176 156 / 0.35)" strokeWidth="1.5" strokeDasharray="2 7" strokeLinecap="round" />
       <g className="loop-tracer" style={{ transformOrigin: `${C}px ${C}px` }}>
-        <circle cx={C} cy={C} r={R} fill="none" stroke="#f08a5d" strokeWidth="3" strokeLinecap="round" strokeDasharray={`90 ${2 * Math.PI * R}`} />
+        <circle cx={C} cy={C} r={R} fill="none" stroke="#f2a65a" strokeWidth="3" strokeLinecap="round" strokeDasharray={`90 ${2 * Math.PI * R}`} />
       </g>
 
       {/* Core: the one ledger everything writes to */}

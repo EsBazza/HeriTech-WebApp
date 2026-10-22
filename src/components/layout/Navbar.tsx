@@ -382,9 +382,17 @@ export function Navbar() {
   const navLinks = roleLinks(role, translateSync).filter((l) => l.primary);
   const isActive = (href: string) => isActivePath(pathname, href);
 
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 bg-paper/90 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top,0px)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-6">
+    <header data-scrolled={scrolled} className="site-header sticky top-0 z-40 bg-paper/90 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top,0px)]">
+      <div className="site-header-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-6">
         <Logo />
 
         <nav className="hidden md:flex items-center gap-1 h-full" aria-label="Main">

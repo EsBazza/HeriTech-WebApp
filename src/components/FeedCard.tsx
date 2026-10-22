@@ -101,7 +101,7 @@ export function FeedCard({ batch }: FeedCardProps) {
           <div className="w-full h-full flex items-center justify-center p-4 text-center text-sm text-ink-3">{translateSync(batch.materialType)}</div>
         )}
         <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-pine-900/60 to-transparent pointer-events-none" aria-hidden />
-        <span className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-pine-900/75 backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-white">
+        <span className="traced-badge absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-pine-900/75 backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-white">
           <QrCode className="w-3 h-3" aria-hidden />
           {translateSync("Traced")}
         </span>
