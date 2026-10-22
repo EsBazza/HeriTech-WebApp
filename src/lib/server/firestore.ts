@@ -9,6 +9,7 @@ import {
 import { adminDb } from "@/lib/firebase/admin";
 import type {
   AgreementDoc,
+  BoothClaimDoc,
   LoyaltyDoc,
   MaterialBatchDoc,
   MessageDoc,
@@ -75,6 +76,7 @@ export const db = {
   passes: collection<WalletPassDoc>("wallet_passes", ["issuedAt"]),
   messages: collection<MessageDoc>("messages", ["createdAt"]),
   loyalty: collection<LoyaltyDoc>("loyalty", ["updatedAt"]),
+  boothClaims: collection<BoothClaimDoc>("booth_claims", ["createdAt", "tokenGivenAt"]),
   /** Untyped counters used to hand out sequential, human-readable ids. */
   counters: () => adminDb().collection("counters"),
 };

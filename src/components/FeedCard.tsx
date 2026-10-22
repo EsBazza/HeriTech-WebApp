@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Leaf, MapPin, Plus, QrCode } from "lucide-react";
+import { ArrowRight, Check, Gift, Leaf, MapPin, Plus, QrCode } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { UserRole } from "@/lib/roleGuard";
@@ -28,6 +28,7 @@ export function toFeedItem(p: ProductView): FeedMaterialBatch {
     weightKg: Number(p.kgDiverted) || 0,
     materialType: p.materialTags?.length ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "",
     festival: p.sourceBatch?.agreement?.festival || "",
+    freeClaim: Boolean(p.freeClaim),
   };
 }
 
@@ -46,6 +47,8 @@ export interface FeedMaterialBatch {
   materialType: string;
   festival: string;
   status?: string;
+  /** Given away at the showcase booth: claimed on the product page, not added to the cart. */
+  freeClaim?: boolean;
 }
 
 interface FeedCardProps {
@@ -137,8 +140,17 @@ export function FeedCard({ batch }: FeedCardProps) {
         )}
 
         <div className="mt-auto pt-4 border-t border-line/70 flex items-center justify-between gap-3">
-          <span className="tabular font-display text-2xl font-semibold text-ink">{formatCurrency(batch.price)}</span>
+          <span className="tabular font-display text-2xl font-semibold text-ink">
+            {batch.freeClaim ? translateSync("Free") : formatCurrency(batch.price)}
+          </span>
 
+          {batch.freeClaim ? (
+            <Link href={href} className={buttonClass("primary", "sm")}>
+              <Gift className="w-4 h-4" />
+              {translateSync("Claim")}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          ) : (
           <button
             onClick={handleReserve}
             className={cn(buttonClass(inCart || justAdded ? "secondary" : "primary", "sm"), (inCart || justAdded) && "text-pine-700 border-pine-300")}
@@ -147,6 +159,7 @@ export function FeedCard({ batch }: FeedCardProps) {
             {inCart || justAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             {justAdded ? translateSync("Added") : inCart ? translateSync("In cart") : translateSync("Add to cart")}
           </button>
+          )}
         </div>
       </div>
     </article>

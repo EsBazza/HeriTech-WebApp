@@ -23,6 +23,7 @@ export const GET = route(async (request: Request) => {
 export const POST = route(async (request: Request) => {
   const artisan = await requireUser(request, ["artisan"]);
   const input = await parseBody(request, productCreateSchema);
+  if (input.freeClaim && artisan.role !== "admin") throw forbidden("Only an admin can make a piece free to claim.");
 
   const batch = (await db.batches().doc(input.sourceBatchId).get()).data();
   if (!batch) throw badRequest("Source batch not found.");

@@ -23,9 +23,12 @@ import {
   HandCoins,
   Landmark,
   MoveHorizontal,
+  Gift,
 } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { EscrowBar } from "@/components/EscrowBar";
+import { BoothClaimPanel } from "@/components/wallet/BoothClaimPanel";
 import { ProvenanceTimeline, type ProvenanceEvent } from "@/components/ProvenanceTimeline";
 import { BeforeAfter } from "@/components/motion/BeforeAfter";
 import { CountUp } from "@/components/motion/CountUp";
@@ -40,6 +43,7 @@ import { Badge, Button, Card, EmptyState, LinkButton, Skeleton, buttonClass, con
  */
 export function VerifyPass({ serial }: { serial: string }) {
   const router = useRouter();
+  const { user } = useAuth();
   const { formatCurrency, formatNumber, formatDate, translateSync } = useTranslation();
 
   const [data, setData] = useState<PassRecord | null>(null);
@@ -140,6 +144,8 @@ export function VerifyPass({ serial }: { serial: string }) {
 
   const origin: Partial<NonNullable<PassRecord["originHarvest"]>> = data.originHarvest ?? {};
   const escrow = data.escrowAudit;
+  // Pieces given away at the showcase booth: no money moved, so there is no split to show.
+  const freeClaim = escrow.paymentMode === "free_claim";
   const maker = data.maker;
   const gps = origin.gpsCoordinates;
   const hasGps = gps && typeof gps.lat === "number" && typeof gps.lng === "number";
@@ -184,27 +190,42 @@ export function VerifyPass({ serial }: { serial: string }) {
         </>
       ),
     },
-    {
-      icon: <ShoppingBag className="w-4 h-4" />,
-      title: translateSync("Sold & pass issued"),
-      meta: fmt(data.issuedAt),
-      detail: `${formatCurrency(escrow.totalAmount ?? data.product.price)} · ${translateSync("Pass")} ${data.serial}${
-        escrow.paymentMode === "simulated" ? ` · ${translateSync("demo payment")}` : ""
-      }`,
-    },
-    {
-      icon: <HeartHandshake className="w-4 h-4" />,
-      title: translateSync("Split recorded"),
-      detail: `${formatCurrency(escrow.lguShare ?? 0)} ${translateSync("to the local government")} · ${formatCurrency(escrow.charityMaintenanceShare ?? 0)} ${translateSync(
-        "to charity"
-      )}${escrow.ngoFundName ? ` (${translateSync(escrow.ngoFundName)})` : ""} ${translateSync("& app upkeep")}`,
-    },
+    ...(freeClaim
+      ? [
+          {
+            icon: <Gift className="w-4 h-4" />,
+            title: translateSync("Claimed free at the HeriTech booth"),
+            meta: fmt(data.issuedAt),
+            detail: `${translateSync("Pass")} ${data.serial} · ${translateSync("no money changed hands")}`,
+          },
+        ]
+      : [
+          {
+            icon: <ShoppingBag className="w-4 h-4" />,
+            title: translateSync("Sold & pass issued"),
+            meta: fmt(data.issuedAt),
+            detail: `${formatCurrency(escrow.totalAmount ?? data.product.price)} · ${translateSync("Pass")} ${data.serial}${
+              escrow.paymentMode === "simulated" ? ` · ${translateSync("demo payment")}` : ""
+            }`,
+          },
+          {
+            icon: <HeartHandshake className="w-4 h-4" />,
+            title: translateSync("Split recorded"),
+            detail: `${formatCurrency(escrow.lguShare ?? 0)} ${translateSync("to the local government")} · ${formatCurrency(escrow.charityMaintenanceShare ?? 0)} ${translateSync(
+              "to charity"
+            )}${escrow.ngoFundName ? ` (${translateSync(escrow.ngoFundName)})` : ""} ${translateSync("& app upkeep")}`,
+          },
+        ]),
   ];
 
   const facts = [
     { icon: Leaf, label: translateSync("Kept out of landfill"), value: <CountUp value={Number(data.product.kgDiverted) || 0} decimals={1} format={formatNumber} />, unit: "kg" },
-    { icon: HandCoins, label: translateSync("Paid to the maker"), value: <CountUp value={escrow.artisanPayout ?? 0} decimals={2} format={formatCurrency} /> },
-    { icon: Landmark, label: translateSync("Paid to the local government"), value: <CountUp value={escrow.lguShare ?? 0} decimals={2} format={formatCurrency} /> },
+    ...(freeClaim
+      ? []
+      : [
+          { icon: HandCoins, label: translateSync("Paid to the maker"), value: <CountUp value={escrow.artisanPayout ?? 0} decimals={2} format={formatCurrency} /> },
+          { icon: Landmark, label: translateSync("Paid to the local government"), value: <CountUp value={escrow.lguShare ?? 0} decimals={2} format={formatCurrency} /> },
+        ]),
   ];
 
   const copySerial = async () => {
@@ -219,6 +240,8 @@ export function VerifyPass({ serial }: { serial: string }) {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6">
+      {freeClaim && user?.role === "admin" && <BoothClaimPanel serial={data.serial} />}
+
       {/* The piece and its seal */}
       <Card className="overflow-hidden rise">
         {productImage &&
@@ -282,7 +305,7 @@ export function VerifyPass({ serial }: { serial: string }) {
         </div>
 
         {/* Three numbers, one style */}
-        <dl className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-line">
+        <dl className={cn("grid grid-cols-1 divide-y sm:divide-y-0 sm:divide-x divide-line", facts.length === 3 && "sm:grid-cols-3")}>
           {facts.map((f) => {
             const Icon = f.icon;
             return (
@@ -350,13 +373,22 @@ export function VerifyPass({ serial }: { serial: string }) {
           )}
         </Card>
 
-        <Card className="md:col-span-3 p-5 sm:p-6 space-y-4">
-          <div className="flex items-baseline justify-between gap-3">
+        {freeClaim ? (
+          <Card className="md:col-span-3 p-5 sm:p-6 space-y-2">
             <h2 className="text-sm font-semibold text-ink font-sans">{translateSync("Where the money went")}</h2>
-            <span className="tabular font-semibold text-ink">{formatCurrency(escrow.totalAmount ?? 0)}</span>
-          </div>
-          <EscrowBar amount={escrow.totalAmount ?? 0} ngoName={escrow.ngoFundName} compact animate />
-        </Card>
+            <p className="text-sm text-ink-2">
+              {translateSync("This piece was given away free at the HeriTech showcase booth, so no money changed hands and there is no split to show.")}
+            </p>
+          </Card>
+        ) : (
+          <Card className="md:col-span-3 p-5 sm:p-6 space-y-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-sm font-semibold text-ink font-sans">{translateSync("Where the money went")}</h2>
+              <span className="tabular font-semibold text-ink">{formatCurrency(escrow.totalAmount ?? 0)}</span>
+            </div>
+            <EscrowBar amount={escrow.totalAmount ?? 0} ngoName={escrow.ngoFundName} compact animate />
+          </Card>
+        )}
       </div>
 
       {/* Technical proof, for whoever wants it */}

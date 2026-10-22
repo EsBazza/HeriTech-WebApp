@@ -113,6 +113,8 @@ export interface ProductDoc {
   ngoFundName: string;
   /** Removed listings stay stored so existing impact passes keep resolving. */
   archived?: boolean;
+  /** Given away at the showcase booth: claimed for free, one per account, instead of sold. Set by admins. */
+  freeClaim?: boolean;
   createdAt: string;
 }
 
@@ -140,8 +142,8 @@ export interface OrderDoc {
   /** Loyalty discount taken off the list price, paid for from the charity & maintenance share. */
   discount?: number;
   loyaltyRewardApplied?: boolean;
-  /** No payment provider is connected yet; every order is a simulated payment. */
-  paymentMode: "simulated";
+  /** No payment provider is connected yet: orders are simulated payments, or free booth claims. */
+  paymentMode: "simulated" | "free_claim";
   shippingAddress: ShippingAddress | null;
   status: OrderStatus;
   createdAt: string;
@@ -161,6 +163,17 @@ export interface WalletPassDoc {
   qrPayload: string;
   harvestHash: string;
   issuedAt: string;
+}
+
+/** `booth_claims/{uid}`. One free showcase claim per account, and whether its token was handed over. */
+export interface BoothClaimDoc {
+  id: string;
+  productId: string;
+  orderId: string;
+  serial: string;
+  createdAt: string;
+  tokenGivenAt: string | null;
+  tokenGivenBy: string | null;
 }
 
 /** `messages/{id}`. */

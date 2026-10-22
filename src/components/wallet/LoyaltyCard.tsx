@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Gift, RefreshCw, Wallet } from "lucide-react";
+import { Gift, RefreshCw } from "lucide-react";
 import { apiJson } from "@/lib/api";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { WalletButtonLink } from "@/components/wallet/AddToWalletButton";
 import type { LoyaltyState } from "@/lib/loyalty";
 
 interface LoyaltyResponse extends LoyaltyState {
@@ -113,17 +114,7 @@ export function LoyaltyCard() {
         )}
       </p>
 
-      {data.saveUrl && (
-        <a
-          href={data.saveUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white hover:opacity-90"
-        >
-          <Wallet className="h-4 w-4" aria-hidden />
-          {translateSync("Add loyalty card to Google Wallet")}
-        </a>
-      )}
+      {data.saveUrl && <WalletButtonLink href={data.saveUrl} />}
     </div>
   );
 }

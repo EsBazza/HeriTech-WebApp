@@ -6,6 +6,7 @@ import { TranslatableText } from "@/components/translation/TranslatableText";
 import { CheckCircle2, XCircle, Clock, Palette, Camera, TrendingUp, Users, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { AccessGuard } from "@/components/AccessGuard";
+import { BoothClaimsCard } from "@/components/admin/BoothClaimsCard";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { apiJson } from "@/lib/api";
 import type { UserDoc, UserRole } from "@/lib/firebase/types";
@@ -227,6 +228,8 @@ function AdminDashboardPageContent() {
           </ul>
         )}
       </section>
+
+      <BoothClaimsCard />
 
       {/* People and roles */}
       <section className="space-y-4 pt-8 border-t border-line" aria-labelledby="admin-users">

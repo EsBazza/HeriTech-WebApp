@@ -30,6 +30,7 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { useCart } from "@/context/CartContext";
 import { SPLIT, calculateEscrowSplit } from "@/lib/escrow";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
+import { ClaimBox } from "@/components/checkout/ClaimBox";
 import { EscrowBar } from "@/components/EscrowBar";
 import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
 import { ProvenanceTimeline } from "@/components/ProvenanceTimeline";
@@ -179,6 +180,8 @@ export default function ProductDetailPage() {
   // An artisan looking at their own listing can't buy it or message themselves.
   const isOwn = Boolean(user && user.id === product.artisanId);
   const stock: number = product.stock ?? 0;
+  // Given away at the showcase booth instead of sold: no cart, no checkout, no split.
+  const freeClaim = Boolean(product.freeClaim);
   const artisanShare = calculateEscrowSplit(product.price).artisanPayout;
 
   const openArtisanThread = () => {
@@ -214,7 +217,9 @@ export default function ProductDetailPage() {
 
   const impact = [
     { icon: Leaf, value: <CountUp value={Number(product.kgDiverted) || 0} decimals={1} format={formatNumber} />, unit: "kg", label: translateSync("kept out of landfill") },
-    { icon: HandCoins, value: <CountUp value={artisanShare} decimals={2} format={formatCurrency} />, label: translateSync("paid straight to the maker") },
+    ...(freeClaim
+      ? []
+      : [{ icon: HandCoins, value: <CountUp value={artisanShare} decimals={2} format={formatCurrency} />, label: translateSync("paid straight to the maker") }]),
     ...(product.sourceBatch
       ? [{ icon: Layers, value: <CountUp value={product.sourceBatch.weightKg} decimals={1} format={formatNumber} />, unit: "kg", label: translateSync("collected in its source batch") }]
       : []),
@@ -232,7 +237,7 @@ export default function ProductDetailPage() {
           </li>
           {festival && (
             <>
-              <li aria-hidden>
+              <li aria-hidden className="hidden sm:block">
                 <ChevronRight className="w-3.5 h-3.5" />
               </li>
               <li className="hidden sm:block truncate">{translateSync(festival)}</li>
@@ -282,13 +287,13 @@ export default function ProductDetailPage() {
             )}
             <h1 className="font-display text-[38px] sm:text-[46px] leading-[1.02] font-semibold text-ink">{translateSync(product.title)}</h1>
             <div className="flex items-baseline gap-3">
-              <p className="tabular font-display text-[34px] font-semibold text-ink">{formatCurrency(product.price)}</p>
+              <p className="tabular font-display text-[34px] font-semibold text-ink">{freeClaim ? translateSync("Free") : formatCurrency(product.price)}</p>
               <span className={stock <= 3 ? "text-sm text-lantern-600" : "text-sm text-ink-3"}>
                 {stock === 0
-                  ? translateSync("Sold out")
+                  ? translateSync(freeClaim ? "All claimed" : "Sold out")
                   : stock <= 3
                   ? `${translateSync("Only")} ${stock} ${translateSync("left")}`
-                  : `${stock} ${translateSync("in stock")}`}
+                  : `${stock} ${translateSync(freeClaim ? "left to claim" : "in stock")}`}
               </span>
             </div>
           </div>
@@ -304,6 +309,8 @@ export default function ProductDetailPage() {
                 {translateSync("Edit in the studio")}
               </LinkButton>
             </div>
+          ) : freeClaim ? (
+            <ClaimBox productId={product.id} stock={stock} onClaimed={refreshProduct} />
           ) : (
           <div ref={buyRef} className="space-y-3 rise" style={{ ["--rise-delay" as string]: "200ms" }}>
             <Button variant="accent" size="lg" className="w-full" onClick={() => setCheckoutModalOpen(true)} disabled={stock === 0}>
@@ -331,6 +338,7 @@ export default function ProductDetailPage() {
           </div>
 
           <ul className="divide-y divide-line border-y border-line text-sm">
+            {!freeClaim && (
             <li className="flex items-start gap-3 py-3">
               <HandCoins className="w-[18px] h-[18px] text-pine-500 shrink-0 mt-0.5" />
               <span>
@@ -342,13 +350,20 @@ export default function ProductDetailPage() {
                 </span>
               </span>
             </li>
+            )}
             <li className="flex items-start gap-3 py-3">
               <Truck className="w-[18px] h-[18px] text-pine-500 shrink-0 mt-0.5" />
               <span>
                 <span className="text-ink font-medium">
-                  {country ? `${translateSync("Ships from")} ${translateSync(country)}` : translateSync("Ships from the maker")}
+                  {freeClaim
+                    ? translateSync("Collect it at the HeriTech booth")
+                    : country
+                    ? `${translateSync("Ships from")} ${translateSync(country)}`
+                    : translateSync("Ships from the maker")}
                 </span>
-                <span className="block text-ink-3">{translateSync("The maker is notified the moment you order.")}</span>
+                <span className="block text-ink-3">
+                  {translateSync(freeClaim ? "Show your Impact Pass to the booth staff." : "The maker is notified the moment you order.")}
+                </span>
               </span>
             </li>
           </ul>
@@ -477,7 +492,7 @@ export default function ProductDetailPage() {
                 },
                 {
                   icon: <QrCode className="w-4 h-4" />,
-                  title: translateSync("Your pass is issued at purchase"),
+                  title: translateSync(freeClaim ? "Your pass is issued when you claim" : "Your pass is issued at purchase"),
                   detail: translateSync("The next entry on this record will be yours."),
                   pending: true,
                 },
@@ -489,8 +504,16 @@ export default function ProductDetailPage() {
         <Reveal delay={120} className="lg:col-span-5">
           <Card className="h-full p-6 sm:p-8">
             <h2 className="font-display text-[30px] font-semibold text-ink">{translateSync("Where your money goes")}</h2>
-            <p className="text-sm text-ink-3 mt-1 mb-7">{translateSync("Split automatically at checkout and shown on the public impact record.")}</p>
-            <EscrowBar amount={product.price} ngoName={product.ngoFundName} animate />
+            {freeClaim ? (
+              <p className="text-sm text-ink-2 mt-3">
+                {translateSync("This piece is given away free at the HeriTech showcase booth, so no money changes hands. Pieces bought in the shop are split automatically at checkout.")}
+              </p>
+            ) : (
+              <>
+                <p className="text-sm text-ink-3 mt-1 mb-7">{translateSync("Split automatically at checkout and shown on the public impact record.")}</p>
+                <EscrowBar amount={product.price} ngoName={product.ngoFundName} animate />
+              </>
+            )}
           </Card>
         </Reveal>
       </div>
@@ -520,7 +543,7 @@ export default function ProductDetailPage() {
       )}
 
       {/* Phone buy bar, above the tab bar, once the main Buy button has scrolled away */}
-      {!isDesktop && !buyVisible && !isOwn && stock > 0 && !checkoutModalOpen && (
+      {!isDesktop && !buyVisible && !isOwn && !freeClaim && stock > 0 && !checkoutModalOpen && (
         <div className="fixed inset-x-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] bg-surface/95 backdrop-blur-md border-t border-line px-4 py-3 animate-[sheet-in_0.2s_ease-out]">
           <div className="flex items-center gap-3 max-w-lg mx-auto">
             <div className="min-w-0 flex-1">

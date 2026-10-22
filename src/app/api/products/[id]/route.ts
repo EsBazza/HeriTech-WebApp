@@ -30,6 +30,7 @@ export const PATCH = route(async (request: Request, { params }: Context) => {
   const { id } = await params;
   const product = await loadOwnedProduct(id, user);
   const input = await parseBody(request, productUpdateSchema);
+  if (input.freeClaim !== undefined && user.role !== "admin") throw forbidden("Only an admin can make a piece free to claim.");
 
   if (input.kgDiverted !== undefined) {
     const batch = (await db.batches().doc(product.sourceBatchId).get()).data();

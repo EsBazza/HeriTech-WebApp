@@ -10,6 +10,7 @@ import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { ApplyRoleCard } from "@/components/profile/ApplyRoleCard";
+import { DeleteAccount } from "@/components/profile/DeleteAccount";
 import { Badge, Button, Card, EmptyState, LinkButton, Skeleton, Spinner, Stat, cn } from "@/components/ui";
 import type { BatchView, ProductView } from "@/lib/server/views";
 import type { BuyerOrder } from "@/app/api/orders/route";
@@ -351,13 +352,19 @@ export default function ProfilePage() {
                         <p className="flex flex-wrap items-center gap-x-2 text-sm text-ink-3">
                           <span>{formatDate(new Date(order.createdAt))}</span>
                           <span aria-hidden>·</span>
-                          <span className="tabular">
-                            {order.quantity} × {formatCurrency(order.unitPrice ?? order.amountPaid / (order.quantity || 1))}
-                          </span>
-                          <span aria-hidden>·</span>
-                          <span className="font-medium text-ink-2 tabular">
-                            {translateSync("Paid")} {formatCurrency(order.amountPaid)}
-                          </span>
+                          {order.paymentMode === "free_claim" ? (
+                            <span className="font-medium text-ink-2">{translateSync("Claimed free at the HeriTech booth")}</span>
+                          ) : (
+                            <>
+                              <span className="tabular">
+                                {order.quantity} × {formatCurrency(order.unitPrice ?? order.amountPaid / (order.quantity || 1))}
+                              </span>
+                              <span aria-hidden>·</span>
+                              <span className="font-medium text-ink-2 tabular">
+                                {translateSync("Paid")} {formatCurrency(order.amountPaid)}
+                              </span>
+                            </>
+                          )}
                         </p>
                         {order.pass ? (
                           <ImpactPassCard
@@ -395,6 +402,13 @@ export default function ProfilePage() {
                   <LogOut className="w-4 h-4" />
                   {translateSync("Sign out of HeriTech")}
                 </Button>
+                {user.role !== "admin" && !user.isDemo && (
+                  <div className="space-y-2 pt-5 border-t border-line">
+                    <p className="text-[15px] font-medium text-ink">{translateSync("Delete account")}</p>
+                    <p className="text-sm text-ink-3">{translateSync("Permanently remove your account and personal data from HeriTech.")}</p>
+                    <DeleteAccount />
+                  </div>
+                )}
               </Card>
             )}
           </div>

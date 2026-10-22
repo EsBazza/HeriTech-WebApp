@@ -47,6 +47,7 @@ export const POST = route(async (request: Request) => {
       if (!product || product.archived) throw badRequest(`"${items[i].productId}" is no longer for sale.`);
       if (product.stock < items[i].quantity) throw conflict(`Only ${product.stock} of "${product.title}" left in stock.`);
       if (product.artisanId === buyer.id) throw badRequest("You can't buy your own listing.");
+      if (product.freeClaim) throw badRequest(`"${product.title}" is free to claim at the HeriTech booth, not for sale.`);
       return product;
     });
 

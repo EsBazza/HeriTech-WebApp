@@ -10,6 +10,11 @@ describe("product input", () => {
     expect(productCreateSchema.safeParse({ ...listing, ngoFundName: "  Local fund " }).data?.ngoFundName).toBe("Local fund");
   });
 
+  it("accepts the admin-only free-claim switch and nothing else for it", () => {
+    expect(productUpdateSchema.parse({ freeClaim: true })).toEqual({ freeClaim: true });
+    expect(productUpdateSchema.safeParse({ freeClaim: "yes" }).success).toBe(false);
+  });
+
   it("leaves unsent fields out of an update instead of filling defaults", () => {
     expect(productUpdateSchema.parse({ price: 40 })).toEqual({ price: 40 });
   });

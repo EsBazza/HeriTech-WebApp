@@ -172,6 +172,43 @@ check("admin pending count is real", stats.kpis.pendingApplicationsCount === 0, 
 const agr = await call("/api/agreements", { token: lgu.token, method: "POST", body: { title: "T", organizerName: "O", festival: "F", country: "PH", allocatedKg: 100 } });
 check("agreement id continues after seed", agr.status === 201 && agr.json.data.id === `RA-${new Date().getFullYear()}-006`, JSON.stringify(agr.json));
 
+// --- showcase booth: free claim, one per account, handed over once ---
+check("artisan can't make own piece free -> 403", (await call("/api/products/prod_05", { token: artisan.token, method: "PATCH", body: { freeClaim: true } })).status === 403);
+check("admin makes a piece free to claim", (await call("/api/products/prod_05", { token: admin.token, method: "PATCH", body: { freeClaim: true } })).json?.data?.freeClaim === true);
+const ship = { fullName: "a", streetAddress: "b", city: "c", country: "d" };
+check("free piece can't be bought -> 400", (await call("/api/orders", { token: lgu.token, method: "POST", body: { items: [{ productId: "prod_05" }], shippingAddress: ship } })).status === 400);
+check("maker can't claim own piece -> 400", (await call("/api/products/prod_05/claim", { token: artisan.token, method: "POST" })).status === 400);
+check("paid piece can't be claimed -> 400", (await call("/api/products/prod_01/claim", { token: lgu.token, method: "POST" })).status === 400);
+const claimed = await call("/api/products/prod_05/claim", { token: lgu.token, method: "POST" });
+check("visitor claims the free piece", claimed.status === 201 && /^HT-/.test(claimed.json.data.serial), JSON.stringify(claimed.json).slice(0, 200));
+const claimSerial = claimed.json.data?.serial;
+check("second claim -> 409", (await call("/api/products/prod_05/claim", { token: lgu.token, method: "POST" })).status === 409);
+check("claim state is remembered", (await call("/api/products/prod_05/claim", { token: lgu.token })).json?.data?.serial === claimSerial);
+check("claim takes one from stock", (await call("/api/products/prod_05")).json.data.stock === 7);
+const claimRecord = (await call(`/api/verify/${claimSerial}`)).json?.data;
+check("claimed pass verifies as a free claim", claimRecord?.escrowAudit.paymentMode === "free_claim" && claimRecord.escrowAudit.totalAmount === 0, JSON.stringify(claimRecord?.escrowAudit));
+check("non-admin can't see booth status -> 403", (await call(`/api/claims/${claimSerial}`, { token: buyer.token })).status === 403);
+check("booth staff see it's not handed over", (await call(`/api/claims/${claimSerial}`, { token: admin.token })).json?.data?.tokenGivenAt === null);
+check("booth staff mark it handed over", Boolean((await call(`/api/claims/${claimSerial}`, { token: admin.token, method: "POST" })).json?.data?.tokenGivenAt));
+check("second hand-over -> 409", (await call(`/api/claims/${claimSerial}`, { token: admin.token, method: "POST" })).status === 409);
+check("paid pass has no booth claim -> 404", (await call(`/api/claims/${serial}`, { token: admin.token })).status === 404);
+
+// --- account deletion (Google Play requirement) ---
+check("demo account can't be deleted -> 403", (await call("/api/user/account", { token: lgu.token, method: "DELETE" })).status === 403);
+const signUp = await fetch(`${AUTH_EMU}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: `visitor${Date.now()}@example.com`, password: "visitor-pass-1", returnSecureToken: true }),
+}).then((r) => r.json());
+const visitor = { token: signUp.idToken, user: (await call("/api/auth/profile", { token: signUp.idToken, method: "POST" })).json?.data };
+check("new visitor gets a buyer profile", visitor.user?.role === "buyer");
+const visitorSerial = (await call("/api/products/prod_05/claim", { token: visitor.token, method: "POST" })).json?.data?.serial;
+check("visitor claims before deleting", Boolean(visitorSerial));
+check("visitor deletes their account", (await call("/api/user/account", { token: visitor.token, method: "DELETE" })).status === 200);
+check("deleted account has no profile", (await call("/api/auth/profile", { token: visitor.token })).status !== 200);
+check("deleted visitor's pass still verifies", (await call(`/api/verify/${visitorSerial}`)).status === 200);
+check("asset links file is served", Array.isArray((await call("/.well-known/assetlinks.json")).json));
+
 // --- validation ---
 check("invalid JSON -> 400", (await fetch(BASE + "/api/chat", { method: "POST", body: "{" })).status === 400);
 check("unsupported language -> 400", (await call("/api/translate", { method: "POST", body: { text: "hi", targetLanguage: "xx" } })).status === 400);

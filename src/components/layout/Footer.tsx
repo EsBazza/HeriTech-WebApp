@@ -29,6 +29,8 @@ export function Footer() {
       links: [
         { label: translateSync("Profile & passes"), href: "/profile" },
         { label: translateSync("Messages"), href: "/messages" },
+        { label: translateSync("Privacy policy"), href: "/privacy" },
+        { label: translateSync("Delete account"), href: "/delete-account" },
       ],
     },
   ];

@@ -1,16 +1,37 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Wallet } from "lucide-react";
 import { apiJson } from "@/lib/api";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { cn } from "@/components/ui";
 
 /**
+ * Google's official button artwork (public/wallet), unmodified as the Wallet
+ * brand guidelines require. Languages without an official version use English.
+ */
+const BUTTON_LANGUAGES = new Set(["en", "zh-TW", "ja", "th", "id"]);
+
+/** The official "Add to Google Wallet" button around a ready save link. */
+export function WalletButtonLink({ href, className }: { href: string; className?: string }) {
+  const { currentLanguage } = useTranslation();
+  const lang = BUTTON_LANGUAGES.has(currentLanguage.code) ? currentLanguage.code : "en";
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn("inline-flex justify-center rounded-full focus-visible:outline-offset-4", className)}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/wallet/add-to-google-wallet-${lang}.svg`} alt="Add to Google Wallet" className="h-12 w-auto" />
+    </a>
+  );
+}
+
+/**
  * "Add to Google Wallet" for the signed-in buyer's own pass. The save link is
  * fetched up front and rendered as a normal link, so mobile popup blockers
- * don't interfere. Swap the styling for Google's official button artwork
- * before public launch (Wallet brand guidelines).
+ * don't interfere.
  */
 export function AddToWalletButton({ serial, className }: { serial: string; className?: string }) {
   const { translateSync } = useTranslation();
@@ -30,21 +51,12 @@ export function AddToWalletButton({ serial, className }: { serial: string; class
   }, [serial]);
 
   if (error) return <p className="text-sm text-ink-3" role="status">{translateSync(error)}</p>;
-
-  return (
-    <a
-      href={saveUrl ?? undefined}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-disabled={!saveUrl}
-      className={cn(
-        "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-6 text-sm font-medium text-white transition-opacity",
-        saveUrl ? "hover:opacity-90" : "pointer-events-none opacity-60",
-        className
-      )}
-    >
-      <Wallet className="h-5 w-5" aria-hidden />
-      {saveUrl ? translateSync("Add to Google Wallet") : translateSync("Preparing Wallet pass…")}
-    </a>
-  );
+  if (!saveUrl) {
+    return (
+      <p className={cn("flex h-12 items-center justify-center text-sm text-ink-3", className)} role="status">
+        {translateSync("Preparing Wallet pass…")}
+      </p>
+    );
+  }
+  return <WalletButtonLink href={saveUrl} className={className} />;
 }

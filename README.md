@@ -219,8 +219,8 @@ flowchart LR
 
 | Check | Result |
 | --- | --- |
-| Unit tests (`vitest`): split maths, loyalty, handover tokens, reservation expiry, record integrity, Wallet links, HTTP helpers | ✅ 60 passing |
-| End-to-end API tests against the Firebase emulators | ✅ 67 checks passing |
+| Unit tests (`vitest`): split maths, loyalty, handover tokens, reservation expiry, record integrity, Wallet links, HTTP helpers | ✅ 61 passing |
+| End-to-end API tests against the Firebase emulators | ✅ 89 checks passing |
 | TypeScript (`tsc --noEmit`) and ESLint | ✅ 0 errors |
 | QR import robustness: tilted, dim, blurred and compressed phone photos, and a photo with no code | ✅ all decode or are correctly rejected |
 
