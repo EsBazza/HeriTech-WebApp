@@ -41,6 +41,7 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
         image={image}
         title={title}
         ariaLabel={`${translateSync("Verified Impact Pass")} ${serial}`}
+        notchFromBottom={154}
         badge={
           <span className="inline-flex items-center gap-1 rounded-full bg-pine-900/60 backdrop-blur-sm border border-white/15 px-2.5 py-1 text-xs text-pine-200">
             <ShieldCheck className="w-3.5 h-3.5" />

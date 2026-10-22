@@ -14,16 +14,20 @@ interface PassShellProps {
   /** Details under the title: maker, origin, serial, QR… */
   children: React.ReactNode;
   ariaLabel: string;
+  /** Where the ticket notches sit, measured up from the bottom (the dashed tear line). */
+  notchFromBottom?: number;
   className?: string;
 }
 
 /**
- * The Verified Impact Pass card. The product photo fills the card; details sit
- * on a dark glass panel at the foot. On a mouse it tilts and a foil sheen follows
- * the cursor; when it first appears the photo settles into focus, a light sweep
- * passes over and the HeriTech seal is stamped on. Static under reduced motion.
+ * The Verified Impact Pass card, cut like a ticket. The piece's photo is the card:
+ * a soft blurred wash of its colours behind, and the piece itself in an arched
+ * window, toned in pine and lantern amber, that comes into full colour as you
+ * look closer (hover, or a moment after it appears on touch screens). On a mouse
+ * it tilts and a foil sheen follows the cursor; the seal is stamped on when it
+ * first appears. Static under reduced motion.
  */
-export function PassShell({ image, title, badge, children, ariaLabel, className }: PassShellProps) {
+export function PassShell({ image, title, badge, children, ariaLabel, notchFromBottom = 150, className }: PassShellProps) {
   const { translateSync } = useTranslation();
   const ref = useRef<HTMLElement>(null);
 
@@ -47,10 +51,16 @@ export function PassShell({ image, title, badge, children, ariaLabel, className 
 
   return (
     <div className={cn("pass-stage", className)} onPointerMove={onMove} onPointerLeave={reset}>
-      <article ref={ref} className={cn("pass-card relative overflow-hidden rounded-[20px] text-white shadow-pop", image && "pass-photo")} aria-label={ariaLabel}>
+      <article
+        ref={ref}
+        className={cn("pass-card ticket relative overflow-hidden rounded-[22px] text-white shadow-pop", image && "pass-photo")}
+        style={{ ["--notch-y" as string]: `calc(100% - ${notchFromBottom}px)` }}
+        aria-label={ariaLabel}
+      >
         {image && (
+          // A soft, blurred wash of the piece's own colours behind everything
           // eslint-disable-next-line @next/next/no-img-element -- data URLs and demo SVGs, sized by the card
-          <img src={image} alt="" className="pass-photo-img absolute inset-0 w-full h-full object-cover" />
+          <img src={image} alt="" className="pass-bg" />
         )}
         <span aria-hidden className="pass-scrim" />
         <span aria-hidden className="pass-holo" />
@@ -62,23 +72,37 @@ export function PassShell({ image, title, badge, children, ariaLabel, className 
               <span className="w-8 h-8 shrink-0 rounded-full bg-white/95 flex items-center justify-center shadow-card">
                 <Image src="/logo_heritech-removebg-preview.png" alt="" width={24} height={24} className="w-6 h-6 object-contain" />
               </span>
-              <span className="text-sm font-medium leading-tight drop-shadow">
+              <span className="text-sm font-medium leading-tight">
                 HeriTech
-                <span className="block text-xs text-white/75 font-normal">{translateSync("Verified Impact Pass")}</span>
+                <span className="block text-xs text-white/70 font-normal">{translateSync("Verified Impact Pass")}</span>
               </span>
             </span>
             {badge}
           </div>
 
-          {/* Leaves the photo visible between the header and the details */}
-          <div aria-hidden className={image ? "h-40 sm:h-48" : "h-3"} />
+          {image ? (
+            <>
+              {/* The piece in an arched window: lantern-toned until you look closer */}
+              <div className="relative mx-auto mt-5 w-[64%] max-w-[15rem]">
+                <div className="pass-window arch">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={image} alt="" className="pass-window-img" />
+                  <span aria-hidden className="pass-duotone" />
+                  <span aria-hidden className="pass-window-glare" />
+                </div>
+                <PassSeal className="absolute -right-6 -bottom-4" />
+              </div>
+              <p className="mt-5 text-center font-display text-[26px] leading-tight font-semibold">{translateSync(title)}</p>
+              <span aria-hidden className="mx-auto mt-2 block h-px w-16 bg-gradient-to-r from-transparent via-[rgb(242_166_90)] to-transparent" />
+            </>
+          ) : (
+            <div className="mt-4 flex items-end justify-between gap-3">
+              <p className="font-display text-[26px] leading-tight font-semibold">{translateSync(title)}</p>
+              <PassSeal />
+            </div>
+          )}
 
-          <div className="flex items-end justify-between gap-3">
-            <p className="font-display text-[26px] leading-tight font-semibold drop-shadow-[0_1px_8px_rgb(0_0_0/0.45)]">{translateSync(title)}</p>
-            <PassSeal />
-          </div>
-
-          <div className="pass-panel mt-3 -mx-5 -mb-5 px-5 pb-5 pt-4">{children}</div>
+          <div className="mt-4">{children}</div>
         </div>
       </article>
     </div>
@@ -86,11 +110,11 @@ export function PassShell({ image, title, badge, children, ariaLabel, className 
 }
 
 /** The round HeriTech seal, stamped on when the pass appears. */
-function PassSeal() {
+function PassSeal({ className }: { className?: string }) {
   const { translateSync } = useTranslation();
   const text = `${translateSync("Verified")} · HeriTech · ${translateSync("Traced")} · `;
   return (
-    <svg viewBox="0 0 100 100" className="pass-seal w-16 h-16 shrink-0" aria-hidden>
+    <svg viewBox="0 0 100 100" className={cn("pass-seal w-16 h-16 shrink-0", className)} aria-hidden>
       <defs>
         <path id="pass-seal-ring" d="M50 50 m -36 0 a 36 36 0 1 1 72 0 a 36 36 0 1 1 -72 0" />
       </defs>

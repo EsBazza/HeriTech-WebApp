@@ -27,6 +27,7 @@ export function ImpactPassPreview({ title, origin, maker, material, kgDiverted, 
       image={image}
       title={title}
       ariaLabel={translateSync("Verified Impact Pass preview")}
+      notchFromBottom={96}
       badge={<span className="rounded-full bg-pine-900/60 backdrop-blur-sm border border-white/25 px-2.5 py-1 text-xs text-white/85">{translateSync("Preview")}</span>}
     >
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">

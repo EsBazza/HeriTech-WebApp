@@ -310,6 +310,8 @@ npm run seed:demo
 
 The script refuses to run unless demo mode is on. The demo data is deliberately generic: materials by broad category, no real people or organisations, and labelled placeholder images from `public/demo`.
 
+The demo product and material photos are free photos from [Unsplash](https://unsplash.com/license) (no attribution required), cropped, compressed and labelled "Demo image". They stand in for fictional listings and are not pieces made from HeriTech batches.
+
 ## Testing
 
 ```bash
