@@ -203,7 +203,7 @@ function AccountMenu() {
                         if (!current) signInAsDemo(r);
                       }}
                       className={cn(
-                        "h-8 px-2 rounded-sm text-xs font-medium flex items-center justify-between cursor-pointer border",
+                        "min-h-11 px-2 rounded-sm text-xs font-medium flex items-center justify-between cursor-pointer border",
                         current ? "bg-pine-100 border-brand-line text-brand" : "border-line text-ink-2 hover:border-pine-300"
                       )}
                     >
@@ -243,9 +243,9 @@ function roleLinks(role: string, t: (s: string) => string) {
     { name: t("Material map"), href: "/map", icon: MapPin, show: role === "artisan" || role === "lgu" || role === "admin", primary: true },
     { name: t("Studio"), href: "/studio", icon: Palette, show: role === "artisan" || role === "admin", primary: true },
     { name: t("Scanner"), href: "/scanner", icon: ScanLine, show: role === "lgu" || role === "admin", primary: true },
-    { name: t("Pickup code"), href: "/handover", icon: QrCode, show: role === "artisan" || role === "lgu" || role === "admin", primary: false },
-    { name: t("Agreements"), href: "/agreements", icon: FileSignature, show: role === "lgu" || role === "admin", primary: false },
-    { name: t("Admin console"), href: "/admin", icon: ShieldCheck, show: role === "admin", primary: false },
+    { name: t("Pickup"), href: "/handover", icon: QrCode, show: role === "artisan" || role === "lgu" || role === "admin", primary: false },
+    { name: t("Agreements"), href: "/agreements", icon: FileSignature, show: role === "lgu" || role === "admin", primary: role === "lgu" },
+    { name: t("Admin console"), href: "/admin", icon: ShieldCheck, show: role === "admin", primary: true },
   ].filter((l) => l.show);
 }
 

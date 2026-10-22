@@ -790,6 +790,12 @@
   }
 }
 
+/* Journey poster: the route flows while the 3D map loads */
+.journey-poster-route { animation: thread-flow 1.6s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .journey-poster-route { animation: none; }
+}
+
 /* ─── Product page motion ─── */
 /* Journey: steps rise in order and the connecting line draws down */
 .js .journey .journey-step {

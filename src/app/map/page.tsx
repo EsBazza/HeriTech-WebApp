@@ -24,7 +24,7 @@ import { BatchMap } from "@/components/map/BatchMap";
 import { useRoute } from "@/components/map/useRoute";
 import { LanternString } from "@/components/ProvenanceTimeline";
 import { SuccessBurst } from "@/components/motion/SuccessBurst";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader, buttonClass, cn, useMediaQuery, type BadgeTone } from "@/components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, RoleHero, buttonClass, cn, useMediaQuery, type BadgeTone } from "@/components/ui";
 
 interface BatchItem {
   id: string;
@@ -155,6 +155,9 @@ function MaterialsMapPageContent() {
   };
 
   // The holder cancels their own reservation; an admin can release anyone's.
+  // Cancelling gives the batch back to every artisan, so it asks first.
+  const [confirmCancel, setConfirmCancel] = useState<BatchItem | null>(null);
+
   const handleRelease = async (batchId: string) => {
     setReleasing(true);
     setReserveSuccess(null);
@@ -165,7 +168,7 @@ function MaterialsMapPageContent() {
       replaceBatch(result.data);
       setReserveSuccess(result.message ?? `Batch ${batchId} is available again.`);
     } else {
-      setActionError(result.error ?? "Couldn't release the reservation.");
+      setActionError(result.error ?? "Couldn't cancel the reservation.");
     }
   };
 
@@ -323,9 +326,9 @@ function MaterialsMapPageContent() {
               </Button>
             )}
             {(holdsReservation || isAdmin) && (
-              <Button size="sm" variant="ghost" className="grow sm:grow-0" onClick={() => handleRelease(batch.id)} loading={releasing}>
+              <Button size="sm" variant="ghost" className="grow sm:grow-0" onClick={() => setConfirmCancel(batch)} loading={releasing}>
                 <X className="w-4 h-4" />
-                {translateSync(holdsReservation ? "Cancel reservation" : "Release reservation")}
+                {translateSync("Cancel reservation")}
               </Button>
             )}
           </div>
@@ -340,12 +343,14 @@ function MaterialsMapPageContent() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <PageHeader
+    <div>
+      <RoleHero
+        slim
         eyebrow={translateSync("Material map")}
         title={translateSync("Leftover material near you")}
-        description={translateSync("Every batch collected after a festival, with its photo, weight and pickup point. Artisans can reserve a batch and pick it up.")}
+        description={`${formatNumber(batches.filter((b) => b.status === "available").length)} ${translateSync("batches available to reserve")} · ${formatNumber(batches.filter((b) => b.status === "available").reduce((t, b) => t + (b.weightKg || 0), 0))} kg. ${translateSync("Each one has its photo, weight and pickup point.")}`}
       />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
       <div ref={mapSectionRef} className="scroll-mt-24 space-y-3">
         <BatchMap
@@ -581,13 +586,48 @@ function MaterialsMapPageContent() {
         </Dialog>
       )}
 
+      <Dialog
+        open={Boolean(confirmCancel)}
+        onClose={() => !releasing && setConfirmCancel(null)}
+        dismissible={!releasing}
+        size="sm"
+        closeLabel={translateSync("Close")}
+        title={translateSync("Cancel this reservation?")}
+        footer={
+          <div className="flex gap-3">
+            <Button variant="secondary" className="flex-1" onClick={() => setConfirmCancel(null)} disabled={releasing}>
+              {translateSync("Keep it")}
+            </Button>
+            <Button
+              variant="danger"
+              className="flex-1"
+              loading={releasing}
+              onClick={async () => {
+                if (!confirmCancel) return;
+                await handleRelease(confirmCancel.id);
+                setConfirmCancel(null);
+              }}
+            >
+              {translateSync("Cancel reservation")}
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-[15px] text-ink-2">
+          {confirmCancel && confirmCancel.reservedByArtisanId !== user?.id
+            ? `${translateSync("This is reserved by")} ${confirmCancel.reservedByArtisan?.workshopName || confirmCancel.reservedByArtisan?.fullName || translateSync("an artisan")}. `
+            : ""}
+          {translateSync("The batch goes back on the map for any artisan to reserve, and its pickup code stops working.")}
+        </p>
+      </Dialog>
+
       {/* QR pickup handover */}
       {selectedBatch && (
         <Dialog
           open={handoverModalOpen}
           onClose={closeHandover}
           closeLabel={translateSync("Close")}
-          title={translateSync("Pickup handover")}
+          title={translateSync("Pickup")}
           description={
             <span className="inline-flex items-center gap-1.5">
               <QrCode className="w-4 h-4" />
@@ -601,7 +641,7 @@ function MaterialsMapPageContent() {
               <div className="flex p-1 bg-paper rounded-lg border border-line" role="group" aria-label={translateSync("Pickup role")}>
                 {([
                   ["artisan", "Artisan: show code"],
-                  ["lgu", "Officer: scan & release"],
+                  ["lgu", "Officer: scan & hand over"],
                 ] as const).map(([tab, label]) => (
                   <button
                     key={tab}
@@ -655,6 +695,7 @@ function MaterialsMapPageContent() {
           </div>
         </Dialog>
       )}
+    </div>
     </div>
   );
 }

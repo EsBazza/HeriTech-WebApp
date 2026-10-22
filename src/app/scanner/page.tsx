@@ -5,8 +5,9 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Camera, Upload, Sparkles, FileCheck2, AlertTriangle, Crosshair, MapPin, Minus, Plus, RotateCcw } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { Gauge, Leaf as LeafIcon } from "lucide-react";
 import { AccessGuard } from "@/components/AccessGuard";
-import { Badge, Button, Card, EmptyState, Input, LinkButton, PageHeader, Select, StickyActionBar, buttonClass, cn, controlClass } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, LinkButton, RoleHero, Select, StickyActionBar, buttonClass, cn, controlClass } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 import { compressImage } from "@/lib/image";
 import { classifyOffline } from "@/lib/offlineClassifier";
@@ -35,7 +36,7 @@ const formatKg = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1))
 type ScanResult = ScanAnalysis & { isSample?: boolean; isOffline?: boolean; model?: string };
 
 function WasteScannerPageContent() {
-  const { translateSync } = useTranslation();
+  const { translateSync, formatNumber } = useTranslation();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<ScanResult | null>(null);
@@ -81,7 +82,11 @@ function WasteScannerPageContent() {
 
   // Default to the first active agreement; the officer can pick another.
   useEffect(() => {
-    setAgreementId((current) => (agreements.some((a) => a.id === current) ? current : agreements[0]?.id ?? ""));
+    // "Scan a batch for it" from the agreements page preselects that agreement.
+    const wanted = new URLSearchParams(window.location.search).get("agreement");
+    setAgreementId((current) =>
+      agreements.some((a) => a.id === current) ? current : agreements.find((a) => a.id === wanted)?.id ?? agreements[0]?.id ?? ""
+    );
   }, [agreements]);
 
   // Ask for the position as soon as the page opens, so the pickup point is ready by the time the photo is analysed.
@@ -184,6 +189,28 @@ function WasteScannerPageContent() {
     setAnalyzing(false);
   };
 
+  // Demo: run the scanner on a bundled sample photo (no camera needed at the booth).
+  const runSamplePhoto = async (name: "paper" | "fabric" | "flowers" | "wood") => {
+    setAnalysisResult(null);
+    setSavedBatch(null);
+    setError(null);
+    try {
+      const img = new window.Image();
+      img.src = `/demo/${name}.svg`;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = 1024;
+      canvas.height = 768;
+      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+      setPreviewUrl(dataUrl);
+      handleUseRealtimeLocation(true);
+      await analyze(dataUrl);
+    } catch {
+      setError("Couldn't load the sample photo.");
+    }
+  };
+
   // Taking the photo starts the analysis and the GPS lookup straight away.
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -259,14 +286,31 @@ function WasteScannerPageContent() {
   const crafts: string[] = analysisResult?.suggestedCraftTypologies ?? [];
   const stepNow = savedBatch ? 3 : analysisResult ? 2 : 1;
   const steps = [translateSync("Capture"), translateSync("Review AI result"), translateSync("Log batch")];
+  // Everything "Log batch" waits for, in words, so a grey button is never a mystery.
+  const missingToLog = [
+    !material && translateSync("material"),
+    !condition && translateSync("condition"),
+    !weightKg && translateSync("weight"),
+    !agreementId && translateSync("release agreement"),
+    (pickupLat === null || pickupLng === null) && translateSync("pickup location"),
+    overQuota && translateSync("weight within the agreement's limit"),
+    analysisResult?.peopleVisible && translateSync("a photo without people in it"),
+  ].filter((x): x is string => Boolean(x));
 
   return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
-        <PageHeader
-          eyebrow={translateSync("Collection point")}
-          title={translateSync("AI material scanner")}
-          description={translateSync("Photograph recovered festival material. Gemini identifies it, estimates weight and flags contamination before it is offered to artisans.")}
-        />
+    <div>
+      <RoleHero
+        width="6xl"
+        eyebrow={translateSync("Collection point")}
+        title={translateSync("AI material scanner")}
+        description={translateSync("Photograph recovered festival material. Gemini identifies it, estimates the weight and flags contamination before it is offered to artisans.")}
+        stats={[
+          { icon: FileCheck2, label: translateSync("Active agreements"), hint: translateSync("Festivals you may collect from"), value: formatNumber(agreements.length) },
+          { icon: LeafIcon, label: translateSync("Collected so far"), unit: "kg", hint: translateSync("Under your active agreements"), value: formatNumber(agreements.reduce((t, a) => t + (a.collectedKg || 0), 0)) },
+          { icon: Gauge, label: translateSync("Still allowed"), unit: "kg", hint: translateSync("Left on the agreed amounts"), value: formatNumber(Math.max(0, agreements.reduce((t, a) => t + (a.allocatedKg || 0) - (a.collectedKg || 0), 0))) },
+        ]}
+      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
 
         <ol className="grid grid-cols-3 gap-2 sm:gap-4" aria-label={translateSync("Progress")}>
           {steps.map((label, i) => {
@@ -313,6 +357,23 @@ function WasteScannerPageContent() {
               )}
               <input type="file" accept="image/*" capture="environment" onChange={handleFileChange} className="sr-only" />
             </label>
+
+            {!previewUrl && (
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-ink-3">{translateSync("No camera? Try a sample:")}</span>
+                {(["paper", "fabric", "flowers", "wood"] as const).map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => runSamplePhoto(n)}
+                    disabled={analyzing}
+                    className="inline-flex items-center h-8 px-3 rounded-full border border-line bg-surface text-ink-2 hover:border-pine-300 hover:text-ink transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {translateSync(n === "paper" ? "Paper" : n === "fabric" ? "Fabric" : n === "flowers" ? "Flowers" : "Wood")}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <Select label={translateSync("Release agreement")} value={agreementId} onChange={(e) => setAgreementId(e.target.value)}>
               {agreements.length === 0 && <option value="">{translateSync("No active agreements")}</option>}
@@ -648,7 +709,12 @@ function WasteScannerPageContent() {
                         {translateSync(logError)}
                       </p>
                     )}
-                    <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!material || !condition || !weightKg || overQuota || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible} loading={saving}>
+                    {missingToLog.length > 0 && (
+                      <p className="text-sm text-ink-3" aria-live="polite">
+                        <span className="font-medium text-ink-2">{translateSync("Still needed:")}</span> {missingToLog.join(" · ")}
+                      </p>
+                    )}
+                    <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={missingToLog.length > 0} loading={saving}>
                       {!saving && <FileCheck2 className="w-4 h-4" />}
                       {saving ? translateSync("Logging batch…") : `${translateSync("Log batch")} · ${weightKg || 0} kg`}
                     </Button>
@@ -666,6 +732,7 @@ function WasteScannerPageContent() {
           )}
         </div>
       </div>
+    </div>
   );
 }
 

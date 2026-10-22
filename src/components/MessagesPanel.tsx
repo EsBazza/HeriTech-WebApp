@@ -5,7 +5,8 @@ import Image from "next/image";
 import { ArrowLeft, Send, X } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Badge, controlClass } from "@/components/ui";
+import { Badge, Button, controlClass } from "@/components/ui";
+import { DemoSignIn } from "@/components/auth/DemoSignIn";
 import { apiJson } from "@/lib/api";
 
 interface Message {
@@ -97,7 +98,7 @@ interface MessagesPanelProps {
 
 export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   const { translateSync } = useTranslation();
-  const { user } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
 
   const [threads, setThreads] = useState<Thread[]>(INITIAL_THREADS);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -180,12 +181,18 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   }, [threads, isLoaded]);
 
   // Refresh conversations with people each time the panel opens
+  const [threadsError, setThreadsError] = useState(false);
+  const [threadsReload, setThreadsReload] = useState(0);
   useEffect(() => {
     if (!isOpen || !user) return;
     setThreadsLoading(true);
+    setThreadsError(false);
     apiJson<ServerMessage[]>("/api/messages").then((result) => {
       setThreadsLoading(false);
-      if (!result.success) return;
+      if (!result.success) {
+        setThreadsError(true);
+        return;
+      }
       const serverThreads = threadsFromServer(result.data ?? [], user.id);
       setThreads((prev) => {
         const assistant = prev.filter((t) => t.id === "bot_assistant");
@@ -194,7 +201,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
         return [...assistant, ...serverThreads, ...pending];
       });
     });
-  }, [isOpen, user]);
+  }, [isOpen, user, threadsReload]);
 
   // Persist drafts to localStorage whenever drafts state changes
   useEffect(() => {
@@ -424,6 +431,14 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
                 </span>
               </div>
             )}
+            {threadsError && (
+              <div className="px-4 py-3.5 flex items-center justify-between gap-3 text-sm" role="alert">
+                <span className="text-danger">{translateSync("Couldn't load your conversations.")}</span>
+                <button type="button" onClick={() => setThreadsReload((n) => n + 1)} className="h-9 px-3 rounded-md border border-line text-ink-2 hover:text-ink cursor-pointer">
+                  {translateSync("Retry")}
+                </button>
+              </div>
+            )}
             {threads.map((t) => {
               const hasDraft = Boolean(drafts[t.id]?.trim());
               const last = t.messages[t.messages.length - 1]?.content;
@@ -504,6 +519,16 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
               <div ref={messagesEndRef} />
             </div>
 
+            {!user && !activeThread?.isBot ? (
+              /* Messages to people are sent from an account, so guests sign in here instead of hitting an error */
+              <div className="px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] border-t border-line space-y-2 shrink-0">
+                <p className="text-sm text-ink-2">{translateSync("Sign in to message this maker.")}</p>
+                <Button size="lg" className="w-full" onClick={signInWithGoogle}>
+                  {translateSync("Sign in with Google")}
+                </Button>
+                <DemoSignIn roles={["buyer"]} />
+              </div>
+            ) : (
             <form onSubmit={handleSendMessage} className="px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] border-t border-line flex items-center gap-2 shrink-0">
               <input
                 type="text"
@@ -522,6 +547,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
                 <Send className="w-4 h-4" />
               </button>
             </form>
+            )}
           </div>
         )}
       </aside>

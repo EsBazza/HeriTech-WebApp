@@ -141,6 +141,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
     if (!visible || !containerRef.current) return;
     const container = containerRef.current;
     let cancelled = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
 
     const flat = async () => {
       const maps = await loadGoogleMaps();
@@ -201,6 +202,21 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
           );
         }
 
+        // Some devices create the element but never draw tiles. If it hasn't
+        // settled after a few seconds, show the flat map instead of an empty box.
+        let steady = false;
+        map.addEventListener("gmp-steadychange", () => {
+          steady = true;
+        });
+        fallbackTimer = setTimeout(() => {
+          if (cancelled || steady) return;
+          stopRef.current();
+          map.remove();
+          mapRef.current = null;
+          setPlaying(false);
+          flat().catch(() => setMode("error"));
+        }, 9_000);
+
         container.replaceChildren(map);
         mapRef.current = map;
         setMode("3d");
@@ -214,6 +230,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
     const stopRun = stopRef;
     return () => {
       cancelled = true;
+      clearTimeout(fallbackTimer);
       runs.current++; // invalidates any flight still in progress
       stopRun.current();
       mapRef.current?.stopCameraAnimation();
@@ -227,7 +244,17 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
       <div className="relative h-[320px] sm:h-[420px] rounded-lg overflow-hidden border border-white/10 bg-pine-800">
         <div ref={containerRef} className="absolute inset-0" />
         {mode === "loading" && (
-          <p className="absolute inset-0 flex items-center justify-center text-sm text-white/70">{translateSync("Loading the 3D view…")}</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6" role="status">
+            {/* Poster: the route this material travelled, until the map is ready */}
+            <svg viewBox="0 0 320 120" className="w-full max-w-sm h-auto" aria-hidden>
+              <path d="M40 92 C 110 10, 210 10, 280 70" fill="none" stroke="rgb(242 166 90 / 0.7)" strokeWidth="2.5" strokeDasharray="3 8" strokeLinecap="round" className="journey-poster-route" />
+              <circle cx="40" cy="92" r="9" fill="#c4471e" />
+              <circle cx="40" cy="92" r="16" fill="none" stroke="rgb(196 71 30 / 0.4)" />
+              <circle cx="280" cy="70" r="9" fill="#8fb09c" />
+              <circle cx="280" cy="70" r="16" fill="none" stroke="rgb(143 176 156 / 0.4)" />
+            </svg>
+            <p className="text-sm text-white/70">{translateSync("Loading the 3D view…")}</p>
+          </div>
         )}
         {mode === "error" && (
           <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-white/70">

@@ -6,11 +6,12 @@ import { Package } from "lucide-react";
 import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { MapPin, PackageSearch, QrCode, ScanLine } from "lucide-react";
 import { TranslatableHeading, TranslatableParagraph, TranslatableText } from "@/components/translation/TranslatableText";
 import { AccessGuard } from "@/components/AccessGuard";
 import { HandoverCode } from "@/components/handover/HandoverCode";
 import { HandoverVerifyForm, type HandoverResult } from "@/components/handover/HandoverVerifyForm";
-import { Button, PageHeader, Select, Spinner, cn } from "@/components/ui";
+import { Button, EmptyState, LinkButton, RoleHero, Select, Spinner, cn } from "@/components/ui";
 import { apiJson } from "@/lib/api";
 
 interface ReservedBatch {
@@ -44,14 +45,23 @@ function ArtisanHandover() {
 
   if (batches.length === 0) {
     return (
-      <div className="text-center space-y-3 py-6">
-        <TranslatableParagraph className="text-sm text-ink-2">
-          You have no batches waiting for pickup. Reserve one on the material map first.
-        </TranslatableParagraph>
-        <Link href="/map" className="text-sm font-semibold text-brand underline">
-          {translateSync("Open the material map")}
-        </Link>
-      </div>
+      <EmptyState
+        className="border-0 bg-transparent py-6"
+        icon={<PackageSearch className="w-5 h-5" />}
+        title={translateSync("Nothing to pick up yet")}
+        description={translateSync("Reserve a batch on the material map, then come back here for its pickup code.")}
+        steps={[
+          { icon: <MapPin className="w-4 h-4" />, title: translateSync("Reserve a batch"), body: translateSync("Pick one near you on the material map.") },
+          { icon: <QrCode className="w-4 h-4" />, title: translateSync("Show your code"), body: translateSync("A signed QR code, valid for 30 minutes.") },
+          { icon: <ScanLine className="w-4 h-4" />, title: translateSync("Officer scans it"), body: translateSync("Custody moves to you, on the record.") },
+        ]}
+        action={
+          <LinkButton href="/map">
+            <MapPin className="w-4 h-4" />
+            {translateSync("Open the material map")}
+          </LinkButton>
+        }
+      />
     );
   }
 
@@ -139,7 +149,7 @@ function LguHandover() {
     <div className="space-y-6 max-w-lg mx-auto py-4">
       <div className="space-y-1 text-center">
         <TranslatableHeading level={2} className="font-display text-[28px] leading-tight font-semibold text-ink">
-          Release a reserved batch
+          Hand over a reserved batch
         </TranslatableHeading>
         <TranslatableParagraph className="text-sm text-ink-3">
           Scan the artisan&apos;s code or import a photo of it. The code proves they hold the reservation and expires 30 minutes after it is created.
@@ -156,7 +166,7 @@ function HandoverPageContent() {
   const isAdmin = user?.role === "admin";
   const canShowCode = user?.role === "artisan" || isAdmin;
   const canVerify = user?.role === "lgu" || isAdmin;
-  const [activeTab, setActiveTab] = useState<"artisan" | "lgu">(canShowCode ? "artisan" : "lgu");
+  const [activeTab, setActiveTab] = useState<"artisan" | "lgu">(canShowCode && !isAdmin ? "artisan" : "lgu");
 
   const tabClass = (tab: "artisan" | "lgu") =>
     cn(
@@ -165,14 +175,15 @@ function HandoverPageContent() {
     );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <PageHeader
-        eyebrow={translateSync("Pickup")}
-        title={translateSync("Pickup handover")}
-        description={translateSync(
-          "The artisan shows a pickup code and the local government officer scans it before handing over the material. Every pickup is recorded."
-        )}
+    <div>
+      <RoleHero
+        width="4xl"
+        slim
+        eyebrow={translateSync("Chain of custody")}
+        title={translateSync("Pickup")}
+        description={translateSync("The artisan shows a signed pickup code and the local government officer scans it before handing over the material. Every pickup is recorded.")}
       />
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
       {canShowCode && canVerify && (
         <div className="flex p-1 bg-surface rounded-lg border border-line sm:max-w-sm" role="group" aria-label={translateSync("Pickup role")}>
@@ -180,7 +191,7 @@ function HandoverPageContent() {
             <TranslatableText>Artisan: show code</TranslatableText>
           </button>
           <button onClick={() => setActiveTab("lgu")} aria-pressed={activeTab === "lgu"} className={tabClass("lgu")}>
-            <TranslatableText>Officer: scan & release</TranslatableText>
+            <TranslatableText>Officer: scan & hand over</TranslatableText>
           </button>
         </div>
       )}
@@ -189,12 +200,13 @@ function HandoverPageContent() {
         {activeTab === "artisan" && canShowCode ? <ArtisanHandover /> : <LguHandover />}
       </div>
     </div>
+    </div>
   );
 }
 
 export default function HandoverPage() {
   return (
-    <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Pickup handover">
+    <AccessGuard allowedRoles={["artisan", "lgu", "admin"]} pageTitle="Pickup">
       <HandoverPageContent />
     </AccessGuard>
   );

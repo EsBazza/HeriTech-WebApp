@@ -2,11 +2,12 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { Check, Copy, Download, RefreshCw, Share2, TimerOff } from "lucide-react";
+import { Check, Copy, Download, Hammer, RefreshCw, Share2, TimerOff } from "lucide-react";
 import { apiJson } from "@/lib/api";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { QRCodeViewer } from "@/components/qr/QRCodeViewer";
-import { Button, Spinner, cn } from "@/components/ui";
+import { Button, LinkButton, Spinner, cn } from "@/components/ui";
+import { SuccessBurst } from "@/components/motion/SuccessBurst";
 
 interface HandoverToken {
   token: string;
@@ -128,6 +129,22 @@ export function HandoverCode({ batch }: { batch: HandoverBatch }) {
   const msLeft = token ? new Date(token.expiresAt).getTime() - Date.now() : 0;
   const expired = Boolean(token) && msLeft <= 0;
 
+  // Watch for the officer's scan, so this screen moves on by itself instead of counting down forever.
+  const [pickedUp, setPickedUp] = useState(false);
+  useEffect(() => {
+    if (!token || expired || pickedUp) return;
+    let stopped = false;
+    const check = async () => {
+      const result = await apiJson<Array<{ id: string }>>("/api/materials?mine=claimed&status=claimed");
+      if (!stopped && result.success && result.data?.some((b) => b.id === batch.id)) setPickedUp(true);
+    };
+    const timer = window.setInterval(check, 4000);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [token, expired, pickedUp, batch.id]);
+
   const makeFile = async (): Promise<File | null> => {
     if (!token || !qrCanvas.current) return null;
     const blob = await pickupCardBlob(qrCanvas.current, batch, new Date(token.expiresAt));
@@ -160,6 +177,24 @@ export function HandoverCode({ batch }: { batch: HandoverBatch }) {
     }
     setSaving(null);
   };
+
+  if (pickedUp) {
+    return (
+      <div className="handover-success flex flex-col items-center text-center gap-4 py-6" role="status">
+        <SuccessBurst size={56} />
+        <div className="space-y-1">
+          <h3 className="font-display text-2xl font-semibold text-ink">{translateSync("Picked up")}</h3>
+          <p className="text-sm text-ink-2 max-w-sm">
+            {translateSync("The officer confirmed the handover. Batch")} <span className="font-mono">{batch.id}</span> {translateSync("is now yours, on the record.")}
+          </p>
+        </div>
+        <LinkButton href="/studio">
+          <Hammer className="w-4 h-4" />
+          {translateSync("List a piece in the Studio")}
+        </LinkButton>
+      </div>
+    );
+  }
 
   if (loading) return <Spinner className="py-10" label={translateSync("Creating pickup code…")} />;
 

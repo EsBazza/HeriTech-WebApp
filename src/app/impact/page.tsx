@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { EscrowBar } from "@/components/EscrowBar";
-import { Badge, Card, PageHeader, SectionHeader, Skeleton, Stat, cn, type BadgeTone } from "@/components/ui";
+import { Badge, Card, RoleHero, SectionHeader, Skeleton, cn, type BadgeTone } from "@/components/ui";
+import { Coins, Landmark, Leaf as LeafIcon, QrCode as PassIcon } from "lucide-react";
 import { apiJson } from "@/lib/api";
 import type { PublicStats } from "@/app/api/stats/route";
 import { SPLIT } from "@/lib/escrow";
@@ -51,26 +52,25 @@ export default function ImpactLeaderboardPage() {
   const v = (x: React.ReactNode) => (loading ? <Skeleton className="h-8 w-24" /> : offline ? "—" : x);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
-      <PageHeader
+    <div>
+      <RoleHero
+        width="6xl"
         eyebrow={translateSync("Public impact record")}
         title={translateSync("Global impact")}
-        description={translateSync("Live totals from every collection, sale and donation recorded on HeriTech. Anyone can view this page.")}
+        description={translateSync("Live totals from every collection, sale and donation recorded on HeriTech. Anyone can check this page.")}
+        stats={[
+          { icon: LeafIcon, label: translateSync("Material collected"), unit: "kg", hint: translateSync("Logged at collection points after festivals"), value: loading ? "—" : offline ? "—" : formatNumber(stats?.totalKgCollected ?? 0) },
+          { icon: Coins, label: translateSync("Paid to artisans"), hint: `${SPLIT.artisan}% ${translateSync("of every sale")}`, value: loading ? "—" : offline ? "—" : formatCurrency(split?.artisanPayout ?? 0) },
+          { icon: Landmark, label: translateSync("Paid to local governments"), hint: `${SPLIT.lgu}% ${translateSync("of every sale")}`, value: loading ? "—" : offline ? "—" : formatCurrency(split?.lguShare ?? 0) },
+          { icon: PassIcon, label: translateSync("Impact passes issued"), hint: translateSync("Each one publicly verifiable"), value: loading ? "—" : offline ? "—" : formatNumber(stats?.totalPassesIssued ?? 0) },
+        ]}
       />
-
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-12">
       {offline && (
         <p role="alert" className="text-sm text-warn bg-warn-100 border border-warn/20 rounded-md px-4 py-2.5">
           {translateSync("The figures can't load right now. Try again shortly.")}
         </p>
       )}
-
-      {/* KPIs */}
-      <Card className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-line">
-        <Stat className="p-5 sm:p-6" label={translateSync("Material collected")} value={v(formatNumber(stats?.totalKgCollected ?? 0))} unit="kg" hint={translateSync("Logged at collection points after festivals")} />
-        <Stat className="p-5 sm:p-6" label={translateSync("Paid to artisans")} value={v(formatCurrency(split?.artisanPayout ?? 0))} hint={`${SPLIT.artisan}% ${translateSync("of every sale")}`} />
-        <Stat className="p-5 sm:p-6" label={translateSync("Paid to local governments")} value={v(formatCurrency(split?.lguShare ?? 0))} hint={`${SPLIT.lgu}% ${translateSync("of every sale")}`} />
-        <Stat className="p-5 sm:p-6" label={translateSync("Impact passes issued")} value={v(formatNumber(stats?.totalPassesIssued ?? 0))} hint={translateSync("Each one publicly verifiable")} />
-      </Card>
 
       {/* Festivals + money */}
       <div className="grid lg:grid-cols-5 gap-6">
@@ -207,6 +207,7 @@ export default function ImpactLeaderboardPage() {
           </ol>
         </Card>
       </section>
+    </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { OPEN_THREAD_KEY } from "@/components/FloatingBubble";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 /**
  * /messages opens the messages panel on the home page.
@@ -11,6 +12,7 @@ import { OPEN_THREAD_KEY } from "@/components/FloatingBubble";
  */
 export default function MessagesRedirectPage() {
   const router = useRouter();
+  const { translateSync } = useTranslation();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -26,7 +28,7 @@ export default function MessagesRedirectPage() {
   return (
     <div className="max-w-md mx-auto py-24 text-center space-y-3">
       <div className="w-8 h-8 border-4 border-pine-500 border-t-transparent rounded-full animate-spin mx-auto" />
-      <p className="text-sm text-ink-3">Opening Messages...</p>
+      <p className="text-sm text-ink-3">{translateSync("Opening Messages…")}</p>
     </div>
   );
 }

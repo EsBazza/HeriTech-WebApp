@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { AddToWalletButton } from "@/components/wallet/AddToWalletButton";
 import { Button, LinkButton } from "@/components/ui";
+import { DemoSignIn } from "@/components/auth/DemoSignIn";
 import { apiJson } from "@/lib/api";
 
 interface Claim {
@@ -80,10 +81,13 @@ export function ClaimBox({ productId, stock, onClaimed }: { productId: string; s
           {stock === 0 ? translateSync("All claimed") : translateSync("Claim for free")}
         </Button>
       ) : (
-        <Button variant="accent" size="lg" className="w-full" onClick={signInWithGoogle} disabled={stock === 0}>
-          <Gift className="w-4 h-4" />
-          {translateSync("Sign in with Google to claim")}
-        </Button>
+        <>
+          <Button variant="accent" size="lg" className="w-full" onClick={signInWithGoogle} disabled={stock === 0}>
+            <Gift className="w-4 h-4" />
+            {translateSync("Sign in with Google to claim")}
+          </Button>
+          {stock !== 0 && <DemoSignIn roles={["buyer"]} />}
+        </>
       )}
       {error && (
         <p className="text-sm text-danger" role="alert">

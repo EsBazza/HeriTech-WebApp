@@ -327,7 +327,7 @@ export default function ProductDetailPage() {
               {inCart || justAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
               {justAdded ? translateSync("Added to cart") : inCart ? translateSync("In your cart") : translateSync("Add to cart")}
             </Button>
-            {!user && <p className="text-sm text-ink-3 text-center">{translateSync("You'll sign in with Google at checkout.")}</p>}
+            {!user && <p className="text-sm text-ink-3 text-center">{translateSync("You'll sign in at checkout.")}</p>}
           </div>
           )}
 
@@ -541,6 +541,9 @@ export default function ProductDetailPage() {
           </div>
         </section>
       )}
+
+      {/* Room for the phone buy bar, so it never covers the end of the page */}
+      {!isDesktop && !isOwn && !freeClaim && stock > 0 && <div aria-hidden className="h-20" />}
 
       {/* Phone buy bar, above the tab bar, once the main Buy button has scrolled away */}
       {!isDesktop && !buyVisible && !isOwn && !freeClaim && stock > 0 && !checkoutModalOpen && (

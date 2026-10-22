@@ -50,7 +50,7 @@ export function StudioListings({ products, loading, editingId, onRefresh, onEdit
       </div>
 
       {loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" role="status" aria-label={translateSync("Loading your pieces")}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" role="status" aria-label={translateSync("Loading your pieces")}>
           {[1, 2].map((i) => (
             <div key={i} className="rounded-md border border-line bg-surface overflow-hidden">
               <Skeleton className="aspect-video rounded-none" />
@@ -72,7 +72,7 @@ export function StudioListings({ products, loading, editingId, onRefresh, onEdit
       )}
 
       {!loading && products.length > 0 && (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {products.map((product) => {
             const editing = editingId === product.id;
             return (

@@ -13,6 +13,7 @@ import { EscrowBar } from "@/components/EscrowBar";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { Button, Dialog, Input, cn, buttonClass } from "@/components/ui";
+import { DemoSignIn } from "@/components/auth/DemoSignIn";
 
 interface OrderResult {
   orders: { id: string; productId: string; amountPaid: number }[];
@@ -32,7 +33,7 @@ interface CheckoutModalProps {
 
 export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalProps) {
   const { user, signInWithGoogle } = useAuth();
-  const { items, clearCart } = useCart();
+  const { items, clearCart, removeFromCart } = useCart();
   const { formatCurrency, formatNumber, translateSync, currentCurrency } = useTranslation();
   // Prices are shown in the buyer's currency, but orders are always charged in US dollars.
   const usd = (n: number) => formatCurrency(n, "USD");
@@ -117,6 +118,8 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
   };
 
   const steps = [translateSync("Delivery & payment"), translateSync("Your pass")];
+  // The server names the piece that ran out ("Only 0 of "<title>" left in stock").
+  const soldOutItem = orderError?.includes("left in stock") ? checkoutItems.find((i) => orderError.includes(`"${i.title}"`)) : undefined;
 
   const summary = (
     <div className="rounded-md bg-paper border border-line divide-y divide-line">
@@ -182,9 +185,12 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
               {processing ? translateSync("Placing order and issuing pass…") : `${translateSync("Place demo order")} · ${formatCurrency(amountDue)}`}
             </Button>
           ) : (
-            <Button size="lg" className="w-full" onClick={signInWithGoogle}>
-              {translateSync("Sign in with Google to order")}
-            </Button>
+            <div className="space-y-2">
+              <Button size="lg" className="w-full" onClick={signInWithGoogle}>
+                {translateSync("Sign in with Google to order")}
+              </Button>
+              <DemoSignIn roles={["buyer"]} />
+            </div>
           )
         ) : (
           <Link href="/profile#passes" onClick={onClose} className={buttonClass("primary", "lg", "w-full")}>
@@ -245,7 +251,23 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
           {orderError && (
             <div className="flex items-start gap-2 rounded-md bg-danger-100 border border-danger/20 px-3 py-2.5 text-sm text-danger" role="alert">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              {translateSync(orderError)}
+              <div className="flex-1 space-y-2">
+                <p>{translateSync(orderError)}</p>
+                {/* Sold out while it sat in the cart: let the buyer drop it and carry on */}
+                {soldOutItem && !directProduct && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      removeFromCart(soldOutItem.id);
+                      setOrderError(null);
+                    }}
+                  >
+                    {translateSync("Remove it and continue")}
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 

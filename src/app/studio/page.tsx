@@ -6,7 +6,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
 import { StudioListings, type StudioProduct as Product } from "@/components/studio/StudioListings";
-import { Link2, MapPin, PlusCircle, Sparkles, ImagePlus, Pencil, Trash2, X, AlertTriangle, Upload, Link as LinkIcon, FileImage } from "lucide-react";
+import { Link2, MapPin, PlusCircle, Sparkles, ImagePlus, Pencil, Trash2, X, AlertTriangle, Upload, Link as LinkIcon, FileImage, Package, Leaf, Boxes, Eye } from "lucide-react";
+import { FeedCard } from "@/components/FeedCard";
+import { ImpactPassPreview } from "@/components/ImpactPassPreview";
+import { CountUp } from "@/components/motion/CountUp";
 import { SPLIT, calculateEscrowSplit } from "@/lib/escrow";
 import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import {
@@ -17,10 +20,12 @@ import {
   IconButton,
   Input,
   LinkButton,
-  PageHeader,
+  RoleHero,
   Select,
   Skeleton,
   StickyActionBar,
+  TabPanel,
+  Tabs,
   Textarea,
   cn,
 } from "@/components/ui";
@@ -29,9 +34,9 @@ import {
 const BLANK_FORM = {
   title: "",
   description: "",
-  price: "45.00",
+  price: "",
   selectedBatchId: "",
-  kgDiverted: "1.5",
+  kgDiverted: "",
   materialTags: "",
   imageUrl: "",
   ngoFundName: "",
@@ -55,8 +60,9 @@ import { compressImage } from "@/lib/image";
 // ─── Component ────────────────────────────────────────────────────────────────
 function ArtisanStudioPageContent() {
   const { user, loading: authLoading } = useAuth();
-  const { translateSync, formatCurrency } = useTranslation();
+  const { translateSync, formatCurrency, formatNumber } = useTranslation();
   const role = userRole(user);
+  const [tab, setTab] = useState<"new" | "pieces">("new");
 
   // --- Source batches ---
   const [claimedBatches, setClaimedBatches] = useState<BatchView[]>([]);
@@ -89,6 +95,10 @@ function ArtisanStudioPageContent() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [publishedId, setPublishedId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [askNoPhoto, setAskNoPhoto] = useState(false);
+  const skipPhotoCheck = useRef(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
@@ -219,6 +229,13 @@ function ArtisanStudioPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.price || !form.selectedBatchId) return;
+    // Buyers see the photo next to the material it came from, so publishing without one asks first.
+    if (!editingId && !form.imageUrl && !skipPhotoCheck.current) {
+      setAskNoPhoto(true);
+      return;
+    }
+    skipPhotoCheck.current = false;
+    setAskNoPhoto(false);
     setSubmitting(true);
     setErrorMessage(null);
     // When editing, an unchanged photo is left out so the server keeps what it already stores.
@@ -240,6 +257,7 @@ function ArtisanStudioPageContent() {
 
     if (result.success) {
       const message = editingId ? `"${form.title}" updated.` : `"${form.title}" is now in the shop.`;
+      setPublishedId(editingId ?? (result.data as { id?: string } | undefined)?.id ?? null);
       resetForm();
       setSuccessMessage(message);
       loadMyProducts();
@@ -252,6 +270,7 @@ function ArtisanStudioPageContent() {
 
   // ─── Delete ──────────────────────────────────────────────────────────────────
   const confirmDelete = (product: Product) => {
+    setDeleteError(null);
     setDeletingId(product.id);
     setDeleteConfirmTitle(product.title);
   };
@@ -259,12 +278,14 @@ function ArtisanStudioPageContent() {
   const handleDelete = async () => {
     if (!deletingId) return;
     setDeleting(true);
+    setDeleteError(null);
     const result = await apiJson(`/api/products/${deletingId}`, { method: "DELETE" });
     if (result.success) {
       setMyProducts((prev) => prev.filter((p) => p.id !== deletingId));
       setDeletingId(null);
     } else {
-      setErrorMessage(result.error ?? "Couldn't remove the listing.");
+      // Shown inside the dialog, which is still on top of the page.
+      setDeleteError(result.error ?? "Couldn't remove the listing.");
     }
     setDeleting(false);
   };
@@ -284,11 +305,34 @@ function ArtisanStudioPageContent() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <PageHeader
+    <div>
+      <RoleHero
         eyebrow={translateSync("Studio")}
         title={translateSync("Artisan studio")}
-        description={translateSync("Turn claimed festival material into listed pieces. Each piece stays linked to the batch it was made from.")}
+        description={translateSync("Turn the festival material you picked up into pieces in the shop. Each one stays linked to the batch it came from.")}
+        actions={
+          <LinkButton href="/map" variant="secondary" className="bg-white/10 border-white/20 text-white hover:bg-white/15 hover:text-white">
+            <MapPin className="w-4 h-4" />
+            {translateSync("Find more material")}
+          </LinkButton>
+        }
+        stats={[
+          { icon: Package, label: translateSync("Pieces in the shop"), hint: translateSync("Each with its own Impact Pass"), value: productsLoading ? "—" : <CountUp value={myProducts.length} format={formatNumber} /> },
+          { icon: Leaf, label: translateSync("Material reused"), unit: "kg", hint: translateSync("Kept out of landfill by your pieces"), value: productsLoading ? "—" : <CountUp value={myProducts.reduce((t, p) => t + (Number(p.kgDiverted) || 0), 0)} decimals={1} format={formatNumber} /> },
+          { icon: Boxes, label: translateSync("Batches ready to craft"), hint: translateSync("Picked up and waiting in your workshop"), value: batchesLoading ? "—" : <CountUp value={claimedBatches.length} format={formatNumber} /> },
+        ]}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <Tabs
+        label={translateSync("Studio sections")}
+        value={tab}
+        onChange={setTab}
+        syncHash
+        items={[
+          { key: "new", label: editingId ? translateSync("Edit piece") : translateSync("New piece") },
+          { key: "pieces", label: translateSync("My pieces"), count: myProducts.length },
+        ]}
       />
 
       {/* Result of the last action; scrolled into view after publishing */}
@@ -296,7 +340,19 @@ function ArtisanStudioPageContent() {
         {successMessage && (
           <div role="status" className="flex items-center gap-3 p-4 bg-pine-50 border border-brand-line rounded-md text-[15px] text-brand">
             <SuccessBurst size={36} />
-            <span className="flex-1">{translateSync(successMessage)}</span>
+            <span className="flex-1">
+              {translateSync(successMessage)}
+              {publishedId && (
+                <span className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
+                  <a href={`/products/${publishedId}`} className="font-medium underline underline-offset-2">
+                    {translateSync("View in shop")}
+                  </a>
+                  <button type="button" onClick={() => setTab("pieces")} className="font-medium underline underline-offset-2 cursor-pointer">
+                    {translateSync("See my pieces")}
+                  </button>
+                </span>
+              )}
+            </span>
             <IconButton aria-label={translateSync("Dismiss")} onClick={() => setSuccessMessage(null)} className="-my-2 -mr-2">
               <X className="w-4 h-4" />
             </IconButton>
@@ -313,6 +369,7 @@ function ArtisanStudioPageContent() {
         )}
       </div>
 
+      <TabPanel id="new" active={tab === "new"}>
       {noBatches ? (
         <EmptyState
           icon={<Link2 className="w-5 h-5" />}
@@ -326,7 +383,8 @@ function ArtisanStudioPageContent() {
           }
         />
       ) : (
-        <Card ref={formRef} className="overflow-hidden scroll-mt-24">
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+        <Card ref={formRef} className="lg:col-span-7 overflow-hidden scroll-mt-24">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-line">
             <h2 className="flex items-center gap-2 text-base font-semibold text-ink font-sans">
               {editingId ? <Pencil className="w-4 h-4 text-lantern-600" /> : <PlusCircle className="w-4 h-4 text-brand-2" />}
@@ -526,6 +584,7 @@ function ArtisanStudioPageContent() {
                   min="0"
                   required
                   value={form.price}
+                  placeholder="45.00"
                   onChange={(e) => setField("price", e.target.value)}
                   className="tabular"
                   hint={`${translateSync("You receive")} ${formatCurrency(payout)} (${SPLIT.artisan}%) ${translateSync("when it sells.")}`}
@@ -537,6 +596,8 @@ function ArtisanStudioPageContent() {
                   step="0.05"
                   min="0"
                   value={form.kgDiverted}
+                  max={selectedBatch?.weightKg}
+                  placeholder="1.5"
                   onChange={(e) => setField("kgDiverted", e.target.value)}
                   className="tabular"
                   hint={selectedBatch ? `${translateSync("Up to")} ${selectedBatch.weightKg} kg ${translateSync("from this batch")}` : undefined}
@@ -557,7 +618,16 @@ function ArtisanStudioPageContent() {
               />
             </fieldset>
 
-            <StickyActionBar className="-mx-5 px-5 sm:-mx-8 sm:px-8">
+            <StickyActionBar className="-mx-5 px-5 sm:-mx-8 sm:px-8 space-y-2">
+              {askNoPhoto && (
+                <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md bg-warn-100 border border-warn/20 px-3 py-2.5 text-sm text-warn">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span className="flex-1 min-w-[12rem]">{translateSync("No photo yet. Buyers compare the finished piece with the material it came from.")}</span>
+                  <Button type="submit" size="sm" variant="secondary" onClick={() => (skipPhotoCheck.current = true)}>
+                    {translateSync("Publish without a photo")}
+                  </Button>
+                </div>
+              )}
               <Button type="submit" variant="accent" size="lg" className="w-full" loading={submitting} disabled={!form.selectedBatchId}>
                 {!submitting && (editingId ? <Pencil className="w-4 h-4" /> : <PlusCircle className="w-4 h-4" />)}
                 {submitting
@@ -571,9 +641,59 @@ function ArtisanStudioPageContent() {
             </StickyActionBar>
           </form>
         </Card>
-      )}
 
-      <StudioListings products={myProducts} loading={productsLoading} editingId={editingId} onRefresh={loadMyProducts} onEdit={startEdit} onDelete={confirmDelete} />
+        {/* What buyers will see, updated as the artisan types */}
+        <aside className="lg:col-span-5 lg:sticky lg:top-24 space-y-5" aria-label={translateSync("Preview")}>
+          <div className="flex items-center gap-2 text-sm font-medium text-ink-2">
+            <Eye className="w-4 h-4 text-brand-2" />
+            {translateSync("How buyers will see it")}
+          </div>
+          <div inert className="max-w-sm">
+            <FeedCard
+              batch={{
+                id: editingId ?? "preview",
+                title: form.title || translateSync("Name of the piece"),
+                description: form.description,
+                price: parseFloat(form.price) || 0,
+                image: form.imageUrl && !imagePreviewError ? form.imageUrl : undefined,
+                cooperativeName: user?.workshopName || user?.fullName || translateSync("Your workshop"),
+                region: user?.country || "",
+                country: selectedBatch?.agreement?.country || user?.country || "",
+                weightKg: parseFloat(form.kgDiverted) || 0,
+                materialType: form.materialTags || selectedBatch?.materialType || "",
+                festival: selectedBatch?.agreement?.festival || "",
+              }}
+            />
+          </div>
+          <ImpactPassPreview
+            title={form.title || translateSync("Name of the piece")}
+            origin={[selectedBatch?.agreement?.festival, selectedBatch?.agreement?.country].filter(Boolean).join(", ") || translateSync("Your source batch")}
+            maker={user?.workshopName || user?.fullName || translateSync("Your workshop")}
+            material={selectedBatch?.materialType || form.materialTags || "—"}
+            kgDiverted={parseFloat(form.kgDiverted) || 0}
+          />
+          <p className="text-xs text-ink-3 max-w-sm">
+            {translateSync("The pass is issued when the piece sells. Its QR code opens the public record of this batch.")}
+          </p>
+        </aside>
+        </div>
+      )}
+      </TabPanel>
+
+      <TabPanel id="pieces" active={tab === "pieces"}>
+        <StudioListings
+          products={myProducts}
+          loading={productsLoading}
+          editingId={editingId}
+          onRefresh={loadMyProducts}
+          onEdit={(product) => {
+            setTab("new");
+            startEdit(product);
+          }}
+          onDelete={confirmDelete}
+        />
+      </TabPanel>
+      </div>
 
       <Dialog
         open={Boolean(deletingId)}
@@ -597,6 +717,12 @@ function ArtisanStudioPageContent() {
         <p className="text-[15px] text-ink-2">
           <strong className="text-ink">&ldquo;{deleteConfirmTitle}&rdquo;</strong> {translateSync("will be taken off the shop. Passes already sold for it still verify.")}
         </p>
+        {deleteError && (
+          <p role="alert" className="mt-3 flex items-start gap-2 text-sm text-danger">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            {translateSync(deleteError)}
+          </p>
+        )}
       </Dialog>
     </div>
   );

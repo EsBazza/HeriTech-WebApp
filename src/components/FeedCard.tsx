@@ -29,6 +29,7 @@ export function toFeedItem(p: ProductView): FeedMaterialBatch {
     materialType: p.materialTags?.length ? p.materialTags.join(", ") : p.sourceBatch?.materialType || "",
     festival: p.sourceBatch?.agreement?.festival || "",
     freeClaim: Boolean(p.freeClaim),
+    stock: typeof p.stock === "number" ? p.stock : undefined,
   };
 }
 
@@ -49,6 +50,8 @@ export interface FeedMaterialBatch {
   status?: string;
   /** Given away at the showcase booth: claimed on the product page, not added to the cart. */
   freeClaim?: boolean;
+  /** Pieces left; 0 shows the card as sold out. Unknown (undefined) is treated as available. */
+  stock?: number;
 }
 
 interface FeedCardProps {
@@ -61,8 +64,10 @@ export function FeedCard({ batch }: FeedCardProps) {
   const { formatCurrency, formatNumber, translateSync } = useTranslation();
   const [justAdded, setJustAdded] = useState(false);
   const inCart = items.some((i) => i.id === batch.id);
+  const soldOut = batch.stock === 0;
 
   const handleReserve = () => {
+    if (soldOut || inCart) return;
     addToCart({
       id: batch.id,
       title: batch.title,
@@ -101,6 +106,11 @@ export function FeedCard({ batch }: FeedCardProps) {
           <div className="w-full h-full flex items-center justify-center p-4 text-center text-sm text-ink-3">{translateSync(batch.materialType)}</div>
         )}
         <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-pine-900/60 to-transparent pointer-events-none" aria-hidden />
+        {soldOut && (
+          <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-surface/95 px-2.5 py-1 text-xs font-semibold text-ink shadow-card">
+            {translateSync("Sold out")}
+          </span>
+        )}
         <span className="traced-badge absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-pine-900/75 backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-white">
           <QrCode className="w-3 h-3" aria-hidden />
           {translateSync("Traced")}
@@ -146,14 +156,21 @@ export function FeedCard({ batch }: FeedCardProps) {
               <ArrowRight className="w-4 h-4" />
             </Link>
           ) : (
+          soldOut ? (
+            <span className={cn(buttonClass("secondary", "sm"), "opacity-60 cursor-not-allowed")} aria-disabled="true">
+              {translateSync("Sold out")}
+            </span>
+          ) : (
           <button
             onClick={handleReserve}
-            className={cn(buttonClass(inCart || justAdded ? "secondary" : "primary", "sm"), (inCart || justAdded) && "text-brand border-pine-300")}
-            aria-label={`${translateSync("Add to cart")}: ${batch.title}`}
+            aria-disabled={inCart || undefined}
+            className={cn(buttonClass(inCart || justAdded ? "secondary" : "primary", "sm"), (inCart || justAdded) && "text-brand border-pine-300 cursor-default")}
+            aria-label={inCart ? `${translateSync("In cart")}: ${batch.title}` : `${translateSync("Add to cart")}: ${batch.title}`}
           >
             {inCart || justAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             {justAdded ? translateSync("Added") : inCart ? translateSync("In cart") : translateSync("Add to cart")}
           </button>
+          )
           )}
         </div>
       </div>

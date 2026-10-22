@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { TranslatableText } from "@/components/translation/TranslatableText";
-import { CheckCircle2, XCircle, Clock, Palette, Camera, TrendingUp, Users, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Palette, Camera, TrendingUp, Users, AlertTriangle, Coins, Hammer, Landmark, Leaf } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { AccessGuard } from "@/components/AccessGuard";
 import { BoothClaimsCard } from "@/components/admin/BoothClaimsCard";
@@ -12,7 +12,8 @@ import { apiJson } from "@/lib/api";
 import type { UserDoc, UserRole } from "@/lib/firebase/types";
 import type { AdminStats } from "@/app/api/admin/stats/route";
 import { SPLIT, SPLIT_LABEL } from "@/lib/escrow";
-import { Badge, Button, Card, Dialog, EmptyState, Input, PageHeader, Select, Skeleton, Stat, type BadgeTone } from "@/components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, Input, RoleHero, Select, Skeleton, TabPanel, Tabs, type BadgeTone } from "@/components/ui";
+import { CountUp } from "@/components/motion/CountUp";
 
 type Applicant = UserDoc & { applicationDetails: UserDoc["application"] };
 
@@ -45,8 +46,14 @@ function AdminDashboardPageContent() {
   const [actionError, setActionError] = useState<string | null>(null);
   // Which button is working, e.g. "approve:uid", so only that one shows a spinner.
   const [busy, setBusy] = useState<string | null>(null);
-  const [pending, setPending] = useState<PendingAction | null>(null);
+  const [pending, setPendingState] = useState<PendingAction | null>(null);
+  const [pendingError, setPendingError] = useState<string | null>(null);
+  const setPending = (next: PendingAction | null) => {
+    setPendingError(null);
+    setPendingState(next);
+  };
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<"overview" | "applications" | "booth" | "people">("overview");
 
   const loadAdminData = async () => {
     const [statsRes, appsRes, usersRes] = await Promise.all([
@@ -65,6 +72,13 @@ function AdminDashboardPageContent() {
     loadAdminData();
   }, []);
 
+  // Success notes float near the action and clear themselves.
+  useEffect(() => {
+    if (!actionMessage) return;
+    const t = window.setTimeout(() => setActionMessage(null), 4000);
+    return () => window.clearTimeout(t);
+  }, [actionMessage]);
+
   const run = async (key: string, body: Record<string, string>) => {
     setBusy(key);
     setActionMessage(null);
@@ -72,12 +86,15 @@ function AdminDashboardPageContent() {
     const result = await apiJson("/api/admin/applications", { method: "POST", body: JSON.stringify(body) });
     if (result.success) {
       setActionMessage(result.message ?? "Done.");
+      setPending(null);
       await loadAdminData();
+    } else if (pending) {
+      // Keep the confirmation open so the error shows where the admin is looking.
+      setPendingError(result.error ?? "That action failed.");
     } else {
       setActionError(result.error ?? "That action failed.");
     }
     setBusy(null);
-    setPending(null);
   };
 
   const pendingApps = applications.filter((a) => a.verificationStatus === "pending_artisan" || a.verificationStatus === "pending_lgu");
@@ -99,22 +116,47 @@ function AdminDashboardPageContent() {
   const shownUsers = query ? users.filter((u) => `${u.fullName} ${u.email}`.toLowerCase().includes(query)) : users;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-      <PageHeader
+    <div>
+      <RoleHero
         eyebrow={translateSync("Admin")}
         title={translateSync("Admin console")}
-        description={translateSync("Approve artisan and local government applications, review payment splits and track festival collection targets.")}
+        description={translateSync("Every sale, split and festival collection on HeriTech, plus who may join as an artisan or local government officer.")}
         actions={
           !loading && (
-            <Badge tone={pendingApps.length ? "warn" : "neutral"}>
+            <button
+              type="button"
+              onClick={() => setTab("applications")}
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-white/20 bg-white/10 text-sm font-medium text-white hover:bg-white/15 transition-colors cursor-pointer"
+            >
+              <Clock className="w-4 h-4" />
               {pendingApps.length} {translateSync("pending applications")}
-            </Badge>
+            </button>
           )
         }
+        stats={[
+          { icon: Coins, label: translateSync("Total sales"), hint: translateSync("Demo payments, no real money yet"), value: loading ? "—" : <CountUp value={stats?.kpis?.grossVolume ?? 0} decimals={2} format={formatCurrency} /> },
+          { icon: Hammer, label: `${translateSync("Paid to artisans")} · ${SPLIT.artisan}%`, hint: translateSync("Straight to the maker"), value: loading ? "—" : <CountUp value={stats?.kpis?.artisanPayoutTotal ?? 0} decimals={2} format={formatCurrency} /> },
+          { icon: Landmark, label: `${translateSync("Paid to local governments")} · ${SPLIT.lgu}%`, hint: translateSync("Funds collection and sorting"), value: loading ? "—" : <CountUp value={stats?.kpis?.lguShareTotal ?? 0} decimals={2} format={formatCurrency} /> },
+          { icon: Leaf, label: translateSync("Material collected"), hint: translateSync("Logged at collection points"), unit: "kg", value: loading ? "—" : <CountUp value={stats?.kpis?.totalKgCollected ?? 0} decimals={1} format={formatNumber} /> },
+        ]}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <Tabs
+        label={translateSync("Admin sections")}
+        value={tab}
+        onChange={setTab}
+        syncHash
+        items={[
+          { key: "overview", label: translateSync("Overview") },
+          { key: "applications", label: translateSync("Applications"), count: pendingApps.length },
+          { key: "booth", label: translateSync("Booth giveaway") },
+          { key: "people", label: translateSync("People"), count: users.length },
+        ]}
       />
 
       {actionMessage && (
-        <p role="status" className="flex items-center gap-2 p-4 rounded-md bg-pine-50 border border-brand-line text-sm text-brand">
+        <p role="status" className="fixed z-50 left-1/2 -translate-x-1/2 bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 w-[min(28rem,calc(100%-2rem))] flex items-center gap-2 p-4 rounded-md bg-surface border border-brand-line shadow-pop text-sm text-brand">
           <CheckCircle2 className="w-5 h-5 text-brand-2 shrink-0" />
           <TranslatableText>{actionMessage}</TranslatableText>
         </p>
@@ -127,6 +169,7 @@ function AdminDashboardPageContent() {
       )}
 
       {/* Applications */}
+      <TabPanel id="applications" active={tab === "applications"}>
       <section className="space-y-4" aria-labelledby="admin-apps">
         <h2 id="admin-apps" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
           <Clock className="w-5 h-5 text-brand-2" />
@@ -228,11 +271,15 @@ function AdminDashboardPageContent() {
           </ul>
         )}
       </section>
+      </TabPanel>
 
-      <BoothClaimsCard />
+      <TabPanel id="booth" active={tab === "booth"}>
+        <BoothClaimsCard />
+      </TabPanel>
 
       {/* People and roles */}
-      <section className="space-y-4 pt-8 border-t border-line" aria-labelledby="admin-users">
+      <TabPanel id="people" active={tab === "people"}>
+      <section className="space-y-4" aria-labelledby="admin-users">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 id="admin-users" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
@@ -339,28 +386,17 @@ function AdminDashboardPageContent() {
           </Card>
         )}
       </section>
+      </TabPanel>
 
       {/* Payments & material */}
-      <section className="space-y-6 pt-8 border-t border-line" aria-labelledby="admin-overview">
+      <TabPanel id="overview" active={tab === "overview"}>
+      <section className="space-y-6" aria-labelledby="admin-overview">
         <div>
           <h2 id="admin-overview" className="flex items-center gap-2 text-lg font-semibold text-ink font-sans">
             <TrendingUp className="w-5 h-5 text-brand-2" />
             {translateSync("Payments and material")}
           </h2>
-          <p className="text-sm text-ink-3 mt-0.5">{translateSync("Total sales, how every sale was split, and festival collection.")}</p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {[
-            { label: translateSync("Total sales"), value: formatCurrency(stats?.kpis?.grossVolume ?? 0), hint: translateSync("Demo payments, no real money yet") },
-            { label: `${translateSync("Paid to artisans")} · ${SPLIT.artisan}%`, value: formatCurrency(stats?.kpis?.artisanPayoutTotal ?? 0) },
-            { label: `${translateSync("Paid to local governments")} · ${SPLIT.lgu}%`, value: formatCurrency(stats?.kpis?.lguShareTotal ?? 0) },
-            { label: translateSync("Material collected"), value: formatNumber(stats?.kpis?.totalKgCollected ?? 0), unit: "kg" },
-          ].map((s) => (
-            <Card key={s.label} className="p-4 sm:p-6">
-              {loading ? <Skeleton className="h-16" /> : <Stat label={s.label} value={s.value} unit={s.unit} hint={s.hint} />}
-            </Card>
-          ))}
+          <p className="text-sm text-ink-3 mt-0.5">{translateSync("How every sale was split, and how much each festival has handed over against its agreement.")}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
@@ -426,6 +462,8 @@ function AdminDashboardPageContent() {
           </Card>
         </div>
       </section>
+      </TabPanel>
+      </div>
 
       <Dialog
         open={Boolean(pending)}
@@ -448,6 +486,12 @@ function AdminDashboardPageContent() {
         }
       >
         <p className="text-[15px] text-ink-2">{pending?.body}</p>
+        {pendingError && (
+          <p role="alert" className="mt-3 flex items-start gap-2 text-sm text-danger">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            {translateSync(pendingError)}
+          </p>
+        )}
       </Dialog>
     </div>
   );

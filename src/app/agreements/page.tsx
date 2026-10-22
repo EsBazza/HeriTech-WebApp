@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "@/contexts/TranslationContext";
+import { FileCheck2 as AgreementIcon, Layers, Leaf as LeafIcon } from "lucide-react";
 import { TranslatableText } from "@/components/translation/TranslatableText";
-import { FileCheck2, Plus, MapPin, AlertTriangle } from "lucide-react";
+import { FileCheck2, Plus, MapPin, AlertTriangle, CheckCircle2, ScanLine } from "lucide-react";
 import { AccessGuard } from "@/components/AccessGuard";
 import type { AgreementWithBatches } from "@/app/api/agreements/route";
 import { apiJson } from "@/lib/api";
-import { Badge, Button, Card, Dialog, EmptyState, Input, PageHeader, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, Input, LinkButton, RoleHero, Skeleton } from "@/components/ui";
 
 function AgreementsPageContent() {
   const { formatNumber, translateSync } = useTranslation();
@@ -24,6 +25,8 @@ function AgreementsPageContent() {
   const [allocatedKg, setAllocatedKg] = useState("2000");
   const [submitting, setSubmitting] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  // The agreement just made, so the officer gets a next step instead of a silent close.
+  const [justCreated, setJustCreated] = useState<AgreementWithBatches | null>(null);
 
   useEffect(() => {
     apiJson<AgreementWithBatches[]>("/api/agreements").then((result) => {
@@ -49,6 +52,7 @@ function AgreementsPageContent() {
     if (result.success && result.data) {
       const created = result.data;
       setAgreements((prev) => [created, ...prev]);
+      setJustCreated(created);
       setModalOpen(false);
       setTitle("");
       setOrganizerName("");
@@ -67,18 +71,38 @@ function AgreementsPageContent() {
     );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <PageHeader
+    <div>
+      <RoleHero
+        width="6xl"
         eyebrow={translateSync("Before collection")}
         title={translateSync("Material release agreements")}
-        description={translateSync("Signed records of what may be collected, where and how much, agreed before any collection starts.")}
+        description={translateSync("Signed records of what may be collected, where and how much, agreed with the festival organiser before collection starts.")}
         actions={
-          <Button onClick={openForm}>
+          <Button variant="accent" onClick={openForm}>
             <Plus className="w-4 h-4" />
             {translateSync("New agreement")}
           </Button>
         }
+        stats={[
+          { icon: AgreementIcon, label: translateSync("Active agreements"), hint: translateSync("Open for collection"), value: loading ? "—" : formatNumber(agreements.filter((a) => a.status === "active").length) },
+          { icon: LeafIcon, label: translateSync("Collected"), unit: "kg", hint: translateSync("Across every agreement"), value: loading ? "—" : formatNumber(agreements.reduce((t, a) => t + (a.collectedKg || 0), 0)) },
+          { icon: Layers, label: translateSync("Batches logged"), hint: translateSync("Each with a photo and pickup point"), value: loading ? "—" : formatNumber(agreements.reduce((t, a) => t + (a.batches?.length || 0), 0)) },
+        ]}
       />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+      {justCreated && (
+        <div role="status" className="flex flex-wrap items-center gap-3 p-4 rounded-md bg-pine-50 border border-brand-line text-[15px] text-brand">
+          <CheckCircle2 className="w-5 h-5 text-brand-2 shrink-0" />
+          <span className="flex-1 min-w-[12rem]">
+            {translateSync("Agreement created:")} <strong className="font-semibold">{justCreated.title}</strong>
+          </span>
+          <LinkButton href={`/scanner?agreement=${encodeURIComponent(justCreated.id)}`} size="sm">
+            <ScanLine className="w-4 h-4" />
+            {translateSync("Scan a batch for it")}
+          </LinkButton>
+        </div>
+      )}
 
       {loadError && (
         <p role="alert" className="flex items-start gap-2 p-4 rounded-md bg-danger-100 text-sm text-danger">
@@ -233,6 +257,7 @@ function AgreementsPageContent() {
           )}
         </form>
       </Dialog>
+    </div>
     </div>
   );
 }

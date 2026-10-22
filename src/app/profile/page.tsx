@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { DemoSignIn } from "@/components/auth/DemoSignIn";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { LanguageSelector } from "@/components/language/LanguageSelector";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
@@ -61,8 +62,12 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<BuyerOrder[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
+  const [ordersError, setOrdersError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
   useEffect(() => {
     if (user) {
+      setLoadingData(true);
       // Only this user's own records: their purchases, plus listings or batches for their role.
       const userId = user.id;
       const role = user.role;
@@ -72,12 +77,14 @@ export default function ProfilePage() {
         role === "lgu" ? apiJson<BatchView[]>("/api/materials?mine=scanned") : null,
       ]).then(([orderRes, productRes, batchRes]) => {
         if (orderRes.success) setOrders(orderRes.data ?? []);
+        // A failed load must not look like "no passes" to someone who just paid.
+        setOrdersError(!orderRes.success);
         if (productRes?.success) setArtisanProducts(productRes.data ?? []);
         if (batchRes?.success) setLguBatches(batchRes.data ?? []);
         setLoadingData(false);
       });
     }
-  }, [user]);
+  }, [user, reloadKey]);
 
   // Wait for Firebase before deciding, so signed-in users don't flash the sign-in card.
   if (authLoading) {
@@ -113,6 +120,7 @@ export default function ProfilePage() {
           >
             {translateSync("Sign in with Google")}
           </button>
+          <DemoSignIn roles={["buyer", "artisan", "lgu", "admin"]} />
           <p className="text-xs text-ink-3 text-center">
             {translateSync("Just browsing?")}{" "}
             <Link href="/" className="text-brand-2 hover:text-brand font-medium">
@@ -178,7 +186,8 @@ export default function ProfilePage() {
     <div className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
-        <Card className="p-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+        <section className="ledger-band rounded-lg text-white p-5 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
           <div className="flex items-center gap-4 min-w-0">
             {user.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- avatars can be any https host
@@ -189,7 +198,7 @@ export default function ProfilePage() {
               </span>
             )}
             <div className="space-y-1.5 min-w-0">
-              <h1 className="font-display text-[28px] sm:text-3xl font-semibold text-ink leading-tight truncate">{user.fullName || translateSync("HeriTech member")}</h1>
+              <h1 className="font-display text-[28px] sm:text-3xl font-semibold text-white leading-tight truncate">{user.fullName || translateSync("HeriTech member")}</h1>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="pine">{roleLabel}</Badge>
                 {user.artisanVerified && (
@@ -201,11 +210,24 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          <Button variant="secondary" onClick={() => setEditModalOpen(true)} className="w-full sm:w-auto">
+          <Button variant="secondary" onClick={() => setEditModalOpen(true)} className="w-full sm:w-auto bg-white/10 border-white/20 text-white hover:bg-white/15 hover:text-white">
             <Edit3 className="w-4 h-4" />
             {translateSync("Edit profile")}
           </Button>
-        </Card>
+          </div>
+          {/* What this person has done on HeriTech, from their own records */}
+          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {activityStats.map((s) => (
+              <div key={s.label} className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+                <dt className="text-sm text-white/70">{s.label}</dt>
+                <dd className="mt-1.5 tabular font-display text-[28px] leading-none font-semibold text-white">
+                  {loadingData ? "—" : s.value}
+                  {s.unit && <span className="ml-1.5 font-sans text-sm font-medium text-white/70">{s.unit}</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
 
         {/* Section switcher: scrolling tabs on phones and tablets, a sidebar on desktop */}
         <nav
@@ -339,6 +361,17 @@ export default function ProfilePage() {
                     <Skeleton className="h-72 rounded-lg" />
                     <Skeleton className="h-72 rounded-lg hidden md:block" />
                   </div>
+                ) : ordersError ? (
+                  <EmptyState
+                    icon={<FileText className="w-5 h-5" />}
+                    title={translateSync("Couldn't load your passes")}
+                    description={translateSync("Your passes are safe on the ledger. Check your connection and try again.")}
+                    action={
+                      <Button variant="secondary" onClick={() => setReloadKey((k) => k + 1)}>
+                        {translateSync("Try again")}
+                      </Button>
+                    }
+                  />
                 ) : orders.length === 0 ? (
                   <EmptyState
                     icon={<FileText className="w-5 h-5" />}

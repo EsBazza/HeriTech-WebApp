@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Gift } from "lucide-react";
+import { Gift, Search } from "lucide-react";
 import { apiJson } from "@/lib/api";
 import { useTranslation } from "@/contexts/TranslationContext";
 import type { ProductView } from "@/lib/server/views";
-import { Badge, Button, Card, EmptyState, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, Skeleton } from "@/components/ui";
 
 /**
  * Admin control for the showcase booth: choose which listings visitors can
@@ -17,6 +17,7 @@ export function BoothClaimsCard() {
   const [products, setProducts] = useState<ProductView[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const load = async () => {
     const result = await apiJson<ProductView[]>("/api/products");
@@ -61,25 +62,51 @@ export function BoothClaimsCard() {
       ) : products.length === 0 ? (
         <EmptyState title={translateSync("No listings yet")} description={translateSync("An artisan lists the booth piece in the studio first.")} />
       ) : (
-        <Card className="divide-y divide-line">
-          {products.map((p) => (
-            <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div className="min-w-0">
+        <>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={translateSync("Search listings")}
+            aria-label={translateSync("Search listings")}
+            wrapperClassName="sm:max-w-xs w-full"
+          />
+          <span className="flex items-center gap-1.5 text-sm text-ink-3">
+            <Search className="w-4 h-4" aria-hidden />
+            {products.filter((p) => p.freeClaim).length} {translateSync("free to claim")} · {products.length} {translateSync("listings")}
+          </span>
+        </div>
+        <Card className="divide-y divide-line overflow-hidden">
+          {products
+            .filter((p) => !query.trim() || `${p.title} ${p.artisan?.workshopName ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()))
+            .map((p) => (
+            <div key={p.id} className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors ${p.freeClaim ? "bg-lantern-100/40" : "hover:bg-paper/60"}`}>
+              <div className="flex items-center gap-3 min-w-0">
+                {p.images?.[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.images[0]} alt="" className="w-11 h-11 rounded-md object-cover bg-paper-2 shrink-0" />
+                ) : (
+                  <span className="w-11 h-11 rounded-md bg-paper-2 shrink-0" aria-hidden />
+                )}
+                <div className="min-w-0">
                 <p className="font-medium text-ink truncate">{translateSync(p.title)}</p>
                 <p className="text-sm text-ink-3">
                   {p.artisan?.workshopName || p.artisan?.fullName || translateSync("Artisan")} · {p.stock} {translateSync("left")}
                   {!p.freeClaim && <> · {formatCurrency(p.price)}</>}
                 </p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 {p.freeClaim && <Badge tone="accent">{translateSync("Free to claim")}</Badge>}
-                <Button size="sm" variant={p.freeClaim ? "secondary" : "primary"} loading={busy === p.id} onClick={() => toggle(p)}>
+                <Button size="sm" variant={p.freeClaim ? "ghost" : "secondary"} loading={busy === p.id} onClick={() => toggle(p)}>
                   {translateSync(p.freeClaim ? "Stop giving away" : "Make free to claim")}
                 </Button>
               </div>
             </div>
           ))}
         </Card>
+        </>
       )}
     </section>
   );
