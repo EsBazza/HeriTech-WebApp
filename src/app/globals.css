@@ -1123,6 +1123,63 @@
   }
 }
 
+/* Photo pass: the piece's own photo is the face of the pass */
+.pass-photo .pass-photo-img {
+  animation: pass-settle 2.4s var(--ease-out) both;
+  transform-origin: 50% 40%;
+}
+@keyframes pass-settle {
+  from { transform: scale(1.14); filter: saturate(0.6) brightness(0.85); }
+  to { transform: scale(1); filter: none; }
+}
+.pass-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pass-photo .pass-scrim {
+  background:
+    linear-gradient(180deg, rgb(11 20 15 / 0.55) 0%, rgb(11 20 15 / 0) 22%),
+    linear-gradient(180deg, rgb(20 40 30 / 0) 38%, rgb(20 40 30 / 0.55) 55%, rgb(20 40 30 / 0.94) 72%);
+}
+/* Details sit on dark glass so they read over any photo */
+.pass-photo .pass-panel {
+  background: rgb(20 40 30 / 0.72);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+}
+/* Foil: an iridescent sheen that follows the cursor */
+.pass-holo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 22%, rgb(255 170 110 / 0.32) 36%, rgb(140 230 190 / 0.26) 50%, rgb(150 170 255 / 0.24) 62%, transparent 78%);
+  background-size: 220% 220%;
+  background-position: var(--hx, 30%) var(--hy, 30%);
+  mix-blend-mode: soft-light;
+  opacity: 0.45;
+  transition: opacity 0.3s ease, background-position 0.12s linear;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pass-stage:hover .pass-holo { opacity: 0.95; }
+}
+/* The seal is stamped on once the pass appears */
+.pass-seal {
+  animation: pass-stamp 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) 0.9s both;
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 0.35));
+}
+@keyframes pass-stamp {
+  from { opacity: 0; transform: scale(1.8) rotate(-28deg); }
+  to { opacity: 1; transform: scale(1) rotate(-8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pass-photo .pass-photo-img,
+  .pass-seal { animation: none; }
+  .pass-seal { transform: rotate(-8deg); }
+  .pass-holo { transition: none; }
+}
+
 /* A freshly issued pass slides up into view */
 .pass-reveal {
   animation: rise 0.6s var(--ease-out) both;

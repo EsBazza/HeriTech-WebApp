@@ -316,6 +316,7 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
                   serial={pass.serial}
                   verifyUrl={pass.qrPayload}
                   title={item?.title ?? translateSync("Your piece")}
+                  image={item?.image || null}
                   maker={item?.artisanWorkshop || item?.artisanName || null}
                   origin={origin}
                   kgDiverted={item?.kgDiverted ?? null}

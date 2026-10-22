@@ -405,6 +405,7 @@ export default function ProfilePage() {
                             serial={order.pass.serial}
                             verifyUrl={order.pass.qrPayload || `${typeof window !== "undefined" ? window.location.origin : ""}/verify/${order.pass.serial}`}
                             title={order.product?.title ?? translateSync("Removed listing")}
+                            image={order.product?.image ?? null}
                             maker={order.product?.maker ?? null}
                             origin={order.product?.origin ?? null}
                             kgDiverted={order.product ? order.product.kgDiverted * (order.quantity || 1) : null}

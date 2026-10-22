@@ -1,30 +1,94 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Petal-paper journal">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
-      <stop offset="0" stop-color="#f5e9d9"/>
-      <stop offset="1" stop-color="#e3cdb0"/>
-    </radialGradient>
-    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
-      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
+  <filter id="fiber" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="4" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.15  0 0 0 0.28 0" result="t"/>
+    <feComposite in="t" in2="SourceGraphic" operator="in" result="tm"/>
+    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="tm"/></feMerge>
+  </filter>
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9" stitchTiles="stitch"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.1  0 0 0 0.55 0"/>
+  </filter>
+  <filter id="blur10" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>
+  <filter id="blur4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>
+  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter>
+  <radialGradient id="key" cx="32%" cy="18%" r="65%">
+    <stop offset="0" stop-color="#fffaf0" stop-opacity="0.55"/>
+    <stop offset="1" stop-color="#fffaf0" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vignette" cx="50%" cy="45%" r="75%">
+    <stop offset="0.55" stop-color="#20160c" stop-opacity="0"/>
+    <stop offset="1" stop-color="#20160c" stop-opacity="0.32"/>
+  </radialGradient>
+  <radialGradient id="contact" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#20160c" stop-opacity="0.5"/>
+    <stop offset="1" stop-color="#20160c" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="sheenV" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#000" stop-opacity="0.22"/>
+    <stop offset="0.35" stop-color="#fff" stop-opacity="0.18"/>
+    <stop offset="0.6" stop-color="#fff" stop-opacity="0"/>
+    <stop offset="1" stop-color="#000" stop-opacity="0.28"/>
+  </linearGradient>
+  <pattern id="woodgrain" width="240" height="26" patternUnits="userSpaceOnUse">
+    <path d="M0 5 C 60 2, 120 9, 240 5 M0 13 C 80 16, 150 9, 240 13 M0 21 C 50 19, 170 25, 240 21" fill="none" stroke="#7d5a30" stroke-opacity="0.35" stroke-width="1.2"/>
+    <path d="M30 9 C 60 7, 90 11, 120 9" fill="none" stroke="#fff" stroke-opacity="0.12" stroke-width="2"/>
+  </pattern>
+  <pattern id="weave" width="48" height="24" patternUnits="userSpaceOnUse">
+    <rect width="48" height="24" fill="#3c6b52"/>
+    <rect x="0" y="2" width="24" height="8" rx="2" fill="#f7f1e6"/>
+    <rect x="24" y="14" width="24" height="8" rx="2" fill="#d9823b"/>
+    <rect x="24" y="2" width="24" height="8" rx="2" fill="#1f3a2b"/>
+    <rect x="0" y="14" width="24" height="8" rx="2" fill="#c4471e"/>
+    <path d="M0 6 H48 M0 18 H48" stroke="#000" stroke-opacity="0.12"/>
+  </pattern>
+  <pattern id="stripes" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+    <rect width="14" height="14" fill="#f7f1e6"/><rect width="6" height="14" fill="#c4471e"/>
+  </pattern>
+  <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">
+    <rect width="16" height="16" fill="#3c6b52"/><circle cx="8" cy="8" r="3" fill="#f7f1e6"/>
+  </pattern>
+  <pattern id="check" width="20" height="20" patternUnits="userSpaceOnUse">
+    <rect width="20" height="20" fill="#e8a33a"/><rect width="10" height="10" fill="#d9823b"/><rect x="10" y="10" width="10" height="10" fill="#d9823b"/>
+  </pattern>
+  <pattern id="ikat" width="24" height="24" patternUnits="userSpaceOnUse">
+    <rect width="24" height="24" fill="#8fb09c"/><path d="M12 3 L20 12 L12 21 L4 12 Z" fill="none" stroke="#1f3a2b" stroke-width="2"/>
+  </pattern>
+  <pattern id="flecks" width="60" height="60" patternUnits="userSpaceOnUse">
+    <rect width="60" height="60" fill="#ecdcc0"/>
+    <ellipse cx="10" cy="12" rx="4" ry="2" fill="#c9705a" transform="rotate(30 10 12)"/>
+    <ellipse cx="40" cy="8" rx="3" ry="1.6" fill="#e8a33a" transform="rotate(-20 40 8)"/>
+    <ellipse cx="28" cy="34" rx="4" ry="2" fill="#c4471e" fill-opacity="0.8" transform="rotate(70 28 34)"/>
+    <ellipse cx="50" cy="44" rx="3" ry="1.5" fill="#6f8f5a" transform="rotate(10 50 44)"/>
+    <ellipse cx="12" cy="50" rx="3.5" ry="1.6" fill="#c9705a" fill-opacity="0.7" transform="rotate(-40 12 50)"/>
+  </pattern>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4e7d2"/><stop offset="1" stop-color="#e6d2b2"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcc5a0"/><stop offset="1" stop-color="#cdb38a"/></linearGradient>
   </defs>
-  <rect width="800" height="600" fill="url(#bg)"/>
-  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
-  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
-  <g transform="rotate(-4 400 320)">
-        <rect x="270" y="150" width="260" height="320" rx="8" fill="#e3c08a" stroke="#5a4a3a" stroke-width="3"/>
-        <rect x="270" y="150" width="34" height="320" fill="#c2602f"/>
-        <ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(0)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(72)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(144)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(216)"/><ellipse cx="0" cy="-20" rx="14" ry="26" fill="#c9705a" fill-opacity="0.85" transform="translate(420 300) rotate(288)"/>
-        <circle cx="420" cy="300" r="12" fill="#e8a33a"/>
-        <path d="M530 310 C 580 310, 590 350, 560 370" stroke="#3a2f24" stroke-width="3" fill="none"/>
-        <rect x="270" y="150" width="260" height="320" rx="8" fill="url(#sheen)"/>
-      </g>
+  <rect width="800" height="600" fill="url(#wall)"/>
+  <rect y="420" width="800" height="180" fill="url(#floor)"/>
+  <rect y="396" width="800" height="48" fill="url(#wall)" opacity="0.6" filter="url(#blur10)"/>
+  <rect width="800" height="600" fill="url(#key)"/>
   
+  <ellipse cx="410" cy="470" rx="190" ry="24" fill="url(#contact)" opacity="0.7"/>
+  <path d="M 300 160 L 300 450 L 530 450 L 530 160 Z" fill="#20160c" opacity="0.2" filter="url(#blur10)" transform="translate(14 8)"/>
+  <rect x="308" y="168" width="226" height="282" rx="6" fill="#efe4cf"/>
+  <rect x="314" y="174" width="220" height="276" rx="5" fill="#e4d6bb"/>
+  <g filter="url(#fiber)"><rect x="296" y="160" width="230" height="290" rx="8" fill="url(#flecks)"/></g>
+  <rect x="296" y="160" width="230" height="290" rx="8" fill="url(#sheenV)" opacity="0.7"/>
+  <rect x="296" y="160" width="30" height="290" rx="6" fill="#c4471e"/>
+  <rect x="296" y="160" width="30" height="290" rx="6" fill="url(#sheenV)"/>
+  <path d="M 318 196 h 14" stroke="#f7f1e6" stroke-width="2.5" stroke-linecap="round"/><path d="M 318 252 h 14" stroke="#f7f1e6" stroke-width="2.5" stroke-linecap="round"/><path d="M 318 308 h 14" stroke="#f7f1e6" stroke-width="2.5" stroke-linecap="round"/><path d="M 318 364 h 14" stroke="#f7f1e6" stroke-width="2.5" stroke-linecap="round"/><path d="M 318 420 h 14" stroke="#f7f1e6" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="470" y="160" width="8" height="290" fill="#1f3a2b"/>
+  <rect x="380" y="250" width="104" height="70" rx="4" fill="#f8efe2" opacity="0.92"/>
+  <text x="432" y="292" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="22" fill="#3a2f24">journal</text>
+  <ellipse cx="610" cy="452" rx="12" ry="5" fill="#c9705a" transform="rotate(20 610 452)"/>
+  <ellipse cx="225" cy="458" rx="10" ry="4.5" fill="#e8a33a" transform="rotate(-30 225 458)"/>
+  <ellipse cx="640" cy="470" rx="9" ry="4" fill="#c4471e" transform="rotate(50 640 470)"/>
+  <rect width="800" height="600" fill="url(#vignette)"/>
+  <rect width="800" height="600" filter="url(#grain)" opacity="0.22" style="mix-blend-mode:multiply"/>
   <g font-family="'DM Sans', system-ui, sans-serif">
     <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
     <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>

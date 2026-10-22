@@ -334,7 +334,7 @@ export default function ProductDetailPage() {
           {/* What you receive */}
           <div className="space-y-2.5 rise" style={{ ["--rise-delay" as string]: "280ms" }}>
             <p className="text-sm font-medium text-ink">{translateSync("Comes with its Verified Impact Pass")}</p>
-            <ImpactPassPreview title={product.title} origin={origin} maker={makerName} material={material} kgDiverted={Number(product.kgDiverted) || 0} />
+            <ImpactPassPreview title={product.title} origin={origin} maker={makerName} material={material} kgDiverted={Number(product.kgDiverted) || 0} image={product.images?.[0]} />
           </div>
 
           <ul className="divide-y divide-line border-y border-line text-sm">

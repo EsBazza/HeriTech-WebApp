@@ -1,30 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Paper lantern">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Demo image: Glowing paper lantern">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
-      <stop offset="0" stop-color="#3b3226"/>
-      <stop offset="1" stop-color="#1f1a14"/>
-    </radialGradient>
-    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#3a2f24" stop-opacity="0.28"/>
-      <stop offset="1" stop-color="#3a2f24" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
+  <filter id="fiber" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="4" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.15  0 0 0 0.28 0" result="t"/>
+    <feComposite in="t" in2="SourceGraphic" operator="in" result="tm"/>
+    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="tm"/></feMerge>
+  </filter>
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9" stitchTiles="stitch"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.1  0 0 0 0.55 0"/>
+  </filter>
+  <filter id="blur10" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>
+  <filter id="blur4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>
+  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter>
+  <radialGradient id="key" cx="32%" cy="18%" r="65%">
+    <stop offset="0" stop-color="#fffaf0" stop-opacity="0.55"/>
+    <stop offset="1" stop-color="#fffaf0" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vignette" cx="50%" cy="45%" r="75%">
+    <stop offset="0.55" stop-color="#20160c" stop-opacity="0"/>
+    <stop offset="1" stop-color="#20160c" stop-opacity="0.32"/>
+  </radialGradient>
+  <radialGradient id="contact" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#20160c" stop-opacity="0.5"/>
+    <stop offset="1" stop-color="#20160c" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="sheenV" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#000" stop-opacity="0.22"/>
+    <stop offset="0.35" stop-color="#fff" stop-opacity="0.18"/>
+    <stop offset="0.6" stop-color="#fff" stop-opacity="0"/>
+    <stop offset="1" stop-color="#000" stop-opacity="0.28"/>
+  </linearGradient>
+  <pattern id="woodgrain" width="240" height="26" patternUnits="userSpaceOnUse">
+    <path d="M0 5 C 60 2, 120 9, 240 5 M0 13 C 80 16, 150 9, 240 13 M0 21 C 50 19, 170 25, 240 21" fill="none" stroke="#7d5a30" stroke-opacity="0.35" stroke-width="1.2"/>
+    <path d="M30 9 C 60 7, 90 11, 120 9" fill="none" stroke="#fff" stroke-opacity="0.12" stroke-width="2"/>
+  </pattern>
+  <pattern id="weave" width="48" height="24" patternUnits="userSpaceOnUse">
+    <rect width="48" height="24" fill="#3c6b52"/>
+    <rect x="0" y="2" width="24" height="8" rx="2" fill="#f7f1e6"/>
+    <rect x="24" y="14" width="24" height="8" rx="2" fill="#d9823b"/>
+    <rect x="24" y="2" width="24" height="8" rx="2" fill="#1f3a2b"/>
+    <rect x="0" y="14" width="24" height="8" rx="2" fill="#c4471e"/>
+    <path d="M0 6 H48 M0 18 H48" stroke="#000" stroke-opacity="0.12"/>
+  </pattern>
+  <pattern id="stripes" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+    <rect width="14" height="14" fill="#f7f1e6"/><rect width="6" height="14" fill="#c4471e"/>
+  </pattern>
+  <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">
+    <rect width="16" height="16" fill="#3c6b52"/><circle cx="8" cy="8" r="3" fill="#f7f1e6"/>
+  </pattern>
+  <pattern id="check" width="20" height="20" patternUnits="userSpaceOnUse">
+    <rect width="20" height="20" fill="#e8a33a"/><rect width="10" height="10" fill="#d9823b"/><rect x="10" y="10" width="10" height="10" fill="#d9823b"/>
+  </pattern>
+  <pattern id="ikat" width="24" height="24" patternUnits="userSpaceOnUse">
+    <rect width="24" height="24" fill="#8fb09c"/><path d="M12 3 L20 12 L12 21 L4 12 Z" fill="none" stroke="#1f3a2b" stroke-width="2"/>
+  </pattern>
+  <pattern id="flecks" width="60" height="60" patternUnits="userSpaceOnUse">
+    <rect width="60" height="60" fill="#ecdcc0"/>
+    <ellipse cx="10" cy="12" rx="4" ry="2" fill="#c9705a" transform="rotate(30 10 12)"/>
+    <ellipse cx="40" cy="8" rx="3" ry="1.6" fill="#e8a33a" transform="rotate(-20 40 8)"/>
+    <ellipse cx="28" cy="34" rx="4" ry="2" fill="#c4471e" fill-opacity="0.8" transform="rotate(70 28 34)"/>
+    <ellipse cx="50" cy="44" rx="3" ry="1.5" fill="#6f8f5a" transform="rotate(10 50 44)"/>
+    <ellipse cx="12" cy="50" rx="3.5" ry="1.6" fill="#c9705a" fill-opacity="0.7" transform="rotate(-40 12 50)"/>
+  </pattern>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b2118"/><stop offset="1" stop-color="#1d1712"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#211a14"/><stop offset="1" stop-color="#16120e"/></linearGradient>
   </defs>
-  <rect width="800" height="600" fill="url(#bg)"/>
-  <rect y="440" width="800" height="160" fill="#000000" fill-opacity="0.04"/>
-  <ellipse cx="400" cy="478" rx="230" ry="26" fill="url(#floor)"/>
-  <line x1="400" y1="0" x2="400" y2="150" stroke="#3a2f24" stroke-width="3"/>
-      <circle cx="400" cy="300" r="190" fill="#e8a33a" fill-opacity="0.18"/>
-      <ellipse cx="400" cy="300" rx="120" ry="135" fill="#d9823b"/>
-      <ellipse cx="400" cy="290" rx="80" ry="100" fill="#e8a33a" fill-opacity="0.7"/>
-      <path d="M400 170 Q 218.9 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 295.5 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 400 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 504.5 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/><path d="M400 170 Q 581.1 300 400 430" fill="none" stroke="#c2602f" stroke-width="3" stroke-opacity="0.65"/>
-      <rect x="350" y="150" width="100" height="22" rx="4" fill="#8f6f43"/>
-      <rect x="350" y="428" width="100" height="22" rx="4" fill="#8f6f43"/>
-      <line x1="388" y1="450" x2="383.2" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/><line x1="396" y1="450" x2="394.4" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/><line x1="404" y1="450" x2="405.6" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/><line x1="412" y1="450" x2="416.8" y2="500" stroke="#c2602f" stroke-width="4" stroke-linecap="round"/>
+  <rect width="800" height="600" fill="url(#wall)"/>
+  <rect y="420" width="800" height="180" fill="url(#floor)"/>
+  <rect y="396" width="800" height="48" fill="url(#wall)" opacity="0.6" filter="url(#blur10)"/>
   
+  
+    <circle cx="400" cy="250" r="230" fill="#f2a65a" opacity="0.28" filter="url(#glow)"/>
+    <ellipse cx="400" cy="500" rx="240" ry="40" fill="#f2a65a" opacity="0.22" filter="url(#glow)"/>
+    <line x1="400" y1="0" x2="400" y2="118" stroke="#7a3a1d" stroke-width="2.5"/>
+    <circle cx="400" cy="100" r="5" fill="#e3b45a"/>
+    <defs><radialGradient id="lit" cx="50%" cy="58%" r="60%">
+      <stop offset="0" stop-color="#fff6dc"/><stop offset="0.4" stop-color="#ffc977"/><stop offset="0.8" stop-color="#e5782f"/><stop offset="1" stop-color="#a8401c"/>
+    </radialGradient></defs>
+    <g filter="url(#fiber)"><ellipse cx="400" cy="250" rx="120" ry="125" fill="url(#lit)"/></g>
+    <path d="M 400 130 Q 272.5 250 400 370" stroke="#8a3d1f" stroke-opacity="0.3" stroke-width="1.4" fill="none"/><path d="M 400 130 Q 325 250 400 370" stroke="#8a3d1f" stroke-opacity="0.3" stroke-width="1.4" fill="none"/><path d="M 400 130 Q 400 250 400 370" stroke="#8a3d1f" stroke-opacity="0.3" stroke-width="1.4" fill="none"/><path d="M 400 130 Q 475 250 400 370" stroke="#8a3d1f" stroke-opacity="0.3" stroke-width="1.4" fill="none"/><path d="M 400 130 Q 527.5 250 400 370" stroke="#8a3d1f" stroke-opacity="0.3" stroke-width="1.4" fill="none"/><path d="M 322 160 A 78 12.5 0 0 0 478 160" stroke="#8a3d1f" stroke-opacity="0.55" stroke-width="2" fill="none"/><path d="M 294.6 196 A 105.4 16.9 0 0 0 505.4 196" stroke="#8a3d1f" stroke-opacity="0.55" stroke-width="2" fill="none"/><path d="M 283.3 232 A 116.7 18.7 0 0 0 516.7 232" stroke="#8a3d1f" stroke-opacity="0.55" stroke-width="2" fill="none"/><path d="M 283.3 268 A 116.7 18.7 0 0 0 516.7 268" stroke="#8a3d1f" stroke-opacity="0.55" stroke-width="2" fill="none"/><path d="M 294.6 304 A 105.4 16.9 0 0 0 505.4 304" stroke="#8a3d1f" stroke-opacity="0.55" stroke-width="2" fill="none"/><path d="M 322 340 A 78 12.5 0 0 0 478 340" stroke="#8a3d1f" stroke-opacity="0.55" stroke-width="2" fill="none"/>
+    <ellipse cx="360" cy="200" rx="26" ry="50" fill="#fff" opacity="0.18" filter="url(#blur4)"/>
+    <rect x="352" y="116" width="96" height="18" rx="6" fill="#5a2a17"/>
+    <rect x="352" y="130" width="96" height="3" fill="#e3b45a"/>
+    <rect x="356" y="366" width="88" height="16" rx="6" fill="#5a2a17"/>
+    <rect x="356" y="366" width="88" height="3" fill="#e3b45a"/>
+    <circle cx="400" cy="392" r="6" fill="#e3b45a"/>
+    <path d="M 394 396 Q 392 420 388 446" stroke="#e3a24a" stroke-width="1.6" fill="none"/><path d="M 395.2 396 Q 393.6 420 390.4 446" stroke="#b8321f" stroke-width="1.6" fill="none"/><path d="M 396.4 396 Q 395.2 420 392.8 446" stroke="#b8321f" stroke-width="1.6" fill="none"/><path d="M 397.6 396 Q 396.8 420 395.2 446" stroke="#e3a24a" stroke-width="1.6" fill="none"/><path d="M 398.8 396 Q 398.4 420 397.6 446" stroke="#b8321f" stroke-width="1.6" fill="none"/><path d="M 400 396 Q 400 420 400 446" stroke="#b8321f" stroke-width="1.6" fill="none"/><path d="M 401.2 396 Q 401.6 420 402.4 446" stroke="#e3a24a" stroke-width="1.6" fill="none"/><path d="M 402.4 396 Q 403.2 420 404.8 446" stroke="#b8321f" stroke-width="1.6" fill="none"/><path d="M 403.6 396 Q 404.8 420 407.2 446" stroke="#b8321f" stroke-width="1.6" fill="none"/><path d="M 404.8 396 Q 406.4 420 409.6 446" stroke="#e3a24a" stroke-width="1.6" fill="none"/><path d="M 406 396 Q 408 420 412 446" stroke="#b8321f" stroke-width="1.6" fill="none"/>
+  <rect width="800" height="600" fill="url(#vignette)"/>
+  <rect width="800" height="600" filter="url(#grain)" opacity="0.35" style="mix-blend-mode:multiply"/>
   <g font-family="'DM Sans', system-ui, sans-serif">
     <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
     <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>

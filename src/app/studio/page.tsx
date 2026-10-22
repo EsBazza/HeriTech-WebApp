@@ -671,6 +671,7 @@ function ArtisanStudioPageContent() {
             maker={user?.workshopName || user?.fullName || translateSync("Your workshop")}
             material={selectedBatch?.materialType || form.materialTags || "—"}
             kgDiverted={parseFloat(form.kgDiverted) || 0}
+            image={form.imageUrl && !imagePreviewError ? form.imageUrl : null}
           />
           <p className="text-xs text-ink-3 max-w-sm">
             {translateSync("The pass is issued when the piece sells. Its QR code opens the public record of this batch.")}
