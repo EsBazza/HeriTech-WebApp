@@ -16,6 +16,8 @@ export function toFeedItem(p: ProductView): FeedMaterialBatch {
   const country = p.sourceBatch?.agreement?.country || p.artisan?.country || "";
   return {
     id: p.id,
+    artisanId: p.artisanId,
+    artisanName: p.artisan?.fullName ?? undefined,
     title: p.title,
     description: p.description ?? "",
     price: Number(p.price) || 0,
@@ -31,6 +33,8 @@ export function toFeedItem(p: ProductView): FeedMaterialBatch {
 
 export interface FeedMaterialBatch {
   id: string;
+  artisanId?: string;
+  artisanName?: string;
   title: string;
   description: string;
   price: number;
@@ -49,7 +53,7 @@ interface FeedCardProps {
   role?: UserRole;
 }
 
-export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
+export function FeedCard({ batch }: FeedCardProps) {
   const { addToCart, items } = useCart();
   const { formatCurrency, formatNumber, translateSync } = useTranslation();
   const [justAdded, setJustAdded] = useState(false);
@@ -63,7 +67,10 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
       price: batch.price,
       image: batch.image ?? "",
       cooperativeName: batch.cooperativeName,
-      artisanName: batch.cooperativeName,
+      artisanId: batch.artisanId,
+      artisanName: batch.artisanName ?? batch.cooperativeName,
+      artisanWorkshop: batch.cooperativeName,
+      artisanCountry: batch.country || undefined,
       region: batch.region,
       kgDiverted: batch.weightKg,
       festivalName: batch.festival,
@@ -132,21 +139,14 @@ export function FeedCard({ batch, role = "guest" }: FeedCardProps) {
         <div className="mt-auto pt-4 border-t border-line/70 flex items-center justify-between gap-3">
           <span className="tabular font-display text-2xl font-semibold text-ink">{formatCurrency(batch.price)}</span>
 
-          {role === "lgu" ? (
-            <Link href="/handover" className={buttonClass("secondary", "sm")}>
-              <QrCode className="w-4 h-4" />
-              {translateSync("Verify handover")}
-            </Link>
-          ) : (
-            <button
-              onClick={handleReserve}
-              className={cn(buttonClass(inCart || justAdded ? "secondary" : "primary", "sm"), (inCart || justAdded) && "text-pine-700 border-pine-300")}
-              aria-label={`${translateSync("Add to cart")}: ${batch.title}`}
-            >
-              {inCart || justAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              {justAdded ? translateSync("Added") : inCart ? translateSync("In cart") : translateSync("Add to cart")}
-            </button>
-          )}
+          <button
+            onClick={handleReserve}
+            className={cn(buttonClass(inCart || justAdded ? "secondary" : "primary", "sm"), (inCart || justAdded) && "text-pine-700 border-pine-300")}
+            aria-label={`${translateSync("Add to cart")}: ${batch.title}`}
+          >
+            {inCart || justAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {justAdded ? translateSync("Added") : inCart ? translateSync("In cart") : translateSync("Add to cart")}
+          </button>
         </div>
       </div>
     </article>

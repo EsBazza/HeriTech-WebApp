@@ -210,7 +210,8 @@ flowchart LR
 - **No direct database access from the browser.** `firestore.rules` denies all client reads and writes. Every request goes through an API route that checks the Firebase ID token and the caller's role.
 - **One source of truth for money.** The 70 / 25 / 5 split is defined once in `src/lib/escrow.ts` and reused by checkout, the pass, the verify page, the impact record and the admin view.
 - **Consistent under pressure.** Reservations, handovers, checkout and stock, and serial numbers all run inside Firestore transactions, so two artisans can't claim the same batch.
-- **Roles are earned, not chosen.** Everyone starts as a buyer and applies to become an artisan or local government officer. An admin approves them, and nobody can change their own role.
+- **Roles are earned, not chosen.** Everyone starts as a buyer and applies from their profile ("Become a partner") to become an artisan or local government officer. An admin approves them, and nobody can change their own role.
+- **Nothing gets stuck.** A reservation lasts 48 hours; the artisan can cancel it and an admin can release it. Every Impact Pass recomputes its batch's hash, so the public record shows whether the collection details were edited.
 - **Honest by design.** Payments are simulated and the UI says so. AI output is labelled, and the demo deployment carries a banner saying its data is fictional.
 - **Accessible and responsive.** Keyboard focus rings, reduced-motion support on every animation, 12px minimum text, and layouts tested from 390px phones to 1440px displays. Text can be shown in several Asian languages.
 
@@ -218,8 +219,8 @@ flowchart LR
 
 | Check | Result |
 | --- | --- |
-| Unit tests (`vitest`): split maths, handover tokens, HTTP helpers | ✅ 29 passing |
-| End-to-end API tests against the Firebase emulators | ✅ 43 passing |
+| Unit tests (`vitest`): split maths, loyalty, handover tokens, reservation expiry, record integrity, Wallet links, HTTP helpers | ✅ 60 passing |
+| End-to-end API tests against the Firebase emulators | ✅ 61 checks |
 | TypeScript (`tsc --noEmit`) and ESLint | ✅ 0 errors |
 | QR import robustness: tilted, dim, blurred and compressed phone photos, and a photo with no code | ✅ all decode or are correctly rejected |
 
@@ -314,7 +315,7 @@ The script refuses to run unless demo mode is on. The demo data is deliberately 
 ```bash
 npm run typecheck
 npm run lint
-npm test                      # unit tests (split maths, handover tokens, HTTP helpers)
+npm test                      # unit tests
 ```
 
 End-to-end API tests run against the Firebase emulators, never your real project:

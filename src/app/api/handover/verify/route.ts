@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
 import { verifyHandoverToken } from "@/lib/server/handoverToken";
 import { conflict, notFound, ok, parseBody, route } from "@/lib/server/http";
+import { isReservationExpired } from "@/lib/server/reservations";
 
 const schema = z.object({ token: z.string().trim().min(10).max(1000) });
 
@@ -26,6 +27,7 @@ export const POST = route(async (request: Request) => {
     if (!batch) throw notFound("Material batch not found.");
     if (batch.status !== "reserved") throw conflict(`Batch ${batchId} is ${batch.status}, not awaiting pickup.`);
     if (batch.reservedByArtisanId !== artisanId) throw conflict("This code belongs to an artisan who no longer holds the reservation.");
+    if (isReservationExpired(batch)) throw conflict("This reservation has expired. The artisan needs to reserve the batch again.");
     if (!artisan || artisan.role !== "artisan") throw conflict("The artisan's account is no longer verified.");
 
     tx.update(ref, {

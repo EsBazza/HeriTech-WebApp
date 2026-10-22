@@ -12,8 +12,8 @@ const SYSTEM_PROMPT =
 const text = (fallback: string, max = 200) =>
   z
     .union([z.string(), z.number()])
-    .optional()
-    .transform((v) => (v === undefined || v === "" ? fallback : String(v).slice(0, max)));
+    .nullish()
+    .transform((v) => (v == null || v === "" ? fallback : String(v).slice(0, max)));
 
 const schema = z.object({
   title: text("Handcrafted Heritage Piece"),

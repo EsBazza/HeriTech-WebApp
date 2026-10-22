@@ -37,32 +37,42 @@ Features and Google technology:
 - Impact Pass (Google Wallet): personalised with the owner's name and a banner from the product photo. Each batch record has a tamper check code that changes if where, when or how much was collected is edited.
 - HeriTech Circle loyalty card (Google Wallet): 5 Impact Passes or $100 spent, whichever comes first, unlocks 5% off the next order. The discount comes from HeriTech's share, so artisans and local governments are always paid in full.
 - Story writer (Gemini): drafts a product story for the artisan to edit.
-- Languages (Google Cloud Translation): English, Filipino, Thai, Hindi, Indonesian and Japanese.
+- Languages (Google Cloud Translation): English, Chinese (Simplified and Traditional), Japanese, Thai, Indonesian, Filipino and Hindi.
 - Sign-in and data (Firebase Authentication and Cloud Firestore).
 - Public impact record: totals of kilograms collected, passes issued and money paid out.
 
 Money:
 Every sale is split automatically: ${SPLIT.artisan} percent to the artisan, ${SPLIT.lgu} percent to the local government for collection and transport, and ${SPLIT.charityMaintenance} percent to charity and the upkeep of the HeriTech app. Checkout uses demo payments for now, so no real money is charged.`;
 
+/** Only the most recent turns are sent, which bounds cost per request. */
+const MAX_HISTORY = 12;
+const MAX_TURN_CHARS = 2000;
+
+// Long conversations are trimmed rather than rejected, so the assistant keeps working.
 const turn = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string().trim().min(1).max(2000),
+  content: z
+    .string()
+    .trim()
+    .min(1)
+    .transform((c) => c.slice(0, MAX_TURN_CHARS)),
 });
 
 const schema = z.object({
-  message: z.string().trim().min(1, "Type a message first.").max(2000),
-  history: z.array(turn).max(100).default([]),
+  message: z.string().trim().min(1, "Type a message first.").max(MAX_TURN_CHARS),
+  history: z
+    .array(turn)
+    .max(500)
+    .default([])
+    .transform((h) => h.slice(-MAX_HISTORY)),
 });
-
-/** Only the most recent turns are sent, which bounds cost per request. */
-const MAX_HISTORY = 12;
 
 /** POST /api/chat — the HeriTech assistant. Open to guests, rate limited per client. */
 export const POST = route(async (request: Request) => {
   rateLimit(request, "chat", 15, 60_000);
   const { message, history } = await parseBody(request, schema);
 
-  const contents = [...history.slice(-MAX_HISTORY), { role: "user" as const, content: message }].map((m) => ({
+  const contents = [...history, { role: "user" as const, content: message }].map((m) => ({
     role: m.role === "assistant" ? ("model" as const) : ("user" as const),
     parts: [{ text: m.content }],
   }));

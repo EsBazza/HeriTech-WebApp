@@ -14,7 +14,8 @@ export const productCreateSchema = z.object({
   materialTags: tagList.default([]),
   stock: z.coerce.number().int().min(0).max(10_000).default(1),
   kgDiverted: fields.kg,
-  ngoFundName: fields.text(160),
+  // Optional: an empty name means the share goes to HeriTech's general charity & upkeep fund.
+  ngoFundName: z.string().trim().max(160).default(""),
 });
 
 export const productUpdateSchema = productCreateSchema.omit({ sourceBatchId: true }).partial();

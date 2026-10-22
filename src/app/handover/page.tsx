@@ -87,6 +87,11 @@ function ArtisanHandover() {
         </div>
       )}
 
+      {selectedBatch && batches.length === 1 && (
+        <p className="w-full rounded-md border border-line bg-paper px-4 py-3 text-sm text-ink-2">
+          <span className="font-mono-data text-ink">{selectedBatch.id}</span> · {selectedBatch.weightKg} kg {translateSync(selectedBatch.materialType)}
+        </p>
+      )}
       {selectedBatch && <HandoverCode key={selectedBatch.id} batch={selectedBatch} />}
     </div>
   );

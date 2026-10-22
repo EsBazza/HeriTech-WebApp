@@ -31,6 +31,9 @@ interface DialogProps {
 
 const widths = { sm: "sm:max-w-md", md: "sm:max-w-lg", lg: "sm:max-w-2xl" };
 
+/** Open dialogs, oldest first; only the last one handles the keyboard. */
+const openStack: symbol[] = [];
+
 /**
  * The one modal for the app: traps focus, closes on Escape or backdrop click,
  * locks page scroll, returns focus on close and keeps its header and footer
@@ -61,6 +64,9 @@ export function Dialog({
 
   useEffect(() => {
     if (!open) return;
+    const id = Symbol("dialog");
+    openStack.push(id);
+    const isTop = () => openStack[openStack.length - 1] === id;
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const { overflow } = document.body.style;
     document.body.style.overflow = "hidden";
@@ -70,6 +76,7 @@ export function Dialog({
     (first ?? panel)?.focus();
 
     const onKey = (e: KeyboardEvent) => {
+      if (!isTop()) return;
       if (e.key === "Escape" && dismissibleRef.current) {
         e.stopPropagation();
         onCloseRef.current();
@@ -91,6 +98,7 @@ export function Dialog({
     document.addEventListener("keydown", onKey);
 
     return () => {
+      openStack.splice(openStack.indexOf(id), 1);
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = overflow;
       previouslyFocused?.focus?.();

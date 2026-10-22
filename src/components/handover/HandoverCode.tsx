@@ -123,7 +123,9 @@ export function HandoverCode({ batch }: { batch: HandoverBatch }) {
     }
   }, []);
 
-  const msLeft = useCountdown(token?.expiresAt ?? null);
+  useCountdown(token?.expiresAt ?? null); // re-renders every second
+  // Worked out from the token itself, so a fresh code never flashes as expired before the timer catches up.
+  const msLeft = token ? new Date(token.expiresAt).getTime() - Date.now() : 0;
   const expired = Boolean(token) && msLeft <= 0;
 
   const makeFile = async (): Promise<File | null> => {

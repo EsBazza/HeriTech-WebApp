@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { after } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import type { OrderDoc, WalletPassDoc } from "@/lib/firebase/types";
@@ -142,7 +143,8 @@ export const POST = route(async (request: Request) => {
     return { orders, passes, loyalty, rewardUnlocked: loyalty.rewardsEarned > loyaltyBefore.rewardsEarned };
   });
 
-  await refreshLoyaltyCard({ userId: buyer.id, name: buyer.fullName, state: result.loyalty });
+  // Updating a saved Wallet card can take seconds; it runs after the response is sent.
+  after(() => refreshLoyaltyCard({ userId: buyer.id, name: buyer.fullName, state: result.loyalty }));
   const discount = Math.round(result.orders.reduce((sum, o) => sum + (o.discount ?? 0), 0) * 100) / 100;
   const notes = [
     "Order placed. This was a demo payment, so no money was charged.",

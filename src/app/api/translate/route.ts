@@ -7,16 +7,20 @@ import { rateLimit } from "@/lib/server/rateLimit";
 const LANGUAGE_CODES = new Set(SUPPORTED_LANGUAGES.map((l) => l.code));
 const languageCode = z.string().refine((code) => LANGUAGE_CODES.has(code), "Unsupported language.");
 const snippet = z.string().max(5000);
+/** Translation is billed per character, so one guest request may not ask for much. */
+const MAX_TOTAL_CHARS = 20_000;
 
 const schema = z.object({
-  text: z.union([snippet, z.array(snippet).min(1).max(500)]),
+  text: z
+    .union([snippet, z.array(snippet).min(1).max(100)])
+    .refine((t) => (Array.isArray(t) ? t.join("") : t).length <= MAX_TOTAL_CHARS, `Send at most ${MAX_TOTAL_CHARS} characters per request.`),
   targetLanguage: languageCode,
   sourceLanguage: z.union([languageCode, z.literal("auto")]).default("en"),
 });
 
 /**
  * POST /api/translate — translates UI text for the language picker.
- * Open to guests, so it is rate limited and capped at 500 strings per call.
+ * Open to guests, so it is rate limited and capped at 100 strings and 20,000 characters per call.
  */
 export const POST = route(async (request: Request) => {
   rateLimit(request, "translate", 60, 60_000);

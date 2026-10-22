@@ -33,7 +33,9 @@ interface CheckoutModalProps {
 export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalProps) {
   const { user, signInWithGoogle } = useAuth();
   const { items, clearCart } = useCart();
-  const { formatCurrency, formatNumber, translateSync } = useTranslation();
+  const { formatCurrency, formatNumber, translateSync, currentCurrency } = useTranslation();
+  // Prices are shown in the buyer's currency, but orders are always charged in US dollars.
+  const usd = (n: number) => formatCurrency(n, "USD");
 
   const liveItems = directProduct ? [directProduct] : items;
   // Snapshot of what was bought, so the confirmation survives clearCart().
@@ -219,6 +221,13 @@ export function CheckoutModal({ isOpen, onClose, directProduct }: CheckoutModalP
             </div>
             <Input label={translateSync("Country")} required value={country} onChange={(e) => setCountry(e.target.value)} autoComplete="country-name" />
           </fieldset>
+
+          {currentCurrency !== "USD" && (
+            <p className="text-sm text-ink-3">
+              {translateSync("Prices are shown in your currency as an estimate. The order is charged in US dollars:")}{" "}
+              <strong className="tabular text-ink">{usd(amountDue)}</strong>.
+            </p>
+          )}
 
           <section className="rounded-md border border-line p-4 space-y-4">
             <div className="flex items-baseline justify-between gap-3">

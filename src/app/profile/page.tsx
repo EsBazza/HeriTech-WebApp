@@ -9,6 +9,7 @@ import { apiJson } from "@/lib/api";
 import { ImpactPassCard } from "@/components/wallet/ImpactPassCard";
 import { LoyaltyCard } from "@/components/wallet/LoyaltyCard";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
+import { ApplyRoleCard } from "@/components/profile/ApplyRoleCard";
 import { Badge, Button, Card, EmptyState, LinkButton, Skeleton, Spinner, Stat, cn } from "@/components/ui";
 import type { BatchView, ProductView } from "@/lib/server/views";
 import type { BuyerOrder } from "@/app/api/orders/route";
@@ -22,6 +23,7 @@ import {
   FileText,
   Sliders,
   ChevronRight,
+  Handshake,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -41,10 +43,12 @@ export default function ProfilePage() {
     return () => window.removeEventListener("hashchange", openFromHash);
   }, []);
 
-  // A buyer's passes are what they come here for, so open on them.
+  // Open on what each role comes here for: a buyer's passes, a partner's activity.
   const userRole = user?.role;
   useEffect(() => {
-    if (userRole === "buyer") setActiveTab((tab) => (tab === "personal" ? "impact" : tab));
+    if (!userRole) return;
+    const first = userRole === "buyer" ? "impact" : userRole === "artisan" || userRole === "lgu" ? "activity" : "personal";
+    setActiveTab((tab) => (tab === "personal" ? first : tab));
   }, [userRole]);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -148,6 +152,7 @@ export default function ProfilePage() {
   const navigationItems = [
     { id: "impact", label: translateSync("Impact Passes"), icon: FileText },
     { id: "personal", label: translateSync("Personal info"), icon: User },
+    ...(role === "buyer" ? [{ id: "partner", label: translateSync("Become a partner"), icon: Handshake }] : []),
     ...(role === "artisan" || role === "lgu" || role === "admin" ? [{ id: "cooperative", label: translateSync("Workshop or station"), icon: Layers }] : []),
     { id: "activity", label: translateSync("Activity"), icon: Sliders },
     { id: "settings", label: translateSync("Settings"), icon: Globe },
@@ -264,6 +269,8 @@ export default function ProfilePage() {
               </Card>
             )}
 
+            {activeTab === "partner" && role === "buyer" && <ApplyRoleCard />}
+
             {activeTab === "cooperative" && (role === "artisan" || role === "lgu" || role === "admin") && (
               <Card className="p-5 sm:p-8 space-y-6">
                 {sectionTitle(translateSync("Workshop or station"))}
@@ -274,9 +281,13 @@ export default function ProfilePage() {
                   )}
                   {field(
                     translateSync("Verification"),
-                    <Badge tone="success">
-                      {translateSync(role === "artisan" ? (user.artisanVerified ? "Verified artisan" : "Artisan") : role === "lgu" ? "Verified local government officer" : "Administrator")}
-                    </Badge>
+                    role === "admin" ? (
+                      <Badge tone="pine">{translateSync("Administrator")}</Badge>
+                    ) : user.verificationStatus === "approved" || (role === "artisan" && user.artisanVerified) ? (
+                      <Badge tone="success">{translateSync(role === "artisan" ? "Verified artisan" : "Verified local government officer")}</Badge>
+                    ) : (
+                      <Badge tone="warn">{translateSync("Not verified yet")}</Badge>
+                    )
                   )}
                   {field(
                     translateSync("Materials handled"),

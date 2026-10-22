@@ -29,7 +29,7 @@ Browser ──(Firebase Auth: Google sign-in, ID token)──▶ Next.js API rou
 
 - The browser never reads or writes Firestore directly; `firestore.rules` denies all client access.
 - Every API route verifies the caller's Firebase ID token and role (`src/lib/server/auth.ts`).
-- Consistency-sensitive operations run in Firestore transactions: batch logging (id sequence + agreement quota), reservations, QR handovers, and checkout (stock check, orders, passes, notifications).
+- Consistency-sensitive operations run in Firestore transactions: batch logging (id sequence + agreement quota: a batch may not take an agreement past its allocated kg), reservations and releases, QR handovers, and checkout (stock check, orders, passes, notifications).
 
 ---
 
@@ -53,12 +53,12 @@ New accounts are buyers. Users apply to become artisans or LGU officers from the
 ## 4. Workflow
 
 1. **Agreement:** an LGU officer records a release agreement (festival, organiser, allocated kg). Ids look like `RA-2026-006`.
-2. **Scan and log:** the officer photographs material; Gemini suggests material type, condition, contamination and an estimated weight. The officer enters the **scale weight** and logs the batch against an active agreement. A SHA-256 hash over batch id, GPS, weight, officer and timestamp is stored with it. Ids look like `HT-2026-1001`.
-3. **Reserve:** an artisan reserves an available batch; the logging officer receives a system message.
+2. **Scan and log:** the officer photographs material; Gemini suggests material type, condition, contamination and an estimated weight. The officer confirms or corrects the material and condition, enters the **scale weight** and logs the batch against an active agreement with enough allocation left. A SHA-256 hash over batch id, GPS, weight, officer and timestamp is stored with it. Ids look like `HT-2026-1001`.
+3. **Reserve:** an artisan (only artisans) reserves an available batch for 48 hours; the logging officer receives a system message. An expired reservation is treated as available again. The holder can cancel it and an admin can release it (`POST /api/materials/:id/release`).
 4. **Pickup:** the artisan shows a QR code holding an HMAC-signed token (batch, artisan, 30-minute expiry). The officer scans it and pastes the code; the server checks signature, expiry and that the artisan still holds the reservation, then marks the batch claimed.
 5. **List:** the artisan lists a piece made from a batch they claimed.
 6. **Buy:** checkout creates one order and one impact pass per cart line, decrements stock and notifies each artisan. Payment is **simulated** for now.
-7. **Verify:** anyone can open `/verify/<serial>` to see the origin, maker and split. The buyer stays anonymous.
+7. **Verify:** anyone can open `/verify/<serial>` to see the origin, maker and split. The buyer stays anonymous. The server recomputes the batch hash and compares it with the stored hash and the pass's copy, and the page shows whether the record is unchanged.
 
 ---
 
@@ -113,7 +113,6 @@ Types live in `src/lib/firebase/types.ts`. Dates are stored as Firestore Timesta
 ## 9. Planned
 
 - Real payments and payouts
-- Google Wallet passes (today the pass is a public web page with a QR code)
+- Google Wallet publishing access (passes work for test users while the issuer is in demo mode)
 - Offline batch queue for field officers
-- In-app camera QR scanning
 - Shared rate-limit store (the current limiter is per serverless instance)

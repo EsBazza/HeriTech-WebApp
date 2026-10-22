@@ -12,10 +12,24 @@ import { compressImage } from "@/lib/image";
 import { classifyOffline } from "@/lib/offlineClassifier";
 import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { reverseGeocode } from "@/lib/googleMaps";
+import { MATERIAL_CATEGORIES, MATERIAL_CONDITIONS } from "@/lib/materials";
 import type { ScanAnalysis } from "@/lib/server/aiSamples";
 import type { BatchView } from "@/lib/server/views";
 
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker").then((m) => m.LocationPicker), { ssr: false });
+
+/** The list entry matching the AI's answer (case-insensitive), or "" so the officer chooses. */
+function pick(list: readonly string[], value: string | undefined): string {
+  return list.find((c) => c.toLowerCase() === (value ?? "").trim().toLowerCase()) ?? "";
+}
+
+/** A typed coordinate, or null while the field is empty, half-typed or out of range. */
+function toCoordinate(raw: string, limit: number): number | null {
+  const n = parseFloat(raw);
+  return Number.isFinite(n) && Math.abs(n) <= limit ? n : null;
+}
+
+const formatKg = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 /** A scan as the screen shows it: Gemini's answer, a labelled sample, or an on-device estimate. */
 type ScanResult = ScanAnalysis & { isSample?: boolean; isOffline?: boolean; model?: string };
@@ -45,7 +59,12 @@ function WasteScannerPageContent() {
   const [locationSuccess, setLocationSuccess] = useState<string | null>(null);
 
   // Active release agreements the batch can be logged against.
-  const [agreements, setAgreements] = useState<Array<{ id: string; title: string; festival: string; status: string }>>([]);
+  const [agreements, setAgreements] = useState<
+    Array<{ id: string; title: string; festival: string; status: string; allocatedKg: number; collectedKg: number }>
+  >([]);
+  // What gets logged: the AI's answer, corrected by the officer where needed.
+  const [material, setMaterial] = useState("");
+  const [condition, setCondition] = useState("");
   const [agreementId, setAgreementId] = useState("");
   // Each error shows next to the control that caused it, so it isn't off-screen on a phone.
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +108,10 @@ function WasteScannerPageContent() {
     };
   }, [pickupLat, pickupLng, collectionPointEdited]);
 
-  const festivalHint = agreements.find((a) => a.id === agreementId)?.festival ?? "";
+  const selectedAgreement = agreements.find((a) => a.id === agreementId);
+  const festivalHint = selectedAgreement?.festival ?? "";
+  const remainingKg = selectedAgreement ? Math.max(0, Math.round((selectedAgreement.allocatedKg - selectedAgreement.collectedKg) * 10) / 10) : null;
+  const overQuota = remainingKg !== null && parseFloat(weightKg) > remainingKg;
 
   // Pins the batch to the device's GPS position. `silent` skips the error message on failure.
   const handleUseRealtimeLocation = (silent = false) => {
@@ -135,6 +157,9 @@ function WasteScannerPageContent() {
     // The weight field is left for the physical scale reading; the AI estimate is one click away.
     if (result.success && result.data) {
       setAnalysisResult(result.data);
+      // A sample was not analysed, so the officer must choose; otherwise start from the AI's answer.
+      setMaterial(result.data.isSample ? "" : pick(MATERIAL_CATEGORIES, result.data.materialType));
+      setCondition(result.data.isSample ? "" : pick(MATERIAL_CONDITIONS, result.data.condition));
       setAnalyzing(false);
       showResult();
       return;
@@ -150,6 +175,8 @@ function WasteScannerPageContent() {
         inferredMaterialDetails: "",
         isOffline: true,
       });
+      setMaterial(pick(MATERIAL_CATEGORIES, offline.label));
+      setCondition("");
       showResult();
     } else {
       setError(result.error ?? "The AI scan failed.");
@@ -183,18 +210,18 @@ function WasteScannerPageContent() {
   const handleAnalyzeAI = () => previewUrl && analyze(previewUrl);
 
   const handleLogBatch = async () => {
-    if (!analysisResult || !weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible) return;
+    if (!analysisResult || !material || !condition || !weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible) return;
     setSaving(true);
     setLogError(null);
     const result = await apiJson<BatchView>("/api/materials", {
       method: "POST",
       body: JSON.stringify({
-        title: analysisResult.materialType,
-        materialType: analysisResult.materialType,
+        title: material,
+        materialType: material,
         weightKg: parseFloat(weightKg),
         weightSource,
         pickupAddress: collectionPoint.trim() || undefined,
-        condition: analysisResult.condition,
+        condition,
         gpsLat: pickupLat,
         gpsLng: pickupLng,
         imageUrl: previewUrl,
@@ -206,8 +233,11 @@ function WasteScannerPageContent() {
         alsoContains: analysisResult.alsoContains ?? [],
       }),
     });
-    if (result.success && result.data) setSavedBatch(result.data);
-    else setLogError(result.error ?? "Couldn't log the batch.");
+    if (result.success && result.data) {
+      setSavedBatch(result.data);
+      // Keep the agreement's remaining amount current for the next batch.
+      setAgreements((prev) => prev.map((a) => (a.id === agreementId ? { ...a, collectedKg: a.collectedKg + parseFloat(weightKg) } : a)));
+    } else setLogError(result.error ?? "Couldn't log the batch.");
     setSaving(false);
   };
 
@@ -215,6 +245,8 @@ function WasteScannerPageContent() {
     setPreviewUrl(null);
     setAnalysisResult(null);
     setSavedBatch(null);
+    setMaterial("");
+    setCondition("");
     setWeightKg("");
     setWeightSource("scale");
     setError(null);
@@ -290,6 +322,11 @@ function WasteScannerPageContent() {
                 </option>
               ))}
             </Select>
+            {remainingKg !== null && (
+              <p className="-mt-3 text-sm text-ink-3 tabular">
+                {formatKg(remainingKg)} kg {translateSync("still allowed under this agreement")}
+              </p>
+            )}
             {agreements.length === 0 && (
               <p className="-mt-3 text-sm text-ink-3">
                 {translateSync("A batch must be logged against a release agreement.")}{" "}
@@ -391,7 +428,36 @@ function WasteScannerPageContent() {
               </Card>
 
               <Card className="p-5 sm:p-6 space-y-5">
-                <h3 className="text-base font-semibold text-ink font-sans">{translateSync("Weigh and locate")}</h3>
+                <h3 className="text-base font-semibold text-ink font-sans">{translateSync("Check, weigh and locate")}</h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Select
+                    label={translateSync("Material")}
+                    required
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    hint={analysisResult.isSample ? translateSync("Gemini didn't analyse this photo. Choose by eye.") : translateSync("Change it if the AI got it wrong.")}
+                  >
+                    <option value="" disabled>
+                      {translateSync("Choose a material")}
+                    </option>
+                    {MATERIAL_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {translateSync(c)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select label={translateSync("Condition")} required value={condition} onChange={(e) => setCondition(e.target.value)}>
+                    <option value="" disabled>
+                      {translateSync("Choose a condition")}
+                    </option>
+                    {MATERIAL_CONDITIONS.map((c) => (
+                      <option key={c} value={c}>
+                        {translateSync(c)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
 
                 <div className="space-y-2">
                   <label htmlFor="scale-weight" className="text-sm font-medium text-ink">
@@ -452,6 +518,11 @@ function WasteScannerPageContent() {
                         </span>
                       </span>
                     </button>
+                  )}
+                  {overQuota && (
+                    <p role="alert" className="text-sm text-warn">
+                      {translateSync("This is more than the agreement still allows. Log it against another agreement or create a new one.")}
+                    </p>
                   )}
                   <p className="text-xs text-ink-3">
                     {weightSource === "ai_estimate"
@@ -531,8 +602,8 @@ function WasteScannerPageContent() {
 
                   {showCoordinates && (
                     <div className="grid grid-cols-2 gap-3">
-                      <Input label={translateSync("Latitude")} type="number" step="0.0001" min={-90} max={90} value={pickupLat ?? ""} onChange={(e) => setPickupLat(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
-                      <Input label={translateSync("Longitude")} type="number" step="0.0001" min={-180} max={180} value={pickupLng ?? ""} onChange={(e) => setPickupLng(e.target.value === "" ? null : parseFloat(e.target.value))} className="tabular" />
+                      <Input label={translateSync("Latitude")} type="number" step="0.0001" min={-90} max={90} value={pickupLat ?? ""} onChange={(e) => setPickupLat(toCoordinate(e.target.value, 90))} className="tabular" />
+                      <Input label={translateSync("Longitude")} type="number" step="0.0001" min={-180} max={180} value={pickupLng ?? ""} onChange={(e) => setPickupLng(toCoordinate(e.target.value, 180))} className="tabular" />
                     </div>
                   )}
                 </div>
@@ -577,7 +648,7 @@ function WasteScannerPageContent() {
                         {translateSync(logError)}
                       </p>
                     )}
-                    <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!weightKg || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible} loading={saving}>
+                    <Button size="lg" className="w-full" onClick={handleLogBatch} disabled={!material || !condition || !weightKg || overQuota || !agreementId || pickupLat === null || pickupLng === null || analysisResult.peopleVisible} loading={saving}>
                       {!saving && <FileCheck2 className="w-4 h-4" />}
                       {saving ? translateSync("Logging batch…") : `${translateSync("Log batch")} · ${weightKg || 0} kg`}
                     </Button>

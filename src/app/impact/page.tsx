@@ -66,7 +66,7 @@ export default function ImpactLeaderboardPage() {
 
       {/* KPIs */}
       <Card className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-line">
-        <Stat className="p-5 sm:p-6" label={translateSync("Material diverted")} value={v(formatNumber(stats?.totalKgCollected ?? 0))} unit="kg" hint={translateSync("Kept out of landfill and rivers")} />
+        <Stat className="p-5 sm:p-6" label={translateSync("Material collected")} value={v(formatNumber(stats?.totalKgCollected ?? 0))} unit="kg" hint={translateSync("Logged at collection points after festivals")} />
         <Stat className="p-5 sm:p-6" label={translateSync("Paid to artisans")} value={v(formatCurrency(split?.artisanPayout ?? 0))} hint={`${SPLIT.artisan}% ${translateSync("of every sale")}`} />
         <Stat className="p-5 sm:p-6" label={translateSync("Paid to local governments")} value={v(formatCurrency(split?.lguShare ?? 0))} hint={`${SPLIT.lgu}% ${translateSync("of every sale")}`} />
         <Stat className="p-5 sm:p-6" label={translateSync("Impact passes issued")} value={v(formatNumber(stats?.totalPassesIssued ?? 0))} hint={translateSync("Each one publicly verifiable")} />
@@ -89,6 +89,7 @@ export default function ImpactLeaderboardPage() {
             <ul className="mt-6 space-y-5">
               {festivals.map((f) => {
                 const pct = Math.min(100, Math.max(0, f.quotaProgress ?? 0));
+                const over = f.collectedKg > f.allocatedKg;
                 return (
                   <li key={`${f.festival}-${f.country}`}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
@@ -97,6 +98,7 @@ export default function ImpactLeaderboardPage() {
                       </span>
                       <span className="tabular text-ink-2 shrink-0">
                         {formatNumber(f.collectedKg)} / {formatNumber(f.allocatedKg)} kg
+                        {over && <span className="ml-1.5 text-warn font-medium">{translateSync("over agreed")}</span>}
                       </span>
                     </div>
                     <div className="mt-2 h-2 rounded-full bg-paper-2 overflow-hidden" role="img" aria-label={`${pct}%`}>
@@ -124,7 +126,7 @@ export default function ImpactLeaderboardPage() {
       <section className="space-y-5">
         <SectionHeader
           title={translateSync("Leaderboard")}
-          description={translateSync("Ranked by verified material diverted")}
+          description={translateSync("Officers are ranked by the kilograms they logged, artisans by the kilograms they picked up.")}
           actions={
             <div className="flex w-full sm:w-auto items-center gap-1 p-1 rounded-md bg-paper-2 border border-line" role="group" aria-label={translateSync("Show")}>
               {[

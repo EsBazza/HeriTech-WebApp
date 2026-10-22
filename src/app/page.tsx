@@ -90,7 +90,8 @@ export default function FeedHomePage() {
 
     if (selectedTag === "All") return true;
     if (countryTags.includes(selectedTag)) return b.country === selectedTag;
-    return b.materialType.toLowerCase().includes(selectedTag.toLowerCase()) || b.title.toLowerCase().includes(selectedTag.toLowerCase());
+    // Material chips match the piece's material tags only, not words in its title.
+    return b.materialType.split(", ").some((m) => m.toLowerCase() === selectedTag.toLowerCase());
   });
 
   const hasFilters = selectedTag !== "All" || searchQuery.trim().length > 0;
@@ -107,7 +108,7 @@ export default function FeedHomePage() {
 
   const submitSerial = (e: React.FormEvent) => {
     e.preventDefault();
-    const s = serial.trim();
+    const s = serial.trim().toUpperCase();
     if (s) router.push(`/verify/${encodeURIComponent(s)}`);
   };
 
@@ -288,7 +289,9 @@ export default function FeedHomePage() {
                 <input
                   id="hero-serial"
                   value={serial}
-                  onChange={(e) => setSerial(e.target.value)}
+                  onChange={(e) => setSerial(e.target.value.toUpperCase())}
+                  autoCapitalize="characters"
+                  spellCheck={false}
                   placeholder={translateSync("Pass serial (HT-XXXX-XXXX)")}
                   className={cn(
                     controlClass,
@@ -340,7 +343,7 @@ export default function FeedHomePage() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { icon: Leaf, label: translateSync("Material diverted"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
+              { icon: Leaf, label: translateSync("Material collected"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
               { icon: BadgeCheck, label: translateSync("Verified artisans"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
               { icon: QrCode, label: translateSync("Impact passes issued"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
               { icon: HandHeart, label: translateSync("Charity & app upkeep"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },

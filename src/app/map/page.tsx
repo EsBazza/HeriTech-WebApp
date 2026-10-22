@@ -67,6 +67,9 @@ function MaterialsMapPageContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedBatch, setSelectedBatch] = useState<BatchItem | null>(null);
   const [reserving, setReserving] = useState(false);
+  const [releasing, setReleasing] = useState(false);
+  // Status chips above the list; the map always shows every batch.
+  const [statusFilter, setStatusFilter] = useState<"all" | BatchItem["status"]>("all");
   // The batch whose Reserve button is showing its "Reserved" confirmation before the pickup code opens.
   const [justReserved, setJustReserved] = useState<string | null>(null);
   const [reserveSuccess, setReserveSuccess] = useState<string | null>(null);
@@ -151,6 +154,21 @@ function MaterialsMapPageContent() {
     }
   };
 
+  // The holder cancels their own reservation; an admin can release anyone's.
+  const handleRelease = async (batchId: string) => {
+    setReleasing(true);
+    setReserveSuccess(null);
+    setActionError(null);
+    const result = await apiJson<BatchItem>(`/api/materials/${batchId}/release`, { method: "POST" });
+    setReleasing(false);
+    if (result.success && result.data) {
+      replaceBatch(result.data);
+      setReserveSuccess(result.message ?? `Batch ${batchId} is available again.`);
+    } else {
+      setActionError(result.error ?? "Couldn't release the reservation.");
+    }
+  };
+
   const openHandover = () => {
     setSheetOpen(false);
     setHandoverTab(canShowCode ? "artisan" : "lgu");
@@ -175,6 +193,8 @@ function MaterialsMapPageContent() {
         return { label: translateSync(status), tone: "neutral" };
     }
   };
+
+  const visibleBatches = statusFilter === "all" ? batches : batches.filter((b) => b.status === statusFilter);
 
   /** Photo, pickup point, facts and tamper check: shared by the desktop card and the phone sheet. */
   const journeySteps = [translateSync("Logged"), translateSync("Reserved"), translateSync("Picked up"), translateSync("In the shop")];
@@ -238,7 +258,9 @@ function MaterialsMapPageContent() {
       <details className="rounded-md border border-line bg-paper text-sm">
         <summary className="cursor-pointer text-ink-2 font-medium px-3.5 min-h-11 flex items-center">{translateSync("Tamper check")}</summary>
         <div className="px-3.5 pb-3">
-          <p className="text-ink-3">{translateSync("This code changes if anyone edits where, when or how much was collected.")}</p>
+          <p className="text-ink-3">
+            {translateSync("A fingerprint of where, when and how much was collected. Each Impact Pass from this batch recomputes it to show the record wasn't edited.")}
+          </p>
           <p className="mt-1 font-mono-data text-xs text-ink-2 break-all" title="SHA-256">
             {batch.txHash}
           </p>
@@ -268,13 +290,17 @@ function MaterialsMapPageContent() {
           {translateSync("Reserved")}
         </div>
       ) : batch.status === "available" ? (
-        user?.role === "artisan" || user?.role === "admin" ? (
+        user?.role === "artisan" ? (
           <Button variant="accent" size="lg" className="w-full" onClick={() => handleReserve(batch.id)} loading={reserving}>
             {reserving ? translateSync("Reserving…") : translateSync("Reserve this batch")}
           </Button>
         ) : (
           <p className="rounded-md border border-line bg-paper p-3 text-sm text-ink-2">
-            {translateSync("Artisans reserve batches. Once one is reserved, you can verify its pickup here.")}
+            {translateSync(
+              isAdmin
+                ? "Artisans reserve batches. As an admin you can release a reservation that is stuck."
+                : "Artisans reserve batches. Once one is reserved, you can verify its pickup here."
+            )}
           </p>
         )
       ) : batch.status === "reserved" ? (
@@ -289,12 +315,20 @@ function MaterialsMapPageContent() {
               )}
             </p>
           </div>
-          {(canShowCode || canVerify) && (
-            <Button size="sm" variant="secondary" className="shrink-0 grow sm:grow-0" onClick={openHandover}>
-              <QrCode className="w-4 h-4" />
-              {translateSync("Open pickup")}
-            </Button>
-          )}
+          <div className="flex flex-wrap gap-2 shrink-0 grow sm:grow-0">
+            {(canShowCode || canVerify) && (
+              <Button size="sm" variant="secondary" className="grow sm:grow-0" onClick={openHandover}>
+                <QrCode className="w-4 h-4" />
+                {translateSync("Open pickup")}
+              </Button>
+            )}
+            {(holdsReservation || isAdmin) && (
+              <Button size="sm" variant="ghost" className="grow sm:grow-0" onClick={() => handleRelease(batch.id)} loading={releasing}>
+                <X className="w-4 h-4" />
+                {translateSync(holdsReservation ? "Cancel reservation" : "Release reservation")}
+              </Button>
+            )}
+          </div>
         </div>
       ) : (
         <p className="flex items-center gap-2 rounded-md border border-line bg-paper p-3 text-sm text-ink-2">
@@ -411,8 +445,30 @@ function MaterialsMapPageContent() {
         <div className="lg:col-span-5 space-y-3 lg:overflow-y-auto lg:max-h-[750px] lg:pr-2">
           <h2 className="lg:hidden text-base font-semibold text-ink font-sans">
             {translateSync("Batches")}
-            {!loading && <span className="text-ink-3 font-normal"> · {batches.length}</span>}
+            {!loading && <span className="text-ink-3 font-normal"> · {visibleBatches.length}</span>}
           </h2>
+          {!loading && batches.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0" role="group" aria-label={translateSync("Filter batches")}>
+              {(["all", "available", "reserved", "claimed"] as const).map((s) => {
+                const count = s === "all" ? batches.length : batches.filter((b) => b.status === s).length;
+                const active = statusFilter === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setStatusFilter(s)}
+                    aria-pressed={active}
+                    className={cn(
+                      "shrink-0 min-h-10 px-3.5 rounded-full text-sm border transition-colors cursor-pointer",
+                      active ? "bg-pine-700 border-pine-700 text-white" : "bg-surface border-line text-ink-2 hover:border-pine-300"
+                    )}
+                  >
+                    {s === "all" ? translateSync("All") : statusBadge(s).label} · {count}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {loading ? (
             <div className="space-y-3" role="status" aria-label={translateSync("Loading batches")}>
               {[1, 2, 3].map((i) => (
@@ -425,8 +481,12 @@ function MaterialsMapPageContent() {
               title={translateSync("No batches yet")}
               description={translateSync("Batches appear here once a local government officer scans and logs leftover festival material.")}
             />
+          ) : visibleBatches.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-line-strong p-6 text-center text-sm text-ink-3">
+              {translateSync("No batches with this status.")}
+            </p>
           ) : (
-            batches.map((batch) => {
+            visibleBatches.map((batch) => {
               const isSelected = isDesktop && selectedBatch?.id === batch.id;
               return (
                 <button

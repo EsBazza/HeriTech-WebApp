@@ -239,8 +239,11 @@ export function loyaltyCardSaveUrl(member: LoyaltyMember, appUrl: string): strin
   return `https://pay.google.com/gp/v/save/${jwt}`;
 }
 
-/** Exchanges the signer's key for a short-lived Wallet API access token. */
+let cachedToken: { email: string; token: string; expiresAt: number } | null = null;
+
+/** Exchanges the signer's key for a short-lived Wallet API access token, reused until 5 minutes before it expires. */
 async function walletAccessToken(credentials: Signer): Promise<string> {
+  if (cachedToken && cachedToken.email === credentials.email && cachedToken.expiresAt - 300_000 > Date.now()) return cachedToken.token;
   const now = Math.floor(Date.now() / 1000);
   const assertion = signJwt(
     { aud: "https://oauth2.googleapis.com/token", scope: "https://www.googleapis.com/auth/wallet_object.issuer", iat: now, exp: now + 3600 },
@@ -253,7 +256,9 @@ async function walletAccessToken(credentials: Signer): Promise<string> {
     signal: AbortSignal.timeout(5_000),
   });
   if (!res.ok) throw new Error(`token request failed with ${res.status}`);
-  return (await res.json()).access_token;
+  const { access_token: token, expires_in: expiresIn = 3600 } = await res.json();
+  cachedToken = { email: credentials.email, token, expiresAt: Date.now() + expiresIn * 1000 };
+  return token;
 }
 
 /**

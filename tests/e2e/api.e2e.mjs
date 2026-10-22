@@ -119,6 +119,30 @@ check("someone else can't get that wallet link", (await call(`/api/wallet/${seri
 const history = (await call("/api/orders", { token: buyer.token })).json.data;
 check("order history includes passes", history.some((h) => h.pass?.serial === serial));
 
+check("new pass record is unchanged since collection", ver.json.data.integrity === "match", ver.json.data.integrity);
+check("seeded pass record is unchanged since collection", (await call("/api/verify/HT-D3M0-0001")).json?.data?.integrity === "match");
+check("odd serial -> 404, not 500", (await call("/api/verify/..%2Fx")).status === 404);
+
+// --- listings: optional charity, weight capped on edit too ---
+const noCharity = await call("/api/products", { token: artisan.token, method: "POST", body: { title: "No charity", price: 5, images: [img], sourceBatchId: batchId, kgDiverted: 1 } });
+check("listing without a charity partner -> 201", noCharity.status === 201 && noCharity.json.data.ngoFundName === "", JSON.stringify(noCharity.json).slice(0, 200));
+check("edit can't claim more kg than the batch -> 400", (await call(`/api/products/${noCharity.json.data?.id}`, { token: artisan.token, method: "PATCH", body: { kgDiverted: 50 } })).status === 400);
+check("seeded listing with demo artwork can be edited", (await call("/api/products/prod_03", { token: artisan.token, method: "PATCH", body: { price: 41, ngoFundName: "", images: ["/demo/products/wall-shelf.svg"] } })).status === 200);
+
+// --- reservations: artisans only, cancel and admin release ---
+check("admin can't reserve -> 403", (await call("/api/materials/HT-2026-0301/reserve", { token: admin.token, method: "POST" })).status === 403);
+check("artisan reserves a seeded batch", (await call("/api/materials/HT-2026-0301/reserve", { token: artisan.token, method: "POST" })).status === 200);
+const cancelled = await call("/api/materials/HT-2026-0301/release", { token: artisan.token, method: "POST" });
+check("holder cancels reservation", cancelled.status === 200 && cancelled.json.data.status === "available", JSON.stringify(cancelled.json).slice(0, 200));
+check("officer told about the cancellation", (await call("/api/messages", { token: lgu.token })).json.data.some((m) => m.contextId === "HT-2026-0301" && /cancelled/.test(m.content)));
+await call("/api/materials/HT-2026-0401/reserve", { token: artisan.token, method: "POST" });
+check("buyer can't release -> 403", (await call("/api/materials/HT-2026-0401/release", { token: buyer.token, method: "POST" })).status === 403);
+check("admin releases a reservation", (await call("/api/materials/HT-2026-0401/release", { token: admin.token, method: "POST" })).json?.data?.status === "available");
+check("release of an available batch -> 409", (await call("/api/materials/HT-2026-0401/release", { token: admin.token, method: "POST" })).status === 409);
+
+// --- agreement quota ---
+check("batch over the agreement quota -> 409", (await call("/api/materials", { token: lgu.token, method: "POST", body: { title: "Too much", materialType: "Mixed plastics", weightKg: 200, condition: "Dry", gpsLat: 15.03, gpsLng: 120.69, imageUrl: img, agreementId: "RA-2026-004" } })).status === 409);
+
 // --- deleting a sold product keeps its pass working ---
 check("artisan archives product", (await call(`/api/products/${productId}`, { token: artisan.token, method: "DELETE" })).status === 200);
 check("archived product's pass still verifies", (await call(`/api/verify/${serial}`)).status === 200);
@@ -128,6 +152,10 @@ check("archived product hidden from shop", !(await call("/api/products")).json.d
 const scan = await call("/api/ai/scan", { token: lgu.token, method: "POST", body: { imageBase64: img, festivalHint: "panagbenga" } });
 check("scan falls back to labelled sample in demo mode", scan.status === 200 && scan.json.data.isSample === true);
 check("chat reports offline honestly", (await call("/api/chat", { method: "POST", body: { message: "hi" } })).status === 503);
+const longHistory = Array.from({ length: 120 }, (_, i) => ({ role: i % 2 ? "assistant" : "user", content: "x".repeat(2500) }));
+check("long chat history is trimmed, not rejected", (await call("/api/chat", { method: "POST", body: { message: "hi", history: longHistory } })).status === 503);
+const story = await call("/api/ai/story", { token: artisan.token, method: "POST", body: { batchId, materialType: "Paper and card", craftTypology: null, artisanWorkshop: null, festival: null } });
+check("story writer accepts empty fields (labelled sample in demo)", story.status === 200 && story.json.data.isSample === true, JSON.stringify(story.json).slice(0, 200));
 
 // --- role applications ---
 const apply = await call("/api/user/apply", { token: buyer.token, method: "POST", body: { type: "artisan", workshopName: "Sarah Studio" } });
@@ -147,6 +175,8 @@ check("agreement id continues after seed", agr.status === 201 && agr.json.data.i
 // --- validation ---
 check("invalid JSON -> 400", (await fetch(BASE + "/api/chat", { method: "POST", body: "{" })).status === 400);
 check("unsupported language -> 400", (await call("/api/translate", { method: "POST", body: { text: "hi", targetLanguage: "xx" } })).status === 400);
+check("translate: more than 100 strings -> 400", (await call("/api/translate", { method: "POST", body: { text: Array(101).fill("hi"), targetLanguage: "th" } })).status === 400);
+check("translate: more than 20,000 characters -> 400", (await call("/api/translate", { method: "POST", body: { text: Array(5).fill("x".repeat(4500)), targetLanguage: "th" } })).status === 400);
 
 console.log(failures ? `\n${failures} FAILED` : "\nALL PASSED");
 process.exit(failures ? 1 : 0);

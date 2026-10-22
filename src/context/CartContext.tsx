@@ -63,6 +63,8 @@ const CartContext = createContext<CartContextType>({
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartProduct[]>([]);
+  // Saving waits until the saved cart has been read, or the empty first render would overwrite it.
+  const [loaded, setLoaded] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lastAdded, setLastAdded] = useState<CartProduct | null>(null);
   const dismissLastAdded = useCallback(() => setLastAdded(null), []);
@@ -76,15 +78,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.warn("Could not load cart from storage:", e);
     }
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
+    if (!loaded) return;
     try {
       localStorage.setItem("heritech_cart", JSON.stringify(items));
     } catch (e) {
       console.warn("Could not save cart:", e);
     }
-  }, [items]);
+  }, [items, loaded]);
 
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);

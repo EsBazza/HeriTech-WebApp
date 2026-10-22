@@ -1,7 +1,7 @@
 import type { ProductDoc, UserDoc } from "@/lib/firebase/types";
 import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
-import { forbidden, notFound, ok, parseBody, route } from "@/lib/server/http";
+import { badRequest, forbidden, notFound, ok, parseBody, route } from "@/lib/server/http";
 import { storeImage } from "@/lib/server/images";
 import { productUpdateSchema } from "@/lib/server/productInput";
 import { withProductRelations } from "@/lib/server/views";
@@ -30,6 +30,13 @@ export const PATCH = route(async (request: Request, { params }: Context) => {
   const { id } = await params;
   const product = await loadOwnedProduct(id, user);
   const input = await parseBody(request, productUpdateSchema);
+
+  if (input.kgDiverted !== undefined) {
+    const batch = (await db.batches().doc(product.sourceBatchId).get()).data();
+    if (batch && input.kgDiverted > batch.weightKg) {
+      throw badRequest(`kgDiverted can't exceed the batch weight of ${batch.weightKg} kg.`);
+    }
+  }
 
   const updates: Partial<ProductDoc> = { ...input };
   if (input.images) updates.images = await Promise.all(input.images.map((img) => storeImage(img, "products")));

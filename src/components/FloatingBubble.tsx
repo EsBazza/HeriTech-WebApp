@@ -2,11 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { MessagesPanel } from "./MessagesPanel";
 import { CartPanel, CartToast } from "./CartPanel";
+
+/** sessionStorage key the /messages redirect uses to ask for a thread to open. */
+export const OPEN_THREAD_KEY = "heritech_open_thread";
 
 export function FloatingBubble() {
   const [mounted, setMounted] = useState(false);
@@ -15,6 +19,7 @@ export function FloatingBubble() {
   const [hasNew, setHasNew] = useState(false);
   const { isCartOpen, setIsCartOpen } = useCart();
   const { translateSync } = useTranslation();
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -37,6 +42,23 @@ export function FloatingBubble() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A link such as /messages?with=<id> (from a Wallet pass) leaves the thread to open here,
+  // once the messages panel is mounted and listening. Checked again after each navigation,
+  // because in-app links to /messages arrive while this component is already mounted.
+  useEffect(() => {
+    if (!mounted) return;
+    let detail: { threadId: string; name: string } | undefined;
+    try {
+      const pending = sessionStorage.getItem(OPEN_THREAD_KEY);
+      sessionStorage.removeItem(OPEN_THREAD_KEY);
+      if (!pending) return;
+      detail = pending === "inbox" ? undefined : JSON.parse(pending);
+    } catch {
+      return;
+    }
+    window.dispatchEvent(new CustomEvent("open-messages", { detail }));
+  }, [mounted, pathname]);
 
   if (!mounted) return null;
 

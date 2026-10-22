@@ -1,8 +1,9 @@
 import { z } from "zod";
 import type { UserDoc } from "@/lib/firebase/types";
+import { DEMO_MODE } from "@/lib/demo";
 import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
-import { badRequest, fields, notFound, ok, parseBody, route } from "@/lib/server/http";
+import { badRequest, fields, forbidden, notFound, ok, parseBody, route } from "@/lib/server/http";
 
 const REVIEWABLE = ["pending_artisan", "pending_lgu", "approved", "rejected"] as const;
 
@@ -38,7 +39,16 @@ export const POST = route(async (request: Request) => {
     if (target.id === admin.id && input.targetRole !== "admin") {
       throw badRequest("You can't remove your own admin role. Ask another admin.");
     }
-    updates = { role: input.targetRole, artisanVerified: input.targetRole === "artisan" };
+    // Anyone can sign in as the demo admin, so on the demo site only showcase accounts can be made admins.
+    if (DEMO_MODE && input.targetRole === "admin" && !target.isDemo) {
+      throw forbidden("On the demo site, real accounts can't be made admins.");
+    }
+    updates = {
+      role: input.targetRole,
+      artisanVerified: input.targetRole === "artisan",
+      // A direct role change settles any open application.
+      verificationStatus: input.targetRole === "buyer" ? "none" : "approved",
+    };
   } else if (input.action === "approve") {
     if (target.verificationStatus !== "pending_artisan" && target.verificationStatus !== "pending_lgu") {
       throw badRequest("This user has no pending application.");

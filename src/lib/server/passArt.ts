@@ -12,6 +12,19 @@ const DATA_URL = /^data:image\/[a-z+]+;base64,(.+)$/;
 /** Hero banner size Google recommends for Wallet passes. */
 const HERO = { width: 1032, height: 336 };
 
+/** Hosts the server may fetch pass artwork from: the app itself and Firebase / Cloud Storage. */
+const IMAGE_HOSTS = ["firebasestorage.googleapis.com", "storage.googleapis.com"];
+
+function isAllowedImageHost(url: string, appOrigin: string): boolean {
+  try {
+    const { protocol, host, origin } = new URL(url);
+    if (origin === new URL(appOrigin).origin) return true;
+    return protocol === "https:" && IMAGE_HOSTS.includes(host);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Reads a product image stored as an https URL, an inline data URL, or a path
  * under /public (demo artwork), which is fetched from the app itself.
@@ -20,8 +33,8 @@ export async function loadProductImage(src: string, appOrigin: string): Promise<
   const inline = DATA_URL.exec(src);
   if (inline) return Buffer.from(inline[1], "base64");
 
-  const url = src.startsWith("/") ? `${appOrigin}${src}` : src;
-  if (!/^https?:\/\//.test(url)) return null;
+  const url = src.startsWith("/") && !src.startsWith("//") ? `${appOrigin}${src}` : src;
+  if (!isAllowedImageHost(url, appOrigin)) return null;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(8_000) });
     if (!res.ok) return null;

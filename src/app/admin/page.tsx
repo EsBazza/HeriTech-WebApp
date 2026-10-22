@@ -11,7 +11,7 @@ import { apiJson } from "@/lib/api";
 import type { UserDoc, UserRole } from "@/lib/firebase/types";
 import type { AdminStats } from "@/app/api/admin/stats/route";
 import { SPLIT, SPLIT_LABEL } from "@/lib/escrow";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Select, Skeleton, Stat, type BadgeTone } from "@/components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, Input, PageHeader, Select, Skeleton, Stat, type BadgeTone } from "@/components/ui";
 
 type Applicant = UserDoc & { applicationDetails: UserDoc["application"] };
 
@@ -45,6 +45,7 @@ function AdminDashboardPageContent() {
   // Which button is working, e.g. "approve:uid", so only that one shows a spinner.
   const [busy, setBusy] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingAction | null>(null);
+  const [search, setSearch] = useState("");
 
   const loadAdminData = async () => {
     const [statsRes, appsRes, usersRes] = await Promise.all([
@@ -93,6 +94,8 @@ function AdminDashboardPageContent() {
   };
 
   const shorten = (s: string) => (s.length > 14 ? `${s.slice(0, 13)}…` : s);
+  const query = search.trim().toLowerCase();
+  const shownUsers = query ? users.filter((u) => `${u.fullName} ${u.email}`.toLowerCase().includes(query)) : users;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
@@ -237,10 +240,21 @@ function AdminDashboardPageContent() {
           </div>
           {!loading && (
             <span className="text-sm text-ink-3 tabular">
-              {users.length} {translateSync("people")}
+              {shownUsers.length === users.length ? users.length : `${shownUsers.length} / ${users.length}`} {translateSync("people")}
             </span>
           )}
         </div>
+
+        {!loading && users.length > 0 && (
+          <Input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={translateSync("Search by name or email")}
+            aria-label={translateSync("Search people")}
+            wrapperClassName="sm:max-w-sm"
+          />
+        )}
 
         {loading ? (
           <Skeleton className="h-64 rounded-md" />
@@ -248,7 +262,7 @@ function AdminDashboardPageContent() {
           <Card className="overflow-hidden">
             {/* Phones: one card per person. Wider screens: a table. */}
             <ul className="md:hidden divide-y divide-line">
-              {users.map((u) => (
+              {shownUsers.map((u) => (
                 <li key={u.id} className="p-4 space-y-3">
                   <div className="flex items-center gap-3">
                     <span className="w-10 h-10 rounded-full bg-pine-700 text-white flex items-center justify-center text-sm font-semibold shrink-0">
@@ -286,7 +300,7 @@ function AdminDashboardPageContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {users.map((u) => (
+                {shownUsers.map((u) => (
                   <tr key={u.id} className="hover:bg-paper/60 transition-colors">
                     <td className="py-3 px-4">
                       <span className="flex items-center gap-2.5 font-medium text-ink">
@@ -338,7 +352,7 @@ function AdminDashboardPageContent() {
             { label: translateSync("Total sales"), value: formatCurrency(stats?.kpis?.grossVolume ?? 0), hint: translateSync("Demo payments, no real money yet") },
             { label: `${translateSync("Paid to artisans")} · ${SPLIT.artisan}%`, value: formatCurrency(stats?.kpis?.artisanPayoutTotal ?? 0) },
             { label: `${translateSync("Paid to local governments")} · ${SPLIT.lgu}%`, value: formatCurrency(stats?.kpis?.lguShareTotal ?? 0) },
-            { label: translateSync("Material diverted"), value: formatNumber(stats?.kpis?.totalKgCollected ?? 0), unit: "kg" },
+            { label: translateSync("Material collected"), value: formatNumber(stats?.kpis?.totalKgCollected ?? 0), unit: "kg" },
           ].map((s) => (
             <Card key={s.label} className="p-4 sm:p-6">
               {loading ? <Skeleton className="h-16" /> : <Stat label={s.label} value={s.value} unit={s.unit} hint={s.hint} />}

@@ -35,6 +35,7 @@ const BLANK_FORM = {
   materialTags: "",
   imageUrl: "",
   ngoFundName: "",
+  craftMethod: "",
 };
 
 /** Listing fields that follow from the chosen source batch, so the artisan doesn't retype them. */
@@ -75,6 +76,8 @@ function ArtisanStudioPageContent() {
 
   // --- Edit mode ---
   const [editingId, setEditingId] = useState<string | null>(null);
+  // The photo a listing had when editing started; it is only re-sent if it changes.
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
 
   // --- Delete confirm ---
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -150,6 +153,7 @@ function ArtisanStudioPageContent() {
   const resetForm = () => {
     setForm(claimedBatches[0] ? { ...BLANK_FORM, ...fieldsFromBatch(claimedBatches[0], BLANK_FORM.kgDiverted) } : BLANK_FORM);
     setEditingId(null);
+    setOriginalImage(null);
     setFileName(null);
     setSuccessMessage(null);
     setErrorMessage(null);
@@ -159,6 +163,7 @@ function ArtisanStudioPageContent() {
   const startEdit = (product: Product) => {
     setEditingId(product.id);
     const existingImg = product.images?.[0] ?? "";
+    setOriginalImage(existingImg);
     setForm({
       title: product.title,
       description: product.description,
@@ -167,7 +172,8 @@ function ArtisanStudioPageContent() {
       kgDiverted: String(product.kgDiverted),
       materialTags: product.materialTags.join(", "),
       imageUrl: existingImg,
-      ngoFundName: product.ngoFundName,
+      ngoFundName: product.ngoFundName ?? "",
+      craftMethod: "",
     });
     setFileName(existingImg.startsWith("data:") ? "uploaded-image.jpg" : null);
     setImageMode(existingImg.startsWith("data:") ? "file" : "url");
@@ -190,11 +196,11 @@ function ArtisanStudioPageContent() {
       body: JSON.stringify({
         batchId: selectedBatch.id,
         materialType: selectedBatch.materialType,
-        condition: selectedBatch.condition,
-        festival: selectedBatch.agreement?.festival,
-        country: selectedBatch.agreement?.country,
-        craftTypology: selectedBatch.aiInferredMaterial,
-        artisanWorkshop: user?.workshopName,
+        condition: selectedBatch.condition ?? undefined,
+        festival: selectedBatch.agreement?.festival ?? undefined,
+        country: selectedBatch.agreement?.country ?? undefined,
+        craftTypology: form.craftMethod.trim() || undefined,
+        artisanWorkshop: user?.workshopName ?? undefined,
         divertedKg: form.kgDiverted || selectedBatch.weightKg,
         title: form.title || `${selectedBatch.materialType} Upcycled Creation`,
       }),
@@ -215,11 +221,13 @@ function ArtisanStudioPageContent() {
     if (!form.title || !form.price || !form.selectedBatchId) return;
     setSubmitting(true);
     setErrorMessage(null);
+    // When editing, an unchanged photo is left out so the server keeps what it already stores.
+    const imageChanged = !editingId || form.imageUrl !== originalImage;
     const payload = {
       title: form.title,
       description: form.description,
       price: parseFloat(form.price),
-      images: form.imageUrl ? [form.imageUrl] : [],
+      ...(imageChanged ? { images: form.imageUrl ? [form.imageUrl] : [] } : {}),
       sourceBatchId: form.selectedBatchId,
       materialTags: form.materialTags.split(",").map((t) => t.trim()).filter(Boolean),
       kgDiverted: parseFloat(form.kgDiverted),
@@ -478,6 +486,13 @@ function ArtisanStudioPageContent() {
             <fieldset className="space-y-5">
               {stepHeading(3, translateSync("Story and price"))}
               <Input label={translateSync("Name of the piece")} required value={form.title} onChange={(e) => setField("title", e.target.value)} />
+              <Input
+                label={translateSync("Craft method (optional)")}
+                value={form.craftMethod}
+                onChange={(e) => setField("craftMethod", e.target.value)}
+                placeholder={translateSync("For example: folding, weaving, pressing")}
+                hint={translateSync("Helps Gemini describe how the piece was made.")}
+              />
 
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">

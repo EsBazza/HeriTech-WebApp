@@ -114,13 +114,16 @@ export function VerifyPass({ serial }: { serial: string }) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (retry.trim()) router.push(`/verify/${encodeURIComponent(retry.trim())}`);
+            const next = retry.trim().toUpperCase();
+            if (next) router.push(`/verify/${encodeURIComponent(next)}`);
           }}
           className="flex gap-2"
         >
           <input
             value={retry}
-            onChange={(e) => setRetry(e.target.value)}
+            onChange={(e) => setRetry(e.target.value.toUpperCase())}
+            autoCapitalize="characters"
+            spellCheck={false}
             placeholder="HT-XXXX-XXXX"
             aria-label={translateSync("Pass serial")}
             className={cn(controlClass, "h-11 font-mono-data flex-1 min-w-0")}
@@ -243,6 +246,18 @@ export function VerifyPass({ serial }: { serial: string }) {
               <ShieldCheck className="w-4 h-4 text-pine-200" strokeWidth={2} />
               {translateSync("Verified Impact Pass")}
             </span>
+            {data.integrity === "match" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-success/25 px-3 py-1 text-sm text-white">
+                <Check className="w-4 h-4" strokeWidth={2.5} />
+                {translateSync("Record unchanged since collection")}
+              </span>
+            )}
+            {data.integrity === "changed" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-warn px-3 py-1 text-sm text-white">
+                <ShieldAlert className="w-4 h-4" />
+                {translateSync("Collection record was edited after logging")}
+              </span>
+            )}
             {data.issuedAt && (
               <span className="text-sm text-white/60">
                 {translateSync("Issued")} {fmt(data.issuedAt)}
@@ -357,7 +372,11 @@ export function VerifyPass({ serial }: { serial: string }) {
           <div className="px-5 sm:px-6 pb-5">
             <p className="font-mono-data text-xs text-ink-2 break-all bg-paper rounded-sm border border-line p-3">{data.tamperEvidentHarvestHash}</p>
             <p className="text-sm text-ink-3 mt-2">
-              {translateSync("If any detail of the collection record changes, this hash no longer matches, so tampering is visible.")}
+              {data.integrity === "match"
+                ? translateSync("HeriTech recomputed this hash from the stored collection record just now, and it matches the one taken when the material was logged and when this pass was issued.")
+                : data.integrity === "changed"
+                ? translateSync("The stored collection record no longer produces this hash, so a detail was changed after it was logged.")
+                : translateSync("This record is missing a detail needed to recompute the hash, so it can't be checked automatically.")}
             </p>
           </div>
         </details>

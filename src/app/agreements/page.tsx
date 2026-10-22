@@ -150,6 +150,34 @@ function AgreementsPageContent() {
                       <div style={{ width: `${percentage}%` }} className="h-full bg-pine-700 transition-[width] duration-700 rounded-full" />
                     </div>
                   </div>
+
+                  {agreement.batches.length > 0 ? (
+                    <details className="text-sm">
+                      <summary className="cursor-pointer text-ink-2 font-medium min-h-10 flex items-center">
+                        {agreement.batches.length} {translateSync(agreement.batches.length === 1 ? "batch logged" : "batches logged")}
+                      </summary>
+                      <ul className="mt-1 divide-y divide-line rounded-md border border-line">
+                        {agreement.batches.map((b) => (
+                          <li key={b.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                            <span className="min-w-0">
+                              <span className="block font-mono-data text-xs text-ink-3">{b.id}</span>
+                              <span className="block truncate text-ink">
+                                <TranslatableText>{b.title}</TranslatableText>
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-right">
+                              <span className="block tabular font-medium text-ink">{formatNumber(b.weightKg)} kg</span>
+                              <Badge tone={b.status === "available" ? "success" : b.status === "reserved" ? "warn" : "neutral"}>
+                                {translateSync(b.status === "available" ? "Available" : b.status === "reserved" ? "Reserved" : "Picked up")}
+                              </Badge>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  ) : (
+                    <p className="text-sm text-ink-3">{translateSync("No batches logged yet.")}</p>
+                  )}
                 </Card>
               </li>
             );

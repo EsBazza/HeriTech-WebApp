@@ -2,22 +2,25 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { OPEN_THREAD_KEY } from "@/components/FloatingBubble";
 
+/**
+ * /messages opens the messages panel on the home page.
+ * /messages?with=<userId>&name=<display name> opens that person's thread (used by Wallet pass links).
+ * The request is left in sessionStorage, so it survives the redirect however long it takes.
+ */
 export default function MessagesRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to home and trigger side bubble messages
-    // /messages?with=<userId>&name=<display name> opens that person's thread (used by Wallet pass links).
     const params = new URLSearchParams(window.location.search);
     const withId = params.get("with");
-    const detail = withId ? { threadId: withId, name: params.get("name") || "Maker" } : undefined;
+    try {
+      sessionStorage.setItem(OPEN_THREAD_KEY, withId ? JSON.stringify({ threadId: withId, name: params.get("name") || "Maker" }) : "inbox");
+    } catch {
+      // Storage blocked: the home page still loads, just without the panel open.
+    }
     router.replace("/");
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("open-messages", { detail }));
-    }, 200);
-
-    return () => clearTimeout(timer);
   }, [router]);
 
   return (

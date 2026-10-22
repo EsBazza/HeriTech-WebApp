@@ -1,6 +1,8 @@
 import "server-only";
+import { checkHarvestIntegrity } from "@/lib/crypto";
 import { db } from "@/lib/server/firestore";
 import { notFound } from "@/lib/server/http";
+import { isPassSerial } from "@/lib/server/ids";
 import { withProductRelations } from "@/lib/server/views";
 
 /**
@@ -9,6 +11,7 @@ import { withProductRelations } from "@/lib/server/views";
  * by the verify page's link preview.
  */
 export async function passRecord(serial: string) {
+  if (!isPassSerial(serial)) throw notFound("No impact pass with that serial.");
   const pass = (await db.passes().doc(serial.toUpperCase()).get()).data();
   if (!pass) throw notFound("No impact pass with that serial.");
 
@@ -22,6 +25,8 @@ export async function passRecord(serial: string) {
     serial: pass.serial,
     issuedAt: pass.issuedAt,
     tamperEvidentHarvestHash: pass.harvestHash,
+    /** Whether the collection record still matches the hash taken when it was logged and when this pass was sold. */
+    integrity: checkHarvestIntegrity(sourceBatch, pass.harvestHash),
     product: {
       id: product.id,
       title: product.title,

@@ -34,6 +34,8 @@ function storageAvailable(): Promise<boolean> {
  */
 export async function storeImage(value: string, folder: "batches" | "products"): Promise<string> {
   if (value.startsWith("https://")) return value;
+  // Labelled demo artwork shipped in /public/demo (seeded listings keep it when edited).
+  if (/^\/demo\/[\w/-]+\.(svg|png|jpe?g|webp)$/.test(value)) return value;
 
   const match = DATA_URL.exec(value);
   if (!match) throw badRequest("Images must be an https URL or a JPEG, PNG or WebP upload.");

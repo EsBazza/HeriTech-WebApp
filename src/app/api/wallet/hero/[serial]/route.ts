@@ -1,4 +1,5 @@
 import { db } from "@/lib/server/firestore";
+import { isPassSerial } from "@/lib/server/ids";
 import { appUrl, notFound, route } from "@/lib/server/http";
 import { heroBanner, loadProductImage } from "@/lib/server/passArt";
 
@@ -9,6 +10,7 @@ import { heroBanner, loadProductImage } from "@/lib/server/passArt";
  */
 export const GET = route(async (request: Request, { params }: { params: Promise<{ serial: string }> }) => {
   const { serial } = await params;
+  if (!isPassSerial(serial)) throw notFound("No impact pass with that serial.");
   const pass = (await db.passes().doc(serial.toUpperCase()).get()).data();
   if (!pass) throw notFound("No impact pass with that serial.");
   const order = (await db.orders().doc(pass.orderId).get()).data();

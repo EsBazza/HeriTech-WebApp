@@ -44,9 +44,11 @@ function threadsFromServer(messages: ServerMessage[], myId: string): Thread[] {
     };
     thread.messages.push({ role: mine ? "user" : "assistant", content: m.content, isSystem: m.isSystem });
     thread.time = new Date(m.createdAt).toLocaleDateString();
+    thread.lastAt = m.createdAt;
     byPerson.set(otherId, thread);
   }
-  return [...byPerson.values()];
+  // Most recent conversation first
+  return [...byPerson.values()].sort((a, b) => (b.lastAt ?? "").localeCompare(a.lastAt ?? ""));
 }
 
 interface Thread {
@@ -58,12 +60,17 @@ interface Thread {
   messages: Message[];
   unread?: boolean;
   time?: string;
+  /** ISO time of the latest message, for ordering the inbox. */
+  lastAt?: string;
 }
 
 // Only the assistant conversation is kept in the browser; conversations with
 // people live in Firestore and are loaded from /api/messages.
 const THREADS_STORAGE_KEY = "heritech_assistant_thread_v5";
 const DRAFTS_STORAGE_KEY = "heritech_chat_drafts_v4";
+/** Turns sent with each assistant question, and turns kept in the browser. */
+const ASSISTANT_HISTORY_SENT = 12;
+const ASSISTANT_HISTORY_KEPT = 50;
 
 const INITIAL_THREADS: Thread[] = [
   {
@@ -162,7 +169,11 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
     if (!isLoaded) return;
     try {
       const assistant = threads.find((t) => t.id === "bot_assistant");
-      if (assistant) localStorage.setItem(THREADS_STORAGE_KEY, JSON.stringify(assistant));
+      if (assistant) {
+        // Keep the stored conversation short so it never grows without bound.
+        const trimmed = { ...assistant, messages: assistant.messages.slice(-ASSISTANT_HISTORY_KEPT) };
+        localStorage.setItem(THREADS_STORAGE_KEY, JSON.stringify(trimmed));
+      }
     } catch (err) {
       console.warn("Could not save messages to storage:", err);
     }
@@ -297,11 +308,11 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
     if (currentThreadId === "bot_assistant") {
       setIsBotThinking(true);
       try {
-        const history =
-          activeThread?.messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })) || [];
+        // Only recent turns matter to the assistant; the server trims to the same window.
+        const history = (activeThread?.messages ?? []).slice(-ASSISTANT_HISTORY_SENT).map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
 
         const res = await fetch("/api/chat", {
           method: "POST",

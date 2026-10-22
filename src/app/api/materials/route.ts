@@ -5,9 +5,10 @@ import type { MaterialBatchDoc } from "@/lib/firebase/types";
 import { generateHarvestTxHash } from "@/lib/crypto";
 import { getCurrentUser, requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
-import { badRequest, fields, ok, parseBody, route, unauthorized } from "@/lib/server/http";
+import { badRequest, conflict, fields, ok, parseBody, route, unauthorized } from "@/lib/server/http";
 import { nextSequence } from "@/lib/server/ids";
 import { storeImage } from "@/lib/server/images";
+import { withExpiry } from "@/lib/server/reservations";
 import { newestFirst, withBatchRelations } from "@/lib/server/views";
 
 const STATUSES = ["available", "reserved", "claimed"] as const;
@@ -21,8 +22,10 @@ export const GET = route(async (request: Request) => {
   const params = new URL(request.url).searchParams;
   let query: Query<MaterialBatchDoc> = db.batches();
 
-  const status = params.get("status");
-  if (status && (STATUSES as readonly string[]).includes(status)) query = query.where("status", "==", status);
+  // Status is filtered after reading, because an expired reservation is stored as
+  // "reserved" but should be listed as "available" again.
+  const statusParam = params.get("status");
+  const status = statusParam && (STATUSES as readonly string[]).includes(statusParam) ? statusParam : null;
   const materialType = params.get("materialType");
   if (materialType) query = query.where("materialType", "==", materialType);
 
@@ -35,7 +38,10 @@ export const GET = route(async (request: Request) => {
     query = query.where(field, "==", user.id);
   }
 
-  const batches = (await query.get()).docs.map((d) => d.data()).sort(newestFirst);
+  const batches = (await query.get()).docs
+    .map((d) => withExpiry(d.data()))
+    .filter((b) => !status || b.status === status)
+    .sort(newestFirst);
   return ok(await withBatchRelations(batches));
 });
 
@@ -68,6 +74,12 @@ export const POST = route(async (request: Request) => {
     const agreement = (await tx.get(agreementRef)).data();
     if (!agreement) throw badRequest("That release agreement does not exist.");
     if (agreement.status !== "active") throw badRequest("That release agreement is closed.");
+    const remainingKg = Math.round((agreement.allocatedKg - agreement.collectedKg) * 100) / 100;
+    if (input.weightKg > remainingKg + 1e-9) {
+      throw conflict(
+        `This batch is ${input.weightKg} kg, but agreement ${agreement.id} only allows ${Math.max(remainingKg, 0)} kg more. Create a new agreement for the extra material.`
+      );
+    }
 
     const year = new Date().getFullYear();
     // Seeded batches use 0101–0999, so live batches start at 1001.

@@ -29,12 +29,12 @@ export const POST = route(async (request: Request) => {
   if (input.avatarUrl !== undefined) updates.avatarUrl = input.avatarUrl || null;
   if (input.preferredLanguage) updates.preferredLanguage = input.preferredLanguage;
   if (input.country) updates.country = input.country;
-  if (user.role === "artisan" && input.workshopName) updates.workshopName = input.workshopName;
+  if ((user.role === "artisan" || user.role === "admin") && input.workshopName) updates.workshopName = input.workshopName;
   if (user.role === "artisan" && input.workshopLocation !== undefined) {
     updates.workshopLat = input.workshopLocation?.lat ?? null;
     updates.workshopLng = input.workshopLocation?.lng ?? null;
   }
-  if (user.role === "lgu" && input.stationName) updates.stationName = input.stationName;
+  if ((user.role === "lgu" || user.role === "admin") && input.stationName) updates.stationName = input.stationName;
 
   if (Object.keys(updates).length) await db.users().doc(user.id).update(updates);
   return ok({ ...user, ...updates }, { message: "Profile updated." });

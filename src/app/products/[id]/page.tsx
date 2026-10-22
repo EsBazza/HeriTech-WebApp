@@ -102,6 +102,13 @@ export default function ProductDetailPage() {
     if (productId) loadProduct();
   }, [productId, attempt]);
 
+  // After a purchase the stock has changed; refresh it without the full-page spinner.
+  const refreshProduct = async () => {
+    const result = await apiJson<ProductView>(`/api/products/${encodeURIComponent(productId)}`);
+    if (result.success && result.data) setProduct(result.data);
+    else if (result.status === 404) setProduct(null);
+  };
+
   if (loading) {
     return <Spinner label={translateSync("Loading piece…")} className="py-32" />;
   }
@@ -169,6 +176,8 @@ export default function ProductDetailPage() {
   const origin = joinKnown(festival, country) || "—";
   const material = product.sourceBatch?.materialType || (product.materialTags || []).join(", ") || "—";
   const inCart = items.some((i) => i.id === product.id);
+  // An artisan looking at their own listing can't buy it or message themselves.
+  const isOwn = Boolean(user && user.id === product.artisanId);
   const stock: number = product.stock ?? 0;
   const artisanShare = calculateEscrowSplit(product.price).artisanPayout;
 
@@ -206,7 +215,9 @@ export default function ProductDetailPage() {
   const impact = [
     { icon: Leaf, value: <CountUp value={Number(product.kgDiverted) || 0} decimals={1} format={formatNumber} />, unit: "kg", label: translateSync("kept out of landfill") },
     { icon: HandCoins, value: <CountUp value={artisanShare} decimals={2} format={formatCurrency} />, label: translateSync("paid straight to the maker") },
-    { icon: Layers, value: <CountUp value={4} />, label: translateSync("steps on its public record") },
+    ...(product.sourceBatch
+      ? [{ icon: Layers, value: <CountUp value={product.sourceBatch.weightKg} decimals={1} format={formatNumber} />, unit: "kg", label: translateSync("collected in its source batch") }]
+      : []),
   ];
 
   return (
@@ -286,6 +297,14 @@ export default function ProductDetailPage() {
             {translateSync(product.description || "")}
           </p>
 
+          {isOwn ? (
+            <div className="rounded-md border border-line bg-paper p-4 text-sm text-ink-2 flex flex-wrap items-center justify-between gap-3">
+              {translateSync("This is your listing.")}
+              <LinkButton href="/studio" variant="secondary" size="sm">
+                {translateSync("Edit in the studio")}
+              </LinkButton>
+            </div>
+          ) : (
           <div ref={buyRef} className="space-y-3 rise" style={{ ["--rise-delay" as string]: "200ms" }}>
             <Button variant="accent" size="lg" className="w-full" onClick={() => setCheckoutModalOpen(true)} disabled={stock === 0}>
               <Lock className="w-4 h-4" />
@@ -303,6 +322,7 @@ export default function ProductDetailPage() {
             </Button>
             {!user && <p className="text-sm text-ink-3 text-center">{translateSync("You'll sign in with Google at checkout.")}</p>}
           </div>
+          )}
 
           {/* What you receive */}
           <div className="space-y-2.5 rise" style={{ ["--rise-delay" as string]: "280ms" }}>
@@ -356,11 +376,13 @@ export default function ProductDetailPage() {
                 <p className="text-sm text-ink-3 truncate">{joinKnown(workshop, country)}</p>
               </div>
             </div>
+            {!isOwn && (
             <Button variant="secondary" size="sm" onClick={openArtisanThread}>
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">{translateSync("Message the maker")}</span>
               <span className="sm:hidden">{translateSync("Message")}</span>
             </Button>
+            )}
           </Card>
         </div>
       </div>
@@ -498,7 +520,7 @@ export default function ProductDetailPage() {
       )}
 
       {/* Phone buy bar, above the tab bar, once the main Buy button has scrolled away */}
-      {!isDesktop && !buyVisible && stock > 0 && !checkoutModalOpen && (
+      {!isDesktop && !buyVisible && !isOwn && stock > 0 && !checkoutModalOpen && (
         <div className="fixed inset-x-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] bg-surface/95 backdrop-blur-md border-t border-line px-4 py-3 animate-[sheet-in_0.2s_ease-out]">
           <div className="flex items-center gap-3 max-w-lg mx-auto">
             <div className="min-w-0 flex-1">
@@ -513,7 +535,14 @@ export default function ProductDetailPage() {
         </div>
       )}
 
-      <CheckoutModal isOpen={checkoutModalOpen} onClose={() => setCheckoutModalOpen(false)} directProduct={cartProduct} />
+      <CheckoutModal
+        isOpen={checkoutModalOpen}
+        onClose={() => {
+          setCheckoutModalOpen(false);
+          refreshProduct();
+        }}
+        directProduct={cartProduct}
+      />
     </div>
   );
 }

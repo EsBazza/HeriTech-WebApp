@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
 import { createHandoverToken } from "@/lib/server/handoverToken";
 import { conflict, fields, forbidden, notFound, ok, parseBody, route } from "@/lib/server/http";
+import { isReservationExpired } from "@/lib/server/reservations";
 
 const schema = z.object({ batchId: fields.id });
 
@@ -14,6 +15,7 @@ export const POST = route(async (request: Request) => {
   const batch = (await db.batches().doc(batchId).get()).data();
   if (!batch) throw notFound("Material batch not found.");
   if (batch.status !== "reserved") throw conflict(`Batch ${batchId} is ${batch.status}, not awaiting pickup.`);
+  if (isReservationExpired(batch)) throw conflict("Your reservation on this batch has expired. Reserve it again on the material map.");
   if (batch.reservedByArtisanId !== artisan.id) throw forbidden("This batch is reserved by another artisan.");
 
   return ok({ batchId, ...createHandoverToken(batchId, artisan.id) });

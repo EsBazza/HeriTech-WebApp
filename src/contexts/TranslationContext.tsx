@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
   ReactNode,
 } from "react";
 import Cookies from "js-cookie";
@@ -52,6 +53,13 @@ interface TranslationProviderProps {
 const globalCache = new Map<string, string>();
 // Registry of all texts that need translation
 const translationRegistry = new Set<string>();
+// Strings the server couldn't translate for the current language; not retried until the language changes.
+const failedTexts = new Set<string>();
+// Strings waiting for the next batch request.
+const pendingTexts = new Set<string>();
+/** At most this many strings per /api/translate call (the route caps it too). */
+const BATCH_SIZE = 100;
+const FLUSH_DELAY_MS = 150;
 
 /** Register a text string for batch translation */
 export function registerTextForTranslation(text: string) {
@@ -99,51 +107,78 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     }
   }, []);
 
-  // Batch translate all registered strings + any additional texts
-  const batchTranslate = useCallback(
-    async (langCode: string, extraTexts: string[] = []) => {
-      if (langCode === "en") {
-        globalCache.clear();
-        setCacheVersion((v) => v + 1);
-        return;
-      }
+  // One queue for every component: misses are collected, then sent in batches, one
+  // request at a time. Re-renders happen only when new translations were stored.
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlight = useRef(false);
+  const queueLang = useRef<string>(DEFAULT_LANGUAGE.code);
 
-      const allTexts = Array.from(
-        new Set([...Array.from(translationRegistry), ...extraTexts])
-      ).filter((t) => t && t.trim().length > 0 && !globalCache.has(t));
+  const flushQueue = useCallback(async () => {
+    flushTimer.current = null;
+    if (inFlight.current) return;
+    const langCode = queueLang.current;
+    if (langCode === "en") {
+      pendingTexts.clear();
+      return;
+    }
+    const batch = [...pendingTexts].filter((t) => !globalCache.has(t) && !failedTexts.has(t)).slice(0, BATCH_SIZE);
+    batch.forEach((t) => pendingTexts.delete(t));
+    if (batch.length === 0) return;
 
-      if (allTexts.length === 0) {
-        setCacheVersion((v) => v + 1);
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: allTexts,
-            targetLanguage: langCode,
-            sourceLanguage: "en",
-            type: "single",
-          }),
+    inFlight.current = true;
+    let stored = 0;
+    try {
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: batch, targetLanguage: langCode, sourceLanguage: "en" }),
+      });
+      const data = await response.json().catch(() => null);
+      // The language may have changed while this request was out; drop stale answers.
+      if (queueLang.current === langCode && data?.success && Array.isArray(data.translations)) {
+        data.translations.forEach((translated: string, i: number) => {
+          if (translated && batch[i]) {
+            globalCache.set(batch[i], translated);
+            stored++;
+          }
         });
-
-        const data = await response.json();
-        if (data.success && Array.isArray(data.translations)) {
-          data.translations.forEach((translated: string, i: number) => {
-            if (translated && allTexts[i]) {
-              globalCache.set(allTexts[i], translated);
-            }
-          });
-        }
-      } catch (err) {
-        console.warn("Batch translation failed:", err);
       }
+    } catch (err) {
+      console.warn("Batch translation failed:", err);
+    } finally {
+      inFlight.current = false;
+    }
 
-      setCacheVersion((v) => v + 1);
+    if (queueLang.current === langCode) {
+      batch.filter((t) => !globalCache.has(t)).forEach((t) => failedTexts.add(t));
+      if (stored > 0) {
+        saveCacheToStorage(langCode);
+        setCacheVersion((v) => v + 1);
+      }
+    }
+    if (pendingTexts.size > 0) flushTimer.current = setTimeout(flushQueue, FLUSH_DELAY_MS);
+  }, [saveCacheToStorage]);
+
+  const queueTranslation = useCallback(
+    (texts: Iterable<string>) => {
+      if (queueLang.current === "en" || typeof window === "undefined") return;
+      for (const t of texts) {
+        if (t && t.trim() && !globalCache.has(t) && !failedTexts.has(t)) pendingTexts.add(t);
+      }
+      if (pendingTexts.size > 0 && !flushTimer.current) flushTimer.current = setTimeout(flushQueue, FLUSH_DELAY_MS);
     },
-    []
+    [flushQueue]
+  );
+
+  /** Switches the queue to a language and asks for everything registered so far. */
+  const startLanguage = useCallback(
+    (langCode: string) => {
+      queueLang.current = langCode;
+      failedTexts.clear();
+      pendingTexts.clear();
+      if (langCode !== "en") queueTranslation(translationRegistry);
+    },
+    [queueTranslation]
   );
 
   // Initialize language from cookies or browser preference
@@ -181,13 +216,9 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
           setCacheVersion((v) => v + 1);
         });
 
-        if (langCode !== "en") {
-          const loaded = loadCacheFromStorage(langCode);
-          if (!loaded) {
-            batchTranslate(langCode).then(() => saveCacheToStorage(langCode));
-          }
-          setCacheVersion((v) => v + 1);
-        }
+        if (langCode !== "en") loadCacheFromStorage(langCode);
+        startLanguage(langCode);
+        setCacheVersion((v) => v + 1);
       } catch (error) {
         console.error("Failed to initialize language:", error);
       } finally {
@@ -226,18 +257,14 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
         setIsLoading(false);
 
         // Fetch any un-cached strings in the background without blocking the UI
-        if (language.code !== "en") {
-          batchTranslate(language.code).then(() => {
-            saveCacheToStorage(language.code);
-          });
-        }
+        startLanguage(language.code);
       } catch (error) {
         console.error("Failed to change language:", error);
         setIsLoading(false);
         throw error;
       }
     },
-    [batchTranslate, saveCacheToStorage]
+    [startLanguage]
   );
 
   /** Synchronous translation lookup: returns cached value or original text */
@@ -250,20 +277,13 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
       const cached = globalCache.get(text);
       if (cached) return cached;
 
-      // Queue for background batch translation if not already in flight
-      if (typeof window !== "undefined") {
-        setTimeout(() => {
-          if (!globalCache.has(text)) {
-            batchTranslate(currentLanguage.code, [text]);
-          }
-        }, 100);
-      }
-
+      // Queued for the next batch request; failed strings are not retried.
+      queueTranslation([text]);
       return text;
     },
     // cacheVersion in deps ensures re-render when cache is populated
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentLanguage.code, cacheVersion, batchTranslate]
+    [currentLanguage.code, cacheVersion, queueTranslation]
   );
 
   /** Async translation: checks cache first, falls back to API */
@@ -372,6 +392,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
   const clearCache = useCallback(() => {
     globalCache.clear();
+    failedTexts.clear();
     try {
       sessionStorage.removeItem(CACHE_STORAGE_KEY);
       sessionStorage.removeItem(CACHE_LANG_KEY);
@@ -413,7 +434,8 @@ export function useTranslation() {
   return context;
 }
 
-// Custom hook for real-time text translation
+// Custom hook for real-time text translation. It reads the shared cache and queues
+// misses for the provider's batch request, so many elements never mean many requests.
 export function useTextTranslation(
   text: string,
   options?: {
@@ -421,53 +443,19 @@ export function useTextTranslation(
     targetLanguage?: string;
   }
 ) {
-  const { translateSync, translateText, currentLanguage } = useTranslation();
-  const [isTranslating, setIsTranslating] = useState(false);
+  const { translateSync, currentLanguage } = useTranslation();
 
   // Register text for future batch translation
   useEffect(() => {
     if (text) registerTextForTranslation(text);
   }, [text]);
 
-  const shouldTranslate =
-    options?.enabled !== false &&
-    (options?.targetLanguage || currentLanguage.code) !== "en";
+  const shouldTranslate = options?.enabled !== false && (options?.targetLanguage || currentLanguage.code) !== "en";
+  const translatedText = shouldTranslate ? translateSync(text) : text;
 
-  // First try synchronous cache lookup: this is instant
-  const cachedResult = shouldTranslate ? translateSync(text) : text;
-  const isCached = cachedResult !== text && shouldTranslate;
-
-  // Only call async if not cached
-  const [asyncResult, setAsyncResult] = useState<string>(cachedResult);
-
-  useEffect(() => {
-    if (!shouldTranslate) {
-      setAsyncResult(text);
-      return;
-    }
-
-    // Use cached value synchronously
-    const cached = translateSync(text);
-    if (cached !== text) {
-      setAsyncResult(cached);
-      return;
-    }
-
-    // Fall back to async
-    setIsTranslating(true);
-    translateText(text, options?.targetLanguage)
-      .then((result) => {
-        setAsyncResult(result);
-      })
-      .catch(() => setAsyncResult(text))
-      .finally(() => setIsTranslating(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text, currentLanguage.code, options?.targetLanguage, options?.enabled]);
-
-  // Return cached synchronously if available, otherwise async result
   return {
-    translatedText: isCached ? cachedResult : asyncResult,
-    isTranslating: !isCached && isTranslating,
+    translatedText,
+    isTranslating: shouldTranslate && translatedText === text,
   };
 }
 
