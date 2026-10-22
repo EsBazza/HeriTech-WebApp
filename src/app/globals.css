@@ -1123,19 +1123,51 @@
   }
 }
 
-/* Photo pass: the piece's own colours, softly blurred, behind the whole card */
+/* Photo pass: the piece fills the card, softened into a toned silhouette */
 .pass-bg {
   position: absolute;
-  inset: -14%;
-  width: 128%;
-  height: 128%;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
   object-fit: cover;
-  filter: blur(22px) saturate(1.4) brightness(0.55);
-  animation: pass-drift 16s ease-in-out infinite alternate;
+  filter: blur(1.5px) grayscale(0.45) contrast(1.15) brightness(0.82);
+  transform: scale(1.02);
+  /* Pulls into focus when the pass appears, then drifts very slowly */
+  animation: pass-focus 2s var(--ease-out) both, pass-drift 18s ease-in-out 2s infinite alternate;
+  transition: filter 0.8s var(--ease-out);
+}
+@keyframes pass-focus {
+  from { filter: blur(18px) grayscale(1) contrast(1.15) brightness(0.6); transform: scale(1.18); }
+  to { filter: blur(1.5px) grayscale(0.45) contrast(1.15) brightness(0.82); transform: scale(1.02); }
 }
 @keyframes pass-drift {
-  from { transform: scale(1.05) translate3d(-2%, -1%, 0); }
-  to { transform: scale(1.12) translate3d(2%, 2%, 0); }
+  from { transform: scale(1.02) translate3d(0, 0, 0); }
+  to { transform: scale(1.09) translate3d(-2%, -2%, 0); }
+}
+/* Duotone: shadows in pine, highlights in lantern amber */
+.pass-duotone {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, #f2a65a 0%, #c4471e 38%, #1f3a2b 78%);
+  mix-blend-mode: color;
+  opacity: 0.65;
+  transition: opacity 0.8s var(--ease-out);
+  pointer-events: none;
+}
+/* A band of lantern light that drifts across once */
+.pass-light {
+  position: absolute;
+  inset: -30% -60%;
+  background: radial-gradient(40% 30% at 50% 50%, rgb(255 214 150 / 0.35), transparent 70%);
+  mix-blend-mode: screen;
+  transform: translate3d(-45%, -10%, 0);
+  animation: pass-light 3.2s var(--ease-in-out) 0.4s both;
+  pointer-events: none;
+}
+@keyframes pass-light {
+  0% { opacity: 0; transform: translate3d(-45%, -10%, 0); }
+  30% { opacity: 1; }
+  100% { opacity: 0.35; transform: translate3d(30%, 6%, 0); }
 }
 .pass-scrim {
   position: absolute;
@@ -1144,59 +1176,30 @@
 }
 .pass-photo .pass-scrim {
   background:
-    radial-gradient(70% 45% at 50% 32%, rgb(242 166 90 / 0.18), transparent 70%),
-    linear-gradient(180deg, rgb(11 20 15 / 0.35) 0%, rgb(20 40 30 / 0.25) 40%, rgb(20 40 30 / 0.88) 70%, rgb(11 20 15 / 0.96) 100%);
+    linear-gradient(180deg, rgb(11 20 15 / 0.6) 0%, rgb(11 20 15 / 0) 26%),
+    linear-gradient(180deg, rgb(20 40 30 / 0) 30%, rgb(20 40 30 / 0.7) 52%, rgb(11 20 15 / 0.93) 72%);
 }
-/* The arched window that frames the piece */
-.pass-window {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.28), 0 0 0 6px rgb(255 255 255 / 0.06), 0 24px 40px -18px rgb(0 0 0 / 0.7);
-}
-.pass-window-img {
+/* Fine film grain, so the softened photo reads as print, not as a low-res image */
+.pass-grain {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(1) contrast(1.15) brightness(1.05);
-  transition: filter 0.9s var(--ease-out), transform 0.9s var(--ease-out);
-  animation: pass-settle 2.2s var(--ease-out) both;
-}
-@keyframes pass-settle {
-  from { transform: scale(1.16); }
-  to { transform: scale(1); }
-}
-/* Duotone: shadows in pine, highlights in lantern amber */
-.pass-duotone {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(165deg, #f2a65a 0%, #c4471e 42%, #1f3a2b 100%);
-  mix-blend-mode: color;
-  opacity: 0.92;
-  transition: opacity 0.9s var(--ease-out);
-}
-.pass-window-glare {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(125deg, rgb(255 255 255 / 0.28) 0%, transparent 32%, transparent 70%, rgb(255 255 255 / 0.08) 100%);
   pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+.pass-title { text-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
+.pass-rule { transform-origin: left; animation: pass-rule 0.8s var(--ease-out) 1.2s both; }
+@keyframes pass-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Looking closer: the piece sharpens and takes back its own colours */
 @media (hover: hover) and (pointer: fine) {
-  .pass-stage:hover .pass-window-img { filter: none; transform: scale(1.04); }
-  .pass-stage:hover .pass-duotone { opacity: 0; }
+  .pass-stage:hover .pass-bg { filter: blur(0) grayscale(0) contrast(1.05) brightness(0.9); }
+  .pass-stage:hover .pass-duotone { opacity: 0.2; }
 }
-/* Touch screens: the colour comes in by itself, once */
-@media (hover: none) {
-  .pass-duotone { animation: pass-colour 1.4s var(--ease-out) 1.8s both; }
-  .pass-window-img { animation: pass-settle 2.2s var(--ease-out) both, pass-colour-img 1.4s var(--ease-out) 1.8s both; }
-}
-@keyframes pass-colour { to { opacity: 0.25; } }
-@keyframes pass-colour-img { to { filter: grayscale(0.2) contrast(1.05); } }
 @media (prefers-reduced-motion: reduce) {
-  .pass-bg, .pass-window-img, .pass-duotone { animation: none; }
-  .pass-window-img, .pass-duotone { transition: none; }
+  .pass-bg, .pass-light, .pass-rule { animation: none; }
+  .pass-bg, .pass-duotone { transition: none; }
+  .pass-light { opacity: 0.35; transform: none; }
 }
 /* Foil: an iridescent sheen that follows the cursor */
 .pass-holo {

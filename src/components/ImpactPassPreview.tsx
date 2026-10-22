@@ -27,10 +27,10 @@ export function ImpactPassPreview({ title, origin, maker, material, kgDiverted, 
       image={image}
       title={title}
       ariaLabel={translateSync("Verified Impact Pass preview")}
-      notchFromBottom={96}
+      notchFromBottom={90}
       badge={<span className="rounded-full bg-pine-900/60 backdrop-blur-sm border border-white/25 px-2.5 py-1 text-xs text-white/85">{translateSync("Preview")}</span>}
     >
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-[13px]">
         <div className="min-w-0">
           <dt className="text-xs text-white/60">{translateSync("Origin")}</dt>
           <dd className="truncate">{origin}</dd>
@@ -49,11 +49,11 @@ export function ImpactPassPreview({ title, origin, maker, material, kgDiverted, 
         </div>
       </dl>
 
-      <div className="mt-4 pt-4 border-t-2 border-dashed border-white/20 flex items-center justify-between gap-4">
+      <div className="mt-3 pt-3 border-t-2 border-dashed border-white/25 flex items-center justify-between gap-3">
         <p className="text-xs text-white/70 leading-relaxed">
           {translateSync("Serial and QR code are issued with the piece. Anyone can scan it to check this record.")}
         </p>
-        <span className="w-14 h-14 shrink-0 rounded-md bg-white text-pine-900 flex items-center justify-center">
+        <span className="w-12 h-12 shrink-0 rounded-md bg-white text-pine-900 flex items-center justify-center">
           <QrCode className="w-8 h-8" strokeWidth={1.5} />
         </span>
       </div>

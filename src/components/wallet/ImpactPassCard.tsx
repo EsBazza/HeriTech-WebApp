@@ -36,12 +36,12 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
   const { translateSync, formatNumber, formatDate } = useTranslation();
 
   return (
-    <div className={cn("@container space-y-3", className)}>
+    <div className={cn("@container space-y-3 w-full max-w-[19rem] mx-auto", className)}>
       <PassShell
         image={image}
         title={title}
         ariaLabel={`${translateSync("Verified Impact Pass")} ${serial}`}
-        notchFromBottom={154}
+        notchFromBottom={130}
         badge={
           <span className="inline-flex items-center gap-1 rounded-full bg-pine-900/60 backdrop-blur-sm border border-white/15 px-2.5 py-1 text-xs text-pine-200">
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -49,7 +49,7 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
           </span>
         }
       >
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-[13px]">
           {maker && (
             <div className="min-w-0">
               <dt className="text-xs text-white/60">{translateSync("Made by")}</dt>
@@ -76,18 +76,18 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
           )}
         </dl>
 
-        <div className="mt-4 flex items-end justify-between gap-4 pt-3 border-t-2 border-dashed border-white/20">
+        <div className="mt-3 flex items-end justify-between gap-3 pt-3 border-t-2 border-dashed border-white/25">
           <div className="min-w-0">
             <p className="text-xs text-white/60">{translateSync("Serial")}</p>
-            <p className="font-mono-data text-base tracking-wide break-all">{serial}</p>
+            <p className="font-mono-data text-[15px] tracking-wide break-all">{serial}</p>
             <p className="mt-1 text-xs text-white/65 leading-snug max-w-[11rem]">{translateSync("Scan to open the public record of this piece.")}</p>
           </div>
-          <QRCodeViewer value={verifyUrl} size={104} level="M" className="shrink-0" />
+          <QRCodeViewer value={verifyUrl} size={84} level="M" className="shrink-0" />
         </div>
       </PassShell>
 
       {/* Side by side only when the card is wide enough; stacked in narrow grids */}
-      <div className={cn("grid gap-2", wallet && "@md:grid-cols-2")}>
+      <div className="grid gap-2">
         {wallet && <AddToWalletButton serial={serial} className="w-full" />}
         <Link href={`/verify/${serial}`} onClick={onNavigate} className={buttonClass("secondary", "lg", "w-full rounded-full")}>
           {translateSync("View public record")}
