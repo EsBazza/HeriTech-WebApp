@@ -113,7 +113,7 @@
   <rect width="800" height="600" fill="url(#vignette)"/>
   <rect width="800" height="600" filter="url(#grain)" opacity="0.22" style="mix-blend-mode:multiply"/>
   <g font-family="'DM Sans', system-ui, sans-serif">
-    <rect x="499" y="548" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
-    <text x="550" y="569" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
+    <rect x="499" y="20" width="102" height="32" rx="16" fill="#1b1f1c" fill-opacity="0.55"/>
+    <text x="550" y="41" text-anchor="middle" font-size="15" font-weight="600" fill="#ffffff">Demo image</text>
   </g>
 </svg>
