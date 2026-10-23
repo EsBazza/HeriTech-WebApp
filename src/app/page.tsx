@@ -543,7 +543,7 @@ export default function FeedHomePage() {
       <div className="relative overflow-x-clip">
       {/* On the page edges: the split as a ring on the right, a lantern frame on the left */}
       <SplitRing className="absolute -right-[110px] bottom-[14%] w-[220px] sm:-right-[140px] lg:-right-[150px] lg:top-[10%] lg:bottom-auto lg:w-[360px]" />
-      <LanternFrame className="absolute -left-[70px] top-[6%] w-[150px] lg:-left-[80px] lg:top-auto lg:bottom-[8%] lg:w-[240px]" />
+      <LanternFrame className="absolute -left-[70px] bottom-0 w-[150px] lg:-left-[120px] lg:bottom-[10%] lg:w-[230px]" />
       <section className="relative z-[1] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
         <Reveal className="lg:col-span-5">
           <h2 id="split-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
