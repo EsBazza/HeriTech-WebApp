@@ -15,6 +15,7 @@ import { CountUp } from "@/components/motion/CountUp";
 import { useInView } from "@/components/motion/Reveal";
 import { FestivalLoop } from "@/components/home/FestivalLoop";
 import { LedgerMarquee } from "@/components/home/LedgerMarquee";
+import { LanternFrame, SplitFlow, SplitRing } from "@/components/home/SplitShapes";
 import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
 import { LanternAssembly } from "@/components/motion/LanternAssembly";
 import { apiJson } from "@/lib/api";
@@ -539,7 +540,8 @@ export default function FeedHomePage() {
       </section>
 
       {/* WHERE THE MONEY GOES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 items-center" aria-labelledby="split-title">
+      <div className="overflow-x-clip">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
         <Reveal className="lg:col-span-5">
           <h2 id="split-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
             {translateSync("Every sale, split in the open")}
@@ -547,15 +549,28 @@ export default function FeedHomePage() {
           <p className="mt-6 text-[18px] text-ink-2 leading-[1.6] max-w-[44ch] text-pretty">
             {translateSync("See the exact split before you pay. It goes on the public record, and your pass links to it.")}
           </p>
+          {/* One sale, three payouts: the line weights follow the split */}
+          <SplitFlow className="mt-10 w-[240px] sm:w-[280px]" />
         </Reveal>
-        <Reveal delay={120} className="lg:col-span-7 bg-surface p-7 sm:p-9">
-          <div className="flex items-baseline justify-between mb-6">
-            <span className="text-base text-ink-2">{translateSync("A piece sold for")}</span>
-            <span className="tabular font-display text-[44px] leading-none font-semibold text-ink">{formatCurrency(85)}</span>
+        <Reveal delay={120} className="lg:col-span-7 relative">
+          <SplitRing className="absolute -right-24 -top-24 w-[220px] sm:-right-28 sm:-top-28 sm:w-[300px]" />
+          <LanternFrame className="absolute -left-14 -bottom-16 w-[130px] sm:-left-20 sm:-bottom-20 sm:w-[170px]" />
+          <div className="split-ticket relative z-[1] bg-surface p-7 sm:p-9 shadow-card">
+            <div className="flex items-baseline justify-between mb-6">
+              <span className="text-base text-ink-2">{translateSync("A piece sold for")}</span>
+              <span className="tabular font-display text-[44px] leading-none font-semibold text-ink">{formatCurrency(85)}</span>
+            </div>
+            <EscrowBar amount={85} animate />
+            <p className="relative mt-6 pt-4 border-t border-dashed border-line-strong flex items-center gap-2 text-sm text-ink-3">
+              <span aria-hidden className="split-notch -left-[38px] sm:-left-[46px]" />
+              <span aria-hidden className="split-notch -right-[38px] sm:-right-[46px]" />
+              <QrCode className="w-4 h-4 shrink-0" aria-hidden />
+              {translateSync("Logged on the public record, linked to the buyer's pass")}
+            </p>
           </div>
-          <EscrowBar amount={85} animate />
         </Reveal>
       </section>
+      </div>
 
       {/* PARTNERS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24" aria-label={translateSync("Partners")}>
