@@ -68,7 +68,7 @@ function threadsFromServer(messages: ServerMessage[], myId: string): Thread[] {
       id: otherId,
       name: other?.fullName ?? "HeriTech member",
       subtitle: other?.workshopName || other?.stationName || "",
-      avatarText: (other?.fullName ?? "?").slice(0, 2).toUpperCase(),
+      avatarText: initials(other?.fullName ?? "?"),
       role: other?.role,
       messages: [],
     };
@@ -125,6 +125,12 @@ const toneFor = (id: string) => AVATAR_TONES[[...id].reduce((n, c) => n + c.char
 
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
+/** "Demo Artisan C" → "DA"; "Maria" → "MA". */
+const initials = (name: string) => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  return (words.length > 1 ? words[0][0] + words[1][0] : name.slice(0, 2)).toUpperCase() || "?";
+};
+
 function Avatar({ thread, size = "md" }: { thread: Thread; size?: "md" | "lg" }) {
   const box = size === "lg" ? "w-11 h-11" : "w-12 h-12";
   if (thread.isBot) {
@@ -136,7 +142,7 @@ function Avatar({ thread, size = "md" }: { thread: Thread; size?: "md" | "lg" })
   }
   return (
     <span className={cn(box, "rounded-full shrink-0 font-semibold text-[14px] flex items-center justify-center", toneFor(thread.id))}>
-      {thread.avatarText || thread.name.slice(0, 2).toUpperCase()}
+      {thread.avatarText || initials(thread.name)}
     </span>
   );
 }
@@ -367,7 +373,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
             id: threadId,
             name: detail.name || "Artisan Maker",
             subtitle: detail.subtitle || "",
-            avatarText: (detail.name || "M").slice(0, 2).toUpperCase(),
+            avatarText: initials(detail.name || "Maker"),
             role: "artisan",
             topic: detail.productTitle,
             messages: [],
@@ -718,7 +724,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
 
               <div key={activeThread.id} className="chat-scroll flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-5" aria-live="polite">
                 {msgs.length === 0 && (
-                  <div className="chat-hello mx-auto my-8 max-w-[32ch] text-center">
+                  <div className="chat-hello mx-auto my-8 max-w-[32ch] flex flex-col items-center text-center">
                     <Avatar thread={activeThread} size="lg" />
                     <p className="mt-3 text-[16px] font-medium text-ink">{translateTemplate("Start a conversation with {name}", { name: translateSync(activeThread.name) })}</p>
                     <p className="mt-1 text-[14px] text-ink-3">{translateSync("Pick a quick question below or write your own.")}</p>
@@ -817,7 +823,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
               ) : (
                 <div className="bg-surface shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
                   {!inputMessage.trim() && !isBotThinking && (
-                    <div className="chat-quick flex gap-2 overflow-x-auto px-3 sm:px-4 pt-3 pb-1 [scrollbar-width:none]" aria-label={translateSync("Quick replies")}>
+                    <div className="chat-quick flex lg:flex-wrap gap-2 overflow-x-auto lg:overflow-visible px-3 sm:px-4 pt-3 pb-1 [scrollbar-width:none]" aria-label={translateSync("Quick replies")}>
                       {quickReplies.map((r, i) => (
                         <button
                           key={r}
