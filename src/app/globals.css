@@ -1375,7 +1375,41 @@
 .ledger-band--plain::before,
 .ledger-band--plain::after { display: none; }
 .marquee-fade {
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee { contain: layout paint; }
+/* The figure at the centre is lit (--lit 0..1, set per frame) and sits a touch larger */
+.mq-item {
+  --lit: 1;
+  transform: scale(calc(0.92 + 0.08 * var(--lit)));
+  transform-origin: 50% 60%;
+}
+/* A lantern-amber diamond between figures */
+.mq-mark {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  background: var(--color-glow);
+  transform: rotate(45deg);
+  border-radius: 1.5px;
+}
+/* Live dot: a soft ring breathing out of it */
+.ledger-live { position: relative; }
+.ledger-live::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: ledger-live 2.4s var(--ease-out) infinite;
+}
+@keyframes ledger-live {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(3); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mq-item { transform: none; }
+  .ledger-live::after { animation: none; display: none; }
 }
 /* Live-figures dot: one pulse when the figures arrive */
 .ledger-pulse { animation: ledger-pulse 1.4s ease-out 1; }
