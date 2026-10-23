@@ -1483,7 +1483,7 @@
   .lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); border-color: var(--color-line-strong); }
 }
 
-.traced-badge { position: relative; overflow: hidden; }
+.traced-badge { overflow: hidden; } /* positioned by its utilities; any position makes it the ::after container */
 .traced-badge::after {
   content: "";
   position: absolute;
