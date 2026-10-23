@@ -1,22 +1,94 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Check, ShoppingBag, Trash2, Leaf } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import React, { useEffect, useRef, useState } from "react";
+import { ArrowRight, Check, Leaf, QrCode, ShoppingBag } from "lucide-react";
+import { useCart, type CartProduct } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
-import { SPLIT } from "@/lib/escrow";
-import { Button, Dialog, EmptyState, IconButton } from "@/components/ui";
+import { SPLIT, calculateEscrowSplit } from "@/lib/escrow";
+import { Button, Dialog, cn } from "@/components/ui";
 
 interface CartPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const reducedMotion = () => typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+
+/** A number that glides from its last value to the new one (on open it rises from zero). */
+function useTween(value: number, duration = 800) {
+  const [shown, setShown] = useState(0);
+  const from = useRef(0);
+  useEffect(() => {
+    if (reducedMotion()) {
+      from.current = value;
+      setShown(value);
+      return;
+    }
+    const start = performance.now();
+    const a = from.current;
+    let frame = 0;
+    const step = (now: number) => {
+      const p = Math.min((now - start) / duration, 1);
+      const v = a + (value - a) * (1 - Math.pow(1 - p, 3));
+      from.current = v;
+      setShown(v);
+      if (p < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [value, duration]);
+  return shown;
+}
+
+/** Adds up the 70/25/5 split piece by piece, so it matches what checkout charges to the cent. */
+function cartSplit(items: CartProduct[]) {
+  return items.reduce(
+    (acc, item) => {
+      const s = calculateEscrowSplit(item.price);
+      return { artisan: acc.artisan + s.artisanPayout, lgu: acc.lgu + s.lguShare, charity: acc.charity + s.charityMaintenanceShare };
+    },
+    { artisan: 0, lgu: 0, charity: 0 }
+  );
+}
+
+/**
+ * The cart as an impact receipt: what the pieces rescue, where each one came
+ * from, and where the money goes before checkout.
+ */
 export function CartPanel({ isOpen, onClose }: CartPanelProps) {
   const { items, removeFromCart, subtotal, totalKgDiverted } = useCart();
-  const { formatCurrency, formatNumber, translateSync } = useTranslation();
+  const { formatCurrency, formatNumber, translateSync, translateTemplate } = useTranslation();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // Pieces on their way out, so the row can slide away before it is removed.
+  const [leaving, setLeaving] = useState<Set<string>>(new Set());
+
+  const kg = useTween(isOpen ? totalKgDiverted : 0);
+  const total = useTween(isOpen ? subtotal : 0);
+  const split = cartSplit(items);
+  const festivals = new Set(items.map((i) => i.festivalName).filter(Boolean)).size;
+  const makers = new Set(items.map((i) => i.artisanId || i.artisanName).filter(Boolean)).size;
+
+  const remove = (id: string) => {
+    if (reducedMotion()) return removeFromCart(id);
+    setLeaving((s) => new Set(s).add(id));
+    setTimeout(() => {
+      removeFromCart(id);
+      setLeaving((s) => {
+        const next = new Set(s);
+        next.delete(id);
+        return next;
+      });
+    }, 260);
+  };
+
+  const shares = [
+    { key: "artisan", pct: SPLIT.artisan, value: split.artisan, color: "bg-split-artisan", label: translateSync("Artisans") },
+    { key: "lgu", pct: SPLIT.lgu, value: split.lgu, color: "bg-split-platform", label: translateSync("Local government") },
+    { key: "charity", pct: SPLIT.charityMaintenance, value: split.charity, color: "bg-split-ngo", label: translateSync("Charity & upkeep") },
+  ];
+
+  const count = items.length;
 
   return (
     <>
@@ -24,67 +96,150 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
         open={isOpen}
         onClose={onClose}
         variant="drawer"
+        className="sm:max-w-[440px]"
         title={translateSync("Your cart")}
+        description={
+          count > 0
+            ? count === 1 ? translateSync("1 handmade piece") : translateTemplate("{count} handmade pieces", { count })
+            : undefined
+        }
         closeLabel={translateSync("Close cart")}
         bodyClassName="px-0 py-0"
         footer={
-          items.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-brand">
-                <Leaf className="w-4 h-4 shrink-0" />
-                {formatNumber(totalKgDiverted)} {translateSync("kg of festival material kept out of landfill")}
+          count > 0 && (
+            <div className="cart-foot space-y-4 pt-1">
+              {/* Where the money goes, live as pieces are added or removed */}
+              <div>
+                <p className="text-[15px] font-medium text-ink">
+                  {translateTemplate("Where your {total} goes", { total: formatCurrency(subtotal) })}
+                </p>
+                <div className="cart-split mt-2.5 flex h-2.5 w-full gap-[3px] overflow-hidden rounded-full" aria-hidden>
+                  {shares.map((s) => (
+                    <span key={s.key} className={cn("cart-split-seg h-full rounded-full", s.color)} style={{ width: `${s.pct}%` }} />
+                  ))}
+                </div>
+                <dl className="mt-3 grid grid-cols-3 gap-2">
+                  {shares.map((s) => (
+                    <div key={s.key} className="min-w-0">
+                      <dt className="flex items-center gap-1.5 text-[13px] text-ink-3 truncate">
+                        <span aria-hidden className={cn("w-2 h-2 rounded-full shrink-0", s.color)} />
+                        {s.label}
+                      </dt>
+                      <dd className="tabular mt-0.5 text-[15px] font-semibold text-ink">{formatCurrency(s.value)}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-sm text-ink-3">{translateSync("Subtotal")}</span>
-                <span className="tabular font-display text-2xl font-semibold text-ink">{formatCurrency(subtotal)}</span>
-              </div>
+
               <Button
                 variant="accent"
                 size="lg"
-                className="w-full"
+                className="cart-checkout group w-full justify-between"
                 onClick={() => {
                   setCheckoutOpen(true);
                   onClose();
                 }}
               >
-                {translateSync("Checkout")}
+                <span>{translateSync("Checkout")}</span>
+                <span className="flex items-center gap-2">
+                  <span className="tabular">{formatCurrency(total)}</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </span>
               </Button>
-              <p className="text-sm text-ink-3 text-center">
-                {SPLIT.artisan}% {translateSync("goes directly to the artisan. See the full split at checkout.")}
+              <p className="flex items-center justify-center gap-1.5 text-[13px] text-ink-3">
+                <QrCode className="w-3.5 h-3.5 shrink-0" />
+                {translateSync("Every piece comes with a Verified Impact Pass.")}
               </p>
             </div>
           )
         }
       >
-        {items.length === 0 ? (
-          <EmptyState
-            className="m-5 border-none bg-transparent"
-            icon={<ShoppingBag className="w-5 h-5" />}
-            title={translateSync("Your cart is empty")}
-            description={translateSync("Every piece is made from recovered festival material and comes with a Verified Impact Pass.")}
-            action={
-              <Button variant="secondary" onClick={onClose}>
-                {translateSync("Browse crafts")}
-              </Button>
-            }
-          />
+        {count === 0 ? (
+          <div className="cart-empty flex flex-col items-center text-center px-8 py-14">
+            <span className="cart-empty-mark relative w-20 h-20 rounded-full bg-pine-50 text-brand flex items-center justify-center">
+              <ShoppingBag className="w-8 h-8" strokeWidth={1.5} />
+              <span aria-hidden className="cart-empty-leaf absolute -top-1 -right-1 w-8 h-8 rounded-full bg-lantern text-white flex items-center justify-center">
+                <Leaf className="w-4 h-4" />
+              </span>
+            </span>
+            <p className="mt-6 font-display text-[26px] leading-tight font-semibold text-ink">{translateSync("Nothing here yet")}</p>
+            <p className="mt-2 text-[15px] leading-relaxed text-ink-2 max-w-[30ch]">
+              {translateSync("Every piece is made from recovered festival material and comes with a Verified Impact Pass.")}
+            </p>
+            <Button variant="secondary" className="mt-6" onClick={onClose}>
+              {translateSync("Browse crafts")}
+            </Button>
+          </div>
         ) : (
-          <ul className="divide-y divide-line">
-            {items.map((item) => (
-              <li key={item.id} className="flex gap-3 px-5 py-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.image} alt="" className="w-16 h-16 rounded-sm object-cover bg-paper-2 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-ink line-clamp-2">{translateSync(item.title)}</p>
-                  {item.cooperativeName && <p className="text-sm text-ink-3 truncate mt-0.5">{translateSync(item.cooperativeName)}</p>}
-                  <p className="tabular text-sm font-semibold text-ink mt-1.5">{formatCurrency(item.price)}</p>
-                </div>
-                <IconButton tone="danger" onClick={() => removeFromCart(item.id)} aria-label={`${translateSync("Remove")}: ${translateSync(item.title)}`} className="-mr-2 self-center">
-                  <Trash2 className="w-[18px] h-[18px]" />
-                </IconButton>
-              </li>
-            ))}
-          </ul>
+          <>
+            {/* What these pieces rescue */}
+            <div className="cart-impact relative overflow-hidden bg-pine-900 text-white px-5 py-6">
+              <svg aria-hidden viewBox="0 0 200 80" className="cart-impact-thread absolute -right-6 bottom-0 w-56 h-auto opacity-40">
+                <path d="M0 70 C 50 10, 120 90, 200 20" fill="none" stroke="#f2a65a" strokeWidth="2" strokeDasharray="3 8" strokeLinecap="round" />
+              </svg>
+              <p className="relative text-[14px] text-white/75">{translateSync("Together, these pieces keep")}</p>
+              <p className="relative mt-1 flex items-baseline gap-2">
+                <span className="tabular font-display text-[52px] leading-none font-semibold text-glow">{formatNumber(Number(kg.toFixed(1)))}</span>
+                <span className="text-[17px] font-medium">{translateSync("kg out of landfill")}</span>
+              </p>
+              <p className="relative mt-3 text-[14px] text-white/80">
+                {[
+                  festivals > 0 && (festivals === 1 ? translateSync("from 1 festival") : translateTemplate("from {count} festivals", { count: festivals })),
+                  makers > 0 && (makers === 1 ? translateSync("made by 1 artisan") : translateTemplate("made by {count} artisans", { count: makers })),
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+            </div>
+
+            <ul className="px-5 py-5 space-y-3">
+              {items.map((item, i) => {
+                const maker = item.artisanName || item.cooperativeName;
+                return (
+                  <li
+                    key={item.id}
+                    data-leaving={leaving.has(item.id)}
+                    className="cart-row grid grid-cols-[88px_1fr] gap-4 rounded-lg bg-paper p-3"
+                    style={{ "--i": i } as React.CSSProperties}
+                  >
+                    <div className="relative w-[88px] h-[88px] overflow-hidden rounded-md bg-paper-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.image} alt="" className="cart-photo w-full h-full object-cover" />
+                    </div>
+                    <div className="min-w-0 flex flex-col">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-[16px] leading-snug font-medium text-ink line-clamp-2">{translateSync(item.title)}</p>
+                        <p className="tabular shrink-0 font-display text-[20px] leading-none font-semibold text-ink pt-0.5">{formatCurrency(item.price)}</p>
+                      </div>
+                      {maker && <p className="mt-0.5 text-[14px] text-ink-2 truncate">{translateTemplate("by {maker}", { maker: translateSync(maker) })}</p>}
+                      <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+                        {item.kgDiverted ? (
+                          <span className="inline-flex items-center gap-1 text-[13px] text-brand min-w-0">
+                            <Leaf className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate">
+                              {item.festivalName
+                                ? translateTemplate("{kg} kg from {festival}", { kg: formatNumber(item.kgDiverted), festival: translateSync(item.festivalName) })
+                                : translateTemplate("{kg} kg rescued", { kg: formatNumber(item.kgDiverted) })}
+                            </span>
+                          </span>
+                        ) : (
+                          <span />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => remove(item.id)}
+                          aria-label={`${translateSync("Remove")}: ${translateSync(item.title)}`}
+                          className="shrink-0 -mr-1 min-h-11 px-2 rounded-md text-[13px] font-medium text-ink-3 hover:text-danger hover:bg-danger-100 transition-colors cursor-pointer"
+                        >
+                          {translateSync("Remove")}
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </Dialog>
 

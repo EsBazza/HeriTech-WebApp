@@ -1502,3 +1502,28 @@
   .step-rail-fill { transition: none; transform: scaleX(1); }
   .lift:hover, .js .reveal.is-visible.lift:hover { transform: none; }
 }
+
+/* ─── Cart: an impact receipt ─── */
+/* Pieces arrive one after another as the drawer opens */
+.cart-row { animation: cart-row-in 0.5s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); transition: opacity 0.26s ease, transform 0.26s var(--ease-out); }
+@keyframes cart-row-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+/* A removed piece slides out before it leaves the list */
+.cart-row[data-leaving="true"] { opacity: 0; transform: translateX(40px); }
+.cart-photo { transition: transform 0.5s var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .cart-row:hover .cart-photo { transform: scale(1.06); } }
+/* The rescued-kg band: its thread flows, the figure rises */
+.cart-impact { animation: cart-row-in 0.5s var(--ease-out) both; }
+.cart-impact-thread path { animation: thread-flow 2.4s linear infinite; }
+/* The split grows in from the left */
+.cart-split-seg { transform-origin: left; animation: cart-seg 0.8s var(--ease-out) both; }
+.cart-split-seg:nth-child(2) { animation-delay: 0.12s; }
+.cart-split-seg:nth-child(3) { animation-delay: 0.24s; }
+@keyframes cart-seg { from { transform: scaleX(0); } to { transform: none; } }
+.cart-checkout:active { transform: scale(0.98); }
+/* Empty cart: the leaf settles onto the bag */
+.cart-empty-leaf { animation: cart-leaf 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) 0.2s both; }
+@keyframes cart-leaf { from { transform: translate(-10px, 10px) scale(0) rotate(-40deg); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cart-row, .cart-impact, .cart-impact-thread path, .cart-split-seg, .cart-empty-leaf { animation: none; }
+  .cart-row, .cart-photo { transition: none; }
+}
