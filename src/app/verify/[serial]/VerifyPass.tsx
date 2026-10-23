@@ -44,7 +44,7 @@ import { Badge, Button, Card, EmptyState, LinkButton, Skeleton, buttonClass, con
 export function VerifyPass({ serial }: { serial: string }) {
   const router = useRouter();
   const { user } = useAuth();
-  const { formatCurrency, formatNumber, formatDate, translateSync } = useTranslation();
+  const { translateTemplate, formatCurrency, formatNumber, formatDate, translateSync } = useTranslation();
 
   const [data, setData] = useState<PassRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -159,7 +159,7 @@ export function VerifyPass({ serial }: { serial: string }) {
       icon: <FileSignature className="w-4 h-4" />,
       title: translateSync("Collection agreed"),
       detail: origin.festival
-        ? `${translateSync("Material release agreement with")} ${translateSync(origin.festival)}${origin.country ? `, ${translateSync(origin.country)}` : ""}.`
+        ? translateTemplate("Material release agreement with {origin}.", { origin: `${translateSync(origin.festival)}${origin.country ? `, ${translateSync(origin.country)}` : ""}` })
         : translateSync("Material release agreement on file."),
     },
     {
@@ -196,7 +196,7 @@ export function VerifyPass({ serial }: { serial: string }) {
             icon: <Gift className="w-4 h-4" />,
             title: translateSync("Claimed free at the HeriTech booth"),
             meta: fmt(data.issuedAt),
-            detail: `${translateSync("Pass")} ${data.serial} · ${translateSync("no money changed hands")}`,
+            detail: `${translateTemplate("Pass {serial}", { serial: data.serial })} · ${translateSync("no money changed hands")}`,
           },
         ]
       : [

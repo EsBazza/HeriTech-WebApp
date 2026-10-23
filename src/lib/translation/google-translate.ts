@@ -2,6 +2,7 @@
 // then the bundled phrase dictionary.
 import "server-only";
 import { generateJson } from "@/lib/server/gemini";
+import { PROTECTED_TERMS, protectForHtml, unprotectFromHtml } from "@/lib/translation/protect";
 
 export interface TranslationRequest {
   text: string | string[];
@@ -77,10 +78,11 @@ async function fetchGoogleTranslateRest(
   if (!apiKey || apiKey.includes('YOUR_') || apiKey.length < 20) return null;
 
   try {
+    // HTML mode so brand names can be marked translate="no" and come back untouched.
     const body: Record<string, string | string[]> = {
-      q: texts,
+      q: texts.map(protectForHtml),
       target: targetLanguage,
-      format: 'text',
+      format: 'html',
     };
     if (sourceLanguage && sourceLanguage !== 'auto') {
       body.source = sourceLanguage;
@@ -97,7 +99,7 @@ async function fetchGoogleTranslateRest(
 
     const data = await response.json();
     if (data?.data?.translations && Array.isArray(data.data.translations)) {
-      return data.data.translations.map((t: { translatedText: string }) => t.translatedText);
+      return data.data.translations.map((t: { translatedText: string }) => unprotectFromHtml(t.translatedText));
     }
   } catch (err) {
     console.warn('Google Translate REST API call failed:', err);
@@ -115,6 +117,7 @@ async function fetchGeminiTranslate(texts: string[], targetLanguage: string): Pr
         parts: [
           {
             text: `Translate this JSON array of English strings into the language with code "${targetLanguage}". Return a JSON array of strings matching the input one-to-one.
+Keep these names exactly as written, untranslated: ${PROTECTED_TERMS.join(", ")}, any serial like HT-XXXX-XXXX, and every placeholder in curly braces such as {count}. Keep numbers, currency, punctuation and leading or trailing spaces as they are.
 
 ${JSON.stringify(texts)}`,
           },

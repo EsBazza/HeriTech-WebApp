@@ -23,7 +23,9 @@ const schema = z.object({
  * Open to guests, so it is rate limited and capped at 100 strings and 20,000 characters per call.
  */
 export const POST = route(async (request: Request) => {
-  rateLimit(request, "translate", 60, 60_000);
+  // Generous per IP: at a booth every visitor's phone shares the venue's one address.
+  // Each call is still capped at 100 strings and 20,000 characters, and answers are cached.
+  rateLimit(request, "translate", 600, 60_000);
   const { text, targetLanguage, sourceLanguage } = await parseBody(request, schema);
   const result = await translateWithCache({ text, targetLanguage, sourceLanguage });
 

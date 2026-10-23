@@ -61,7 +61,7 @@ interface BatchItem {
 
 function MaterialsMapPageContent() {
   const { user } = useAuth();
-  const { formatNumber, translateSync } = useTranslation();
+  const { translateTemplate, formatNumber, translateSync } = useTranslation();
   const [batches, setBatches] = useState<BatchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -242,7 +242,7 @@ function MaterialsMapPageContent() {
             term: batch.aiSource === "on_device" ? "Checked on-device" : "Checked by Gemini",
             value: [
               translateSync(batch.aiInferredMaterial || batch.materialType),
-              batch.alsoContains?.length ? `${translateSync("also")} ${batch.alsoContains.map((c) => translateSync(c).toLowerCase()).join(", ")}` : "",
+              batch.alsoContains?.length ? translateTemplate("also {items}", { items: batch.alsoContains.map((c) => translateSync(c).toLowerCase()).join(", ") }) : "",
               // Only the on-device model gives a real class probability; Gemini's self-rating is not shown.
               batch.aiSource === "on_device" && batch.aiConfidence != null ? `${Math.round(batch.aiConfidence * 100)}%` : "",
             ]
@@ -615,7 +615,7 @@ function MaterialsMapPageContent() {
       >
         <p className="text-[15px] text-ink-2">
           {confirmCancel && confirmCancel.reservedByArtisanId !== user?.id
-            ? `${translateSync("This is reserved by")} ${confirmCancel.reservedByArtisan?.workshopName || confirmCancel.reservedByArtisan?.fullName || translateSync("an artisan")}. `
+            ? translateTemplate("This is reserved by {name}.", { name: confirmCancel.reservedByArtisan?.workshopName || confirmCancel.reservedByArtisan?.fullName || translateSync("an artisan") }) + " "
             : ""}
           {translateSync("The batch goes back on the map for any artisan to reserve, and its pickup code stops working.")}
         </p>

@@ -49,7 +49,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const { user } = useAuth();
   const { addToCart, items } = useCart();
-  const { formatCurrency, formatNumber, translateSync } = useTranslation();
+  const { translateTemplate, formatCurrency, formatNumber, translateSync } = useTranslation();
 
   const [product, setProduct] = useState<ProductView | null>(null);
   const [related, setRelated] = useState<FeedMaterialBatch[]>([]);
@@ -292,7 +292,7 @@ export default function ProductDetailPage() {
                 {stock === 0
                   ? translateSync(freeClaim ? "All claimed" : "Sold out")
                   : stock <= 3
-                  ? `${translateSync("Only")} ${stock} ${translateSync("left")}`
+                  ? translateTemplate("Only {count} left", { count: stock })
                   : `${stock} ${translateSync(freeClaim ? "left to claim" : "in stock")}`}
               </span>
             </div>
@@ -358,7 +358,7 @@ export default function ProductDetailPage() {
                   {freeClaim
                     ? translateSync("Collect it at the HeriTech booth")
                     : country
-                    ? `${translateSync("Ships from")} ${translateSync(country)}`
+                    ? translateTemplate("Ships from {country}", { country: translateSync(country) })
                     : translateSync("Ships from the maker")}
                 </span>
                 <span className="block text-ink-3">
@@ -432,7 +432,7 @@ export default function ProductDetailPage() {
             <h2 className="font-display text-[30px] font-semibold">{translateSync("Follow the material")}</h2>
             <p className="text-sm text-white/70 mt-1">
               {product.sourceBatch.pickupAddress
-                ? `${translateSync("Collected at")} ${product.sourceBatch.pickupAddress}`
+                ? translateTemplate("Collected at {place}", { place: product.sourceBatch.pickupAddress })
                 : translateSync("Collected and pinned on the map by a local government officer.")}
             </p>
           </div>
@@ -474,7 +474,7 @@ export default function ProductDetailPage() {
                 {
                   icon: <FileSignature className="w-4 h-4" />,
                   title: translateSync("Collection agreed"),
-                  detail: `${translateSync("Release agreement with")} ${origin}`,
+                  detail: translateTemplate("Release agreement with {origin}", { origin }),
                 },
                 {
                   icon: <ScanLine className="w-4 h-4" />,

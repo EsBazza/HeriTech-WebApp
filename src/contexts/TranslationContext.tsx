@@ -26,6 +26,8 @@ interface TranslationContextType {
   translate: (key: string, fallback?: string) => Promise<string>;
   translateText: (text: string, targetLang?: string) => Promise<string>;
   translateSync: (text: string) => string;
+  /** Translates a whole sentence with {placeholders}, then fills them in: t("Only {count} left", { count: 3 }). */
+  translateTemplate: (template: string, values: Record<string, string | number>) => string;
   getSupportedLanguages: () => Language[];
   isRTL: boolean;
   formatCurrency: (amount: number, currency?: string) => string;
@@ -42,8 +44,10 @@ const TranslationContext = createContext<TranslationContextType | undefined>(
 
 // Cookie/storage keys
 const LANGUAGE_COOKIE = "heritech-language";
-const CACHE_STORAGE_KEY = "heritech-translation-cache";
-const CACHE_LANG_KEY = "heritech-translation-cache-lang";
+/** Translations are kept per language in localStorage, so a return visit (or switching back) is instant. */
+const CACHE_PREFIX = "heritech-tx-v1:";
+/** Keep the stored cache bounded; the oldest entries are dropped first. */
+const CACHE_MAX_ENTRIES = 3000;
 
 interface TranslationProviderProps {
   children: ReactNode;
@@ -53,8 +57,12 @@ interface TranslationProviderProps {
 const globalCache = new Map<string, string>();
 // Registry of all texts that need translation
 const translationRegistry = new Set<string>();
-// Strings the server couldn't translate for the current language; not retried until the language changes.
+// Strings the server still couldn't translate after every retry; not asked again until the language changes.
 const failedTexts = new Set<string>();
+// How many times each string has been sent without coming back translated.
+const attempts = new Map<string, number>();
+/** A failed batch is retried after these waits (a 429 says how long to wait; that wins when longer). */
+const RETRY_DELAYS_MS = [2_000, 6_000, 15_000];
 // Strings waiting for the next batch request.
 const pendingTexts = new Set<string>();
 /** At most this many strings per /api/translate call (the route caps it too). */
@@ -78,32 +86,29 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
   // Expose the global cache as a Map reference
   const translationCache = globalCache;
 
-  // Load saved cache from sessionStorage
+  // Replace the in-memory cache with what this browser already translated into this language.
   const loadCacheFromStorage = useCallback((langCode: string) => {
+    globalCache.clear();
     try {
-      const savedLang = sessionStorage.getItem(CACHE_LANG_KEY);
-      if (savedLang !== langCode) return false;
-
-      const saved = sessionStorage.getItem(CACHE_STORAGE_KEY);
+      const saved = localStorage.getItem(CACHE_PREFIX + langCode);
       if (!saved) return false;
-
-      const entries: [string, string][] = JSON.parse(saved);
-      globalCache.clear();
-      entries.forEach(([k, v]) => globalCache.set(k, v));
-      return true;
+      const entries: unknown = JSON.parse(saved);
+      if (!Array.isArray(entries)) return false;
+      for (const e of entries) {
+        if (Array.isArray(e) && typeof e[0] === "string" && typeof e[1] === "string") globalCache.set(e[0], e[1]);
+      }
+      return globalCache.size > 0;
     } catch {
       return false;
     }
   }, []);
 
-  // Save cache to sessionStorage
   const saveCacheToStorage = useCallback((langCode: string) => {
     try {
-      const entries = Array.from(globalCache.entries());
-      sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(entries));
-      sessionStorage.setItem(CACHE_LANG_KEY, langCode);
+      const entries = Array.from(globalCache.entries()).slice(-CACHE_MAX_ENTRIES);
+      localStorage.setItem(CACHE_PREFIX + langCode, JSON.stringify(entries));
     } catch {
-      // Ignore storage errors
+      // Storage full or blocked: translations still work for this visit.
     }
   }, []);
 
@@ -127,6 +132,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
     inFlight.current = true;
     let stored = 0;
+    let retryAfterMs = 0;
     try {
       const response = await fetch("/api/translate", {
         method: "POST",
@@ -134,11 +140,17 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
         body: JSON.stringify({ text: batch, targetLanguage: langCode, sourceLanguage: "en" }),
       });
       const data = await response.json().catch(() => null);
+      if (response.status === 429) {
+        // "Too many requests. Try again in 12s." — wait at least that long before asking again.
+        const seconds = Number(/in (\d+)s/.exec(String(data?.error ?? ""))?.[1] ?? 0);
+        retryAfterMs = seconds * 1000;
+      }
       // The language may have changed while this request was out; drop stale answers.
       if (queueLang.current === langCode && data?.success && Array.isArray(data.translations)) {
         data.translations.forEach((translated: string, i: number) => {
           if (translated && batch[i]) {
             globalCache.set(batch[i], translated);
+            attempts.delete(batch[i]);
             stored++;
           }
         });
@@ -149,21 +161,36 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
       inFlight.current = false;
     }
 
+    let retryDelay = 0;
     if (queueLang.current === langCode) {
-      batch.filter((t) => !globalCache.has(t)).forEach((t) => failedTexts.add(t));
+      // A failed request (network, rate limit, both services down) is retried with back-off
+      // instead of leaving the page in English for the rest of the visit.
+      for (const t of batch) {
+        if (globalCache.has(t)) continue;
+        const n = (attempts.get(t) ?? 0) + 1;
+        if (n > RETRY_DELAYS_MS.length) {
+          failedTexts.add(t);
+          attempts.delete(t);
+        } else {
+          attempts.set(t, n);
+          pendingTexts.add(t);
+          retryDelay = Math.max(retryDelay, RETRY_DELAYS_MS[n - 1], retryAfterMs);
+        }
+      }
       if (stored > 0) {
         saveCacheToStorage(langCode);
         setCacheVersion((v) => v + 1);
       }
     }
-    if (pendingTexts.size > 0) flushTimer.current = setTimeout(flushQueue, FLUSH_DELAY_MS);
+    if (pendingTexts.size > 0 && !flushTimer.current) flushTimer.current = setTimeout(flushQueue, retryDelay || FLUSH_DELAY_MS);
   }, [saveCacheToStorage]);
 
   const queueTranslation = useCallback(
     (texts: Iterable<string>) => {
       if (queueLang.current === "en" || typeof window === "undefined") return;
       for (const t of texts) {
-        if (t && t.trim() && !globalCache.has(t) && !failedTexts.has(t)) pendingTexts.add(t);
+        // Strings waiting for a retry are already queued; don't jump the back-off.
+        if (t && t.trim() && !globalCache.has(t) && !failedTexts.has(t) && !attempts.has(t)) pendingTexts.add(t);
       }
       if (pendingTexts.size > 0 && !flushTimer.current) flushTimer.current = setTimeout(flushQueue, FLUSH_DELAY_MS);
     },
@@ -176,6 +203,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
       queueLang.current = langCode;
       failedTexts.clear();
       pendingTexts.clear();
+      attempts.clear();
       if (langCode !== "en") queueTranslation(translationRegistry);
     },
     [queueTranslation]
@@ -246,13 +274,11 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
           document.documentElement.dir = language.rtl ? "rtl" : "ltr";
         }
 
-        globalCache.clear();
-        if (typeof window !== "undefined") {
-          sessionStorage.removeItem(CACHE_STORAGE_KEY);
-          sessionStorage.removeItem(CACHE_LANG_KEY);
-        }
+        // Swap in this language's saved translations (empty for English or a first visit).
+        if (language.code === "en") globalCache.clear();
+        else loadCacheFromStorage(language.code);
 
-        // Show English straight away; translations fill in as they arrive.
+        // Show what is cached straight away; the rest fills in as it arrives.
         setCacheVersion((v) => v + 1);
         setIsLoading(false);
 
@@ -264,7 +290,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
         throw error;
       }
     },
-    [startLanguage]
+    [startLanguage, loadCacheFromStorage]
   );
 
   /** Synchronous translation lookup: returns cached value or original text */
@@ -311,18 +337,27 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
         });
 
         const data = await response.json();
-        if (data.success && data.translation) {
+        if (data.success && data.translation && target === currentLanguage.code) {
           globalCache.set(text, data.translation);
+          saveCacheToStorage(target);
           setCacheVersion((v) => v + 1);
           return data.translation;
         }
+        if (data.success && data.translation) return data.translation;
       } catch (err) {
         console.warn("Translation failed:", err);
       }
 
       return text;
     },
-    [currentLanguage.code]
+    [currentLanguage.code, saveCacheToStorage]
+  );
+
+  const translateTemplate = useCallback(
+    (template: string, values: Record<string, string | number>): string =>
+      // Unknown placeholders are left as they are rather than blanked.
+      translateSync(template).replace(/\{(\w+)\}/g, (whole, key: string) => (key in values ? String(values[key]) : whole)),
+    [translateSync]
   );
 
   const translate = useCallback(
@@ -393,9 +428,9 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
   const clearCache = useCallback(() => {
     globalCache.clear();
     failedTexts.clear();
+    attempts.clear();
     try {
-      sessionStorage.removeItem(CACHE_STORAGE_KEY);
-      sessionStorage.removeItem(CACHE_LANG_KEY);
+      for (const key of Object.keys(localStorage)) if (key.startsWith(CACHE_PREFIX)) localStorage.removeItem(key);
     } catch {}
     setCacheVersion((v) => v + 1);
   }, []);
@@ -408,6 +443,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     translate,
     translateText,
     translateSync,
+    translateTemplate,
     getSupportedLanguages,
     isRTL: currentLanguage.rtl || false,
     formatCurrency,

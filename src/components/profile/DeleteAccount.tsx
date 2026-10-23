@@ -29,7 +29,7 @@ export function DeletionTerms() {
 /** Button and confirmation for permanently deleting the signed-in user's account. */
 export function DeleteAccount({ onDeleted }: { onDeleted?: () => void }) {
   const { user, signOut } = useAuth();
-  const { translateSync } = useTranslation();
+  const { translateTemplate, translateSync } = useTranslation();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
@@ -86,7 +86,7 @@ export function DeleteAccount({ onDeleted }: { onDeleted?: () => void }) {
         <div className="space-y-4">
           <DeletionTerms />
           <Input
-            label={`${translateSync("Type")} ${CONFIRM_WORD} ${translateSync("to confirm")}`}
+            label={translateTemplate("Type {word} to confirm", { word: CONFIRM_WORD })}
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             autoCapitalize="characters"

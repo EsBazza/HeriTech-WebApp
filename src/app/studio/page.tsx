@@ -60,7 +60,7 @@ import { compressImage } from "@/lib/image";
 // ─── Component ────────────────────────────────────────────────────────────────
 function ArtisanStudioPageContent() {
   const { user, loading: authLoading } = useAuth();
-  const { translateSync, formatCurrency, formatNumber } = useTranslation();
+  const { translateTemplate, translateSync, formatCurrency, formatNumber } = useTranslation();
   const role = userRole(user);
   const [tab, setTab] = useState<"new" | "pieces">("new");
 
@@ -587,7 +587,7 @@ function ArtisanStudioPageContent() {
                   placeholder="45.00"
                   onChange={(e) => setField("price", e.target.value)}
                   className="tabular"
-                  hint={`${translateSync("You receive")} ${formatCurrency(payout)} (${SPLIT.artisan}%) ${translateSync("when it sells.")}`}
+                  hint={translateTemplate("You receive {amount} ({share}%) when it sells.", { amount: formatCurrency(payout), share: SPLIT.artisan })}
                 />
                 <Input
                   label={translateSync("Material kept out of landfill (kg)")}
@@ -600,7 +600,7 @@ function ArtisanStudioPageContent() {
                   placeholder="1.5"
                   onChange={(e) => setField("kgDiverted", e.target.value)}
                   className="tabular"
-                  hint={selectedBatch ? `${translateSync("Up to")} ${selectedBatch.weightKg} kg ${translateSync("from this batch")}` : undefined}
+                  hint={selectedBatch ? translateTemplate("Up to {kg} kg from this batch", { kg: selectedBatch.weightKg }) : undefined}
                 />
               </div>
 
@@ -614,7 +614,7 @@ function ArtisanStudioPageContent() {
                 label={translateSync("Charity partner (optional)")}
                 value={form.ngoFundName}
                 onChange={(e) => setField("ngoFundName", e.target.value)}
-                hint={`${translateSync("Named on the receipt. It shares the")} ${SPLIT.charityMaintenance}% ${translateSync("charity & app upkeep part of each sale.")}`}
+                hint={translateTemplate("Named on the receipt. It shares the {share}% charity & app upkeep part of each sale.", { share: SPLIT.charityMaintenance })}
               />
             </fieldset>
 

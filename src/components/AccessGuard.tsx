@@ -25,7 +25,7 @@ const ROLE_NAMES: Record<UserRole, string> = {
 
 export function AccessGuard({ children, allowedRoles, pageTitle = "this page", requiredRoleLabel, description }: AccessGuardProps) {
   const { user, loading, authError, demoMode, signInWithGoogle, signInAsDemo } = useAuth();
-  const { translateSync } = useTranslation();
+  const { translateTemplate, translateSync } = useTranslation();
   const [switching, setSwitching] = useState<string | null>(null);
   const currentRole = userRole(user);
 
@@ -44,12 +44,12 @@ export function AccessGuard({ children, allowedRoles, pageTitle = "this page", r
   const nonAdmin = allowedRoles.filter((r) => r !== "admin" && r !== "guest" && r !== currentRole) as Array<Exclude<UserRole, "guest">>;
   const demoRoles: Array<Exclude<UserRole, "guest">> = nonAdmin.length ? nonAdmin : ["admin"];
 
-  const title = requiredRoleLabel || (isGuest ? translateSync("Sign in to continue") : `${translateSync(pageTitle)} ${translateSync("is for")} ${needed} ${translateSync("accounts")}`);
+  const title = requiredRoleLabel || (isGuest ? translateSync("Sign in to continue") : translateTemplate("{page} is for {roles} accounts", { page: translateSync(pageTitle), roles: needed }));
   const body =
     description ||
     (isGuest
-      ? `${translateSync(pageTitle)} ${translateSync("is available to")} ${needed} ${translateSync("accounts. Sign in to continue.")}`
-      : `${translateSync("You're signed in as")} ${translateSync(ROLE_NAMES[currentRole])} (${user?.email}).`);
+      ? translateTemplate("{page} is available to {roles} accounts. Sign in to continue.", { page: translateSync(pageTitle), roles: needed })
+      : translateTemplate("You're signed in as {role} ({email}).", { role: translateSync(ROLE_NAMES[currentRole]), email: user?.email ?? "" }));
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">

@@ -141,7 +141,7 @@ export default function FeedHomePage() {
       photo: "/photos/step-verify.jpg",
       alt: translateSync("A HeriTech Verified Impact Pass with its QR code"),
       title: translateSync("Buy & verify"),
-      body: `${translateSync("Buyers see the")} ${SPLIT_LABEL} ${translateSync("split at checkout and receive a Verified Impact Pass that anyone can check.")}`,
+      body: translateSync(`Buyers see the ${SPLIT_LABEL} split at checkout and receive a Verified Impact Pass that anyone can check.`),
       tech: "Google Wallet",
     },
   ];
@@ -281,7 +281,7 @@ export default function FeedHomePage() {
               className="rise font-display text-[40px] sm:text-[60px] lg:text-[68px] leading-[1.0] font-semibold text-white tracking-[-0.01em]"
               style={{ ["--rise-delay" as string]: "80ms" }}
             >
-              {translateSync("Festival waste,")} {translateSync("traced")} {translateSync("into heritage craft.")}
+              {translateSync("Festival waste, traced into heritage craft.")}
             </h1>
             <p className="rise text-base sm:text-lg text-white/80 leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
               {translateSync(
@@ -447,7 +447,7 @@ export default function FeedHomePage() {
                   <h3 className="mt-6 font-display text-[26px] leading-tight font-semibold text-ink">{s.title}</h3>
                   <p className="mt-3 text-base text-ink-2 leading-relaxed">{s.body}</p>
                   <p className={cn("mt-4 text-sm font-medium", last ? "text-lantern-600" : "text-brand-2")}>
-                    {translateSync("Built on")} {s.tech.split(" · ").join(translateSync(" and "))}
+                    {translateSync(`Built on ${s.tech.split(" · ").join(" and ")}`)}
                   </p>
                 </Reveal>
               </li>
