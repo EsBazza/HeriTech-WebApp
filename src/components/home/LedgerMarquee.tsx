@@ -178,7 +178,7 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
           {f.value}
           {f.unit && <span className="ml-1 font-display text-[0.42em] font-medium italic tracking-[-0.01em] text-white/75">{f.unit}</span>}
         </span>
-        <span className="max-w-[10.5ch] text-[15px] sm:text-[16px] leading-[1.25] font-medium text-white/80 text-balance">{f.label}</span>
+        <span className="max-w-[12.5ch] text-[15px] sm:text-[16px] leading-[1.25] font-medium text-white/80 text-balance">{f.label}</span>
       </span>
       <span aria-hidden className="mq-mark mx-7 sm:mx-10 lg:mx-12" />
     </span>
