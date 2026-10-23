@@ -540,8 +540,11 @@ export default function FeedHomePage() {
       </section>
 
       {/* WHERE THE MONEY GOES */}
-      <div className="overflow-x-clip">
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
+      <div className="relative overflow-x-clip">
+      {/* On the page edges: the split as a ring on the right, a lantern frame on the left */}
+      <SplitRing className="absolute -right-[110px] bottom-[14%] w-[220px] sm:-right-[140px] lg:-right-[150px] lg:top-[10%] lg:bottom-auto lg:w-[360px]" />
+      <LanternFrame className="absolute -left-[70px] top-[6%] w-[150px] lg:-left-[80px] lg:top-auto lg:bottom-[8%] lg:w-[240px]" />
+      <section className="relative z-[1] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
         <Reveal className="lg:col-span-5">
           <h2 id="split-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
             {translateSync("Every sale, split in the open")}
@@ -552,10 +555,8 @@ export default function FeedHomePage() {
           {/* One sale, three payouts: the line weights follow the split */}
           <SplitFlow className="mt-10 w-[240px] sm:w-[280px]" />
         </Reveal>
-        <Reveal delay={120} className="lg:col-span-7 relative">
-          <SplitRing className="absolute -right-24 -top-24 w-[220px] sm:-right-28 sm:-top-28 sm:w-[300px]" />
-          <LanternFrame className="absolute -left-14 -bottom-16 w-[130px] sm:-left-20 sm:-bottom-20 sm:w-[170px]" />
-          <div className="split-ticket relative z-[1] bg-surface p-7 sm:p-9 shadow-card">
+        <Reveal delay={120} className="lg:col-span-7">
+          <div className="split-ticket relative bg-surface p-7 sm:p-9 shadow-card">
             <div className="flex items-baseline justify-between mb-6">
               <span className="text-base text-ink-2">{translateSync("A piece sold for")}</span>
               <span className="tabular font-display text-[44px] leading-none font-semibold text-ink">{formatCurrency(85)}</span>
