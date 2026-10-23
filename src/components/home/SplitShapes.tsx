@@ -30,12 +30,12 @@ export function HangingLantern({ tone = "lantern", className, style }: { tone?: 
     <svg viewBox="0 0 100 230" aria-hidden className={cn("hang-piece pointer-events-none overflow-visible", className)} style={style}>
       <defs>
         <radialGradient id={`${id}-paper`} cx="0.42" cy="0.4" r="0.7">
-          <stop offset="0" stopColor="#ffd9a0" />
-          <stop offset="0.45" stopColor={paper} stopOpacity="0.9" />
+          <stop offset="0" stopColor="#ffe6c4" />
+          <stop offset="0.5" stopColor={paper} stopOpacity="0.8" />
           <stop offset="1" stopColor={paper} />
         </radialGradient>
         <radialGradient id={`${id}-glow`}>
-          <stop offset="0" stopColor="rgb(242 166 90)" stopOpacity="0.45" />
+          <stop offset="0" stopColor="rgb(242 166 90)" stopOpacity="0.3" />
           <stop offset="1" stopColor="rgb(242 166 90)" stopOpacity="0" />
         </radialGradient>
       </defs>
@@ -82,11 +82,11 @@ export function Parol({ className, style }: { className?: string; style?: React.
       <defs>
         <radialGradient id={`${id}-paper`} cx="0.5" cy="0.5" r="0.6">
           <stop offset="0" stopColor="#ffe2b0" />
-          <stop offset="0.5" stopColor="var(--color-lantern)" stopOpacity="0.85" />
+          <stop offset="0.55" stopColor="var(--color-lantern)" stopOpacity="0.8" />
           <stop offset="1" stopColor="var(--color-lantern)" />
         </radialGradient>
         <radialGradient id={`${id}-glow`}>
-          <stop offset="0" stopColor="rgb(242 166 90)" stopOpacity="0.4" />
+          <stop offset="0" stopColor="rgb(242 166 90)" stopOpacity="0.28" />
           <stop offset="1" stopColor="rgb(242 166 90)" stopOpacity="0" />
         </radialGradient>
       </defs>
@@ -102,5 +102,61 @@ export function Parol({ className, style }: { className?: string; style?: React.
         </g>
       </g>
     </svg>
+  );
+}
+
+/** Banderitas: a small bunting flag sewn from a fabric offcut, with its stitched hem. */
+function Pennant({ fill, stitch }: { fill: string; stitch: string }) {
+  return (
+    <svg viewBox="0 0 24 30" className="block w-full overflow-visible">
+      <path d="M0 0 H24 L12 30 Z" fill={fill} />
+      <path d="M3.5 2.5 H20.5 L12 24" fill="none" stroke={stitch} strokeWidth="0.9" strokeDasharray="1.6 1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// The cord: a quadratic curve from (0, Y0) to (100%, Y0) sagging SAG px in the middle.
+const Y0 = 14;
+const SAG = 34;
+const cordY = (t: number) => Y0 + 4 * SAG * t * (1 - t);
+
+const FLAG_COLORS = [
+  { fill: "var(--color-split-platform)", stitch: "rgb(255 255 255 / 0.7)" },
+  { fill: "var(--color-lantern)", stitch: "rgb(255 236 210 / 0.75)" },
+  { fill: "var(--color-paper-2)", stitch: "var(--color-ink-3)" },
+  { fill: "var(--color-split-artisan)", stitch: "rgb(255 255 255 / 0.5)" },
+];
+
+/**
+ * A festival line strung across the top of the section: a parol at one end, paper lanterns at
+ * the other and banderitas between, all made from what a festival leaves behind.
+ */
+export function FestivalLine({ className }: { className?: string }) {
+  const flags = Array.from({ length: 17 }, (_, i) => 0.18 + i * 0.0375);
+  const at = (t: number): React.CSSProperties => ({ left: `${t * 100}%`, top: `${cordY(t)}px` });
+  return (
+    <div aria-hidden className={cn("festival-line pointer-events-none absolute inset-x-0 top-0", className)}>
+      <svg className="absolute inset-x-0 top-0 h-[90px] w-full" viewBox="0 0 100 90" preserveAspectRatio="none">
+        <path d={`M0 ${Y0} Q50 ${Y0 + 2 * SAG} 100 ${Y0}`} fill="none" stroke="var(--color-ink-3)" strokeOpacity="0.55" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+      </svg>
+      {flags.map((t, i) => (
+        <span
+          key={t}
+          className={cn("flag absolute -translate-x-1/2 w-[18px] sm:w-[22px]", i % 2 === 1 && "max-sm:hidden")}
+          style={{ ...at(t), "--k": 4 * SAG * (1 - 2 * t), "--i": i } as React.CSSProperties}
+        >
+          <Pennant {...FLAG_COLORS[i % FLAG_COLORS.length]} />
+        </span>
+      ))}
+      <span className="absolute -translate-x-1/2" style={at(0.075)}>
+        <Parol className="block w-[62px] sm:w-[74px] lg:w-[84px]" style={{ "--sway-dur": "7s", "--sway-delay": "-3s" } as React.CSSProperties} />
+      </span>
+      <span className="absolute -translate-x-1/2" style={at(0.885)}>
+        <HangingLantern className="block w-[40px] sm:w-[48px] lg:w-[56px]" />
+      </span>
+      <span className="absolute -translate-x-1/2 max-sm:hidden" style={at(0.95)}>
+        <HangingLantern tone="pine" className="block w-[34px] lg:w-[40px]" style={{ "--sway-dur": "7.6s", "--sway-delay": "-2s" } as React.CSSProperties} />
+      </span>
+    </div>
   );
 }
