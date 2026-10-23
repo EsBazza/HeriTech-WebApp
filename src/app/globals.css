@@ -1530,3 +1530,36 @@
   .cart-row, .cart-impact, .cart-impact-thread path, .cart-split-seg, .cart-empty-leaf { animation: none; }
   .cart-row, .cart-photo { transition: none; }
 }
+
+/* ─── Messages ─── */
+/* Inbox rows arrive one after another */
+.chat-thread { animation: chat-rise 0.4s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 45ms + 80ms); }
+/* New bubbles pop up from their own side */
+.chat-in { animation: chat-pop-left 0.38s cubic-bezier(0.3, 1.35, 0.5, 1) both; transform-origin: bottom left; }
+.chat-in-mine { animation: chat-pop-right 0.38s cubic-bezier(0.3, 1.35, 0.5, 1) both; transform-origin: bottom right; }
+@keyframes chat-pop-left { from { opacity: 0; transform: translate(-6px, 10px) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes chat-pop-right { from { opacity: 0; transform: translate(6px, 10px) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes chat-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+/* Switching conversations: the thread settles in */
+.chat-scroll { animation: chat-rise 0.3s var(--ease-out) both; }
+.chat-hello { animation: chat-rise 0.5s var(--ease-out) both; }
+/* Quick replies slide in after the thread */
+.chat-chip { animation: chat-rise 0.35s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms + 150ms); }
+.chat-chip:active { transform: scale(0.96); }
+/* Typing dots */
+.chat-dot { animation: chat-dot 1.1s ease-in-out infinite; }
+@keyframes chat-dot { 0%, 60%, 100% { transform: none; opacity: 0.45; } 30% { transform: translateY(-4px); opacity: 1; } }
+/* Send: wakes up when there is something to send */
+.chat-send { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1), background-color 0.2s ease; }
+.chat-send[data-ready="true"] { transform: scale(1.06); }
+.chat-send:active:not(:disabled) { transform: scale(0.92); }
+.chat-send[data-ready="true"] svg { animation: chat-send-arrow 0.35s var(--ease-out); }
+@keyframes chat-send-arrow { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.chat-sent { animation: chat-rise 0.3s var(--ease-out) both; }
+.chat-empty-mark { animation: chat-float 4s ease-in-out infinite; }
+@keyframes chat-float { 0%, 100% { transform: none; } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) {
+  .chat-thread, .chat-in, .chat-in-mine, .chat-scroll, .chat-hello, .chat-chip, .chat-dot, .chat-sent, .chat-empty-mark,
+  .chat-send[data-ready="true"] svg { animation: none; }
+  .chat-send { transition: none; }
+}
