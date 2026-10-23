@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Camera, Check, Flower2, Handshake, Hammer, Lamp, MousePointer2, QrCode, Recycle, Search, Sparkles, X, PackageOpen } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Camera, Check, Flower2, Handshake, Hammer, Lamp, MousePointer2, QrCode, Recycle, RotateCcw, Search, X, PackageOpen } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
@@ -223,15 +223,32 @@ export default function FeedHomePage() {
         tags={heroTags}
         followCursor={false}
         renderToggle={({ full, toggle }) => (
-          <div className="absolute z-[2] top-4 right-4 sm:top-6 sm:right-6 lg:hidden">
+          // Phones: the leftovers start out of sight. "Craft the lantern" sits where the
+          // lantern will hang; once it is built, a small control in the corner takes it apart.
+          <div className="absolute inset-0 z-[2] pointer-events-none lg:hidden">
             <button
               type="button"
               onClick={toggle}
               aria-pressed={full}
-              className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white/15 border border-white/25 text-sm text-white hover:bg-white/25 transition-colors cursor-pointer"
+              tabIndex={full ? -1 : 0}
+              aria-hidden={full}
+              className="hero-craft-cta pointer-events-auto absolute left-1/2 top-[64px] sm:top-[108px] -translate-x-1/2 inline-flex items-center gap-2 h-12 pl-4 pr-5 rounded-full bg-lantern text-white text-[16px] font-semibold cursor-pointer"
+              data-hidden={full}
             >
-              <Sparkles className="w-4 h-4" />
-              {full ? translateSync("Show leftovers") : translateSync("Craft it")}
+              <Hammer className="w-[18px] h-[18px]" strokeWidth={2} />
+              {translateSync("Craft the lantern")}
+            </button>
+            <button
+              type="button"
+              onClick={toggle}
+              aria-pressed={full}
+              tabIndex={full ? 0 : -1}
+              aria-hidden={!full}
+              className="hero-craft-reset pointer-events-auto absolute top-4 right-4 sm:top-6 sm:right-6 inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full bg-pine-900/60 border border-white/25 text-[14px] text-white cursor-pointer"
+              data-shown={full}
+            >
+              <RotateCcw className="w-4 h-4" />
+              {translateSync("Take it apart")}
             </button>
           </div>
         )}

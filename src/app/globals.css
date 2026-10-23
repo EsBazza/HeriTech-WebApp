@@ -1685,3 +1685,41 @@
 .chats-badge { animation: chats-badge 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
 @keyframes chats-badge { from { transform: scale(0); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .chats-badge { animation: none; } }
+
+/* ─── Hero on phones: leftovers fly in from both sides to build the lantern ─── */
+@media (max-width: 1023.98px) {
+  .hero-trace .lantern-piece {
+    opacity: 0;
+    transform: translate(calc(var(--mx) - 50%), calc(var(--my) - 50%)) rotate(var(--mr));
+    /* Taken apart: pieces leave quickly, back out to their side */
+    transition: transform 0.55s cubic-bezier(0.55, 0, 0.75, 0.4), opacity 0.35s ease-in 0.15s;
+    transition-delay: calc(var(--piece-delay) * 0.12);
+  }
+  .hero-trace[data-state="hover"] .lantern-piece,
+  .hero-trace[data-state="full"] .lantern-piece {
+    opacity: 1;
+    transform: translate(calc(var(--tx) - 50%), calc(var(--ty) - 50%)) rotate(var(--tr));
+    /* Crafting: sweep in from the side, spinning down into place with a small settle */
+    transition: transform 1.05s cubic-bezier(0.22, 0.9, 0.3, 1.12), opacity 0.2s ease-out;
+    transition-delay: calc(var(--piece-delay) * 1.1);
+  }
+  .hero-craft-cta {
+    box-shadow: 0 10px 30px -8px rgb(196 71 30 / 0.7), 0 0 0 6px rgb(var(--glow-amber) / 0.14);
+    transition: opacity 0.3s ease-out, scale 0.35s var(--ease-out);
+    animation: craft-cta-breathe 2.6s ease-in-out infinite;
+  }
+  .hero-craft-cta:active { scale: 0.95; }
+  .hero-craft-cta[data-hidden="true"] { opacity: 0; scale: 0.8; pointer-events: none; animation: none; }
+  @keyframes craft-cta-breathe {
+    0%, 100% { box-shadow: 0 10px 30px -8px rgb(196 71 30 / 0.7), 0 0 0 6px rgb(var(--glow-amber) / 0.14); }
+    50% { box-shadow: 0 10px 30px -8px rgb(196 71 30 / 0.7), 0 0 0 12px rgb(var(--glow-amber) / 0.06); }
+  }
+  .hero-craft-reset { opacity: 0; pointer-events: none; translate: 0 -6px; transition: opacity 0.2s ease-out, translate 0.2s ease-out; }
+  .hero-craft-reset[data-shown="true"] { opacity: 1; pointer-events: auto; translate: 0 0; transition: opacity 0.4s ease-out 1.9s, translate 0.4s var(--ease-out) 1.9s; }
+}
+@media (max-width: 1023.98px) and (prefers-reduced-motion: reduce) {
+  .hero-trace .lantern-piece,
+  .hero-trace[data-state="full"] .lantern-piece { transition: opacity 0.2s linear; transition-delay: 0s; }
+  .hero-craft-cta { animation: none; }
+  .hero-craft-reset[data-shown="true"] { transition-delay: 0s; }
+}

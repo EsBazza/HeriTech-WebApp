@@ -122,8 +122,14 @@ function buildPieces(): Piece[] {
 // Round everything: server and browser trig can differ in the last digits,
 // which would make the inline styles and SVG paths mismatch during hydration.
 const r2 = (n: number) => Math.round(n * 100) / 100;
+// On phones the leftovers stay out of sight until "Craft the lantern": each piece
+// waits off the side of the screen it belongs to and flies in from there.
+const sideRng = rng(1104);
 const PIECES = buildPieces().map((p) => ({
   ...p,
+  mx: r2(p.tx < CX ? -330 - sideRng() * 160 : STAGE_W + 330 + sideRng() * 160),
+  my: r2(p.ty + (sideRng() - 0.5) * 220),
+  mr: r2(sideRng() * 300 - 150),
   w: r2(p.w),
   h: r2(p.h),
   tx: r2(p.tx),
@@ -238,6 +244,9 @@ export function LanternAssembly({ className = "" }: { className?: string }) {
                 width: `${p.w}px`,
                 height: `${p.h}px`,
                 "--sx": `${p.sx}px`,
+                "--mx": `${p.mx}px`,
+                "--my": `${p.my}px`,
+                "--mr": `${p.mr}deg`,
                 "--sy": `${p.sy}px`,
                 "--sr": `${p.sr}deg`,
                 "--tx": `${p.tx}px`,
