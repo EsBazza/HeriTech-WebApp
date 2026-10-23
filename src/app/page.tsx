@@ -545,7 +545,7 @@ export default function FeedHomePage() {
           the right, a parol on the left. Each hangs from a string and sways a little. */}
       <HangingLantern className="absolute right-1 top-0 w-[52px] sm:right-4 sm:w-[64px] lg:right-[1.5%] lg:w-[92px]" />
       <HangingLantern tone="pine" className="hidden xl:block absolute right-[6.5%] -top-6 w-[58px]" style={{ "--sway-dur": "7.4s", "--sway-delay": "-2s" } as React.CSSProperties} />
-      <Parol className="absolute -left-6 bottom-2 w-[96px] sm:left-0 lg:left-[1.5%] lg:top-[44%] lg:bottom-auto lg:w-[130px]" style={{ "--sway-dur": "8s", "--sway-delay": "-3s" } as React.CSSProperties} />
+      <Parol className="absolute -left-6 bottom-2 w-[96px] sm:left-0 lg:left-[1%] lg:bottom-0 lg:w-[100px]" style={{ "--sway-dur": "8s", "--sway-delay": "-3s" } as React.CSSProperties} />
       <section className="relative z-[1] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
         <Reveal className="lg:col-span-5">
           <h2 id="split-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
