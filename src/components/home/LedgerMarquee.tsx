@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { useInView } from "@/components/motion/Reveal";
 import { cn, useMediaQuery } from "@/components/ui";
@@ -36,26 +36,19 @@ function useCountIn(active: boolean, duration = 1600) {
 }
 
 /**
- * One endless row. It drifts on its own, speeds up with the page scroll and
- * follows the scroll's direction, and eases to a stop under a mouse so a figure
- * can be read. Off screen it stops drawing.
+ * One endless row. It drifts on its own, picks up speed with the page scroll and
+ * follows the scroll's direction, and eases to a stop under the mouse or when
+ * paused. Off screen it stops drawing.
  */
-function MarqueeTrack({
-  children,
-  speed,
-  reverse = false,
-  className,
-}: {
-  children: React.ReactNode;
-  /** Resting speed in px per second. */
-  speed: number;
-  reverse?: boolean;
-  className?: string;
-}) {
+function MarqueeTrack({ children, speed, paused, className }: { children: React.ReactNode; speed: number; paused: boolean; className?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const hovered = useRef(false);
+  const pausedRef = useRef(paused);
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
   const [copies, setCopies] = useState(2);
 
   // Enough copies to cover the row twice over, whatever the screen width.
@@ -98,11 +91,11 @@ function MarqueeTrack({
 
       const ease = (rate: number) => 1 - Math.exp(-dt * rate);
       const scrollSpeed = dt > 0 ? Math.abs(dy) / dt : 0;
-      boost += (1 + Math.min(scrollSpeed / 350, 5) - boost) * ease(6);
-      pace += ((hovered.current ? 0 : 1) - pace) * ease(5);
+      boost += (1 + Math.min(scrollSpeed / 400, 4) - boost) * ease(5);
+      pace += ((hovered.current || pausedRef.current ? 0 : 1) - pace) * ease(5);
 
       const w = copy.offsetWidth || 1;
-      x -= speed * boost * pace * dir * (reverse ? -1 : 1) * dt;
+      x -= speed * boost * pace * dir * dt;
       x = ((x % w) - w) % w;
       rail.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`;
       frame = requestAnimationFrame(tick);
@@ -121,7 +114,7 @@ function MarqueeTrack({
       io.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [speed, reverse]);
+  }, [speed]);
 
   return (
     <div
@@ -145,22 +138,11 @@ function MarqueeTrack({
   );
 }
 
-/** A four-point spark in lantern light, turning slowly as it travels. */
-function Spark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={cn("marquee-spark shrink-0", className)}>
-      <path d="M12 0c.7 6.6 4.8 10.9 12 12-7.2 1.1-11.3 5.4-12 12-.7-6.6-4.8-10.9-12-12C7.2 10.9 11.3 6.6 12 0Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-/**
- * The band under the hero: the live ledger figures as one endless line of type,
- * over a slower tape of the steps every piece goes through, running the other way.
- */
+/** The band under the hero: the live ledger figures as one endless line of type. */
 export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null; offline: boolean }) {
   const { translateSync, formatNumber, formatCurrency } = useTranslation();
   const reduce = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const [paused, setPaused] = useState(false);
   const { ref, inView } = useInView<HTMLElement>();
   const p = useCountIn(inView && stats != null);
 
@@ -171,39 +153,44 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
     { label: translateSync("raised for charity and upkeep"), value: stats ? formatCurrency(Math.round(stats.charity * p * 100) / 100) : "—" },
   ];
 
-  const steps = [
-    translateSync("Collected at the festival"),
-    translateSync("Classified by Gemini"),
-    translateSync("Matched to a verified artisan"),
-    translateSync("Made by hand"),
-    translateSync("Verified on the public record"),
-  ];
-
-  const figureRow = figures.map((f) => (
-    <span key={f.label} className="flex items-baseline gap-[0.35em] pr-[0.6em] whitespace-nowrap">
-      <span className="font-display font-semibold tabular tracking-[-0.03em] text-white">
+  const row = figures.map((f) => (
+    <span key={f.label} className="flex items-baseline whitespace-nowrap">
+      <span className="font-display font-semibold tabular text-[clamp(3.5rem,8vw,7.5rem)] leading-none tracking-[-0.035em] text-white">
         {f.value}
-        {f.unit && <span className="ml-[0.12em] text-[0.5em] font-medium tracking-normal text-white/70">{f.unit}</span>}
+        {f.unit && <span className="ml-2 font-sans text-[0.26em] font-medium tracking-normal text-white/75">{f.unit}</span>}
       </span>
-      <span className="font-display italic font-medium text-[0.42em] tracking-[-0.005em] text-white/70">{f.label}</span>
-      <Spark className="ml-[0.45em] w-[0.32em] h-[0.32em] self-center text-glow" />
+      <span className="ml-4 lg:ml-5 text-[clamp(1.0625rem,1.5vw,1.375rem)] leading-tight text-white/80">{f.label}</span>
+      <span aria-hidden className="mx-8 lg:mx-14 w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full bg-glow self-center" />
     </span>
   ));
 
   return (
-    <section ref={ref} className="ledger-band text-white" aria-labelledby="ledger-title">
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-12 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <h2 id="ledger-title" className="flex items-center gap-2.5 text-base font-medium text-white/85">
+    <section ref={ref} className="ledger-band ledger-band--plain text-white py-10 lg:py-14" aria-labelledby="ledger-title">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
+        <h2 id="ledger-title" className="flex items-center gap-2.5 text-base font-medium text-white/90">
           <span className={cn("w-2 h-2 rounded-full shrink-0", offline ? "bg-warn" : "bg-pine-300 ledger-pulse")} aria-hidden />
           {offline ? translateSync("The ledger can't be reached right now.") : translateSync("Live from the HeriTech ledger")}
         </h2>
-        <a href="/impact" className="inline-flex items-center gap-1.5 min-h-11 text-base text-white/80 hover:text-white transition-colors">
-          {translateSync("See the full impact record")}
-          <ArrowUpRight className="w-4 h-4" />
-        </a>
+        <div className="flex items-center gap-1 -mr-2">
+          <a href="/impact" className="inline-flex items-center gap-1.5 min-h-11 px-2 text-base text-white/80 hover:text-white transition-colors">
+            {translateSync("See the full impact record")}
+            <ArrowUpRight className="w-4 h-4" />
+          </a>
+          {!reduce && (
+            <button
+              type="button"
+              onClick={() => setPaused((v) => !v)}
+              aria-pressed={paused}
+              aria-label={paused ? translateSync("Play the figures") : translateSync("Pause the figures")}
+              className="w-11 h-11 inline-flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 active:scale-95 transition-[background-color,color,transform] cursor-pointer"
+            >
+              {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Read by screen readers once, in order; the moving rows below are decoration */}
+      {/* Read by screen readers once, in order; the moving row is decoration */}
       <dl className="sr-only">
         {figures.map((f) => (
           <div key={f.label}>
@@ -213,31 +200,14 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
         ))}
       </dl>
 
-      <div aria-hidden className="mt-4 lg:mt-6">
+      <div aria-hidden className="mt-6 lg:mt-8">
         {reduce ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-y-2 text-[clamp(3.5rem,7vw,6.5rem)] leading-[1.05]">{figureRow}</div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-y-6">{row}</div>
         ) : (
-          <MarqueeTrack speed={46} className="marquee-fade py-2 text-[clamp(3.5rem,7vw,6.5rem)] leading-[1.05]">
-            {figureRow}
+          <MarqueeTrack speed={52} paused={paused} className="marquee-fade py-3">
+            {row}
           </MarqueeTrack>
         )}
-
-        {/* The tape: every piece's five steps, running against the figures */}
-        <div className="marquee-tape mt-6 lg:mt-8">
-          {reduce ? (
-            <p className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-[14px] uppercase tracking-[0.18em] text-white/70">{steps.join(" · ")}</p>
-          ) : (
-            <MarqueeTrack speed={30} reverse className="py-4">
-              {steps.map((s, i) => (
-                <span key={s} className="flex items-center gap-5 pr-5 whitespace-nowrap text-[14px] font-medium uppercase tracking-[0.18em] text-white/75">
-                  <span className="font-display italic normal-case tracking-normal text-[20px] text-glow tabular">{String(i + 1).padStart(2, "0")}</span>
-                  {s}
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                </span>
-              ))}
-            </MarqueeTrack>
-          )}
-        </div>
       </div>
     </section>
   );
