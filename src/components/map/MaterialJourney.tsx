@@ -93,7 +93,7 @@ export function MaterialJourney({ product }: { product: ProductView }) {
         </h2>
         <p className="mt-3 text-[16px] leading-relaxed text-white/85 max-w-[44ch]">{summary}</p>
 
-        <dl className="mt-7 flex flex-wrap gap-x-10 gap-y-4">
+        <dl className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 max-w-[420px]">
           {km != null && (
             <div>
               <dt className="sr-only">{translateSync("Distance")}</dt>
@@ -116,7 +116,7 @@ export function MaterialJourney({ product }: { product: ProductView }) {
 
         {/* The route, stop by stop: the line draws down and a stitch travels along it */}
         <ol ref={ref} data-on={inView} className="journey-route relative mt-9 space-y-6">
-          <span aria-hidden className="journey-line absolute left-[11px] top-3 bottom-3 w-[2px] bg-white/15 overflow-hidden">
+          <span aria-hidden className="route-line absolute left-[11px] top-3 bottom-3 w-[2px] bg-white/15 overflow-hidden">
             <span className="journey-line-fill absolute inset-0 bg-lantern" />
             <span className="journey-stitch absolute inset-0">
               <span className="block w-full h-6 bg-glow" />
