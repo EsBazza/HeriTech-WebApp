@@ -61,9 +61,9 @@ function useDismiss(open: boolean, close: () => void) {
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 shrink-0" aria-label="HeriTech home">
-      <Image src="/logo_heritech-removebg-preview.png" alt="" width={36} height={36} className="logo-plate w-9 h-9 object-contain" priority />
-      <span className="font-display text-[22px] font-semibold text-ink leading-none">HeriTech</span>
+    <Link href="/" className="nav-logo group flex items-center gap-2.5 shrink-0" aria-label="HeriTech home">
+      <Image src="/logo_heritech-removebg-preview.png" alt="" width={36} height={36} className="logo-plate nav-logo-mark w-9 h-9 object-contain" priority />
+      <span className="font-display text-[23px] font-semibold text-ink leading-none tracking-[-0.01em]">HeriTech</span>
     </Link>
   );
 }
@@ -291,7 +291,7 @@ function MobileMenu() {
           </button>
         )}
 
-        <nav aria-label={translateSync("Menu")} className="mt-4 -mx-2">
+        <nav aria-label={translateSync("Menu")} className="menu-stagger mt-4 -mx-2">
           {links.map((link) => {
             const active = isActivePath(pathname, link.href);
             const Icon = link.icon;
@@ -383,19 +383,52 @@ export function Navbar() {
   const isActive = (href: string) => isActivePath(pathname, href);
 
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 8);
+      // Out of the way while reading down the page, back as soon as you scroll up
+      if (Math.abs(y - last) > 6) {
+        setHidden(y > last && y > 160);
+        last = y;
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // One underline that slides to the hovered link and settles back on the current page
+  const navRef = useRef<HTMLElement>(null);
+  const [bar, setBar] = useState<{ x: number; w: number; on: boolean }>({ x: 0, w: 0, on: false });
+  const moveBar = (el: HTMLElement | null) => {
+    if (!el || !navRef.current) return setBar((b) => ({ ...b, on: false }));
+    const nav = navRef.current.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    setBar({ x: r.left - nav.left + 12, w: r.width - 24, on: true });
+  };
+  const settleBar = () => moveBar(navRef.current?.querySelector<HTMLElement>('[aria-current="page"]') ?? null);
+  useEffect(() => {
+    settleBar();
+    window.addEventListener("resize", settleBar);
+    return () => window.removeEventListener("resize", settleBar);
+    // Re-measure whenever the page or the links change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, navLinks.length, translateSync]);
+
   return (
-    <header data-scrolled={scrolled} className="site-header sticky top-0 z-40 bg-paper/90 backdrop-blur-md pt-[env(safe-area-inset-top,0px)]">
+    <header data-scrolled={scrolled} data-hidden={hidden} className="site-header sticky top-0 z-40 bg-paper pt-[env(safe-area-inset-top,0px)]">
       <div className="site-header-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-6">
         <Logo />
 
-        <nav className="hidden md:flex items-center gap-1 h-full" aria-label="Main">
+        <nav ref={navRef} onMouseLeave={settleBar} className="relative hidden md:flex items-center gap-1 h-full" aria-label="Main">
+          <span
+            aria-hidden
+            className="nav-bar absolute bottom-0 left-0 h-[3px] rounded-full bg-brand"
+            style={{ transform: `translateX(${bar.x}px)`, width: bar.w, opacity: bar.on ? 1 : 0 }}
+          />
           {navLinks.map((link) => {
             const active = isActive(link.href);
             return (
@@ -403,13 +436,15 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
+                onMouseEnter={(e) => moveBar(e.currentTarget)}
+                onFocus={(e) => moveBar(e.currentTarget)}
+                onBlur={settleBar}
                 className={cn(
-                  "relative h-full px-3 flex items-center text-[15px] transition-colors",
-                  active ? "text-ink font-medium" : "text-ink-3 hover:text-ink"
+                  "nav-link relative h-full px-3 flex items-center text-[16px] transition-colors",
+                  active ? "text-ink font-medium" : "text-ink-2 hover:text-ink"
                 )}
               >
                 {link.name}
-                {active && <span className="absolute left-3 right-3 bottom-0 h-0.5 bg-brand rounded-full" />}
               </Link>
             );
           })}

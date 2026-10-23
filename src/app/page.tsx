@@ -114,24 +114,32 @@ export default function FeedHomePage() {
   const steps = [
     {
       icon: Camera,
+      photo: "/photos/step-collect.jpg",
+      alt: translateSync("Crumpled paper collected after a festival"),
       title: translateSync("Collect & classify"),
       body: translateSync("Local government officers photograph leftover festival material where it is collected. Gemini names the material and flags anything to remove."),
       tech: "Gemini",
     },
     {
       icon: Handshake,
+      photo: "/photos/step-match.jpg",
+      alt: translateSync("Sorted fabric offcuts waiting for an artisan"),
       title: translateSync("Match to artisans"),
       body: translateSync("Safe material is logged with GPS and offered to verified cooperatives nearby, under a signed release agreement."),
       tech: "Maps Platform · Firebase",
     },
     {
       icon: Hammer,
+      photo: "/photos/step-craft.jpg",
+      alt: translateSync("Paper lamp shades, the kind of piece made from it"),
       title: translateSync("Make and tag the piece"),
       body: translateSync("Artisans link each finished piece to its material ID. Gemini drafts the material story for the artisan to review."),
       tech: "Gemini · Cloud Translation",
     },
     {
       icon: QrCode,
+      photo: "/photos/step-verify.jpg",
+      alt: translateSync("A HeriTech Verified Impact Pass with its QR code"),
       title: translateSync("Buy & verify"),
       body: `${translateSync("Buyers see the")} ${SPLIT_LABEL} ${translateSync("split at checkout and receive a Verified Impact Pass that anyone can check.")}`,
       tech: "Google Wallet",
@@ -428,11 +436,15 @@ export default function FeedHomePage() {
               <li key={s.title} className="relative">
                 <span
                   aria-hidden
-                  className={cn("step-dot relative z-10 block w-[17px] h-[17px] rounded-full bg-paper-2", last && "step-dot-last")}
+                  className={cn("step-dot relative z-10 hidden lg:block w-[17px] h-[17px] rounded-full bg-paper-2", last && "step-dot-last")}
                   style={{ transitionDelay: `${300 + i * 380}ms` }}
                 />
-                <Reveal delay={i * 90} className="mt-7">
-                  <h3 className="font-display text-[26px] leading-tight font-semibold text-ink">{s.title}</h3>
+                <Reveal delay={i * 90} className="lg:mt-7">
+                  <figure className="overflow-hidden bg-pine-900">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={s.photo} alt={s.alt} loading="lazy" decoding="async" className="step-photo w-full aspect-[4/3] object-cover" />
+                  </figure>
+                  <h3 className="mt-6 font-display text-[26px] leading-tight font-semibold text-ink">{s.title}</h3>
                   <p className="mt-3 text-base text-ink-2 leading-relaxed">{s.body}</p>
                   <p className={cn("mt-4 text-sm font-medium", last ? "text-lantern-600" : "text-brand-2")}>
                     {translateSync("Built on")} {s.tech.split(" · ").join(translateSync(" and "))}

@@ -1399,7 +1399,30 @@
 }
 
 /* Navbar: solid with a hairline shadow once the page scrolls */
-.site-header { transition: background-color 0.15s ease, box-shadow 0.15s ease; }
+.site-header {
+  transition: background-color 0.15s ease, box-shadow 0.25s ease, transform 0.35s var(--ease-out);
+  animation: nav-in 0.6s var(--ease-out) backwards;
+}
+@keyframes nav-in { from { transform: translateY(-100%); } to { transform: none; } }
+/* Hidden while reading down the page (desktop only: the phone keeps its tab bar) */
+@media (min-width: 768px) {
+  .site-header[data-hidden="true"] { transform: translateY(-100%); box-shadow: none; }
+}
+/* The sliding underline */
+.nav-bar { transition: transform 0.35s cubic-bezier(0.3, 1.25, 0.5, 1), width 0.35s cubic-bezier(0.3, 1.25, 0.5, 1), opacity 0.2s ease; }
+/* The tree leans in when you reach for home */
+.nav-logo-mark { transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.nav-logo:hover .nav-logo-mark, .nav-logo:focus-visible .nav-logo-mark { transform: rotate(-10deg) scale(1.08); }
+.nav-link:active { transform: translateY(1px); }
+/* Phone menu: links arrive one after another */
+.menu-stagger > * { animation: menu-item 0.4s var(--ease-out) both; }
+.menu-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.menu-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.menu-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.menu-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.menu-stagger > *:nth-child(6) { animation-delay: 200ms; }
+.menu-stagger > *:nth-child(n + 7) { animation-delay: 240ms; }
+@keyframes menu-item { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 .site-header-row { transition: height 0.15s ease; }
 .site-header[data-scrolled="true"] { background-color: var(--color-paper); box-shadow: 0 1px 0 var(--color-line), 0 6px 18px -12px rgb(20 40 30 / 0.25); }
 .site-header[data-scrolled="true"] .site-header-row { height: 3.75rem; }
@@ -1421,6 +1444,16 @@
 .step-dot { transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease; }
 .steps-in .step-dot { background-color: var(--color-pine-700); }
 .steps-in .step-dot-last { background-color: var(--color-lantern); }
+/* Step pictures settle into place as the rail fills */
+.step-photo { transition: transform 1s var(--ease-out), filter 1s var(--ease-out); transform: scale(1.08); filter: saturate(0.7); }
+.reveal.is-visible .step-photo { transform: none; filter: none; }
+@media (hover: hover) and (pointer: fine) {
+  li:hover > .reveal .step-photo { transform: scale(1.03); }
+}
+/* The footer name rises into place */
+.footer-name p { transform: translateY(18%); transition: transform 1.2s var(--ease-out); }
+.footer-name:hover p { transform: translateY(8%); }
+@media (prefers-reduced-motion: reduce) { .step-photo, .footer-name p { transition: none; transform: none; filter: none; } }
 /* The problem photographs come slowly into colour as they enter */
 .problem-photo { transition: transform 1.2s var(--ease-out), filter 1.2s var(--ease-out); filter: saturate(0.6); transform: scale(1.06); }
 .reveal.is-visible .problem-photo { filter: none; transform: none; }
@@ -1441,7 +1474,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ledger-band::before, .ledger-thread path, .ledger-pulse, .loop-tracer, .loop-node-disc, .loop-core, .group:hover .traced-badge::after { animation: none; }
-  .site-header, .site-header-row { transition: none; }
+  .site-header, .site-header-row, .nav-bar, .nav-logo-mark { transition: none; animation: none; }
+  .site-header[data-hidden="true"] { transform: none; }
+  .menu-stagger > * { animation: none; }
   .step-rail-fill { transition: none; transform: scaleX(1); }
   .lift:hover, .js .reveal.is-visible.lift:hover { transform: none; }
 }

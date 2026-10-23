@@ -45,7 +45,7 @@ export function Footer() {
             <Image src="/logo_heritech-removebg-preview.png" alt="" width={40} height={40} className="logo-plate w-10 h-10 object-contain" />
             <span className="font-display text-2xl font-semibold text-white">HeriTech</span>
           </Link>
-          <p className="text-sm leading-relaxed max-w-sm">
+          <p className="text-base leading-relaxed max-w-sm text-white/85">
             {translateSync(
               "A circular digital system that traces festival waste from collection to finished craft, and shows exactly where every sale's money goes."
             )}
@@ -55,8 +55,8 @@ export function Footer() {
         <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
           {columns.map((col) => (
             <div key={col.title}>
-              <h2 className="text-sm font-semibold text-white mb-1.5 font-sans">{col.title}</h2>
-              <ul className="text-sm">
+              <h2 className="text-base font-semibold text-white mb-1.5 font-sans">{col.title}</h2>
+              <ul className="text-[15px]">
                 {col.links.map((l) => (
                   <li key={l.href}>
                     <Link href={l.href} className="inline-flex items-center min-h-10 hover:text-white transition-colors">
@@ -68,6 +68,10 @@ export function Footer() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div aria-hidden className="footer-name max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <p className="font-display font-semibold leading-[0.78] tracking-[-0.04em] text-white/[0.09] text-[clamp(5rem,21vw,19rem)] select-none whitespace-nowrap">HeriTech</p>
       </div>
 
       <div className="bg-black/20">
