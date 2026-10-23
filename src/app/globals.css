@@ -1566,16 +1566,28 @@
 @keyframes loop-drift { to { transform: rotate(360deg); } }
 .loop-step {
   box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12) inset;
-  transition: opacity 700ms var(--ease-out), background-color 400ms var(--ease-out), color 300ms, transform 500ms var(--ease-out), box-shadow 400ms;
+  transition: opacity 700ms var(--ease-out), background-color 400ms var(--ease-out), color 300ms, scale 500ms var(--ease-out), box-shadow 400ms;
 }
-.loop-step:hover { transform: translate(-50%, -50%) scale(1.08); }
-.loop-step:active { transform: translate(-50%, -50%) scale(0.96); }
-.loop-step[data-on="true"] { transform: translate(-50%, -50%) scale(1.14); box-shadow: 0 0 0 6px rgb(var(--glow-amber) / 0.16), 0 10px 30px -8px rgb(196 71 30 / 0.6); }
+/* Tailwind centres the steps with `translate`, so size changes use `scale` and never `transform` */
+.loop-step:hover { scale: 1.08; }
+.loop-step:active { scale: 0.96; }
+.loop-step[data-on="true"] { scale: 1.14; box-shadow: 0 0 0 6px rgb(var(--glow-amber) / 0.16), 0 10px 30px -8px rgb(196 71 30 / 0.6); }
 .loop-step:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 .loop-ripple { border: 1.5px solid rgb(var(--glow-amber) / 0.7); animation: loop-ripple 1.6s var(--ease-out) both; }
 @keyframes loop-ripple { from { transform: scale(1); opacity: 1; } to { transform: scale(2.1); opacity: 0; } }
 .loop-detail { animation: loop-detail 600ms var(--ease-out) both; }
 @keyframes loop-detail { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+.loop-seg-fill { animation: loop-seg linear both; }
+@keyframes loop-seg { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.loop-ctl {
+  width: 44px; height: 44px; border-radius: 9999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: rgb(255 255 255 / 0.85); cursor: pointer;
+  transition: background-color 200ms, color 200ms, scale 150ms var(--ease-out);
+}
+.loop-ctl:hover { background: rgb(255 255 255 / 0.1); color: #fff; }
+.loop-ctl:active { scale: 0.92; }
+.loop-ctl:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .loop-point-icon { background: rgb(var(--glow-amber) / 0.12); color: rgb(var(--glow-amber)); }
 /* Entrance: the ring scales up and the steps pop in around it */
 .festival-loop .loop-step { opacity: 0; }
@@ -1586,7 +1598,8 @@
   .festival-loop .loop-drift, .loop-ripple, .loop-detail { animation: none; }
   .festival-loop .loop-trail, .festival-loop .loop-comet, .loop-step, .festival-loop svg { transition: none; }
   .festival-loop svg, .festival-loop .loop-step { opacity: 1; transform: none; }
-  .loop-step, .loop-step:hover, .loop-step[data-on="true"] { transform: translate(-50%, -50%); }
+  .loop-step, .loop-step:hover, .loop-step[data-on="true"] { scale: none; }
+  .loop-seg-fill { animation: none; }
 }
 
 /* Circular system orbit */

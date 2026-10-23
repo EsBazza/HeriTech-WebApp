@@ -36,13 +36,13 @@ function useCountIn(active: boolean, duration = 1600) {
 }
 
 /**
- * One endless row. It drifts on its own, picks up speed with the page scroll and
- * follows its direction, and eases to a stop under the mouse or when paused.
+ * One endless row. It drifts on its own, always runs right to left, picks up speed
+ * while the page scrolls, and eases to a stop under the mouse or when paused.
  * The figure passing the middle of the screen comes up to full light; the rest
  * sit back. Positions are measured on resize only, so a frame writes styles and
  * reads nothing. Off screen it stops drawing.
  */
-function MarqueeTrack({ children, speed, paused, reverse = false, className }: { children: React.ReactNode; speed: number; paused: boolean; reverse?: boolean; className?: string }) {
+function MarqueeTrack({ children, speed, paused, className }: { children: React.ReactNode; speed: number; paused: boolean; className?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
@@ -87,7 +87,6 @@ function MarqueeTrack({ children, speed, paused, reverse = false, className }: {
     let lastY = window.scrollY;
     let x = 0;
     let boost = 1;
-    let dir = 1;
     let pace = 1;
 
     const tick = (now: number) => {
@@ -96,7 +95,6 @@ function MarqueeTrack({ children, speed, paused, reverse = false, className }: {
       const y = window.scrollY;
       const dy = y - lastY;
       lastY = y;
-      if (dy !== 0) dir = dy > 0 ? 1 : -1;
 
       const ease = (rate: number) => 1 - Math.exp(-dt * rate);
       const scrollSpeed = dt > 0 ? Math.abs(dy) / dt : 0;
@@ -104,7 +102,7 @@ function MarqueeTrack({ children, speed, paused, reverse = false, className }: {
       pace += ((hovered.current || pausedRef.current ? 0 : 1) - pace) * ease(5);
 
       const { copy: w, view, items } = layout.current;
-      x -= speed * boost * pace * dir * (reverse ? -1 : 1) * dt;
+      x -= speed * boost * pace * dt;
       x = ((x % w) - w) % w;
       rail.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`;
 
@@ -132,7 +130,7 @@ function MarqueeTrack({ children, speed, paused, reverse = false, className }: {
       io.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [speed, reverse]);
+  }, [speed]);
 
   return (
     <div
@@ -189,13 +187,13 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
   return (
     <section ref={ref} className="ledger-band ledger-band--plain text-white py-8 lg:py-10" aria-labelledby="ledger-title">
       {/* Behind the figures: lantern light pooled where the spotlight falls, paper grain,
-          and the five steps in outline drifting slowly the other way for depth */}
+          and the five steps in outline drifting slowly behind, for depth */}
       <div aria-hidden className="mq-bg pointer-events-none absolute inset-0 -z-10">
         <span className="mq-glow" />
         <span className="mq-grain" />
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
           {reduce ? null : (
-            <MarqueeTrack speed={14} paused={paused} reverse>
+            <MarqueeTrack speed={14} paused={paused}>
               {steps.map((s) => (
                 <span key={s} className="mq-ghost whitespace-nowrap pr-[0.5em] font-display italic font-medium text-[clamp(6rem,13vw,12rem)] leading-none tracking-[-0.03em]">
                   {s}
