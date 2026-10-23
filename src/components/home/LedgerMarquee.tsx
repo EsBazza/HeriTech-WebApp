@@ -42,7 +42,7 @@ function useCountIn(active: boolean, duration = 1600) {
  * sit back. Positions are measured on resize only, so a frame writes styles and
  * reads nothing. Off screen it stops drawing.
  */
-function MarqueeTrack({ children, speed, paused, className }: { children: React.ReactNode; speed: number; paused: boolean; className?: string }) {
+function MarqueeTrack({ children, speed, paused, reverse = false, className }: { children: React.ReactNode; speed: number; paused: boolean; reverse?: boolean; className?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
@@ -104,7 +104,7 @@ function MarqueeTrack({ children, speed, paused, className }: { children: React.
       pace += ((hovered.current || pausedRef.current ? 0 : 1) - pace) * ease(5);
 
       const { copy: w, view, items } = layout.current;
-      x -= speed * boost * pace * dir * dt;
+      x -= speed * boost * pace * dir * (reverse ? -1 : 1) * dt;
       x = ((x % w) - w) % w;
       rail.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`;
 
@@ -132,7 +132,7 @@ function MarqueeTrack({ children, speed, paused, className }: { children: React.
       io.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [speed]);
+  }, [speed, reverse]);
 
   return (
     <div
@@ -171,6 +171,8 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
     { label: translateSync("raised for charity and upkeep"), value: stats ? formatCurrency(Math.round(stats.charity * p * 100) / 100) : "—" },
   ];
 
+  const steps = [translateSync("Collected"), translateSync("Classified"), translateSync("Matched"), translateSync("Crafted"), translateSync("Verified")];
+
   const row = figures.map((f) => (
     <span key={f.label} className="flex items-center">
       <span data-mq-item className="mq-item flex items-center gap-3.5 sm:gap-4">
@@ -186,6 +188,25 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
 
   return (
     <section ref={ref} className="ledger-band ledger-band--plain text-white py-8 lg:py-10" aria-labelledby="ledger-title">
+      {/* Behind the figures: lantern light pooled where the spotlight falls, paper grain,
+          and the five steps in outline drifting slowly the other way for depth */}
+      <div aria-hidden className="mq-bg pointer-events-none absolute inset-0 -z-10">
+        <span className="mq-glow" />
+        <span className="mq-grain" />
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
+          {reduce ? null : (
+            <MarqueeTrack speed={14} paused={paused} reverse>
+              {steps.map((s) => (
+                <span key={s} className="mq-ghost whitespace-nowrap pr-[0.5em] font-display italic font-medium text-[clamp(6rem,13vw,12rem)] leading-none tracking-[-0.03em]">
+                  {s}
+                  <span className="mx-[0.35em] not-italic">·</span>
+                </span>
+              ))}
+            </MarqueeTrack>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-x-6">
         <h2 id="ledger-title" className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
           <span className={cn("ledger-live w-2 h-2 rounded-full shrink-0", offline ? "bg-warn" : "bg-pine-300")} aria-hidden />
