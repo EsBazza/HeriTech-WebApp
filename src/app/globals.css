@@ -1558,6 +1558,37 @@
 .reveal.is-visible .problem-photo { filter: none; transform: none; }
 @media (prefers-reduced-motion: reduce) { .problem-photo { transition: none; transform: none; filter: none; } }
 
+/* Festival loop: a lantern light travels the ring, lighting each step in turn */
+.festival-loop .loop-trail { transition: stroke-dashoffset 900ms var(--ease-in-out); }
+.festival-loop .loop-comet { transform-origin: 50px 50px; transform-box: view-box; transition: transform 900ms var(--ease-in-out); }
+.festival-loop .loop-centre { fill: rgb(0 0 0 / 0.22); stroke: rgb(255 255 255 / 0.08); stroke-width: 0.25; }
+.festival-loop .loop-drift { transform-origin: 50px 50px; transform-box: view-box; animation: loop-drift 80s linear infinite; }
+@keyframes loop-drift { to { transform: rotate(360deg); } }
+.loop-step {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12) inset;
+  transition: opacity 700ms var(--ease-out), background-color 400ms var(--ease-out), color 300ms, transform 500ms var(--ease-out), box-shadow 400ms;
+}
+.loop-step:hover { transform: translate(-50%, -50%) scale(1.08); }
+.loop-step:active { transform: translate(-50%, -50%) scale(0.96); }
+.loop-step[data-on="true"] { transform: translate(-50%, -50%) scale(1.14); box-shadow: 0 0 0 6px rgb(var(--glow-amber) / 0.16), 0 10px 30px -8px rgb(196 71 30 / 0.6); }
+.loop-step:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.loop-ripple { border: 1.5px solid rgb(var(--glow-amber) / 0.7); animation: loop-ripple 1.6s var(--ease-out) both; }
+@keyframes loop-ripple { from { transform: scale(1); opacity: 1; } to { transform: scale(2.1); opacity: 0; } }
+.loop-detail { animation: loop-detail 600ms var(--ease-out) both; }
+@keyframes loop-detail { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+.loop-point-icon { background: rgb(var(--glow-amber) / 0.12); color: rgb(var(--glow-amber)); }
+/* Entrance: the ring scales up and the steps pop in around it */
+.festival-loop .loop-step { opacity: 0; }
+.festival-loop[data-on="true"] .loop-step { opacity: 1; }
+.festival-loop svg { opacity: 0; transform: scale(0.92) rotate(-8deg); transition: opacity 900ms var(--ease-out), transform 1200ms var(--ease-out); }
+.festival-loop[data-on="true"] svg { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .festival-loop .loop-drift, .loop-ripple, .loop-detail { animation: none; }
+  .festival-loop .loop-trail, .festival-loop .loop-comet, .loop-step, .festival-loop svg { transition: none; }
+  .festival-loop svg, .festival-loop .loop-step { opacity: 1; transform: none; }
+  .loop-step, .loop-step:hover, .loop-step[data-on="true"] { transform: translate(-50%, -50%); }
+}
+
 /* Circular system orbit */
 /* The loop is traced once to explain the cycle, then rests */
 .loop-tracer { animation: loop-spin 6s var(--ease-in-out) 1 both; transform: rotate(-90deg); }

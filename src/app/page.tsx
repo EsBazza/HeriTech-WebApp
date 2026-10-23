@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Camera, Check, Flower2, Handshake, Hammer, Lamp, Layers, MousePointer2, QrCode, Recycle, Search, ShieldCheck, Smartphone, Sparkles, X, PackageOpen } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Camera, Check, Flower2, Handshake, Hammer, Lamp, MousePointer2, QrCode, Recycle, Search, Sparkles, X, PackageOpen } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
@@ -13,7 +13,7 @@ import { Button, EmptyState, Skeleton, cn, controlClass } from "@/components/ui"
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { useInView } from "@/components/motion/Reveal";
-import { CircularLoop } from "@/components/home/CircularLoop";
+import { FestivalLoop } from "@/components/home/FestivalLoop";
 import { LedgerMarquee } from "@/components/home/LedgerMarquee";
 import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
 import { LanternAssembly } from "@/components/motion/LanternAssembly";
@@ -204,23 +204,6 @@ export default function FeedHomePage() {
     },
   ];
 
-  const systemPoints = [
-    {
-      icon: Smartphone,
-      title: translateSync("Works on any phone"),
-      body: translateSync("Runs in the browser officers and artisans already use. Nothing to install."),
-    },
-    {
-      icon: Layers,
-      title: translateSync("Any festival, any leftover"),
-      body: translateSync("Lanterns, flowers, fabric or wood: agreement, scan, pickup, craft, pass."),
-    },
-    {
-      icon: ShieldCheck,
-      title: translateSync("Proof anyone can check"),
-      body: translateSync("Every pass opens a public record of its origin, maker and money split. No account needed."),
-    },
-  ];
 
   // What "traced" means, pinned onto the hero photo (generic, no invented records)
   const heroTags: TraceTag[] = [
@@ -426,32 +409,8 @@ export default function FeedHomePage() {
       </section>
 
       {/* CIRCULAR DIGITAL SYSTEM */}
-      <section className="ledger-band text-white" aria-labelledby="loop-title">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-          <div className="lg:col-span-5">
-            <Reveal>
-              <h2 id="loop-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-white">
-                {translateSync("The same loop at every festival")}
-              </h2>
-              <p className="mt-6 text-[18px] text-white/85 leading-[1.6] max-w-[44ch] text-pretty">
-                {translateSync("One system for every festival and every kind of leftover.")}
-              </p>
-            </Reveal>
-            <ul className="mt-10 space-y-7">
-              {systemPoints.map((point, i) => (
-                <li key={point.title}>
-                  <Reveal delay={i * 90}>
-                    <h3 className="font-display text-[26px] leading-[1.1] font-semibold tracking-[-0.015em] text-white">{point.title}</h3>
-                    <p className="mt-1.5 text-[16px] text-white/80 leading-[1.6] max-w-[46ch] text-pretty">{point.body}</p>
-                  </Reveal>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <Reveal delay={150} className="lg:col-span-7 max-w-xl mx-auto w-full">
-            <CircularLoop />
-          </Reveal>
-        </div>
+      <section className="ledger-band loop-band text-white" aria-labelledby="loop-title">
+        <FestivalLoop />
       </section>
 
       {/* SHOP */}
