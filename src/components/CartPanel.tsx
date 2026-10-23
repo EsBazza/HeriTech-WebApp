@@ -120,7 +120,7 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
                 </div>
                 <dl className="mt-3 grid grid-cols-3 gap-2">
                   {shares.map((s) => (
-                    <div key={s.key} className="min-w-0">
+                    <div key={s.key} className="min-w-0 flex flex-col justify-between">
                       <dt className="flex items-start gap-1.5 text-[13px] leading-tight text-ink-3">
                         <span aria-hidden className={cn("mt-1 w-2 h-2 rounded-full shrink-0", s.color)} />
                         {s.label}
