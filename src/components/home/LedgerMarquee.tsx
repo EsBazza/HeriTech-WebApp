@@ -215,9 +215,9 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
 
       <div aria-hidden className="mt-4 lg:mt-6">
         {reduce ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-y-2 text-[clamp(3rem,7vw,6.5rem)] leading-[1.05]">{figureRow}</div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-y-2 text-[clamp(3.5rem,7vw,6.5rem)] leading-[1.05]">{figureRow}</div>
         ) : (
-          <MarqueeTrack speed={46} className="marquee-fade py-2 text-[clamp(3rem,7vw,6.5rem)] leading-[1.05]">
+          <MarqueeTrack speed={46} className="marquee-fade py-2 text-[clamp(3.5rem,7vw,6.5rem)] leading-[1.05]">
             {figureRow}
           </MarqueeTrack>
         )}
