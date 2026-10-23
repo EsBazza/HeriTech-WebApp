@@ -276,9 +276,9 @@ export default function FeedHomePage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:min-h-[620px] lg:min-h-[min(84vh,760px)] flex items-end lg:items-center pt-52 sm:pt-80 pb-10 sm:pb-14 lg:py-20">
-          <div className="max-w-xl space-y-5 sm:space-y-7">
+          <div className="max-w-xl sm:max-w-[640px] lg:max-w-[700px] space-y-5 sm:space-y-7">
             <h1
-              className="rise font-display text-[44px] sm:text-[64px] lg:text-[80px] leading-[0.95] font-semibold text-white tracking-[-0.025em] text-balance"
+              className="rise font-display text-[44px] sm:text-[62px] lg:text-[72px] leading-[0.97] font-semibold text-white tracking-[-0.025em] text-balance"
               style={{ ["--rise-delay" as string]: "80ms" }}
             >
               {translateSync("Festival waste, traced into heritage craft.")}
