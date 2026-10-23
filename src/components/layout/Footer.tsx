@@ -70,10 +70,6 @@ export function Footer() {
         </div>
       </div>
 
-      <div aria-hidden className="footer-name max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <p className="font-display font-semibold leading-[0.78] tracking-[-0.04em] text-white/[0.09] text-[clamp(3.5rem,13vw,11rem)] select-none whitespace-nowrap">HeriTech</p>
-      </div>
-
       <div className="bg-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-sm">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
