@@ -391,7 +391,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <header data-scrolled={scrolled} className="site-header sticky top-0 z-40 bg-paper/90 backdrop-blur-md border-b border-line pt-[env(safe-area-inset-top,0px)]">
+    <header data-scrolled={scrolled} className="site-header sticky top-0 z-40 bg-paper/90 backdrop-blur-md pt-[env(safe-area-inset-top,0px)]">
       <div className="site-header-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-6">
         <Logo />
 

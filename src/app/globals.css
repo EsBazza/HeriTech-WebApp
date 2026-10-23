@@ -1419,8 +1419,12 @@
 .step-rail-fill { transform: scaleX(0); transform-origin: left; transition: transform 0.9s var(--ease-in-out) 0.1s; }
 .steps-in .step-rail-fill { transform: scaleX(1); }
 .step-dot { transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease; }
-.steps-in .step-dot { background-color: var(--color-pine-700); color: #fff; box-shadow: 0 0 0 6px var(--color-paper); }
+.steps-in .step-dot { background-color: var(--color-pine-700); }
 .steps-in .step-dot-last { background-color: var(--color-lantern); }
+/* The problem photographs come slowly into colour as they enter */
+.problem-photo { transition: transform 1.2s var(--ease-out), filter 1.2s var(--ease-out); filter: saturate(0.6); transform: scale(1.06); }
+.reveal.is-visible .problem-photo { filter: none; transform: none; }
+@media (prefers-reduced-motion: reduce) { .problem-photo { transition: none; transform: none; filter: none; } }
 
 /* Circular system orbit */
 /* The loop is traced once to explain the cycle, then rests */

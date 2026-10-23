@@ -70,7 +70,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10">
+      <div className="bg-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-sm">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="text-white/60">{translateSync("Built with")}</span>

@@ -149,7 +149,7 @@ export function TraceReveal({
             <span className="relative flex w-5 h-5 items-center justify-center rounded-full bg-pine-700">
               <span className="w-1.5 h-1.5 rounded-full bg-white" />
             </span>
-            <span className="text-xs leading-tight">
+            <span className="text-[13px] leading-tight">
               <span className="block font-medium text-ink">{t.label}</span>
               <span className="block text-ink-3">{t.detail}</span>
             </span>

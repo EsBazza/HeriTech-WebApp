@@ -49,3 +49,6 @@ firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
 .firebase/
+
+# design inspector working files
+.taste-skill/

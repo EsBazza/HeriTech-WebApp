@@ -65,7 +65,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-surface/95 backdrop-blur-md border-t border-line pb-[env(safe-area-inset-bottom,0px)]"
+      className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-surface shadow-[0_-8px_24px_-16px_rgb(20_40_30/0.35)] pb-[env(safe-area-inset-bottom,0px)]"
     >
       <div className="relative grid h-16 max-w-lg mx-auto" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
         {/* One indicator that slides to the active tab */}

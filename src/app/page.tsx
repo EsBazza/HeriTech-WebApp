@@ -3,17 +3,16 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ArrowUpRight, BadgeCheck, Camera, Check, Flower2, Handshake, HandHeart, Hammer, Lamp, Leaf, Layers, MousePointer2, QrCode, Recycle, Search, ShieldCheck, Smartphone, Sparkles, X, PackageOpen } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Camera, Check, Flower2, Handshake, Hammer, Lamp, Layers, MousePointer2, QrCode, Recycle, Search, ShieldCheck, Smartphone, Sparkles, X, PackageOpen } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
 import { EscrowBar } from "@/components/EscrowBar";
 import { userRole } from "@/lib/roleGuard";
-import { Button, EmptyState, Eyebrow, SectionHeader, Skeleton, Stat, cn, controlClass } from "@/components/ui";
+import { Button, EmptyState, Skeleton, cn, controlClass } from "@/components/ui";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { useInView } from "@/components/motion/Reveal";
-import { spotlight } from "@/components/motion/spotlight";
 import { CircularLoop } from "@/components/home/CircularLoop";
 import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
 import { LanternAssembly } from "@/components/motion/LanternAssembly";
@@ -147,8 +146,8 @@ export default function FeedHomePage() {
         onClick={() => setSelectedTag(active ? "All" : tag)}
         aria-pressed={active}
         className={cn(
-          "relative h-10 px-4 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer border shrink-0 after:absolute after:-inset-y-0.5 after:inset-x-0 after:content-['']",
-          active ? "bg-pine-700 border-pine-700 text-white" : "bg-surface border-line text-ink-2 hover:border-pine-300"
+          "relative h-10 px-4 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer shrink-0 after:absolute after:-inset-y-0.5 after:inset-x-0 after:content-['']",
+          active ? "bg-pine-700 text-white" : "bg-surface text-ink-2 hover:bg-pine-50"
         )}
       >
         {translateSync(tag)}
@@ -160,6 +159,8 @@ export default function FeedHomePage() {
   const problems = [
     {
       figure: "50,000+",
+      photo: "/photos/yi-peng.jpg",
+      alt: translateSync("Thousands of paper sky lanterns rising at Yi Peng in Chiang Mai"),
       value: 50000,
       suffix: "+",
       icon: Lamp,
@@ -170,6 +171,8 @@ export default function FeedHomePage() {
     },
     {
       figure: "508 t",
+      photo: "/photos/marigold-garland.jpg",
+      alt: translateSync("Marigold garlands, the offerings collected after Ganesh Chaturthi"),
       value: 508,
       suffix: " t",
       icon: Flower2,
@@ -180,6 +183,8 @@ export default function FeedHomePage() {
     },
     {
       figure: "30+ t",
+      photo: "/photos/temple-flowers.jpg",
+      alt: translateSync("A pile of spent offering flowers"),
       value: 30,
       suffix: "+ t",
       icon: Recycle,
@@ -231,7 +236,7 @@ export default function FeedHomePage() {
               type="button"
               onClick={toggle}
               aria-pressed={full}
-              className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white/15 border border-white/25 text-sm text-white backdrop-blur hover:bg-white/25 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white/15 border border-white/25 text-sm text-white hover:bg-white/25 transition-colors cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />
               {full ? translateSync("Show leftovers") : translateSync("Craft it")}
@@ -251,7 +256,7 @@ export default function FeedHomePage() {
         >
           <LanternAssembly className="left-0 top-0" />
           <div className="absolute left-1/2 top-[436px] -translate-x-1/2 whitespace-nowrap hidden lg:block">
-            <span className="trace-when-idle absolute left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-pine-900/70 border border-white/15 px-3.5 py-1.5 text-sm text-white/85 backdrop-blur">
+            <span className="trace-when-idle absolute left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-pine-900/70 border border-white/15 px-3.5 py-1.5 text-sm text-white/85">
               <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
               {translateSync("Leftovers after the festival")}
             </span>
@@ -264,9 +269,6 @@ export default function FeedHomePage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:min-h-[620px] lg:min-h-[min(84vh,760px)] flex items-end lg:items-center pt-52 sm:pt-80 pb-10 sm:pb-14 lg:py-20">
           <div className="max-w-xl space-y-5 sm:space-y-7">
-            <div className="rise" style={{ ["--rise-delay" as string]: "0ms" }}>
-              <Eyebrow className="text-pine-200">{translateSync("EDUtech Asia 2026 · Planet Protectors Challenge")}</Eyebrow>
-            </div>
             <h1
               className="rise font-display text-[40px] sm:text-[60px] lg:text-[68px] leading-[1.0] font-semibold text-white tracking-[-0.01em]"
               style={{ ["--rise-delay" as string]: "80ms" }}
@@ -297,12 +299,12 @@ export default function FeedHomePage() {
                   placeholder="HT-XXXX-XXXX"
                   className={cn(
                     controlClass,
-                    "h-12 rounded-l-full rounded-r-none border-r-0 pl-5 font-mono-data text-base sm:text-sm bg-white/10 border-white/30 text-white placeholder:text-white/55 focus:border-white focus:ring-white/20 backdrop-blur"
+                    "h-12 rounded-l-full rounded-r-none border-r-0 pl-5 font-mono-data text-base sm:text-sm bg-white/10 border-white/30 text-white placeholder:text-white/55 focus:border-white focus:ring-white/20"
                   )}
                 />
                 <button
                   type="submit"
-                  className="h-12 px-5 rounded-r-full border border-white/30 bg-white/10 text-white font-medium hover:bg-white/20 transition-colors cursor-pointer whitespace-nowrap backdrop-blur"
+                  className="h-12 px-5 rounded-r-full border border-white/30 bg-white/10 text-white font-medium hover:bg-white/20 transition-colors cursor-pointer whitespace-nowrap"
                 >
                   {translateSync("Verify")}
                 </button>
@@ -318,8 +320,8 @@ export default function FeedHomePage() {
               ))}
             </ul>
 
-            <p className="rise hidden lg:flex items-center gap-2 text-xs text-white/60" style={{ ["--rise-delay" as string]: "400ms" }}>
-              <MousePointer2 className="w-3.5 h-3.5" />
+            <p className="rise hidden lg:flex items-center gap-2 text-sm text-white/65" style={{ ["--rise-delay" as string]: "400ms" }}>
+              <MousePointer2 className="w-4 h-4" />
               {translateSync("Hover the photo to turn the leftovers into a lantern")}
             </p>
           </div>
@@ -327,143 +329,114 @@ export default function FeedHomePage() {
 
       </TraceReveal>
 
-      {/* PROOF STRIP — the live ledger */}
-      <section className="ledger-band text-white">
-        <svg className="ledger-thread absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-24 pointer-events-none" viewBox="0 0 1200 96" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 60 C 200 10, 380 90, 600 48 S 1000 14, 1200 52" fill="none" stroke="rgb(242 166 90 / 0.3)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-        </svg>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between gap-4 mb-7">
-            <p className="flex items-center gap-2.5 text-sm text-white/75">
+      {/* PROOF STRIP: the live ledger, its figures set large */}
+      <section className="ledger-band text-white" aria-labelledby="ledger-title">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-16">
+          <dl className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10">
+            {[
+              { label: translateSync("of festival material traced"), hint: translateSync("Weighed and logged at collection points"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
+              { label: translateSync("verified artisans"), hint: translateSync("Approved before they can claim material"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
+              { label: translateSync("impact passes issued"), hint: translateSync("Each one publicly scannable"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
+              { label: translateSync("raised for charity and upkeep"), hint: translateSync("5% of every sale, on the record"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
+            ].map((m, i) => (
+              <Reveal key={i} delay={i * 80} className="flex flex-col">
+                <dd className="order-1 tabular font-display text-[clamp(2.75rem,5.5vw,4.5rem)] leading-[0.95] font-semibold tracking-[-0.02em]">
+                  {m.value}
+                  {m.unit && <span className="ml-1.5 font-sans text-xl font-medium text-white/70">{m.unit}</span>}
+                </dd>
+                <dt className="order-2 mt-2 text-base text-white/90">{m.label}</dt>
+                <p className="order-3 mt-1 hidden sm:block text-sm text-white/65">{m.hint}</p>
+              </Reveal>
+            ))}
+          </dl>
+          <div className="mt-10 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <h2 id="ledger-title" className="flex items-center gap-2.5 text-base font-medium text-white/85">
               <span className={cn("w-2 h-2 rounded-full shrink-0", statsOffline ? "bg-warn" : "bg-pine-300 ledger-pulse")} aria-hidden />
               {statsOffline ? translateSync("The ledger can't be reached right now.") : translateSync("Live from the HeriTech ledger")}
-            </p>
-            <a href="/impact" className="hidden sm:inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white transition-colors">
-              {translateSync("See the full impact ledger")}
+            </h2>
+            <a href="/impact" className="inline-flex items-center gap-1.5 text-base text-white/80 hover:text-white transition-colors">
+              {translateSync("See the full impact record")}
               <ArrowUpRight className="w-4 h-4" />
             </a>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { icon: Leaf, label: translateSync("Festival material traced"), hint: translateSync("Weighed and logged at collection points"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
-              { icon: BadgeCheck, label: translateSync("Verified artisans"), hint: translateSync("Approved before they can claim material"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
-              { icon: QrCode, label: translateSync("Impact passes issued"), hint: translateSync("Each one publicly scannable"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
-              { icon: HandHeart, label: translateSync("Raised for charity & upkeep"), hint: translateSync("5% of every sale, on the record"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
-            ].map((m, i) => (
-              <Reveal
-                key={i}
-                delay={i * 80}
-                onPointerMove={spotlight}
-                className="spotlight spotlight-dark rounded-lg border border-white/10 bg-white/[0.04] backdrop-blur-sm p-5"
-              >
-                <span className="ledger-icon mb-3 w-8 h-8 rounded-full flex items-center justify-center" aria-hidden>
-                  <m.icon className="w-4 h-4" strokeWidth={1.75} />
+        </div>
+      </section>
+
+      {/* THE PROBLEM: what festivals leave behind, in photographs */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 lg:pt-32" aria-labelledby="problem-title">
+        <div className="grid lg:grid-cols-12 gap-x-10 gap-y-5 items-end">
+          <Reveal className="lg:col-span-6">
+            <h2 id="problem-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+              {translateSync("What a festival leaves behind")}
+            </h2>
+          </Reveal>
+          <Reveal delay={80} className="lg:col-span-6">
+            <p className="text-lg text-ink-2 leading-relaxed max-w-xl">
+              {translateSync("The material is beautiful and reusable. What's missing is a trusted record of who may collect it, where it went and who was paid.")}
+            </p>
+          </Reveal>
+        </div>
+
+        <div className="mt-12 lg:mt-16 grid sm:grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-12">
+          {problems.map((p, i) => (
+            <Reveal key={p.figure} delay={i * 90} className={cn("flex flex-col", i === 0 ? "sm:col-span-2 lg:col-span-6" : "lg:col-span-3")}>
+              <figure className="relative overflow-hidden bg-pine-900">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.photo}
+                  alt={p.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className={cn("w-full object-cover problem-photo", i === 0 ? "aspect-[4/3] lg:aspect-[8/5]" : "aspect-[4/5]")}
+                />
+              </figure>
+              <p className={cn("mt-5 font-display leading-none font-semibold tracking-[-0.02em] text-lantern-600 tabular", i === 0 ? "text-[clamp(3rem,6vw,5rem)]" : "text-[clamp(2.5rem,4vw,3.25rem)]")}>
+                <span className="sr-only">{p.figure}</span>
+                <span aria-hidden>
+                  <CountUp value={p.value} format={formatNumber} />
+                  {p.suffix}
                 </span>
-                <Stat tone="dark" label={m.label} value={m.value} unit={m.unit} hint={m.hint} />
-              </Reveal>
-            ))}
-          </div>
+              </p>
+              <p className="mt-3 text-base text-ink leading-relaxed">{p.label}</p>
+              <p className="mt-2 text-sm text-ink-3 leading-relaxed">{p.note}</p>
+              <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-2 hover:text-brand">
+                {translateSync("Source")}: {p.source}
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      {/* THE PROBLEM */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 lg:pt-24 grid lg:grid-cols-12 gap-10">
-        <Reveal className="lg:col-span-4">
-          <SectionHeader
-            eyebrow={translateSync("The problem")}
-            title={translateSync("Asia's festivals leave a trail no one is tracking")}
-            description={translateSync(
-              "The material is beautiful and reusable. What's missing is a trusted record of who may collect it, where it went and who was paid."
-            )}
-          />
+      {/* HOW IT WORKS: one record along one rail */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-36" aria-labelledby="steps-title">
+        <Reveal className="max-w-3xl">
+          <h2 id="steps-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+            {translateSync("One record, from riverbank to shelf")}
+          </h2>
+          <p className="mt-5 text-lg text-ink-2 leading-relaxed max-w-xl">
+            {translateSync("Every step is recorded when it happens, so anyone can check the claim on the tag.")}
+          </p>
         </Reveal>
-        <div className="lg:col-span-8 grid sm:grid-cols-3 gap-4 self-start">
-          {problems.map((p, i) => {
-            const Icon = p.icon;
-            return (
-              <Reveal
-                key={p.figure}
-                delay={i * 90}
-                onPointerMove={spotlight}
-                className="spotlight lift group relative overflow-hidden flex flex-col bg-surface border border-line rounded-lg p-6 shadow-card"
-              >
-                <Icon className="absolute -right-6 -bottom-6 w-32 h-32 text-brand/[0.05] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={1.25} aria-hidden />
-                <div className="flex items-center justify-between">
-                  <span className={cn("w-10 h-10 rounded-full flex items-center justify-center", i === 2 ? "bg-pine-100 text-brand" : "bg-lantern-100 text-lantern-600")}>
-                    <Icon className="w-5 h-5" strokeWidth={1.75} />
-                  </span>
-                  <span className="font-display text-2xl text-line-strong tabular">{String(i + 1).padStart(2, "0")}</span>
-                </div>
-                <p className="mt-6 font-display text-[44px] leading-none font-semibold text-lantern-gradient">
-                  <span className="sr-only">{p.figure}</span>
-                  <span aria-hidden>
-                    <CountUp value={p.value} format={formatNumber} />
-                    {p.suffix}
-                  </span>
-                </p>
-                <p className="mt-3 text-sm text-ink-2 leading-relaxed">{p.label}</p>
-                <p className="mt-3 text-xs text-ink-3 flex-1">{p.note}</p>
-                <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-5 pt-4 border-t border-line inline-flex items-center gap-1 text-xs font-medium text-brand-2 hover:text-brand">
-                  {translateSync("Source")}: {p.source}
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </a>
-              </Reveal>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 space-y-10">
-        <Reveal>
-          <SectionHeader
-            eyebrow={translateSync("How HeriTech works")}
-            title={translateSync("One record, from riverbank to your shelf")}
-            description={translateSync("Every step is recorded when it happens, so anyone can check the claim on the tag.")}
-          />
-        </Reveal>
-        <ol ref={stepsRef} className={cn("relative grid sm:grid-cols-2 lg:grid-cols-4 gap-5", stepsIn && "steps-in")}>
-          <span className="hidden lg:block absolute left-[12.5%] right-[12.5%] top-6 h-px bg-line-strong" aria-hidden>
-            <span className="step-rail-fill absolute inset-0 bg-gradient-to-r from-pine-500 via-pine-500 to-[rgb(242_166_90)]" />
+        <ol ref={stepsRef} className={cn("relative mt-14 lg:mt-20 grid sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12", stepsIn && "steps-in")}>
+          <span className="hidden lg:block absolute left-0 right-0 top-[7px] h-[3px] rounded-full bg-paper-2" aria-hidden>
+            <span className="step-rail-fill absolute inset-0 rounded-full bg-brand-2" />
           </span>
           {steps.map((s, i) => {
-            const Icon = s.icon;
             const last = i === steps.length - 1;
             return (
-              <li key={s.title} className="relative flex flex-col">
+              <li key={s.title} className="relative">
                 <span
-                  className={cn("step-dot relative z-10 mx-auto w-12 h-12 rounded-full bg-pine-100 text-brand flex items-center justify-center", last && "step-dot-last")}
+                  aria-hidden
+                  className={cn("step-dot relative z-10 block w-[17px] h-[17px] rounded-full bg-paper-2", last && "step-dot-last")}
                   style={{ transitionDelay: `${300 + i * 380}ms` }}
-                >
-                  <Icon className="w-5 h-5" strokeWidth={1.75} />
-                </span>
-                <Reveal
-                  delay={i * 90}
-                  onPointerMove={spotlight}
-                  className={cn(
-                    "spotlight lift mt-5 flex-1 rounded-lg border p-6 flex flex-col",
-                    last ? "spotlight-dark bg-pine-900 border-pine-900 text-white" : "bg-surface border-line shadow-card"
-                  )}
-                >
-                  <span className={cn("font-display text-sm tabular", last ? "text-pine-300" : "text-ink-3")}>
-                    {translateSync("Step")} {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className={cn("mt-1 font-display text-[22px] leading-snug font-semibold", last ? "text-white" : "text-ink")}>{s.title}</h3>
-                  <p className={cn("mt-2 text-sm leading-relaxed flex-1", last ? "text-white/75" : "text-ink-2")}>{s.body}</p>
-                  <div className="mt-5 flex flex-wrap gap-1.5">
-                    {s.tech.split(" · ").map((t) => (
-                      <span
-                        key={t}
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
-                          last ? "bg-lantern text-white" : "bg-pine-50 border border-brand-line text-brand"
-                        )}
-                      >
-                        <Sparkles className="w-3 h-3" aria-hidden />
-                        {t}
-                      </span>
-                    ))}
-                  </div>
+                />
+                <Reveal delay={i * 90} className="mt-7">
+                  <h3 className="font-display text-[26px] leading-tight font-semibold text-ink">{s.title}</h3>
+                  <p className="mt-3 text-base text-ink-2 leading-relaxed">{s.body}</p>
+                  <p className={cn("mt-4 text-sm font-medium", last ? "text-lantern-600" : "text-brand-2")}>
+                    {translateSync("Built on")} {s.tech.split(" · ").join(translateSync(" and "))}
+                  </p>
                 </Reveal>
               </li>
             );
@@ -472,38 +445,26 @@ export default function FeedHomePage() {
       </section>
 
       {/* CIRCULAR DIGITAL SYSTEM */}
-      <section className="ledger-band text-white">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          <div className="lg:col-span-5 space-y-8">
+      <section className="ledger-band text-white" aria-labelledby="loop-title">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+          <div className="lg:col-span-5">
             <Reveal>
-              <SectionHeader
-                tone="dark"
-                eyebrow={translateSync("How it works")}
-                title={translateSync("One system for every festival")}
-                description={translateSync("HeriTech records each step from leftover to finished piece, so anyone can check where it came from.")}
-              />
+              <h2 id="loop-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-white">
+                {translateSync("The same loop at every festival")}
+              </h2>
+              <p className="mt-5 text-lg text-white/80 leading-relaxed">
+                {translateSync("HeriTech records each step from leftover to finished piece, so anyone can check where it came from.")}
+              </p>
             </Reveal>
-            <ul className="space-y-3">
-              {systemPoints.map((point, i) => {
-                const Icon = point.icon;
-                return (
-                  <li key={point.title}>
-                    <Reveal
-                      delay={i * 90}
-                      onPointerMove={spotlight}
-                      className="spotlight spotlight-dark flex gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-5 transition-colors hover:border-white/20"
-                    >
-                      <span className="shrink-0 w-10 h-10 rounded-full bg-white/10 text-pine-200 flex items-center justify-center">
-                        <Icon className="w-5 h-5" strokeWidth={1.75} />
-                      </span>
-                      <div>
-                        <h3 className="text-base font-semibold text-white font-sans">{point.title}</h3>
-                        <p className="mt-1 text-sm text-white/70 leading-relaxed">{point.body}</p>
-                      </div>
-                    </Reveal>
-                  </li>
-                );
-              })}
+            <ul className="mt-10 space-y-7">
+              {systemPoints.map((point, i) => (
+                <li key={point.title}>
+                  <Reveal delay={i * 90}>
+                    <h3 className="font-display text-[24px] leading-tight font-semibold text-white">{point.title}</h3>
+                    <p className="mt-1.5 text-base text-white/75 leading-relaxed">{point.body}</p>
+                  </Reveal>
+                </li>
+              ))}
             </ul>
           </div>
           <Reveal delay={150} className="lg:col-span-7 max-w-xl mx-auto w-full">
@@ -513,18 +474,19 @@ export default function FeedHomePage() {
       </section>
 
       {/* SHOP */}
-      <section id="shop" className="scroll-mt-20 border-t border-line bg-gradient-to-b from-paper-2/70 to-paper">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-8">
-          <Reveal>
-          <SectionHeader
-            eyebrow={translateSync("Shop")}
-            title={translateSync("Sourced from festivals, crafted by artisans")}
-            description={translateSync("Each piece links back to the batch of material it was made from.")}
-          />
+      <section id="shop" className="scroll-mt-20 bg-paper-2" aria-labelledby="shop-title">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 space-y-10">
+          <Reveal className="grid lg:grid-cols-12 gap-x-10 gap-y-4 items-end">
+            <h2 id="shop-title" className="lg:col-span-7 font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+              {translateSync("Pieces made from what was left")}
+            </h2>
+            <p className="lg:col-span-5 text-lg text-ink-2 leading-relaxed">
+              {translateSync("Each piece links back to the batch of material it was made from.")}
+            </p>
           </Reveal>
 
           {/* Filter bar */}
-          <div className="space-y-3 rounded-lg border border-line bg-surface/80 backdrop-blur p-3 sm:p-4 shadow-card">
+          <div className="space-y-3">
             <div className="flex flex-col md:flex-row md:items-center gap-3">
               <div className="relative md:w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
@@ -544,11 +506,11 @@ export default function FeedHomePage() {
               </div>
               <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5 -mx-4 px-4 md:mx-0 md:px-0 md:flex-1 [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
                 {materialTags.map(chip)}
-                <span className="w-px h-5 bg-line-strong shrink-0 mx-1" aria-hidden />
+                <span className="w-3 shrink-0" aria-hidden />
                 {countryTags.map(chip)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm text-ink-3">
+            <div className="flex items-center justify-between text-base text-ink-3">
               <span aria-live="polite">
                 {filteredBatches.length} {filteredBatches.length === 1 ? translateSync("piece") : translateSync("pieces")}
               </span>
@@ -618,37 +580,42 @@ export default function FeedHomePage() {
       </section>
 
       {/* WHERE THE MONEY GOES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-center">
-        <Reveal>
-        <SectionHeader
-          eyebrow={translateSync("Transparent checkout")}
-          title={translateSync("Not “a portion goes to charity.” The exact split, every sale.")}
-          description={translateSync("You see the split before you pay, and it goes on the public record after. Your pass links to it.")}
-        />
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 items-center" aria-labelledby="split-title">
+        <Reveal className="lg:col-span-5">
+          <h2 id="split-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+            {translateSync("Every sale, split in the open")}
+          </h2>
+          <p className="mt-5 text-lg text-ink-2 leading-relaxed">
+            {translateSync("Not \u201ca portion goes to charity\u201d. You see the exact split before you pay, and it goes on the public record after. Your pass links to it.")}
+          </p>
         </Reveal>
-        <Reveal delay={120} className="bg-surface border border-line rounded-md p-6 shadow-card">
-          <div className="flex items-baseline justify-between mb-5">
-            <span className="text-sm text-ink-3">{translateSync("Example: a piece sold for")}</span>
-            <span className="tabular font-display text-3xl font-semibold text-ink">{formatCurrency(85)}</span>
+        <Reveal delay={120} className="lg:col-span-7 bg-surface p-7 sm:p-9">
+          <div className="flex items-baseline justify-between mb-6">
+            <span className="text-base text-ink-2">{translateSync("A piece sold for")}</span>
+            <span className="tabular font-display text-[44px] leading-none font-semibold text-ink">{formatCurrency(85)}</span>
           </div>
           <EscrowBar amount={85} animate />
         </Reveal>
       </section>
 
       {/* PARTNERS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <Reveal className="rounded-lg border border-line bg-surface shadow-card px-6 py-6 flex flex-col md:flex-row items-center justify-center gap-5 md:gap-8 text-center md:text-left">
-          <Image src="/university-of-assumption.png" alt="University of the Assumption" width={56} height={56} className="partner-seal h-12 w-auto object-contain" />
-          <p className="text-sm text-ink-2">
-            <span className="font-medium text-ink">{translateSync("Built at University of the Assumption, Pampanga")}</span>
-            <span className="hidden md:inline text-ink-3"> · </span>
-            <br className="md:hidden" />
-            {translateSync("Presented at EDUtech Asia 2026")}
-          </p>
-          <span className="inline-flex items-center rounded-md bg-pine-900 px-4 py-3">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24" aria-label={translateSync("Partners")}>
+        <Reveal className="flex flex-col md:flex-row items-center justify-between gap-6 bg-surface px-7 py-7">
+          <div className="flex items-center gap-4">
+            <Image src="/university-of-assumption.png" alt="University of the Assumption" width={56} height={56} className="partner-seal h-14 w-auto object-contain" />
+            <p className="text-base text-ink-2">
+              <span className="font-medium text-ink">{translateSync("Built at University of the Assumption, Pampanga")}</span>
+              <br />
+              {translateSync("Presented at EDUtech Asia 2026, Planet Protectors Challenge")}
+            </p>
+          </div>
+          <span className="inline-flex items-center bg-pine-900 px-4 py-3">
             <Image src="/EDUtech_asia-REV1200.webp" alt="EDUtech Asia" width={160} height={23} className="h-6 w-auto object-contain" />
           </span>
         </Reveal>
+        <p className="mt-4 text-sm text-ink-3">
+          {translateSync("Photographs")}: {"\u201cLK 02 loy krathong yi peng san sai\u201d by Takeaway, CC BY-SA 3.0"} · {"\u201cMarigold Flowers as garland\u201d by SnapMeUp, CC BY 4.0"}, {translateSync("via Wikimedia Commons")} · {translateSync("product and material photos from Unsplash")}
+        </p>
       </section>
     </div>
   );

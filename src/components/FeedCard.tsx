@@ -91,7 +91,7 @@ export function FeedCard({ batch }: FeedCardProps) {
   const location = batch.region && batch.region !== batch.country ? `${batch.region}, ${batch.country}` : batch.country;
 
   return (
-    <article onPointerMove={spotlight} className="spotlight lift group flex flex-col bg-surface border border-line rounded-lg overflow-hidden shadow-card">
+    <article onPointerMove={spotlight} className="spotlight lift group flex flex-col bg-surface rounded-lg overflow-hidden">
       <Link href={href} className="arch relative block aspect-[4/3] mx-3 mt-3 bg-paper-2 overflow-hidden" tabIndex={-1} aria-hidden>
         {batch.image ? (
           <Image
@@ -107,15 +107,15 @@ export function FeedCard({ batch }: FeedCardProps) {
         )}
         <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-pine-900/60 to-transparent pointer-events-none" aria-hidden />
         {soldOut && (
-          <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-surface/95 px-2.5 py-1 text-xs font-semibold text-ink shadow-card">
+          <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-surface/95 px-2.5 py-1 text-[13px] font-semibold text-ink shadow-card">
             {translateSync("Sold out")}
           </span>
         )}
-        <span className="traced-badge absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-pine-900/75 backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-white">
+        <span className="traced-badge absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-pine-900/75 px-2.5 py-1 text-[13px] font-medium text-white">
           <QrCode className="w-3 h-3" aria-hidden />
           {translateSync("Traced")}
         </span>
-        <span className="absolute left-3 bottom-3 inline-flex items-center gap-1 text-xs font-medium text-white">
+        <span className="absolute left-3 bottom-3 inline-flex items-center gap-1 text-[13px] font-medium text-white">
           <Leaf className="w-3.5 h-3.5 text-pine-200" aria-hidden />
           {formatNumber(batch.weightKg)} {translateSync("kg diverted")}
         </span>
@@ -123,7 +123,7 @@ export function FeedCard({ batch }: FeedCardProps) {
 
       <div className="flex flex-col flex-1 p-4 sm:p-5">
         {(location || batch.festival) && (
-          <div className="flex items-center gap-1.5 text-xs text-ink-3">
+          <div className="flex items-center gap-1.5 text-[13px] text-ink-3">
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate">{[batch.festival, location].filter(Boolean).map((t) => translateSync(t)).join(" · ")}</span>
           </div>
@@ -138,13 +138,13 @@ export function FeedCard({ batch }: FeedCardProps) {
 
         {batch.materialType && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center rounded-full bg-pine-50 border border-brand-line px-2.5 py-0.5 text-xs text-brand truncate max-w-full">
+            <span className="inline-flex items-center rounded-full bg-pine-50 border border-brand-line px-2.5 py-0.5 text-[13px] text-brand truncate max-w-full">
               {translateSync(batch.materialType)}
             </span>
           </div>
         )}
 
-        <div className="mt-auto pt-4 border-t border-line/70 flex items-center justify-between gap-3">
+        <div className="mt-auto pt-5 flex items-center justify-between gap-3">
           <span className="tabular font-display text-2xl font-semibold text-ink">
             {batch.freeClaim ? translateSync("Free") : formatCurrency(batch.price)}
           </span>

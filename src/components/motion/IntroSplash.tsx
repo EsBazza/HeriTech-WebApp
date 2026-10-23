@@ -96,7 +96,7 @@ export function IntroSplash() {
           </React.Fragment>
         ))}
       </p>
-      <p className="intro-fade mt-6 text-xs text-ink-3" style={{ ["--rise-delay" as string]: "1.2s" }}>
+      <p className="intro-fade mt-6 text-[13px] text-ink-3" style={{ ["--rise-delay" as string]: "1.2s" }}>
         {translateSync("Festival leftovers, traced into heritage craft")}
       </p>
     </div>
