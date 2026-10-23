@@ -27,7 +27,14 @@ export const metadata: Metadata = {
  * Colours the phone's status bar to match the app when installed, and lets the
  * page reach under notches so the env(safe-area-inset-*) paddings take effect.
  */
-export const viewport: Viewport = { themeColor: "#1f3a2b", viewportFit: "cover" };
+export const viewport: Viewport = {
+  // The phone's status bar matches the page in each appearance.
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#161d19" },
+    { media: "(prefers-color-scheme: light)", color: "#1f3a2b" },
+  ],
+  viewportFit: "cover",
+};
 
 export default function RootLayout({
   children,

@@ -94,27 +94,30 @@
 @layer theme {
   :root[data-theme="night"] {
     color-scheme: dark;
-    --color-pine-900: #0b140f;
-    --color-pine-800: #12201a;
+    /* Feature panels: a clearly green field above the charcoal ground, not a darker hole in it */
+    --color-pine-900: #1a2b22;
+    --color-pine-800: #223629;
     --color-pine-700: #2f5a44;
     --color-pine-600: #3c6b52;
     --color-pine-500: #8fb09c;
     --color-pine-400: #5f8a72;
     --color-pine-300: #8fb09c;
     --color-pine-200: #c4d8cb;
-    --color-pine-100: #22382c;
-    --color-pine-50: #1a2c22;
+    --color-pine-100: #26392e;
+    --color-pine-50: #1e2d25;
     --color-brand: #e3ede6;
     --color-brand-2: #a3c7b1;
     --color-brand-line: #3e5647;
-    --color-paper: #101a14;
-    --color-paper-2: #142019;
-    --color-surface: #17241d;
-    --color-line: #2a3d32;
-    --color-line-strong: #3e5647;
-    --color-ink: #f1eee6;
-    --color-ink-2: #d4dad4;
-    --color-ink-3: #aab6ae;
+    /* Soft charcoal-pine ground (not near-black); cards rise one tone step above it */
+    --color-paper: #161d19;
+    --color-paper-2: #1d2621;
+    --color-surface: #202a24;
+    --color-line: #2e3a33;
+    --color-line-strong: #3f4d45;
+    /* Warm off-white text: about 13:1 instead of 16:1, so letters don't glow and blur */
+    --color-ink: #e9e5db;
+    --color-ink-2: #c9cfc9;
+    --color-ink-3: #a1aca5;
     --color-lantern: #c4471e;
     --color-lantern-600: #f2a65a;
     --color-lantern-700: #a33a17;

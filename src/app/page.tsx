@@ -290,7 +290,7 @@ export default function FeedHomePage() {
             </p>
 
             <div className="rise flex flex-col sm:flex-row gap-3" style={{ ["--rise-delay" as string]: "240ms" }}>
-              <a href="#shop" className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-white text-pine-900 font-medium hover:bg-pine-50 transition-colors">
+              <a href="#shop" className="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-white text-pine-900 font-medium hover:bg-white/90 transition-colors">
                 {translateSync("Browse crafts")}
                 <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
