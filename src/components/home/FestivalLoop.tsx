@@ -56,7 +56,7 @@ export function FestivalLoop() {
 
   const stages: Stage[] = [
     { label: translateSync("Agreement"), who: translateSync("Local government"), icon: FileSignature, body: translateTemplate("The festival signs a release, so its {material} can be collected on the record.", { material }) },
-    { label: translateSync("Scan"), who: translateSync("LGU officer"), icon: ScanLine, body: translateTemplate("Gemini names the {material}, weighs up its condition and flags anything unsafe.", { material }) },
+    { label: translateSync("Scan"), who: translateSync("LGU officer"), icon: ScanLine, body: translateTemplate("Gemini identifies the {material}, checks the condition and flags anything unsafe.", { material }) },
     { label: translateSync("Pickup"), who: translateSync("Verified artisan"), icon: QrCode, body: translateSync("The artisan collects it with a one-time handover code, so custody passes on the record.") },
     { label: translateSync("Craft"), who: translateSync("Verified artisan"), icon: Hammer, body: translateTemplate("The {material} becomes a new piece, tagged with the ID of the batch it came from.", { material }) },
     { label: translateSync("Pass"), who: translateSync("Buyer"), icon: ShieldCheck, body: translateSync("The buyer gets a Verified Impact Pass that anyone can scan and check.") },
@@ -104,7 +104,7 @@ export function FestivalLoop() {
         </Reveal>
 
         <Reveal delay={90}>
-          <div role="group" aria-label={translateSync("Choose a festival")} className="mt-8 flex flex-wrap gap-2">
+          <div role="group" aria-label={translateSync("Choose a festival")} className="mt-8 grid grid-cols-2 gap-2 max-w-[440px]">
             {FESTIVALS.map((x, i) => (
               <button
                 key={x.name}
@@ -118,7 +118,7 @@ export function FestivalLoop() {
                   }
                 }}
                 className={cn(
-                  "loop-chip group inline-flex flex-col items-start min-h-11 px-4 py-2 rounded-2xl text-left cursor-pointer transition-[background-color,color,transform] duration-200 active:scale-[0.97]",
+                  "loop-chip group flex flex-col items-start min-h-11 px-4 py-2 rounded-2xl text-left cursor-pointer transition-[background-color,color,transform] duration-200 active:scale-[0.97]",
                   festival === i ? "bg-white text-pine-900" : "bg-white/[0.07] text-white hover:bg-white/[0.13]"
                 )}
               >
@@ -163,13 +163,9 @@ export function FestivalLoop() {
           }}
         >
           <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full overflow-visible" aria-hidden>
-            {/* Slow outer drift: a dashed ring and a few motes of lantern light */}
+            {/* Slow outer drift */}
             <g className="loop-drift">
-              <circle cx="50" cy="50" r="46" fill="none" stroke="rgb(255 255 255 / 0.07)" strokeWidth="0.25" strokeDasharray="0.6 2.4" />
-              {[0, 64, 140, 205, 290].map((deg, i) => {
-                const a = (deg * Math.PI) / 180;
-                return <circle key={deg} cx={50 + 46 * Math.cos(a)} cy={50 + 46 * Math.sin(a)} r={i % 2 ? 0.55 : 0.8} fill="#f2a65a" opacity={i % 2 ? 0.45 : 0.7} />;
-              })}
+              <circle cx="50" cy="50" r="49" fill="none" stroke="rgb(255 255 255 / 0.09)" strokeWidth="0.25" strokeDasharray="0.6 2.4" />
             </g>
             <circle cx="50" cy="50" r="40" fill="none" stroke="rgb(255 255 255 / 0.05)" strokeWidth="0.25" />
             {/* The ring, the lit trail behind the light, and the light itself */}
