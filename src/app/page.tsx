@@ -15,7 +15,7 @@ import { CountUp } from "@/components/motion/CountUp";
 import { useInView } from "@/components/motion/Reveal";
 import { FestivalLoop } from "@/components/home/FestivalLoop";
 import { LedgerMarquee } from "@/components/home/LedgerMarquee";
-import { LanternFrame, SplitFlow, SplitRing } from "@/components/home/SplitShapes";
+import { HangingLantern, Parol } from "@/components/home/SplitShapes";
 import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
 import { LanternAssembly } from "@/components/motion/LanternAssembly";
 import { apiJson } from "@/lib/api";
@@ -541,9 +541,11 @@ export default function FeedHomePage() {
 
       {/* WHERE THE MONEY GOES */}
       <div className="relative overflow-x-clip">
-      {/* On the page edges: the split as a ring on the right, a lantern frame on the left */}
-      <SplitRing className="absolute -right-[110px] bottom-[14%] w-[220px] sm:-right-[140px] lg:-right-[150px] lg:top-[10%] lg:bottom-auto lg:w-[360px]" />
-      <LanternFrame className="absolute -left-[70px] bottom-0 w-[150px] lg:-left-[120px] lg:bottom-[10%] lg:w-[230px]" />
+      {/* On the page edges, work an artisan could make from the leftovers: paper lanterns on
+          the right, a parol on the left. Each hangs from a string and sways a little. */}
+      <HangingLantern className="absolute right-1 top-0 w-[52px] sm:right-4 sm:w-[64px] lg:right-[1.5%] lg:w-[92px]" />
+      <HangingLantern tone="pine" className="hidden xl:block absolute right-[6.5%] -top-6 w-[58px]" style={{ "--sway-dur": "7.4s", "--sway-delay": "-2s" } as React.CSSProperties} />
+      <Parol className="absolute -left-6 bottom-2 w-[96px] sm:left-0 lg:left-[1.5%] lg:top-[44%] lg:bottom-auto lg:w-[130px]" style={{ "--sway-dur": "8s", "--sway-delay": "-3s" } as React.CSSProperties} />
       <section className="relative z-[1] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
         <Reveal className="lg:col-span-5">
           <h2 id="split-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
@@ -552,8 +554,6 @@ export default function FeedHomePage() {
           <p className="mt-6 text-[18px] text-ink-2 leading-[1.6] max-w-[44ch] text-pretty">
             {translateSync("See the exact split before you pay. It goes on the public record, and your pass links to it.")}
           </p>
-          {/* One sale, three payouts: the line weights follow the split */}
-          <SplitFlow className="mt-10 w-[240px] sm:w-[280px]" />
         </Reveal>
         <Reveal delay={120} className="lg:col-span-7">
           <div className="split-ticket relative bg-surface p-7 sm:p-9 shadow-card">

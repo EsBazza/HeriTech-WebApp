@@ -1,96 +1,106 @@
 "use client";
 
-import React from "react";
-import { SPLIT } from "@/lib/escrow";
+import React, { useId } from "react";
 import { cn } from "@/components/ui";
-import { useInView } from "@/components/motion/Reveal";
 
-const SHARES = [
-  { key: "artisan", pct: SPLIT.artisan, color: "var(--color-split-artisan)" },
-  { key: "lgu", pct: SPLIT.lgu, color: "var(--color-split-platform)" },
-  { key: "charity", pct: SPLIT.charityMaintenance, color: "var(--color-split-ngo)" },
-];
+/**
+ * Lanterns that hang on the edges of the page: pieces an artisan could make from a
+ * festival's leftover paper and frames. Decorative only; they sway from their string.
+ */
 
-/** The split drawn as a ring, the three arcs in the real proportions; sits behind the card's corner. */
-export function SplitRing({ className }: { className?: string }) {
-  const { ref, inView } = useInView<SVGSVGElement>();
-  const gap = 1.6;
-  let start = 0;
+function Cord({ id, top, x }: { id: string; top: number; x: number }) {
   return (
-    <svg ref={ref} viewBox="0 0 320 320" aria-hidden className={cn("split-shape split-ring", inView && "is-in", className)}>
-      <circle className="split-ring-orbit" cx="160" cy="160" r="152" fill="none" strokeWidth="1" strokeDasharray="2 7" />
-      <circle cx="160" cy="160" r="104" fill="none" strokeWidth="1" className="split-ring-line" />
-      <g transform="rotate(-90 160 160)">
-        {SHARES.map((s, i) => {
-          const len = s.pct - gap;
-          const off = start;
-          start += s.pct;
-          return (
-            <circle
-              key={s.key}
-              className="split-ring-arc"
-              cx="160"
-              cy="160"
-              r="128"
-              fill="none"
-              stroke={s.color}
-              strokeWidth="9"
-              strokeLinecap="round"
-              pathLength={100}
-              style={{ "--len": len, "--off": -off - gap / 2, "--i": i } as React.CSSProperties}
-            />
-          );
-        })}
+    <>
+      <defs>
+        <linearGradient id={`${id}-str`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="var(--color-ink-3)" stopOpacity="0" />
+          <stop offset="1" stopColor="var(--color-ink-3)" stopOpacity="0.7" />
+        </linearGradient>
+      </defs>
+      <rect x={x - 0.6} y="0" width="1.2" height={top} fill={`url(#${id}-str)`} />
+    </>
+  );
+}
+
+/** A round paper lantern with ribs, caps and a tassel; the paper glows from a candle inside. */
+export function HangingLantern({ tone = "lantern", className, style }: { tone?: "lantern" | "pine"; className?: string; style?: React.CSSProperties }) {
+  const id = useId().replace(/:/g, "");
+  const paper = tone === "lantern" ? "var(--color-lantern)" : "var(--color-split-platform)";
+  return (
+    <svg viewBox="0 0 100 230" aria-hidden className={cn("hang-piece pointer-events-none overflow-visible", className)} style={style}>
+      <defs>
+        <radialGradient id={`${id}-paper`} cx="0.42" cy="0.4" r="0.7">
+          <stop offset="0" stopColor="#ffd9a0" />
+          <stop offset="0.45" stopColor={paper} stopOpacity="0.9" />
+          <stop offset="1" stopColor={paper} />
+        </radialGradient>
+        <radialGradient id={`${id}-glow`}>
+          <stop offset="0" stopColor="rgb(242 166 90)" stopOpacity="0.45" />
+          <stop offset="1" stopColor="rgb(242 166 90)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <g className="hang-sway">
+        <Cord id={id} top={62} x={50} />
+        <circle className="hang-glow" cx="50" cy="112" r="70" fill={`url(#${id}-glow)`} />
+        <rect x="37" y="60" width="26" height="9" rx="2" fill="var(--color-split-artisan)" />
+        <ellipse cx="50" cy="112" rx="40" ry="44" fill={`url(#${id}-paper)`} />
+        <g fill="none" stroke="var(--color-split-artisan)" strokeOpacity="0.35" strokeWidth="1">
+          <ellipse cx="50" cy="112" rx="27" ry="44" />
+          <ellipse cx="50" cy="112" rx="12" ry="44" />
+          <line x1="50" y1="68" x2="50" y2="156" />
+        </g>
+        <rect x="37" y="154" width="26" height="9" rx="2" fill="var(--color-split-artisan)" />
+        <g stroke={paper} strokeWidth="1.6" strokeLinecap="round" className="hang-tassel">
+          <line x1="50" y1="163" x2="50" y2="206" />
+          <line x1="47" y1="166" x2="45" y2="200" />
+          <line x1="53" y1="166" x2="55" y2="200" />
+        </g>
+        <circle cx="50" cy="166" r="3" fill="var(--color-split-artisan)" />
       </g>
     </svg>
   );
 }
 
-/** A lantern frame seen from above: two nested hexagons and the candle at the centre. */
-export function LanternFrame({ className }: { className?: string }) {
-  const hex = (r: number) =>
-    Array.from({ length: 6 }, (_, k) => {
-      const a = (Math.PI / 3) * k - Math.PI / 2;
-      return `${(100 + r * Math.cos(a)).toFixed(1)},${(100 + r * Math.sin(a)).toFixed(1)}`;
-    }).join(" ");
+/** A parol, the Filipino star lantern Pampanga is known for, with its two paper tails. */
+export function Parol({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  const id = useId().replace(/:/g, "");
+  const cx = 80;
+  const cy = 118;
+  const star = Array.from({ length: 10 }, (_, k) => {
+    const r = k % 2 === 0 ? 58 : 24;
+    const a = (Math.PI / 5) * k - Math.PI / 2;
+    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+  }).join(" ");
+  const tip = (k: number) => {
+    const a = (Math.PI / 5) * k - Math.PI / 2;
+    return [cx + 58 * Math.cos(a), cy + 58 * Math.sin(a)];
+  };
+  const [lx, ly] = tip(6);
+  const [rx, ry] = tip(4);
   return (
-    <svg viewBox="0 0 200 200" aria-hidden className={cn("split-shape split-hex", className)}>
-      <g className="split-hex-turn">
-        <polygon points={hex(88)} fill="none" strokeWidth="1.25" className="split-ring-line" />
-        <polygon points={hex(62)} fill="none" strokeWidth="1" strokeDasharray="3 6" className="split-ring-line" />
-        {[0, 1, 2, 3, 4, 5].map((k) => {
-          const a = (Math.PI / 3) * k - Math.PI / 2;
-          return <line key={k} x1={100 + 62 * Math.cos(a)} y1={100 + 62 * Math.sin(a)} x2={100 + 88 * Math.cos(a)} y2={100 + 88 * Math.sin(a)} strokeWidth="1" className="split-ring-line" />;
-        })}
+    <svg viewBox="0 0 160 260" aria-hidden className={cn("hang-piece pointer-events-none overflow-visible", className)} style={style}>
+      <defs>
+        <radialGradient id={`${id}-paper`} cx="0.5" cy="0.5" r="0.6">
+          <stop offset="0" stopColor="#ffe2b0" />
+          <stop offset="0.5" stopColor="var(--color-lantern)" stopOpacity="0.85" />
+          <stop offset="1" stopColor="var(--color-lantern)" />
+        </radialGradient>
+        <radialGradient id={`${id}-glow`}>
+          <stop offset="0" stopColor="rgb(242 166 90)" stopOpacity="0.4" />
+          <stop offset="1" stopColor="rgb(242 166 90)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <g className="hang-sway">
+        <Cord id={id} top={cy - 58} x={cx} />
+        <circle className="hang-glow" cx={cx} cy={cy} r="92" fill={`url(#${id}-glow)`} />
+        <circle cx={cx} cy={cy} r="66" fill="none" stroke="var(--color-split-artisan)" strokeOpacity="0.55" strokeWidth="1.5" />
+        <polygon points={star} fill={`url(#${id}-paper)`} stroke="var(--color-split-artisan)" strokeWidth="1.5" strokeLinejoin="round" />
+        <circle cx={cx} cy={cy} r="11" fill="#fff3dc" stroke="var(--color-split-artisan)" strokeWidth="1.2" />
+        <g fill="none" strokeWidth="4" strokeLinecap="round" className="hang-tassel">
+          <path d={`M${lx} ${ly} c -6 26, 10 44, -2 78`} stroke="var(--color-split-artisan)" />
+          <path d={`M${rx} ${ry} c 6 26, -10 44, 2 78`} stroke="var(--color-split-platform)" />
+        </g>
       </g>
-      <circle cx="100" cy="100" r="5" className="split-candle" />
-    </svg>
-  );
-}
-
-/** One sale branching into three payouts; each line is as thick as its share. */
-export function SplitFlow({ className }: { className?: string }) {
-  const { ref, inView } = useInView<SVGSVGElement>();
-  const ys = [20, 56, 92];
-  return (
-    <svg ref={ref} viewBox="0 0 280 112" aria-hidden className={cn("split-shape split-flow", inView && "is-in", className)}>
-      <circle cx="22" cy="56" r="15" fill="none" strokeWidth="1.5" className="split-coin" />
-      <circle cx="22" cy="56" r="7" className="split-coin-core" />
-      {SHARES.map((s, i) => (
-        <React.Fragment key={s.key}>
-          <path
-            className="split-flow-line"
-            d={`M40 56 C 120 56, 140 ${ys[i]}, 250 ${ys[i]}`}
-            fill="none"
-            stroke={s.color}
-            strokeWidth={Math.max(1.5, s.pct / 10)}
-            strokeLinecap="round"
-            pathLength={1}
-            style={{ "--i": i } as React.CSSProperties}
-          />
-          <circle className="split-flow-dot" cx="262" cy={ys[i]} r="6" fill={s.color} style={{ "--i": i } as React.CSSProperties} />
-        </React.Fragment>
-      ))}
     </svg>
   );
 }
