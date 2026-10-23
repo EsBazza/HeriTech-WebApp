@@ -1723,3 +1723,46 @@
   .hero-craft-cta { animation: none; }
   .hero-craft-reset[data-shown="true"] { transition-delay: 0s; }
 }
+
+/* ─── Product tiles: a panel slides in from the side the cursor enters ─── */
+.dir-panel {
+  background: rgb(14 38 30 / 0.8);
+  backdrop-filter: blur(2px);
+  translate: 0 100%;
+  transition: translate 0.5s cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+.dir-panel-inner {
+  opacity: 0;
+  translate: 0 18px;
+  transition: opacity 0.3s ease-out, translate 0.5s cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+.dir-tile[data-side="left"] .dir-panel { translate: -100% 0; }
+.dir-tile[data-side="right"] .dir-panel { translate: 100% 0; }
+.dir-tile[data-side="top"] .dir-panel { translate: 0 -100%; }
+.dir-tile[data-side="left"] .dir-panel-inner { translate: -28px 0; }
+.dir-tile[data-side="right"] .dir-panel-inner { translate: 28px 0; }
+.dir-tile[data-side="top"] .dir-panel-inner { translate: 0 -18px; }
+.dir-tile[data-open="true"] .dir-panel,
+.product-tile:focus-within .dir-panel { translate: 0 0; }
+.dir-tile[data-open="true"] .dir-panel-inner,
+.product-tile:focus-within .dir-panel-inner { opacity: 1; translate: 0 0; transition-delay: 0.08s; }
+.dir-tile[data-snap] .dir-panel,
+.dir-tile[data-snap] .dir-panel-inner { transition: none; }
+.dir-rule { scale: 0 1; transition: scale 0.5s var(--ease-out) 0.18s; }
+.dir-tile[data-open="true"] .dir-rule,
+.product-tile:focus-within .dir-rule { scale: 1 1; }
+.dir-photo { transition: scale 0.8s var(--ease-out); }
+.dir-tile[data-open="true"] .dir-photo { scale: 1.05; }
+.dir-tile { transition: box-shadow 0.3s ease; }
+.dir-tile[data-open="true"] { box-shadow: var(--shadow-pop); }
+/* Touch screens never get the panel: the caption below the photo carries the details */
+@media (hover: none) {
+  .dir-panel { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dir-panel, .dir-tile[data-side] .dir-panel { translate: 0 0; opacity: 0; transition: opacity 0.2s linear; }
+  .dir-tile[data-open="true"] .dir-panel, .product-tile:focus-within .dir-panel { opacity: 1; }
+  .dir-panel-inner, .dir-tile[data-side] .dir-panel-inner { translate: 0 0; }
+  .dir-rule { scale: 1 1; transition: none; }
+  .dir-photo { transition: none; }
+}

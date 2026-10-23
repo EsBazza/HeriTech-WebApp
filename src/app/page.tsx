@@ -480,15 +480,17 @@ export default function FeedHomePage() {
           </div>
 
           {productsState === "loading" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" role="status" aria-label={translateSync("Loading pieces…")}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10" role="status" aria-label={translateSync("Loading pieces…")}>
               {[0, 1, 2].map((i) => (
-                <div key={i} className="rounded-md border border-line bg-surface overflow-hidden">
-                  <Skeleton className="aspect-[4/3] rounded-none" />
-                  <div className="p-4 space-y-3">
-                    <Skeleton className="h-5 w-2/3" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <div className="flex items-center justify-between pt-2">
-                      <Skeleton className="h-7 w-20" />
+                <div key={i}>
+                  <Skeleton className="aspect-square rounded-lg" />
+                  <div className="pt-4 space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <Skeleton className="h-6 w-1/2" />
+                      <Skeleton className="h-6 w-16" />
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <Skeleton className="h-4 w-2/5" />
                       <Skeleton className="h-10 w-28 rounded-md" />
                     </div>
                   </div>
@@ -519,7 +521,7 @@ export default function FeedHomePage() {
               }
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
               {filteredBatches.slice(0, visibleCount).map((batch) => (
                 <FeedCard key={batch.id} batch={batch} role={role} />
               ))}

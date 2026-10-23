@@ -9,7 +9,6 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { UserRole } from "@/lib/roleGuard";
 import type { ProductView } from "@/lib/server/views";
 import { buttonClass, cn } from "@/components/ui";
-import { spotlight } from "@/components/motion/spotlight";
 
 /** Maps an API product to the shop card shape. */
 export function toFeedItem(p: ProductView): FeedMaterialBatch {
@@ -91,23 +90,31 @@ export function FeedCard({ batch }: FeedCardProps) {
   const location = batch.region && batch.region !== batch.country ? `${batch.region}, ${batch.country}` : batch.country;
 
   return (
-    <article onPointerMove={spotlight} className="spotlight lift group flex flex-col bg-surface rounded-lg overflow-hidden">
-      <Link href={href} className="arch relative block aspect-[4/3] mx-3 mt-3 bg-paper-2 overflow-hidden" tabIndex={-1} aria-hidden>
+    <article className="product-tile group flex flex-col">
+      {/* Square photo. With a mouse, a panel slides in from the side the cursor came in
+          and leaves by the side it went out; on touch the caption below carries everything. */}
+      <Link
+        href={href}
+        className="dir-tile relative block aspect-square rounded-lg overflow-hidden bg-paper-2 shadow-card"
+        tabIndex={-1}
+        aria-hidden
+        onPointerEnter={(e) => slidePanel(e, true)}
+        onPointerLeave={(e) => slidePanel(e, false)}
+      >
         {batch.image ? (
           <Image
             src={batch.image}
             alt=""
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+            className="dir-photo object-cover"
             unoptimized
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center p-4 text-center text-sm text-ink-3">{translateSync(batch.materialType)}</div>
         )}
-        <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-pine-900/60 to-transparent pointer-events-none" aria-hidden />
         {soldOut && (
-          <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-surface/95 px-2.5 py-1 text-[13px] font-semibold text-ink shadow-card">
+          <span className="absolute left-3 top-3 z-[2] inline-flex items-center rounded-full bg-surface/95 px-2.5 py-1 text-[13px] font-semibold text-ink shadow-card">
             {translateSync("Sold out")}
           </span>
         )}
@@ -115,67 +122,101 @@ export function FeedCard({ batch }: FeedCardProps) {
           <QrCode className="w-3 h-3" aria-hidden />
           {translateSync("Traced")}
         </span>
-        <span className="absolute left-3 bottom-3 inline-flex items-center gap-1 text-[13px] font-medium text-white">
-          <Leaf className="w-3.5 h-3.5 text-pine-200" aria-hidden />
-          {formatNumber(batch.weightKg)} {translateSync("kg diverted")}
+
+        <span className="dir-panel absolute inset-0 z-[1] flex items-center justify-center p-6 text-center text-white">
+          <span className="dir-panel-inner flex flex-col items-center">
+            {(batch.festival || location) && (
+              <span className="flex items-center gap-1.5 text-[13px] text-white/75">
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                {[batch.festival, location].filter(Boolean).map((t) => translateSync(t)).join(" · ")}
+              </span>
+            )}
+            <span className="mt-2 font-display text-[28px] leading-[1.1] font-semibold text-balance">{translateSync(batch.title)}</span>
+            <span className="dir-rule mt-4 h-px w-12 bg-white/70" />
+            <span className="mt-4 text-[15px] text-white/85">{translateSync(batch.cooperativeName)}</span>
+            <span className="mt-1.5 inline-flex flex-wrap items-center justify-center gap-1.5 text-[13px] text-white/75">
+              <Leaf className="w-3.5 h-3.5 text-pine-200" />
+              {formatNumber(batch.weightKg)} {translateSync("kg diverted")}
+              {batch.materialType && <> · {translateSync(batch.materialType)}</>}
+            </span>
+            <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-semibold">
+              {translateSync("View the piece")}
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </span>
         </span>
       </Link>
 
-      <div className="flex flex-col flex-1 p-4 sm:p-5">
-        {(location || batch.festival) && (
-          <div className="flex items-center gap-1.5 text-[13px] text-ink-3">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{[batch.festival, location].filter(Boolean).map((t) => translateSync(t)).join(" · ")}</span>
-          </div>
-        )}
-
-        <h3 className="mt-1.5 font-display text-[22px] leading-snug font-semibold text-ink">
-          <Link href={href} className="hover:text-brand-2 transition-colors focus-visible:underline">
-            {translateSync(batch.title)}
-          </Link>
-        </h3>
-        <p className="mt-1 text-sm text-ink-3 truncate">{translateSync(batch.cooperativeName)}</p>
-
-        {batch.materialType && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center rounded-full bg-pine-50 border border-brand-line px-2.5 py-0.5 text-[13px] text-brand truncate max-w-full">
-              {translateSync(batch.materialType)}
-            </span>
-          </div>
-        )}
-
-        <div className="mt-auto pt-5 flex items-center justify-between gap-3">
-          <span className="tabular font-display text-2xl font-semibold text-ink">
+      <div className="flex flex-col flex-1 pt-4">
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="min-w-0 font-display text-[22px] leading-snug font-semibold text-ink">
+            <Link href={href} className="hover:text-brand-2 transition-colors focus-visible:underline">
+              {translateSync(batch.title)}
+            </Link>
+          </h3>
+          <span className="shrink-0 tabular font-display text-[22px] leading-snug font-semibold text-ink">
             {batch.freeClaim ? translateSync("Free") : formatCurrency(batch.price)}
           </span>
+        </div>
+
+        <div className="mt-auto pt-2 flex items-center justify-between gap-3">
+          <p className="min-w-0 text-sm text-ink-3 truncate">
+            {translateSync(batch.cooperativeName)}
+            {batch.weightKg > 0 && <> · {formatNumber(batch.weightKg)} {translateSync("kg diverted")}</>}
+          </p>
 
           {batch.freeClaim ? (
-            <Link href={href} className={buttonClass("primary", "sm")}>
+            <Link href={href} className={cn(buttonClass("primary", "sm"), "shrink-0")}>
               <Gift className="w-4 h-4" />
               {translateSync("Claim")}
               <ArrowRight className="w-4 h-4" />
             </Link>
-          ) : (
-          soldOut ? (
-            <span className={cn(buttonClass("secondary", "sm"), "opacity-60 cursor-not-allowed")} aria-disabled="true">
+          ) : soldOut ? (
+            <span className={cn(buttonClass("secondary", "sm"), "shrink-0 opacity-60 cursor-not-allowed")} aria-disabled="true">
               {translateSync("Sold out")}
             </span>
           ) : (
-          <button
-            onClick={handleReserve}
-            aria-disabled={inCart || undefined}
-            className={cn(buttonClass(inCart || justAdded ? "secondary" : "primary", "sm"), (inCart || justAdded) && "text-brand border-pine-300 cursor-default")}
-            aria-label={inCart ? `${translateSync("In cart")}: ${batch.title}` : `${translateSync("Add to cart")}: ${batch.title}`}
-          >
-            {inCart || justAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {justAdded ? translateSync("Added") : inCart ? translateSync("In cart") : translateSync("Add to cart")}
-          </button>
-          )
+            <button
+              onClick={handleReserve}
+              aria-disabled={inCart || undefined}
+              className={cn(buttonClass(inCart || justAdded ? "secondary" : "primary", "sm"), "shrink-0", (inCart || justAdded) && "text-brand border-pine-300 cursor-default")}
+              aria-label={inCart ? `${translateSync("In cart")}: ${batch.title}` : `${translateSync("Add to cart")}: ${batch.title}`}
+            >
+              {inCart || justAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              {justAdded ? translateSync("Added") : inCart ? translateSync("In cart") : translateSync("Add to cart")}
+            </button>
           )}
         </div>
       </div>
     </article>
   );
+}
+
+/** Which edge of the tile the pointer crossed: the panel enters and leaves through it. */
+function edgeOf(e: React.PointerEvent<HTMLElement>) {
+  const r = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+  const d = { left: x, right: r.width - x, top: y, bottom: r.height - y };
+  return (Object.keys(d) as (keyof typeof d)[]).reduce((a, b) => (d[b] < d[a] ? b : a));
+}
+
+function slidePanel(e: React.PointerEvent<HTMLElement>, open: boolean) {
+  if (e.pointerType !== "mouse") return;
+  const tile = e.currentTarget;
+  const side = edgeOf(e);
+  if (open) {
+    // Park the panel on the entry side without animating, then slide it in
+    tile.dataset.snap = "";
+    tile.dataset.side = side;
+    tile.dataset.open = "false";
+    void tile.offsetWidth;
+    delete tile.dataset.snap;
+    tile.dataset.open = "true";
+  } else {
+    tile.dataset.side = side;
+    tile.dataset.open = "false";
+  }
 }
 
 export default FeedCard;
