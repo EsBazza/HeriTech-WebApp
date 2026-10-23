@@ -14,6 +14,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { useInView } from "@/components/motion/Reveal";
 import { CircularLoop } from "@/components/home/CircularLoop";
+import { LedgerMarquee } from "@/components/home/LedgerMarquee";
 import { TraceReveal, type TraceTag } from "@/components/motion/TraceReveal";
 import { LanternAssembly } from "@/components/motion/LanternAssembly";
 import { apiJson } from "@/lib/api";
@@ -335,37 +336,8 @@ export default function FeedHomePage() {
 
       </TraceReveal>
 
-      {/* PROOF STRIP: the live ledger, its figures set large */}
-      <section className="ledger-band text-white" aria-labelledby="ledger-title">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-16">
-          <dl className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10">
-            {[
-              { label: translateSync("of festival material traced"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
-              { label: translateSync("verified artisans"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
-              { label: translateSync("impact passes issued"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
-              { label: translateSync("raised for charity and upkeep"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
-            ].map((m, i) => (
-              <Reveal key={i} delay={i * 80} className="flex flex-col">
-                <dd className="order-1 tabular font-display text-[clamp(2.75rem,5.5vw,4.5rem)] leading-[0.95] font-semibold tracking-[-0.02em]">
-                  {m.value}
-                  {m.unit && <span className="ml-1.5 font-sans text-xl font-medium text-white/70">{m.unit}</span>}
-                </dd>
-                <dt className="order-2 mt-3 text-[17px] leading-snug text-white/90">{m.label}</dt>
-              </Reveal>
-            ))}
-          </dl>
-          <div className="mt-10 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-            <h2 id="ledger-title" className="flex items-center gap-2.5 text-base font-medium text-white/85">
-              <span className={cn("w-2 h-2 rounded-full shrink-0", statsOffline ? "bg-warn" : "bg-pine-300 ledger-pulse")} aria-hidden />
-              {statsOffline ? translateSync("The ledger can't be reached right now.") : translateSync("Live from the HeriTech ledger")}
-            </h2>
-            <a href="/impact" className="inline-flex items-center gap-1.5 text-base text-white/80 hover:text-white transition-colors">
-              {translateSync("See the full impact record")}
-              <ArrowUpRight className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* PROOF STRIP: the live ledger as one endless line of type */}
+      <LedgerMarquee stats={stats} offline={statsOffline} />
 
       {/* THE PROBLEM: what festivals leave behind, in photographs */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 lg:pt-32" aria-labelledby="problem-title">
