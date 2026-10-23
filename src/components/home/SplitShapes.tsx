@@ -145,7 +145,8 @@ export function FestivalLine({ className }: { className?: string }) {
           className={cn("flag absolute -translate-x-1/2 w-[18px] sm:w-[22px]", i % 2 === 1 && "max-sm:hidden")}
           style={{ ...at(t), "--k": 4 * SAG * (1 - 2 * t), "--i": i } as React.CSSProperties}
         >
-          <Pennant {...FLAG_COLORS[i % FLAG_COLORS.length]} />
+          {/* Colour order chosen so the flags left on phones (every other one) still use all four */}
+          <Pennant {...FLAG_COLORS[(Math.floor(i / 2) + (i % 2) * 2) % FLAG_COLORS.length]} />
         </span>
       ))}
       <span className="absolute -translate-x-1/2" style={at(0.075)}>
