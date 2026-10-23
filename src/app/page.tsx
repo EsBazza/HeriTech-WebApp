@@ -117,7 +117,7 @@ export default function FeedHomePage() {
       photo: "/photos/step-collect.jpg",
       alt: translateSync("Crumpled paper collected after a festival"),
       title: translateSync("Collect & classify"),
-      body: translateSync("Local government officers photograph leftover festival material where it is collected. Gemini names the material and flags anything to remove."),
+      body: translateSync("Officers photograph leftovers where they are collected. Gemini names the material and flags anything unsafe."),
       tech: "Gemini",
     },
     {
@@ -125,7 +125,7 @@ export default function FeedHomePage() {
       photo: "/photos/step-match.jpg",
       alt: translateSync("Sorted fabric offcuts waiting for an artisan"),
       title: translateSync("Match to artisans"),
-      body: translateSync("Safe material is logged with GPS and offered to verified cooperatives nearby, under a signed release agreement."),
+      body: translateSync("Safe material is logged with GPS and offered to verified artisans nearby, under a signed agreement."),
       tech: "Maps Platform · Firebase",
     },
     {
@@ -133,7 +133,7 @@ export default function FeedHomePage() {
       photo: "/photos/step-craft.jpg",
       alt: translateSync("Paper lamp shades, the kind of piece made from it"),
       title: translateSync("Make and tag the piece"),
-      body: translateSync("Artisans link each finished piece to its material ID. Gemini drafts the material story for the artisan to review."),
+      body: translateSync("Artisans link each piece to its material ID. Gemini drafts its story for them to review."),
       tech: "Gemini · Cloud Translation",
     },
     {
@@ -141,7 +141,7 @@ export default function FeedHomePage() {
       photo: "/photos/step-verify.jpg",
       alt: translateSync("A HeriTech Verified Impact Pass with its QR code"),
       title: translateSync("Buy & verify"),
-      body: translateSync(`Buyers see the ${SPLIT_LABEL} split at checkout and receive a Verified Impact Pass that anyone can check.`),
+      body: translateSync(`Buyers see the ${SPLIT_LABEL} split at checkout and get a Verified Impact Pass anyone can check.`),
       tech: "Google Wallet",
     },
   ];
@@ -185,7 +185,7 @@ export default function FeedHomePage() {
       suffix: " t",
       icon: Flower2,
       label: translateSync("of floral offerings collected in Mumbai after Ganesh Chaturthi 2025."),
-      note: translateSync("Collected in a single post-immersion drive."),
+      note: "",
       source: "Greater Kashmir",
       href: "https://m.greaterkashmir.com/article/ganesh-festival-508-tonnes-of-floral-offerings-collected-in-post-immersion-drive/431563",
     },
@@ -207,17 +207,17 @@ export default function FeedHomePage() {
     {
       icon: Smartphone,
       title: translateSync("Works on any phone"),
-      body: translateSync("Runs in the phone browser officers and artisans already use. Nothing to install."),
+      body: translateSync("Runs in the browser officers and artisans already use. Nothing to install."),
     },
     {
       icon: Layers,
       title: translateSync("Any festival, any leftover"),
-      body: translateSync("Whatever a festival leaves behind, the same steps apply: agreement, scan, pickup, craft and pass."),
+      body: translateSync("Lanterns, flowers, fabric or wood: agreement, scan, pickup, craft, pass."),
     },
     {
       icon: ShieldCheck,
       title: translateSync("Proof anyone can check"),
-      body: translateSync("Every pass opens a public record with the origin, maker and money split. No account needed."),
+      body: translateSync("Every pass opens a public record of its origin, maker and money split. No account needed."),
     },
   ];
 
@@ -278,15 +278,13 @@ export default function FeedHomePage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:min-h-[620px] lg:min-h-[min(84vh,760px)] flex items-end lg:items-center pt-52 sm:pt-80 pb-10 sm:pb-14 lg:py-20">
           <div className="max-w-xl space-y-5 sm:space-y-7">
             <h1
-              className="rise font-display text-[40px] sm:text-[60px] lg:text-[68px] leading-[1.0] font-semibold text-white tracking-[-0.01em]"
+              className="rise font-display text-[44px] sm:text-[64px] lg:text-[80px] leading-[0.95] font-semibold text-white tracking-[-0.025em] text-balance"
               style={{ ["--rise-delay" as string]: "80ms" }}
             >
               {translateSync("Festival waste, traced into heritage craft.")}
             </h1>
-            <p className="rise text-base sm:text-lg text-white/80 leading-relaxed" style={{ ["--rise-delay" as string]: "160ms" }}>
-              {translateSync(
-                "HeriTech is a circular digital system that logs festival materials at collection, routes them to local artisans, and gives every finished piece a public record of where it came from and who got paid."
-              )}
+            <p className="rise text-[17px] sm:text-[19px] text-white/85 leading-[1.55] max-w-[46ch] text-pretty" style={{ ["--rise-delay" as string]: "160ms" }}>
+              {translateSync("HeriTech logs festival leftovers, routes them to local artisans, and gives every piece a public record of where it came from and who got paid.")}
             </p>
 
             <div className="rise flex flex-col sm:flex-row gap-3" style={{ ["--rise-delay" as string]: "240ms" }}>
@@ -319,7 +317,7 @@ export default function FeedHomePage() {
               </form>
             </div>
 
-            <ul className="rise flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/75" style={{ ["--rise-delay" as string]: "320ms" }}>
+            <ul className="rise flex flex-wrap gap-x-5 gap-y-2 text-[15px] text-white/80" style={{ ["--rise-delay" as string]: "320ms" }}>
               {[translateSync("Gemini classification"), translateSync("Google Wallet passes"), translateSync("Public impact record")].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="w-4 h-4 text-pine-200" />
@@ -330,7 +328,7 @@ export default function FeedHomePage() {
 
             <p className="rise hidden lg:flex items-center gap-2 text-sm text-white/65" style={{ ["--rise-delay" as string]: "400ms" }}>
               <MousePointer2 className="w-4 h-4" />
-              {translateSync("Hover the photo to turn the leftovers into a lantern")}
+              {translateSync("Hover the photo to craft the lantern")}
             </p>
           </div>
         </div>
@@ -342,18 +340,17 @@ export default function FeedHomePage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-16">
           <dl className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10">
             {[
-              { label: translateSync("of festival material traced"), hint: translateSync("Weighed and logged at collection points"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
-              { label: translateSync("verified artisans"), hint: translateSync("Approved before they can claim material"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
-              { label: translateSync("impact passes issued"), hint: translateSync("Each one publicly scannable"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
-              { label: translateSync("raised for charity and upkeep"), hint: translateSync("5% of every sale, on the record"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
+              { label: translateSync("of festival material traced"), value: stats ? <CountUp value={stats.kg} decimals={1} format={formatNumber} /> : "—", unit: "kg" },
+              { label: translateSync("verified artisans"), value: stats ? <CountUp value={stats.artisans} format={formatNumber} /> : "—" },
+              { label: translateSync("impact passes issued"), value: stats ? <CountUp value={stats.passes} format={formatNumber} /> : "—" },
+              { label: translateSync("raised for charity and upkeep"), value: stats ? <CountUp value={stats.charity} decimals={2} format={formatCurrency} /> : "—" },
             ].map((m, i) => (
               <Reveal key={i} delay={i * 80} className="flex flex-col">
                 <dd className="order-1 tabular font-display text-[clamp(2.75rem,5.5vw,4.5rem)] leading-[0.95] font-semibold tracking-[-0.02em]">
                   {m.value}
                   {m.unit && <span className="ml-1.5 font-sans text-xl font-medium text-white/70">{m.unit}</span>}
                 </dd>
-                <dt className="order-2 mt-2 text-base text-white/90">{m.label}</dt>
-                <p className="order-3 mt-1 hidden sm:block text-sm text-white/65">{m.hint}</p>
+                <dt className="order-2 mt-3 text-[17px] leading-snug text-white/90">{m.label}</dt>
               </Reveal>
             ))}
           </dl>
@@ -374,13 +371,13 @@ export default function FeedHomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 lg:pt-32" aria-labelledby="problem-title">
         <div className="grid lg:grid-cols-12 gap-x-10 gap-y-5 items-end">
           <Reveal className="lg:col-span-6">
-            <h2 id="problem-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+            <h2 id="problem-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
               {translateSync("What a festival leaves behind")}
             </h2>
           </Reveal>
           <Reveal delay={80} className="lg:col-span-6">
-            <p className="text-lg text-ink-2 leading-relaxed max-w-xl">
-              {translateSync("The material is beautiful and reusable. What's missing is a trusted record of who may collect it, where it went and who was paid.")}
+            <p className="text-[18px] text-ink-2 leading-[1.6] max-w-[48ch] text-pretty">
+              {translateSync("The material is reusable. What's missing is a trusted record of who collects it, where it goes and who gets paid.")}
             </p>
           </Reveal>
         </div>
@@ -405,8 +402,8 @@ export default function FeedHomePage() {
                   {p.suffix}
                 </span>
               </p>
-              <p className="mt-3 text-base text-ink leading-relaxed">{p.label}</p>
-              <p className="mt-2 text-sm text-ink-3 leading-relaxed">{p.note}</p>
+              <p className="mt-3 text-[17px] text-ink leading-[1.5] text-pretty">{p.label}</p>
+              {p.note && <p className="mt-2 text-[15px] text-ink-3 leading-[1.5] text-pretty">{p.note}</p>}
               <a href={p.href} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-2 hover:text-brand">
                 {translateSync("Source")}: {p.source}
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -419,11 +416,11 @@ export default function FeedHomePage() {
       {/* HOW IT WORKS: one record along one rail */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-36" aria-labelledby="steps-title">
         <Reveal className="max-w-3xl">
-          <h2 id="steps-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+          <h2 id="steps-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
             {translateSync("One record, from riverbank to shelf")}
           </h2>
-          <p className="mt-5 text-lg text-ink-2 leading-relaxed max-w-xl">
-            {translateSync("Every step is recorded when it happens, so anyone can check the claim on the tag.")}
+          <p className="mt-6 text-[18px] text-ink-2 leading-[1.6] max-w-[48ch] text-pretty">
+            {translateSync("Each step is recorded as it happens, so anyone can check the tag.")}
           </p>
         </Reveal>
         <ol ref={stepsRef} className={cn("relative mt-14 lg:mt-20 grid sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12", stepsIn && "steps-in")}>
@@ -444,8 +441,8 @@ export default function FeedHomePage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={s.photo} alt={s.alt} loading="lazy" decoding="async" className="step-photo w-full aspect-[4/3] object-cover" />
                   </figure>
-                  <h3 className="mt-6 font-display text-[26px] leading-tight font-semibold text-ink">{s.title}</h3>
-                  <p className="mt-3 text-base text-ink-2 leading-relaxed">{s.body}</p>
+                  <h3 className="mt-6 font-display text-[28px] leading-[1.05] font-semibold tracking-[-0.015em] text-ink text-balance">{s.title}</h3>
+                  <p className="mt-3 text-[16px] text-ink-2 leading-[1.6] text-pretty">{s.body}</p>
                   <p className={cn("mt-4 text-sm font-medium", last ? "text-lantern-600" : "text-brand-2")}>
                     {translateSync(`Built on ${s.tech.split(" · ").join(" and ")}`)}
                   </p>
@@ -461,19 +458,19 @@ export default function FeedHomePage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 lg:gap-14 items-center">
           <div className="lg:col-span-5">
             <Reveal>
-              <h2 id="loop-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-white">
+              <h2 id="loop-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-white">
                 {translateSync("The same loop at every festival")}
               </h2>
-              <p className="mt-5 text-lg text-white/80 leading-relaxed">
-                {translateSync("HeriTech records each step from leftover to finished piece, so anyone can check where it came from.")}
+              <p className="mt-6 text-[18px] text-white/85 leading-[1.6] max-w-[44ch] text-pretty">
+                {translateSync("One system for every festival and every kind of leftover.")}
               </p>
             </Reveal>
             <ul className="mt-10 space-y-7">
               {systemPoints.map((point, i) => (
                 <li key={point.title}>
                   <Reveal delay={i * 90}>
-                    <h3 className="font-display text-[24px] leading-tight font-semibold text-white">{point.title}</h3>
-                    <p className="mt-1.5 text-base text-white/75 leading-relaxed">{point.body}</p>
+                    <h3 className="font-display text-[26px] leading-[1.1] font-semibold tracking-[-0.015em] text-white">{point.title}</h3>
+                    <p className="mt-1.5 text-[16px] text-white/80 leading-[1.6] max-w-[46ch] text-pretty">{point.body}</p>
                   </Reveal>
                 </li>
               ))}
@@ -489,11 +486,11 @@ export default function FeedHomePage() {
       <section id="shop" className="scroll-mt-20 bg-paper-2" aria-labelledby="shop-title">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 space-y-10">
           <Reveal className="grid lg:grid-cols-12 gap-x-10 gap-y-4 items-end">
-            <h2 id="shop-title" className="lg:col-span-7 font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+            <h2 id="shop-title" className="lg:col-span-7 font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
               {translateSync("Pieces made from what was left")}
             </h2>
-            <p className="lg:col-span-5 text-lg text-ink-2 leading-relaxed">
-              {translateSync("Each piece links back to the batch of material it was made from.")}
+            <p className="lg:col-span-5 text-[18px] text-ink-2 leading-[1.6] max-w-[40ch] text-pretty">
+              {translateSync("Each one links back to the batch it was made from.")}
             </p>
           </Reveal>
 
@@ -594,11 +591,11 @@ export default function FeedHomePage() {
       {/* WHERE THE MONEY GOES */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-12 items-center" aria-labelledby="split-title">
         <Reveal className="lg:col-span-5">
-          <h2 id="split-title" className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.02] font-semibold tracking-[-0.02em] text-ink">
+          <h2 id="split-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
             {translateSync("Every sale, split in the open")}
           </h2>
-          <p className="mt-5 text-lg text-ink-2 leading-relaxed">
-            {translateSync("Not \u201ca portion goes to charity\u201d. You see the exact split before you pay, and it goes on the public record after. Your pass links to it.")}
+          <p className="mt-6 text-[18px] text-ink-2 leading-[1.6] max-w-[44ch] text-pretty">
+            {translateSync("See the exact split before you pay. It goes on the public record, and your pass links to it.")}
           </p>
         </Reveal>
         <Reveal delay={120} className="lg:col-span-7 bg-surface p-7 sm:p-9">
