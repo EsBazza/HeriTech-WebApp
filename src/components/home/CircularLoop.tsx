@@ -60,7 +60,6 @@ export function CircularLoop() {
             <circle cx={x} cy={y} r="25" className="loop-node-disc" stroke="rgb(143 176 156 / 0.5)" strokeWidth="1.5" />
             <Icon x={x - 11} y={y - 11} width={22} height={22} color="#ffffff" strokeWidth={1.75} aria-hidden />
             <text x={lx} y={i === 0 ? ly - 2 : ly + 5} textAnchor={anchor} fill="rgb(255 255 255 / 0.85)" fontSize="15" fontWeight="500">
-              <tspan fill="rgb(143 176 156)" fontSize="12">{`0${i + 1} `}</tspan>
               {s.label}
             </text>
           </g>
