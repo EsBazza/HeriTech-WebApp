@@ -121,8 +121,8 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
                 <dl className="mt-3 grid grid-cols-3 gap-2">
                   {shares.map((s) => (
                     <div key={s.key} className="min-w-0">
-                      <dt className="flex items-center gap-1.5 text-[13px] text-ink-3 truncate">
-                        <span aria-hidden className={cn("w-2 h-2 rounded-full shrink-0", s.color)} />
+                      <dt className="flex items-start gap-1.5 text-[13px] leading-tight text-ink-3">
+                        <span aria-hidden className={cn("mt-1 w-2 h-2 rounded-full shrink-0", s.color)} />
                         {s.label}
                       </dt>
                       <dd className="tabular mt-0.5 text-[15px] font-semibold text-ink">{formatCurrency(s.value)}</dd>
@@ -212,11 +212,11 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
                         <p className="tabular shrink-0 font-display text-[20px] leading-none font-semibold text-ink pt-0.5">{formatCurrency(item.price)}</p>
                       </div>
                       {maker && <p className="mt-0.5 text-[14px] text-ink-2 truncate">{translateTemplate("by {maker}", { maker: translateSync(maker) })}</p>}
-                      <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+                      <div className="mt-auto pt-2 flex items-end justify-between gap-2">
                         {item.kgDiverted ? (
-                          <span className="inline-flex items-center gap-1 text-[13px] text-brand min-w-0">
-                            <Leaf className="w-3.5 h-3.5 shrink-0" />
-                            <span className="truncate">
+                          <span className="inline-flex items-start gap-1 pb-3 text-[13px] leading-snug text-brand min-w-0">
+                            <Leaf className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            <span>
                               {item.festivalName
                                 ? translateTemplate("{kg} kg from {festival}", { kg: formatNumber(item.kgDiverted), festival: translateSync(item.festivalName) })
                                 : translateTemplate("{kg} kg rescued", { kg: formatNumber(item.kgDiverted) })}
