@@ -63,7 +63,7 @@ export function FestivalLoop() {
     { label: translateSync("Agreement"), who: translateSync("Local government"), icon: FileSignature, body: translateTemplate("The festival signs a release, so its {material} can be collected on the record.", { material }) },
     { label: translateSync("Scan"), who: translateSync("LGU officer"), icon: ScanLine, body: translateTemplate("Gemini identifies the {material}, checks the condition and flags anything unsafe.", { material }) },
     { label: translateSync("Pickup"), who: translateSync("Verified artisan"), icon: QrCode, body: translateSync("The artisan collects it with a one-time handover code, so custody passes on the record.") },
-    { label: translateSync("Craft"), who: translateSync("Verified artisan"), icon: Hammer, body: translateTemplate("The {material} becomes a new piece, tagged with the ID of the batch it came from.", { material }) },
+    { label: translateSync("Craft"), who: translateSync("Verified artisan"), icon: Hammer, body: translateTemplate("The artisan turns the {material} into a new piece, tagged with the ID of its batch.", { material }) },
     { label: translateSync("Pass"), who: translateSync("Buyer"), icon: ShieldCheck, body: translateSync("The buyer gets a Verified Impact Pass that anyone can scan and check.") },
   ];
 
