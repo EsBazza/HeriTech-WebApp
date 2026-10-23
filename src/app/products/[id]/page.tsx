@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -23,7 +22,6 @@ import {
   MoveHorizontal,
   Sparkles,
   RefreshCw,
-  Box,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
@@ -35,6 +33,7 @@ import { EscrowBar } from "@/components/EscrowBar";
 import { FeedCard, toFeedItem, type FeedMaterialBatch } from "@/components/FeedCard";
 import { ProvenanceTimeline } from "@/components/ProvenanceTimeline";
 import { ImpactPassPreview } from "@/components/ImpactPassPreview";
+import { MaterialJourney } from "@/components/map/MaterialJourney";
 import { BeforeAfter } from "@/components/motion/BeforeAfter";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
@@ -42,8 +41,6 @@ import { Button, Card, Spinner, EmptyState, LinkButton, SectionHeader, useMediaQ
 import { apiJson } from "@/lib/api";
 import type { ProductView } from "@/lib/server/views";
 
-// The 3D map only loads in the browser, and only on product pages.
-const Journey3D = dynamic(() => import("@/components/map/Journey3D").then((m) => m.Journey3D), { ssr: false });
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -61,7 +58,6 @@ export default function ProductDetailPage() {
 
   // Phones get a buy bar once the main Buy button scrolls away, and load the 3D map only on request.
   const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const [show3D, setShow3D] = useState(false);
   const [buyVisible, setBuyVisible] = useState(true);
   const buyObserver = useRef<IntersectionObserver | null>(null);
   const buyRef = useCallback((el: HTMLDivElement | null) => {
@@ -425,42 +421,8 @@ export default function ProductDetailPage() {
         </div>
       </section>
 
-      {/* Where the material travelled, in Google's photorealistic 3D map */}
-      {product.sourceBatch && (
-        <section id="journey" className="scroll-mt-24 rounded-lg bg-pine-900 text-white p-5 sm:p-8 space-y-5">
-          <div>
-            <h2 className="font-display text-[30px] font-semibold">{translateSync("Follow the material")}</h2>
-            <p className="text-sm text-white/70 mt-1">
-              {product.sourceBatch.pickupAddress
-                ? translateTemplate("Collected at {place}", { place: product.sourceBatch.pickupAddress })
-                : translateSync("Collected and pinned on the map by a local government officer.")}
-            </p>
-          </div>
-          {isDesktop || show3D ? (
-            <Journey3D
-              collection={{ lat: product.sourceBatch.gpsLat, lng: product.sourceBatch.gpsLng, label: translateSync("Collected here") }}
-              workshop={
-                product.artisan?.workshopLat != null && product.artisan?.workshopLng != null
-                  ? { lat: product.artisan.workshopLat, lng: product.artisan.workshopLng, label: workshop || makerName }
-                  : null
-              }
-            />
-          ) : (
-            // The photorealistic 3D map is heavy on phone data and battery, so it waits for a tap.
-            <button
-              type="button"
-              onClick={() => setShow3D(true)}
-              className="w-full h-[220px] rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-colors"
-            >
-              <span className="w-12 h-12 rounded-full bg-white/10 text-pine-200 flex items-center justify-center">
-                <Box className="w-6 h-6" strokeWidth={1.75} />
-              </span>
-              <span className="text-[15px] font-medium">{translateSync("Show the 3D journey")}</span>
-              <span className="text-sm text-white/70">{translateSync("Google Maps 3D · from collection point to workshop")}</span>
-            </button>
-          )}
-        </section>
-      )}
+      {/* Where the material travelled: the route, stop by stop, beside the 3D map */}
+      <MaterialJourney product={product} />
 
       {/* Provenance + split */}
       <div className="grid lg:grid-cols-12 gap-6">

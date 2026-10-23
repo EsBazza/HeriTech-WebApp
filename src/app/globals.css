@@ -792,8 +792,30 @@
 
 /* Journey poster: the route flows while the 3D map loads */
 .journey-poster-route { animation: thread-flow 1.6s linear infinite; }
+.journey-ping { transform-box: fill-box; transform-origin: center; animation: journey-ping 2.2s var(--ease-out) infinite; }
+@keyframes journey-ping { from { transform: scale(1); opacity: 0.9; } to { transform: scale(2.6); opacity: 0; } }
+.journey-poster { transition: background-color 0.2s ease; }
+.journey-poster:hover { background-color: rgb(255 255 255 / 0.04); }
+
+/* Follow the material: the route draws down, each stop arrives in turn, a stitch travels the line */
+.journey-line-fill { transform: scaleY(0); transform-origin: top; transition: transform 1.4s var(--ease-out) 0.15s; }
+.journey-route[data-on="true"] .journey-line-fill { transform: scaleY(1); }
+.journey-stitch { opacity: 0; transform: translateY(-10%); }
+.journey-route[data-on="true"] .journey-stitch { animation: journey-stitch 3.6s ease-in-out 1.8s infinite; }
+@keyframes journey-stitch {
+  0% { transform: translateY(-10%); opacity: 0; }
+  15%, 80% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.js .journey-stop { opacity: 0; transform: translateY(18px); transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out); transition-delay: calc(var(--i) * 320ms + 150ms); }
+.js .journey-route[data-on="true"] .journey-stop { opacity: 1; transform: none; }
+.journey-dot { transform: scale(0.4); transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); transition-delay: calc(var(--i) * 320ms + 250ms); }
+.journey-route[data-on="true"] .journey-dot { transform: none; }
+.journey-map { animation: journey-map-in 0.9s var(--ease-out) both; }
+@keyframes journey-map-in { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .journey-poster-route { animation: none; }
+  .journey-poster-route, .journey-ping, .journey-map, .journey-route[data-on="true"] .journey-stitch { animation: none; }
+  .journey-line-fill, .journey-dot, .js .journey-stop { transition: none; transform: none; opacity: 1; }
 }
 
 /* ─── Product page motion ─── */

@@ -142,6 +142,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
     const container = containerRef.current;
     let cancelled = false;
     let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+    let flowTimer: ReturnType<typeof setInterval> | undefined;
 
     const flat = async () => {
       const maps = await loadGoogleMaps();
@@ -152,16 +153,45 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
         mapTypeId: "hybrid",
         streetViewControl: false,
         mapTypeControl: false,
+        fullscreenControl: false,
         gestureHandling: "cooperative",
+        // Only the places that matter to this journey: no shops, restaurants or bus stops.
+        styles: [
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "off" }] },
+        ],
       });
-      new maps.Marker({ map, position: collection, title: collection.label });
+      const pin = (fill: string) => ({
+        path: maps.SymbolPath.CIRCLE,
+        scale: 9,
+        fillColor: fill,
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3,
+      });
+      new maps.Marker({ map, position: collection, title: collection.label, icon: pin("#c4471e") });
       if (workshop) {
-        new maps.Marker({ map, position: workshop, title: workshop.label });
-        new maps.Polyline({ map, path: [collection, workshop], strokeColor: "#c4471e", strokeWeight: 4 });
+        new maps.Marker({ map, position: workshop, title: workshop.label, icon: pin("#8fb09c") });
+        // A dashed thread that flows from the collection point to the workshop.
+        const thread = new maps.Polyline({
+          map,
+          path: [collection, workshop],
+          strokeOpacity: 0,
+          icons: [{ icon: { path: "M 0,-1 0,1", strokeOpacity: 1, strokeColor: "#f2a65a", strokeWeight: 4, scale: 3 }, offset: "0", repeat: "16px" }],
+        });
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          let offset = 0;
+          flowTimer = setInterval(() => {
+            offset = (offset + 1) % 160;
+            const icons = thread.get("icons");
+            icons[0].offset = `${offset / 10}%`;
+            thread.set("icons", icons);
+          }, 60);
+        }
         const bounds = new maps.LatLngBounds();
         bounds.extend(collection);
         bounds.extend(workshop);
-        map.fitBounds(bounds, 48);
+        map.fitBounds(bounds, 64);
       }
       setMode("2d");
     };
@@ -231,6 +261,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
     return () => {
       cancelled = true;
       clearTimeout(fallbackTimer);
+      clearInterval(flowTimer);
       runs.current++; // invalidates any flight still in progress
       stopRun.current();
       mapRef.current?.stopCameraAnimation();
@@ -240,8 +271,8 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
   }, [visible, collection.lat, collection.lng, workshop?.lat, workshop?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="space-y-2">
-      <div className="relative h-[320px] sm:h-[420px] rounded-lg overflow-hidden border border-white/10 bg-pine-800">
+    <div className="journey-map absolute inset-0 overflow-hidden bg-pine-800">
+      <div className="absolute inset-0">
         <div ref={containerRef} className="absolute inset-0" />
         {mode === "loading" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6" role="status">
@@ -262,17 +293,27 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
           </p>
         )}
         {mode === "3d" && (
-          <button type="button" onClick={play} disabled={playing} className={buttonClass("secondary", "sm", "absolute top-3 left-3 shadow-card")}>
+          <button type="button" onClick={play} disabled={playing} className={buttonClass("secondary", "sm", "absolute top-4 left-4 shadow-card")}>
             <RotateCcw className="w-3.5 h-3.5" />
             {translateSync(playing ? "Flying…" : "Replay journey")}
           </button>
         )}
       </div>
-      <p className="text-xs text-white/60">
-        {workshop
-          ? translateSync("From the collection point to the artisan's workshop, in Google's photorealistic 3D map.")
-          : translateSync("The collection point where this material was recovered, in Google's photorealistic 3D map.")}
-      </p>
+      {/* Key for the two pins */}
+      {mode !== "loading" && mode !== "error" && (
+        <ul className="absolute right-4 top-4 flex flex-col gap-1.5 rounded-md bg-pine-900/85 px-3 py-2 text-[13px] text-white shadow-card">
+          <li className="flex items-center gap-2">
+            <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-lantern" />
+            {translateSync("Collection point")}
+          </li>
+          {workshop && (
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-split-platform" />
+              {translateSync("Workshop")}
+            </li>
+          )}
+        </ul>
+      )}
     </div>
   );
 }
