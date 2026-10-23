@@ -1563,3 +1563,7 @@
   .chat-send[data-ready="true"] svg { animation: none; }
   .chat-send { transition: none; }
 }
+/* Chats badge: pops when a new buyer message is counted */
+.chats-badge { animation: chats-badge 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes chats-badge { from { transform: scale(0); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .chats-badge { animation: none; } }

@@ -29,6 +29,8 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { userRole } from "@/lib/roleGuard";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
 import { buttonClass, cn, Dialog, IconButton } from "@/components/ui";
+import { apiJson } from "@/lib/api";
+import { countUnreadThreads, type ServerMessage } from "@/components/MessagesPanel";
 
 type DemoRole = keyof typeof DEMO_ACCOUNTS;
 
@@ -81,6 +83,55 @@ function CartButton() {
       {itemCount > 0 && (
         <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-lantern text-white text-xs font-semibold leading-[18px] text-center tabular">
           {itemCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** How often the header checks for new buyer messages while the panel is closed. */
+const CHATS_POLL_MS = 30_000;
+
+/**
+ * Artisans sell rather than buy, so their header has Chats where buyers have the cart:
+ * it opens their buyer conversations and shows how many have a reply waiting.
+ */
+function ChatsButton() {
+  const { user } = useAuth();
+  const { translateSync, translateTemplate } = useTranslation();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    const check = async () => {
+      if (document.visibilityState !== "visible") return;
+      const result = await apiJson<ServerMessage[]>("/api/messages");
+      if (alive && result.success) setUnread(countUnreadThreads(result.data ?? [], user.id));
+    };
+    check();
+    const timer = setInterval(check, CHATS_POLL_MS);
+    // Reading in the panel clears the count; a fresh check once it is opened catches up.
+    const onOpen = () => setUnread(0);
+    window.addEventListener("open-messages", onOpen);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      window.removeEventListener("open-messages", onOpen);
+    };
+  }, [user]);
+
+  return (
+    <button
+      onClick={() => window.dispatchEvent(new CustomEvent("open-messages"))}
+      className="relative h-11 pl-2.5 pr-2.5 md:pr-3.5 rounded-full flex items-center gap-2 text-ink-2 hover:bg-pine-50 hover:text-ink transition-colors cursor-pointer"
+      aria-label={unread > 0 ? translateTemplate("Chats, {count} new", { count: unread }) : translateSync("Chats")}
+    >
+      <MessageSquare className="w-5 h-5" strokeWidth={1.75} />
+      <span className="hidden md:inline text-[15px] font-medium">{translateSync("Chats")}</span>
+      {unread > 0 && (
+        <span className="chats-badge absolute top-1 left-6 min-w-[18px] h-[18px] px-1 rounded-full bg-lantern text-white text-xs font-semibold leading-[18px] text-center tabular">
+          {unread}
         </span>
       )}
     </button>
@@ -319,7 +370,7 @@ function MobileMenu() {
             className="w-full flex items-center gap-3 px-3 min-h-12 rounded-md text-[16px] text-ink-2 hover:bg-pine-50 cursor-pointer"
           >
             <MessageSquare className="w-5 h-5 text-ink-3 shrink-0" strokeWidth={1.75} />
-            {translateSync("Messages and assistant")}
+            {translateSync(role === "artisan" ? "Chats with buyers" : "Messages and assistant")}
           </button>
         </nav>
 
@@ -453,7 +504,7 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
           <ThemeToggleButton className="hidden md:inline-flex" />
           <LanguageSelector />
-          <CartButton />
+          {role === "artisan" ? <ChatsButton /> : <CartButton />}
           <div className="hidden md:block">
             <AccountMenu />
           </div>

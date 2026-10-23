@@ -9,6 +9,7 @@ import { Button, cn } from "@/components/ui";
 import { DemoSignIn } from "@/components/auth/DemoSignIn";
 import { apiJson } from "@/lib/api";
 import type { UserRole } from "@/lib/firebase/types";
+import { userRole } from "@/lib/roleGuard";
 
 interface Message {
   role: "user" | "assistant";
@@ -29,7 +30,7 @@ interface Person {
   stationName: string | null;
 }
 
-interface ServerMessage {
+export interface ServerMessage {
   id: string;
   senderId: string;
   receiverId: string;
@@ -78,6 +79,22 @@ function threadsFromServer(messages: ServerMessage[], myId: string): Thread[] {
   }
   // Most recent conversation first
   return [...byPerson.values()].sort((a, b) => (b.lastAt ?? "").localeCompare(a.lastAt ?? ""));
+}
+
+/** Conversations whose latest message is from the other person and newer than this device last read. */
+export function countUnreadThreads(messages: ServerMessage[], myId: string): number {
+  let seen: Record<string, string> = {};
+  try {
+    seen = JSON.parse(localStorage.getItem(SEEN_STORAGE_KEY) || "{}") ?? {};
+  } catch {
+    /* storage blocked: nothing counts as read */
+  }
+  return threadsFromServer(messages, myId).filter((t) => {
+    const last = t.messages[t.messages.length - 1];
+    if (last?.role !== "assistant" || !t.lastAt) return false;
+    // Before the inbox has ever been opened here, nothing is flagged; after that, a new person counts.
+    return Object.keys(seen).length > 0 && (!seen[t.id] || seen[t.id] < t.lastAt);
+  }).length;
 }
 
 // Only the assistant conversation is kept in the browser; conversations with
@@ -523,7 +540,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   };
 
   // Replies that fit who is talking to whom; one tap fills the box (or asks the assistant).
-  const iAmMaker = user?.role === "artisan";
+  const iAmMaker = userRole(user) === "artisan";
   const quickReplies: string[] = !activeThread
     ? []
     : activeThread.isBot
@@ -543,9 +560,13 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   };
 
   const q = query.trim().toLowerCase();
+  // An artisan comes here for their buyers, so those conversations lead and the assistant goes last.
+  const ordered = iAmMaker ? [...threads.filter((t) => !t.isBot), ...threads.filter((t) => t.isBot)] : threads;
   const visible = q
-    ? threads.filter((t) => [t.name, t.subtitle, t.messages[t.messages.length - 1]?.content ?? ""].some((s) => translateSync(s).toLowerCase().includes(q)))
-    : threads;
+    ? ordered.filter((t) => [t.name, t.subtitle, t.messages[t.messages.length - 1]?.content ?? ""].some((s) => translateSync(s).toLowerCase().includes(q)))
+    : ordered;
+  const peopleCount = threads.filter((t) => !t.isBot).length;
+  const unreadCount = threads.filter(unread).length;
 
   const msgs = activeThread?.messages ?? [];
   const lastMine = msgs.map((m) => m.role).lastIndexOf("user");
@@ -566,9 +587,20 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
         <section className={cn("flex flex-col min-h-0 w-full lg:w-[340px] lg:shrink-0 bg-surface lg:bg-paper-2", activeThreadId && "hidden lg:flex")}>
           <div className="pt-[max(1rem,env(safe-area-inset-top,0px))] px-5 pb-3 shrink-0">
             <div className="flex items-center justify-between gap-2">
-              <h2 id="messages-title" className="font-display text-[30px] leading-tight font-semibold text-ink">
-                {translateSync("Messages")}
-              </h2>
+              <div className="min-w-0">
+                <h2 id="messages-title" className="font-display text-[30px] leading-tight font-semibold text-ink">
+                  {translateSync(iAmMaker ? "Chats" : "Messages")}
+                </h2>
+                {iAmMaker && (
+                  <p className="text-[14px] text-ink-3">
+                    {unreadCount > 0
+                      ? translateTemplate("{count} new from buyers", { count: unreadCount })
+                      : peopleCount === 1
+                        ? translateSync("1 buyer conversation")
+                        : translateTemplate("{count} buyer conversations", { count: peopleCount })}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={closeAll}
                 className="w-11 h-11 -mr-2 rounded-full flex items-center justify-center text-ink-3 hover:bg-paper-2 lg:hover:bg-surface hover:text-ink cursor-pointer"
@@ -663,6 +695,14 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
                 );
               })}
             </ul>
+            {iAmMaker && !q && !threadsLoading && peopleCount === 0 && (
+              <div className="chat-hello mx-3 mb-3 rounded-xl bg-paper-2 lg:bg-surface px-4 py-5">
+                <p className="text-[16px] font-medium text-ink">{translateSync("No buyer chats yet")}</p>
+                <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
+                  {translateSync("Buyers can message you from any of your pieces. Their questions and order notes will appear here.")}
+                </p>
+              </div>
+            )}
             {q && visible.length === 0 && <p className="px-4 py-6 text-[15px] text-ink-3">{translateTemplate("No conversations match \"{query}\".", { query })}</p>}
           </div>
         </section>

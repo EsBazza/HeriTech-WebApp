@@ -20,7 +20,8 @@ interface Tab {
 // At most five tabs, ordered by each role's demo path. Everything else is in the header menu.
 const TABS_BY_ROLE: Record<string, string[]> = {
   buyer: ["home", "impact", "messages", "profile"],
-  artisan: ["home", "map", "handover", "studio", "profile"],
+  // Artisans sell, so Chats (their buyers) takes the shop's place; the logo still leads home.
+  artisan: ["map", "handover", "studio", "chats", "profile"],
   lgu: ["map", "scanner", "handover", "agreements", "profile"],
   admin: ["home", "map", "scanner", "admin", "profile"],
 };
@@ -55,6 +56,7 @@ export function BottomTabBar() {
     studio: { name: translateSync("Studio"), href: "/studio", icon: Palette },
     admin: { name: translateSync("Admin"), href: "/admin", icon: ShieldCheck },
     messages: { name: translateSync("Messages"), href: "/messages", icon: MessageSquare, event: "open-messages" },
+    chats: { name: translateSync("Chats"), href: "/messages", icon: MessageSquare, event: "open-messages" },
     profile: { name: user ? translateSync("Me") : translateSync("Sign in"), href: "/profile", icon: User },
   };
   const tabs = (TABS_BY_ROLE[role] ?? GUEST_TABS).map((id) => ({ id, ...all[id] }));
