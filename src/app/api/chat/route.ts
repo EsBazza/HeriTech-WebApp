@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SPLIT } from "@/lib/escrow";
+import { verifyRequestToken } from "@/lib/server/auth";
 import { generate } from "@/lib/server/gemini";
 import { HttpError, ok, parseBody, route } from "@/lib/server/http";
 import { rateLimit } from "@/lib/server/rateLimit";
@@ -67,9 +68,13 @@ const schema = z.object({
     .transform((h) => h.slice(-MAX_HISTORY)),
 });
 
-/** POST /api/chat — the HeriTech assistant. Open to guests, rate limited per client. */
+/** POST /api/chat — the HeriTech assistant. Open to guests, rate limited per account or, for guests, per IP. */
 export const POST = route(async (request: Request) => {
-  rateLimit(request, "chat", 15, 60_000);
+  // At a booth every visitor's phone shares the venue's one IP address, so signed-in
+  // people get their own allowance and guests share a larger one per address.
+  const caller = await verifyRequestToken(request).catch(() => null);
+  if (caller) rateLimit(request, "chat", 15, 60_000, caller.uid);
+  else rateLimit(request, "chat-guest", 60, 60_000);
   const { message, history } = await parseBody(request, schema);
 
   const contents = [...history, { role: "user" as const, content: message }].map((m) => ({

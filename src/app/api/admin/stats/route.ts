@@ -27,9 +27,9 @@ async function adminStats() {
       pendingApplicationsCount: users.filter((u) => u.verificationStatus.startsWith("pending_")).length,
     },
     escrowSplitDistribution: [
-      { name: `Artisan payout (${SPLIT.artisan}%)`, value: orders.artisanPayoutTotal, color: "#2563EB" },
-      { name: `Local government (${SPLIT.lgu}%)`, value: orders.lguShareTotal, color: "#10B981" },
-      { name: `Charity & app upkeep (${SPLIT.charityMaintenance}%)`, value: orders.charityMaintenanceTotal, color: "#F59E0B" },
+      { name: `Artisan payout (${SPLIT.artisan}%)`, value: orders.artisanPayoutTotal },
+      { name: `Local government (${SPLIT.lgu}%)`, value: orders.lguShareTotal },
+      { name: `Charity & app upkeep (${SPLIT.charityMaintenance}%)`, value: orders.charityMaintenanceTotal },
     ],
     festivals: materials.festivals.map((f) => ({
       name: f.festival,

@@ -52,6 +52,12 @@ describe("Google Wallet save links", () => {
     expect(object.textModulesData.find((m: { id: string }) => m.id === "split").body).toContain("70% artisan");
   });
 
+  it("shows no money split on a free piece claimed at the booth", () => {
+    const { claims } = decode(impactPassSaveUrl({ ...pass, amountPaid: 0, freeClaim: true }, "https://heritech.example"));
+    const split = claims.payload.genericObjects[0].textModulesData.find((m: { id: string }) => m.id === "split");
+    expect(split.body).toBe("Free showcase piece: no money changed hands");
+  });
+
   it("uses the class created in the Wallet console when one is configured", () => {
     vi.stubEnv("GOOGLE_WALLET_CLASS_ID", "HeriTech2026");
     const { claims } = decode(impactPassSaveUrl(pass, "https://heritech.example"));

@@ -1,8 +1,10 @@
+import { adminDb } from "@/lib/firebase/admin";
 import type { ProductDoc, UserDoc } from "@/lib/firebase/types";
 import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
-import { badRequest, forbidden, notFound, ok, parseBody, route } from "@/lib/server/http";
+import { forbidden, notFound, ok, parseBody, route } from "@/lib/server/http";
 import { storeImage } from "@/lib/server/images";
+import { assertKgBudget, batchListings } from "@/lib/server/kgBudget";
 import { productUpdateSchema } from "@/lib/server/productInput";
 import { withProductRelations } from "@/lib/server/views";
 
@@ -28,22 +30,39 @@ export const GET = route(async (_request: Request, { params }: Context) => {
 export const PATCH = route(async (request: Request, { params }: Context) => {
   const user = await requireUser(request, ["artisan"]);
   const { id } = await params;
-  const product = await loadOwnedProduct(id, user);
+  await loadOwnedProduct(id, user);
   const input = await parseBody(request, productUpdateSchema);
   if (input.freeClaim !== undefined && user.role !== "admin") throw forbidden("Only an admin can make a piece free to claim.");
 
-  if (input.kgDiverted !== undefined) {
-    const batch = (await db.batches().doc(product.sourceBatchId).get()).data();
-    if (batch && input.kgDiverted > batch.weightKg) {
-      throw badRequest(`kgDiverted can't exceed the batch weight of ${batch.weightKg} kg.`);
-    }
-  }
-
   const updates: Partial<ProductDoc> = { ...input };
   if (input.images) updates.images = await Promise.all(input.images.map((img) => storeImage(img, "products")));
-  await db.products().doc(id).update(updates);
+  const ref = db.products().doc(id);
 
-  const [view] = await withProductRelations([{ ...product, ...updates }]);
+  const saved = await adminDb().runTransaction(async (tx) => {
+    // Re-read inside the transaction so a sale made meanwhile is counted.
+    const current = (await tx.get(ref)).data();
+    if (!current || current.archived) throw notFound("Product not found.");
+
+    if (input.kgDiverted !== undefined || input.stock !== undefined) {
+      const batch = (await tx.get(db.batches().doc(current.sourceBatchId))).data();
+      if (batch) {
+        const listings = await batchListings(batch.id, tx);
+        const before = listings.find((l) => l.id === id) ?? { kgDiverted: current.kgDiverted, stock: current.stock, sold: 0 };
+        assertKgBudget({
+          batchId: batch.id,
+          batchWeightKg: batch.weightKg,
+          others: listings.filter((l) => l.id !== id),
+          before,
+          after: { kgDiverted: input.kgDiverted ?? current.kgDiverted, stock: input.stock ?? current.stock, sold: before.sold },
+        });
+      }
+    }
+
+    tx.update(ref, updates);
+    return { ...current, ...updates };
+  });
+
+  const [view] = await withProductRelations([saved]);
   return ok(view, { message: "Listing updated." });
 });
 

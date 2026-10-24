@@ -4,22 +4,31 @@ import { db, getMany } from "./firestore";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-/** Money totals across all completed orders, computed with Firestore aggregation. */
+/**
+ * Money totals across all completed orders, computed with Firestore aggregation.
+ * Free pieces claimed at the booth are $0 orders: they add nothing to the sums and
+ * are counted separately, so `orderCount` is sales only.
+ */
 export async function orderTotals() {
-  const snap = await db
-    .orders()
-    .where("status", "==", "completed")
-    .aggregate({
-      count: AggregateField.count(),
-      gross: AggregateField.sum("amountPaid"),
-      artisan: AggregateField.sum("artisanPayout"),
-      lgu: AggregateField.sum("lguShare"),
-      charity: AggregateField.sum("charityMaintenanceShare"),
-    })
-    .get();
+  const [snap, freeClaims] = await Promise.all([
+    db
+      .orders()
+      .where("status", "==", "completed")
+      .aggregate({
+        count: AggregateField.count(),
+        gross: AggregateField.sum("amountPaid"),
+        artisan: AggregateField.sum("artisanPayout"),
+        lgu: AggregateField.sum("lguShare"),
+        charity: AggregateField.sum("charityMaintenanceShare"),
+      })
+      .get(),
+    db.orders().where("paymentMode", "==", "free_claim").count().get(),
+  ]);
   const t = snap.data();
+  const freeClaimCount = freeClaims.data().count;
   return {
-    orderCount: t.count,
+    orderCount: Math.max(t.count - freeClaimCount, 0),
+    freeClaimCount,
     grossVolume: round2(t.gross ?? 0),
     artisanPayoutTotal: round2(t.artisan ?? 0),
     lguShareTotal: round2(t.lgu ?? 0),

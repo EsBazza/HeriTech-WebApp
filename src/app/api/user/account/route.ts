@@ -1,8 +1,8 @@
 import type { DocumentReference, WriteBatch } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
-import { requireUser } from "@/lib/server/auth";
+import { verifyRequestToken } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
-import { forbidden, ok, route } from "@/lib/server/http";
+import { forbidden, ok, route, unauthorized } from "@/lib/server/http";
 import { rateLimit } from "@/lib/server/rateLimit";
 
 /** Stand-in owner for orders kept after their buyer deleted their account. */
@@ -26,16 +26,21 @@ async function inBatches<T>(items: T[], write: (batch: WriteBatch, item: T) => v
  * artisan's listings leave the shop and their reservations are released.
  */
 export const DELETE = route(async (request: Request) => {
-  const user = await requireUser(request);
-  rateLimit(request, "delete-account", 3, 60_000, user.id);
-  if (user.isDemo) throw forbidden("Demo accounts are shared and can't be deleted.");
-  if (user.role === "admin") throw forbidden("Admin accounts can't delete themselves. Ask another admin to change your role first.");
+  // Works from the sign-in token alone: if an earlier attempt deleted the profile but
+  // failed later, the user can still retry and every step below is safe to repeat.
+  const token = await verifyRequestToken(request);
+  if (!token) throw unauthorized();
+  const uid = token.uid;
+  rateLimit(request, "delete-account", 3, 60_000, uid);
+  const user = (await db.users().doc(uid).get()).data();
+  if (user?.isDemo) throw forbidden("Demo accounts are shared and can't be deleted.");
+  if (user?.role === "admin") throw forbidden("Admin accounts can't delete themselves. Ask another admin to change your role first.");
 
   const [messages, orders, products, reserved] = await Promise.all([
-    db.messages().where("participants", "array-contains", user.id).get(),
-    db.orders().where("buyerId", "==", user.id).get(),
-    db.products().where("artisanId", "==", user.id).get(),
-    db.batches().where("reservedByArtisanId", "==", user.id).get(),
+    db.messages().where("participants", "array-contains", uid).get(),
+    db.orders().where("buyerId", "==", uid).get(),
+    db.products().where("artisanId", "==", uid).get(),
+    db.batches().where("reservedByArtisanId", "==", uid).get(),
   ]);
 
   await inBatches(messages.docs, (batch, doc) => batch.delete(doc.ref));
@@ -45,12 +50,10 @@ export const DELETE = route(async (request: Request) => {
     reserved.docs.filter((d) => d.data().status === "reserved"),
     (batch, doc) => batch.update(doc.ref, { status: "available", reservedByArtisanId: null, reservedAt: null })
   );
-  await inBatches<DocumentReference>([db.loyalty().doc(user.id), db.boothClaims().doc(user.id), db.users().doc(user.id)], (batch, ref) =>
-    batch.delete(ref)
-  );
+  await inBatches<DocumentReference>([db.loyalty().doc(uid), db.boothClaims().doc(uid), db.users().doc(uid)], (batch, ref) => batch.delete(ref));
 
   try {
-    await adminAuth().deleteUser(user.id);
+    await adminAuth().deleteUser(uid);
   } catch (error) {
     // Already gone from Firebase Auth is fine; anything else is worth knowing about.
     if ((error as { code?: string }).code !== "auth/user-not-found") throw error;

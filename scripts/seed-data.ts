@@ -139,7 +139,7 @@ export const SEED_PRODUCTS = [
   product("prod_01", "Lamp shade", "Demo listing. A lamp shade made from paper and card collected after a festival.", 35, "usr_art_01", "HT-2026-0101", "paper", 10, 0.6, "2026-07-20T10:00:00.000Z", "lamp-shade"),
   product("prod_02", "Plant-dyed notecards (set of 6)", "Demo listing. Notecards coloured with dye made from festival flowers.", 12, "usr_art_02", "HT-2026-0201", "flowers", 20, 0.3, "2026-07-25T10:00:00.000Z", "notecards"),
   product("prod_03", "Wall shelf", "Demo listing. A small shelf built from wood and frame offcuts left after a festival.", 40, "usr_art_05", "HT-2026-0501", "wood", 6, 2.5, "2026-08-10T10:00:00.000Z", "wall-shelf"),
-  product("prod_04", "Coaster set (4 pieces)", "Demo listing. Coasters cut from the same batch of frame offcuts.", 15, "usr_art_05", "HT-2026-0501", "wood", 12, 0.8, "2026-08-11T10:00:00.000Z", "coasters"),
+  product("prod_04", "Coaster set (4 pieces)", "Demo listing. Coasters cut from the same batch of frame offcuts.", 15, "usr_art_05", "HT-2026-0501", "wood", 12, 0.3, "2026-08-11T10:00:00.000Z", "coasters"),
   product("prod_05", "Paper lantern, medium", "Demo listing. A hanging lantern folded from paper and card collected after a lantern festival.", 28, "usr_art_05", "HT-2026-0102", "paper", 8, 0.4, "2026-07-24T10:00:00.000Z", "paper-lantern"),
   product("prod_06", "Woven market tote", "Demo listing. A sturdy tote woven from fabric strips left after a street parade.", 32, "usr_art_02", "HT-2026-0302", "fabric", 7, 0.9, "2026-08-04T10:00:00.000Z", "tote"),
   product("prod_07", "Patchwork table runner", "Demo listing. A table runner pieced together from parade fabric offcuts.", 26, "usr_art_02", "HT-2026-0302", "fabric", 5, 0.7, "2026-08-05T10:00:00.000Z", "table-runner"),
@@ -147,7 +147,7 @@ export const SEED_PRODUCTS = [
   product("prod_09", "Petal-paper journal", "Demo listing. A journal with covers made from petals and pulped festival paper.", 18, "usr_art_01", "HT-2026-0202", "flowers", 14, 0.4, "2026-07-27T10:00:00.000Z", "journal"),
   product("prod_10", "Hand-bound sketchbook", "Demo listing. A sketchbook stitched by hand from sorted festival paper.", 16, "usr_art_01", "HT-2026-0101", "paper", 11, 0.5, "2026-07-21T10:00:00.000Z", "sketchbook"),
   product("prod_11", "Festival bunting, 3 m", "Demo listing. Bunting cut from parade fabric, ready to hang again.", 22, "usr_art_02", "HT-2026-0302", "fabric", 9, 0.6, "2026-08-06T10:00:00.000Z", "bunting"),
-  product("prod_12", "Desk organiser", "Demo listing. A three-section organiser built from frame offcuts.", 24, "usr_art_05", "HT-2026-0501", "wood", 6, 1.1, "2026-08-12T10:00:00.000Z", "desk-organiser"),
+  product("prod_12", "Desk organiser", "Demo listing. A three-section organiser built from frame offcuts.", 24, "usr_art_05", "HT-2026-0501", "wood", 6, 0.8, "2026-08-12T10:00:00.000Z", "desk-organiser"),
 ];
 
 export const SEED_ORDERS = [

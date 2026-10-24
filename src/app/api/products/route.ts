@@ -1,9 +1,11 @@
 import type { Query } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase/admin";
 import type { ProductDoc } from "@/lib/firebase/types";
 import { requireUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/firestore";
 import { badRequest, forbidden, ok, parseBody, route } from "@/lib/server/http";
 import { storeImage } from "@/lib/server/images";
+import { assertKgBudget, batchListings } from "@/lib/server/kgBudget";
 import { productCreateSchema } from "@/lib/server/productInput";
 import { newestFirst, withProductRelations } from "@/lib/server/views";
 
@@ -31,7 +33,10 @@ export const POST = route(async (request: Request) => {
   if (batch.claimedByArtisanId !== artisan.id && artisan.role !== "admin") {
     throw forbidden("That batch was picked up by another artisan.");
   }
-  if (input.kgDiverted > batch.weightKg) throw badRequest(`kgDiverted can't exceed the batch weight of ${batch.weightKg} kg.`);
+  const newListing = { kgDiverted: input.kgDiverted, stock: input.stock, sold: 0 };
+  const budget = { batchId: batch.id, batchWeightKg: batch.weightKg, after: newListing };
+  // Checked before the photos are uploaded, then again in the transaction that saves the listing.
+  assertKgBudget({ ...budget, others: await batchListings(batch.id) });
 
   const ref = db.products().doc();
   const product: ProductDoc = {
@@ -41,7 +46,10 @@ export const POST = route(async (request: Request) => {
     artisanId: batch.claimedByArtisanId ?? artisan.id,
     createdAt: new Date().toISOString(),
   };
-  await ref.create(product);
+  await adminDb().runTransaction(async (tx) => {
+    assertKgBudget({ ...budget, others: await batchListings(batch.id, tx) });
+    tx.create(ref, product);
+  });
 
   const [view] = await withProductRelations([product]);
   return ok(view, { status: 201, message: "Listed on the marketplace, linked to its source batch." });

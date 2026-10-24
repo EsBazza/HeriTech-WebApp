@@ -23,7 +23,9 @@ const ROLE_TONE: Record<string, BadgeTone> = { buyer: "neutral", artisan: "accen
 
 // Recharts needs literal colours; these are the pine-500, line, and split tokens from globals.css.
 const CHART = { collected: "#3c6b52", target: "#cfc4ae", grid: "#e2d9c7", tick: "#5f6661" };
+// Day colours as the fill; the classes swap in the night theme's split colours.
 const SPLIT_COLORS = ["#1f3a2b", "#8fb09c", "#c4471e"];
+const SPLIT_FILLS = ["fill-split-artisan", "fill-split-platform", "fill-split-ngo"];
 
 /** A step that needs a second tap: rejecting an applicant or changing someone's role. */
 interface PendingAction {
@@ -436,7 +438,7 @@ function AdminDashboardPageContent() {
                   <PieChart>
                     <Pie data={stats?.escrowSplitDistribution || []} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value">
                       {(stats?.escrowSplitDistribution || []).map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={SPLIT_COLORS[index % SPLIT_COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={SPLIT_COLORS[index % SPLIT_COLORS.length]} className={SPLIT_FILLS[index % SPLIT_FILLS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { Package } from "lucide-react";
 import { SuccessBurst } from "@/components/motion/SuccessBurst";
 import { useAuth } from "@/components/auth/AuthProvider";

@@ -7,7 +7,7 @@ import { useTranslation } from "@/contexts/TranslationContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, cn } from "@/components/ui";
 import { DemoSignIn } from "@/components/auth/DemoSignIn";
-import { apiJson } from "@/lib/api";
+import { apiJson, authFetch } from "@/lib/api";
 import type { UserRole } from "@/lib/firebase/types";
 import { userRole } from "@/lib/roleGuard";
 
@@ -481,9 +481,9 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
     if (isBot) {
       setIsBotThinking(true);
       try {
-        const res = await fetch("/api/chat", {
+        // authFetch sends the sign-in token, so the assistant's rate limit is per person.
+        const res = await authFetch("/api/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: userText, history }),
         });
         const data = await res.json();

@@ -49,7 +49,6 @@ export default function ImpactLeaderboardPage() {
 
   const split = stats?.escrowSplitSummary;
   const festivals = stats?.festivals ?? [];
-  const v = (x: React.ReactNode) => (loading ? <Skeleton className="h-8 w-24" /> : offline ? "—" : x);
 
   return (
     <div>

@@ -212,7 +212,7 @@ function ArtisanStudioPageContent() {
         craftTypology: form.craftMethod.trim() || undefined,
         artisanWorkshop: user?.workshopName ?? undefined,
         divertedKg: form.kgDiverted || selectedBatch.weightKg,
-        title: form.title || `${selectedBatch.materialType} Upcycled Creation`,
+        title: form.title.trim() || undefined,
       }),
     });
     if (result.success && result.data?.story) {

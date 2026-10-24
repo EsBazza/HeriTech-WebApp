@@ -67,6 +67,8 @@ export interface ImpactPassDetails {
   hasHeroImage: boolean;
   /** Whether the source batch has a collection photo for the "before" image. */
   hasBeforeImage: boolean;
+  /** A free piece claimed at the showcase booth: no money changed hands, so no split is shown. */
+  freeClaim?: boolean;
 }
 
 const field = (id: string) => ({ firstValue: { fields: [{ fieldPath: `object.textModulesData['${id}']` }] } });
@@ -111,11 +113,13 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
       ...(pass.ownerName ? [{ id: "owner", header: "Owned by", body: pass.ownerName }] : []),
       { id: "origin", header: "Origin", body: origin },
       { id: "diverted", header: "Material diverted", body: `${pass.kgDiverted} kg` },
-      {
-        id: "split",
-        header: "Where the money went",
-        body: `${SPLIT.artisan}% artisan · ${SPLIT.lgu}% local government · ${SPLIT.charityMaintenance}% charity & app upkeep`,
-      },
+      pass.freeClaim
+        ? { id: "split", header: "Where the money went", body: "Free showcase piece: no money changed hands" }
+        : {
+            id: "split",
+            header: "Where the money went",
+            body: `${SPLIT.artisan}% artisan · ${SPLIT.lgu}% local government · ${SPLIT.charityMaintenance}% charity & app upkeep`,
+          },
       { id: "issued", header: "Issued", body: new Date(pass.issuedAt).toISOString().slice(0, 10) },
     ],
     // Before (the batch as collected) next to after (the hero banner of the finished piece).

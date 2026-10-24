@@ -48,6 +48,7 @@ export const GET = route(async (request: Request, { params }: { params: Promise<
       backgroundColor,
       hasHeroImage: Boolean(image),
       hasBeforeImage: Boolean(view.sourceBatch?.imageUrl),
+      freeClaim: order.paymentMode === "free_claim",
     },
     base
   );
