@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { z, type ZodTypeAny } from "zod";
+import { z } from "zod";
 
 /** An error whose message is safe to show to the caller. */
 export class HttpError extends Error {
@@ -51,7 +51,7 @@ export function route<Args extends unknown[]>(handler: (...args: Args) => Promis
 }
 
 /** Parses and validates a JSON body. Responds 400 with the first problem found. */
-export async function parseBody<S extends ZodTypeAny>(request: Request, schema: S): Promise<z.output<S>> {
+export async function parseBody<S extends z.ZodType>(request: Request, schema: S): Promise<z.output<S>> {
   let raw: unknown;
   try {
     raw = await request.json();
