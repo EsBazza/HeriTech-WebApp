@@ -14,6 +14,7 @@ export function Footer() {
       links: [
         { label: translateSync("Shop crafts"), href: "/" },
         { label: translateSync("Impact record"), href: "/impact" },
+        { label: translateSync("About HeriTech"), href: "/about" },
       ],
     },
     {

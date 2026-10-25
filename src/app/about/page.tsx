@@ -259,7 +259,7 @@ export default function AboutPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16" aria-labelledby="about-next">
         <Reveal className="bg-pine-900 text-white px-7 py-10 sm:px-12 sm:py-14 grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-7 items-center">
           <div className="lg:col-span-7">
-            <h2 id="about-next" className="font-display text-[clamp(2rem,4vw,3.25rem)] leading-[1] font-semibold tracking-[-0.02em] text-balance">
+            <h2 id="about-next" className="text-white font-display text-[clamp(2rem,4vw,3.25rem)] leading-[1] font-semibold tracking-[-0.02em] text-balance">
               {translateSync("Every piece in the shop has this record behind it")}
             </h2>
             <p className="mt-4 text-[17px] text-white/80 leading-[1.6] max-w-[46ch] text-pretty">
