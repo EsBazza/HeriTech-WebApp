@@ -66,7 +66,7 @@ function Logo() {
   return (
     <Link href="/" className="nav-logo group flex items-center gap-2.5 shrink-0" aria-label="HeriTech home">
       <Image src="/logo_heritech-removebg-preview.png" alt="" width={36} height={36} className="logo-plate nav-logo-mark w-9 h-9 object-contain" priority />
-      <span className="font-display text-[23px] font-semibold text-ink leading-none tracking-[-0.01em]">HeriTech</span>
+      <span className="font-display text-[20px] min-[360px]:text-[23px] font-semibold text-ink leading-none tracking-[-0.01em]">HeriTech</span>
     </Link>
   );
 }
@@ -232,10 +232,14 @@ function AccountMenu() {
             <User className="w-4 h-4 text-ink-3" />
             {translateSync("Profile & passes")}
           </Link>
-          {roleLinks(role, translateSync)
-            .filter((l) => !l.primary)
+          {/* Top-bar links that don't fit yet appear here, then the ones that never sit in the bar */}
+          {[
+            ...roleLinks(role, translateSync).filter((l) => l.primary).map((l, i) => ({ ...l, fold: menuFoldClass(i) })),
+            ...roleLinks(role, translateSync).filter((l) => !l.primary).map((l) => ({ ...l, fold: "" })),
+          ]
+            .filter((l) => l.fold !== "hidden")
             .map((l) => (
-              <Link key={l.href} href={l.href} onClick={close} className="flex items-center gap-2.5 px-4 h-10 text-sm text-ink-2 hover:bg-pine-50" role="menuitem">
+              <Link key={l.href} href={l.href} onClick={close} className={cn("flex items-center gap-2.5 px-4 h-10 text-sm text-ink-2 hover:bg-pine-50", l.fold)} role="menuitem">
                 <l.icon className="w-4 h-4 text-ink-3" />
                 {l.name}
               </Link>
@@ -300,6 +304,15 @@ function roleLinks(role: string, t: (s: string) => string) {
     { name: t("Agreements"), href: "/agreements", icon: FileSignature, show: role === "lgu" || role === "admin", primary: role === "lgu" },
     { name: t("Admin console"), href: "/admin", icon: ShieldCheck, show: role === "admin", primary: true },
   ].filter((l) => l.show);
+}
+
+// The top bar holds three links on a tablet, four from 1024px and all of them from 1280px;
+// the rest wait in the account menu until there is room.
+function barFoldClass(i: number) {
+  return i < 3 ? "flex" : i === 3 ? "hidden lg:flex" : "hidden xl:flex";
+}
+function menuFoldClass(i: number) {
+  return i < 3 ? "hidden" : i === 3 ? "lg:hidden" : "xl:hidden";
 }
 
 function isActivePath(pathname: string, href: string) {
@@ -473,7 +486,7 @@ export function Navbar() {
 
   return (
     <header data-scrolled={scrolled} data-hidden={hidden} className="site-header sticky top-0 z-40 bg-paper pt-[env(safe-area-inset-top,0px)]">
-      <div className="site-header-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-6">
+      <div className="site-header-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-3 sm:gap-6">
         <Logo />
 
         <nav ref={navRef} onMouseLeave={settleBar} className="relative hidden md:flex items-center gap-1 h-full" aria-label="Main">
@@ -482,7 +495,7 @@ export function Navbar() {
             className="nav-bar absolute bottom-0 left-0 h-[3px] rounded-full bg-brand"
             style={{ transform: `translateX(${bar.x}px)`, width: bar.w, opacity: bar.on ? 1 : 0 }}
           />
-          {navLinks.map((link) => {
+          {navLinks.map((link, i) => {
             const active = isActive(link.href);
             return (
               <Link
@@ -493,7 +506,8 @@ export function Navbar() {
                 onFocus={(e) => moveBar(e.currentTarget)}
                 onBlur={settleBar}
                 className={cn(
-                  "nav-link relative h-full px-3 flex items-center text-[16px] transition-colors",
+                  "nav-link relative h-full px-3 items-center text-[16px] transition-colors",
+                  barFoldClass(i),
                   active ? "text-ink font-medium" : "text-ink-2 hover:text-ink"
                 )}
               >
