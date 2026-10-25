@@ -72,7 +72,7 @@ export default function ImpactLeaderboardPage() {
       )}
 
       {/* Festivals + money */}
-      <div className="grid lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <Card className="lg:col-span-3 p-5 sm:p-6">
           <h2 className="text-base font-semibold text-ink font-sans">{translateSync("Collection by festival")}</h2>
           <p className="text-sm text-ink-3">{translateSync("Collected so far against each release agreement's agreed quota.")}</p>

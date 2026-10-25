@@ -383,7 +383,7 @@ function ArtisanStudioPageContent() {
           }
         />
       ) : (
-        <div className="grid lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <Card ref={formRef} className="lg:col-span-7 overflow-hidden scroll-mt-24">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-line">
             <h2 className="flex items-center gap-2 text-base font-semibold text-ink font-sans">

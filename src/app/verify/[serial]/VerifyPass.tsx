@@ -351,7 +351,7 @@ export function VerifyPass({ serial }: { serial: string }) {
       </Card>
 
       {/* Maker + split */}
-      <div className="grid md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card className="md:col-span-2 p-5 sm:p-6 space-y-3">
           <h2 className="text-sm font-semibold text-ink font-sans">{translateSync("Maker")}</h2>
           <div className="flex items-center gap-3">

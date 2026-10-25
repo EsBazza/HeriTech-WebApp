@@ -56,7 +56,7 @@ export function ImpactPassCard({ serial, verifyUrl, title, maker, origin, kgDive
                   <span className="tabular font-semibold text-white">{formatNumber(kgDiverted)} kg</span> {translateSync("diverted")}
                 </span>
               )}
-              {issuedAt && <span className="truncate">{formatDate(new Date(issuedAt))}</span>}
+              {issuedAt && <span className="truncate">{formatDate(new Date(issuedAt), "short")}</span>}
             </div>
             <p className="pass-serial mt-1 font-mono-data text-[12.5px] tracking-[0.14em] text-white/95 truncate">{serial}</p>
           </>

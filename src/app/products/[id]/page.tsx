@@ -400,7 +400,7 @@ export default function ProductDetailPage() {
 
       {/* Impact at a glance */}
       <section className="rounded-lg bg-pine-900 text-white overflow-hidden">
-        <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
           {impact.map((m, i) => {
             const Icon = m.icon;
             return (
@@ -425,7 +425,7 @@ export default function ProductDetailPage() {
       <MaterialJourney product={product} />
 
       {/* Provenance + split */}
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Reveal className="lg:col-span-7">
           <Card className="h-full p-6 sm:p-8">
             <h2 className="font-display text-[30px] font-semibold text-ink">{translateSync("From leftover to this piece")}</h2>

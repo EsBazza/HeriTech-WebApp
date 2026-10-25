@@ -85,7 +85,7 @@ export function ApplyRoleCard() {
       )}
 
       <form onSubmit={submit} className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label={translateSync("Apply as")}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label={translateSync("Apply as")}>
           {options.map((o) => {
             const Icon = o.icon;
             const active = type === o.id;
@@ -112,7 +112,7 @@ export function ApplyRoleCard() {
         </div>
 
         {type === "artisan" ? (
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={translateSync("Workshop or cooperative")} required value={workshopName} onChange={(e) => setWorkshopName(e.target.value)} />
             <Input label={translateSync("What you make")} value={craftTypology} onChange={(e) => setCraftTypology(e.target.value)} />
           </div>

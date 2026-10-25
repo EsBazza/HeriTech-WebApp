@@ -31,7 +31,8 @@ interface TranslationContextType {
   getSupportedLanguages: () => Language[];
   isRTL: boolean;
   formatCurrency: (amount: number, currency?: string) => string;
-  formatDate: (date: Date) => string;
+  /** "October 24, 2026"; pass month "short" for tight spaces ("Oct 24, 2026"). */
+  formatDate: (date: Date, month?: "long" | "short") => string;
   formatNumber: (number: number) => string;
   getRegionLanguages: (region: string) => Language[];
   translationCache: Map<string, string>;
@@ -400,11 +401,11 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
 
   const formatDate = useCallback(
-    (date: Date): string => {
+    (date: Date, month: "long" | "short" = "long"): string => {
       try {
         return new Intl.DateTimeFormat(currentLanguage.code, {
           year: "numeric",
-          month: "long",
+          month,
           day: "numeric",
         }).format(date);
       } catch {

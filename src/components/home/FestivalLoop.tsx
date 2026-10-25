@@ -100,7 +100,7 @@ export function FestivalLoop() {
   const StageIcon = stage.icon;
 
   return (
-    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-12 gap-14 lg:gap-12 items-center">
+    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-12 items-center">
       <div className="lg:col-span-5">
         <Reveal>
           <h2 id="loop-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-white">

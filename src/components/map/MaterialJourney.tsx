@@ -86,7 +86,7 @@ export function MaterialJourney({ product }: { product: ProductView }) {
     : translateSync("Pinned on the map where a local government officer collected it.");
 
   return (
-    <section id="journey" className="journey scroll-mt-24 rounded-lg bg-pine-900 text-white overflow-hidden grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+    <section id="journey" className="journey scroll-mt-24 rounded-lg bg-pine-900 text-white overflow-hidden grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div className="p-6 sm:p-8 lg:p-10 flex flex-col">
         <h2 className="font-display text-[32px] sm:text-[38px] leading-[1.05] font-semibold text-white tracking-[-0.01em]">
           {translateSync("Follow the material")}

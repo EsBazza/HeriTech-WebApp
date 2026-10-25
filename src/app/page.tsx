@@ -342,7 +342,7 @@ export default function FeedHomePage() {
 
       {/* THE PROBLEM: what festivals leave behind, in photographs */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 lg:pt-32" aria-labelledby="problem-title">
-        <div className="grid lg:grid-cols-12 gap-x-10 gap-y-5 items-end">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-5 items-end">
           <Reveal className="lg:col-span-6">
             <h2 id="problem-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
               {translateSync("What a festival leaves behind")}
@@ -355,7 +355,7 @@ export default function FeedHomePage() {
           </Reveal>
         </div>
 
-        <div className="mt-12 lg:mt-16 grid sm:grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-12">
+        <div className="mt-12 lg:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-12">
           {problems.map((p, i) => (
             <Reveal key={p.figure} delay={i * 90} className={cn("flex flex-col", i === 0 ? "sm:col-span-2 lg:col-span-6" : "lg:col-span-3")}>
               <figure className="relative overflow-hidden bg-pine-900">
@@ -434,7 +434,7 @@ export default function FeedHomePage() {
       {/* SHOP */}
       <section id="shop" className="scroll-mt-20 bg-paper-2" aria-labelledby="shop-title">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 space-y-10">
-          <Reveal className="grid lg:grid-cols-12 gap-x-10 gap-y-4 items-end">
+          <Reveal className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-4 items-end">
             <h2 id="shop-title" className="lg:col-span-7 font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
               {translateSync("Pieces made from what was left")}
             </h2>
@@ -544,7 +544,7 @@ export default function FeedHomePage() {
       {/* A festival line across the top: a parol, banderitas and paper lanterns, the kind of
           work artisans make from what a festival leaves behind */}
       <FestivalLine className="h-[150px] lg:h-[170px]" />
-      <section className="relative z-[1] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 pb-24 lg:pt-52 lg:pb-32 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
+      <section className="relative z-[1] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 pb-24 lg:pt-52 lg:pb-32 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center" aria-labelledby="split-title">
         <Reveal className="lg:col-span-5">
           <h2 id="split-title" className="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-balance text-ink">
             {translateSync("Every sale, split in the open")}
