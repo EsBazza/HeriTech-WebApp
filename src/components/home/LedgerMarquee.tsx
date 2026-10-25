@@ -208,7 +208,7 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-x-6">
         <h2 id="ledger-title" className="flex items-center gap-2.5 text-[15px] font-medium text-white/90">
           <span className={cn("ledger-live w-2 h-2 rounded-full shrink-0", offline ? "bg-warn" : "bg-pine-300")} aria-hidden />
-          {offline ? translateSync("The ledger can't be reached right now.") : translateSync("Live from the HeriTech ledger")}
+          {offline ? translateSync("The public record can't be reached right now.") : translateSync("Live from the HeriTech public record")}
         </h2>
         <div className="flex items-center gap-1 -mr-2.5">
           <a href="/impact" className="group inline-flex items-center gap-1.5 min-h-11 sm:px-2 text-[15px] text-white/80 hover:text-white transition-colors">

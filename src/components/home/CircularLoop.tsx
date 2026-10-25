@@ -23,7 +23,7 @@ export function CircularLoop() {
   ];
 
   return (
-    <svg viewBox="-80 -14 560 428" className="loop-orbit w-full h-auto" role="img" aria-label={translateSync("The HeriTech loop: agreement, scan, pickup, craft and pass, all on one ledger")}>
+    <svg viewBox="-80 -14 560 428" className="loop-orbit w-full h-auto" role="img" aria-label={translateSync("The HeriTech loop: agreement, scan, pickup, craft and pass, all on one public record")}>
       <defs>
         <radialGradient id="loop-core" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#f2a65a" stopOpacity="0.3" />

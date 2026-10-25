@@ -365,7 +365,7 @@ export default function ProfilePage() {
                   <EmptyState
                     icon={<FileText className="w-5 h-5" />}
                     title={translateSync("Couldn't load your passes")}
-                    description={translateSync("Your passes are safe on the ledger. Check your connection and try again.")}
+                    description={translateSync("Your passes are safe in the public record. Check your connection and try again.")}
                     action={
                       <Button variant="secondary" onClick={() => setReloadKey((k) => k + 1)}>
                         {translateSync("Try again")}

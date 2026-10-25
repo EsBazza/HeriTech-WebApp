@@ -12,6 +12,7 @@ export function LanguageSelector({ className }: { className?: string }) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [panelLeft, setPanelLeft] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -22,7 +23,23 @@ export function LanguageSelector({ className }: { className?: string }) {
     if (returnFocus) buttonRef.current?.focus();
   };
 
-  // Close on outside click or Escape.
+  // Line the panel up under the button, then nudge it so it stays 16px inside the screen.
+  // On phones the globe sits mid-header, so a plain right-aligned panel runs off the left edge.
+  const placePanel = () => {
+    const box = dropdownRef.current?.getBoundingClientRect();
+    if (!box) return;
+    const viewport = document.documentElement.clientWidth;
+    const width = Math.min(320, viewport - 32);
+    const left = Math.min(Math.max(box.right - width, 16), viewport - 16 - width);
+    setPanelLeft(left - box.left);
+  };
+
+  const open = () => {
+    placePanel();
+    setIsOpen(true);
+  };
+
+  // Close on outside click or Escape; keep the panel on screen if the window resizes.
   useEffect(() => {
     if (!isOpen) return;
     const onDown = (event: MouseEvent) => {
@@ -31,10 +48,12 @@ export function LanguageSelector({ className }: { className?: string }) {
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && close(true);
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", placePanel);
     searchInputRef.current?.focus();
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", placePanel);
     };
   }, [isOpen]);
 
@@ -61,7 +80,7 @@ export function LanguageSelector({ className }: { className?: string }) {
     <div className={cn("relative", className)} ref={dropdownRef}>
       <button
         ref={buttonRef}
-        onClick={() => (isOpen ? close() : setIsOpen(true))}
+        onClick={() => (isOpen ? close() : open())}
         disabled={isLoading}
         aria-label={`${translateSync("Language")}: ${currentLanguage.name}`}
         aria-expanded={isOpen}
@@ -74,7 +93,9 @@ export function LanguageSelector({ className }: { className?: string }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] bg-surface rounded-md shadow-pop border border-line z-50 overflow-hidden animate-[sheet-in_0.18s_var(--ease-out-soft)]">
+        <div
+          style={panelLeft === null ? { right: 0 } : { left: panelLeft }}
+          className="absolute mt-2 w-[min(20rem,calc(100vw-2rem))] bg-surface rounded-md shadow-pop border border-line z-50 overflow-hidden animate-[sheet-in_0.18s_var(--ease-out-soft)]">
           <div className="p-3 border-b border-line">
             <input
               ref={searchInputRef}
