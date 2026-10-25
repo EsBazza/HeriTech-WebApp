@@ -105,8 +105,15 @@ export default function AboutPage() {
     <div className="w-full">
       {/* INTRO: the workshop where the leftovers end up, then a way into each part of the story */}
       <section className="relative isolate overflow-hidden bg-pine-900 text-white" aria-labelledby="about-title">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/photos/step-craft.jpg" alt="" className="about-hero-photo absolute inset-0 -z-20 h-full w-full object-cover" />
+        <Image
+          src="/photos/about-parol-maker.jpg"
+          alt={translateSync("A lantern maker assembling a parol by hand in his workshop")}
+          fill
+          priority
+          sizes="100vw"
+          quality={80}
+          className="about-hero-photo -z-20 object-cover object-[68%_50%]"
+        />
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgb(20_40_30/0.96)_0%,rgb(20_40_30/0.75)_45%,rgb(20_40_30/0.35)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_40_30/0.95)_0%,rgb(20_40_30/0.78)_40%,rgb(20_40_30/0.2)_75%,rgb(20_40_30/0.1)_100%)]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 lg:pt-36 pb-36 sm:pb-40 lg:pb-48">
           <h1
@@ -309,7 +316,7 @@ export default function AboutPage() {
           </span>
         </Reveal>
         <p className="mt-4 text-sm text-ink-3">
-          {translateSync("Photographs")}: {"\u201cLK 02 loy krathong yi peng san sai\u201d by Takeaway, CC BY-SA 3.0"} · {"\u201cMarigold Flowers as garland\u201d by SnapMeUp, CC BY 4.0"}, {translateSync("via Wikimedia Commons")} · {translateSync("product and material photos from Unsplash")}
+          {translateSync("Photographs")}: {"\u201cLK 02 loy krathong yi peng san sai\u201d by Takeaway, CC BY-SA 3.0"} · {"\u201cMarigold Flowers as garland\u201d by SnapMeUp, CC BY 4.0"}, {"“Man making Parol 2” by Elmer B. Domingo, CC BY-SA 4.0"}, {translateSync("via Wikimedia Commons")} · {translateSync("product and material photos from Unsplash")}
         </p>
       </section>
     </div>
