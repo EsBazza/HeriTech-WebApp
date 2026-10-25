@@ -95,40 +95,54 @@ export default function AboutPage() {
 
 
   const chapters = [
-    { href: "#problem", label: translateSync("The leftovers") },
-    { href: "#record", label: translateSync("The record") },
-    { href: "#loop", label: translateSync("The loop") },
-    { href: "#split", label: translateSync("The split") },
+    { href: "#problem", label: translateSync("The leftovers"), note: translateSync("What one festival leaves behind"), photo: "/photos/yi-peng.jpg" },
+    { href: "#record", label: translateSync("The record"), note: translateSync("Collect, match, make, verify"), photo: "/photos/step-collect.jpg" },
+    { href: "#loop", label: translateSync("The loop"), note: translateSync("The same steps at every festival"), photo: "/photos/step-match.jpg" },
+    { href: "#split", label: translateSync("The split"), note: translateSync(`Where the money goes: ${SPLIT_LABEL}`), photo: "/photos/step-verify.jpg" },
   ];
 
   return (
     <div className="w-full">
-      {/* INTRO: what this page covers, with a way into each part */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-28" aria-labelledby="about-title">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-6 items-end">
+      {/* INTRO: the workshop where the leftovers end up, then a way into each part of the story */}
+      <section className="relative isolate overflow-hidden bg-pine-900 text-white" aria-labelledby="about-title">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/photos/step-craft.jpg" alt="" className="about-hero-photo absolute inset-0 -z-20 h-full w-full object-cover" />
+        <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgb(20_40_30/0.96)_0%,rgb(20_40_30/0.75)_45%,rgb(20_40_30/0.35)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_40_30/0.95)_0%,rgb(20_40_30/0.78)_40%,rgb(20_40_30/0.2)_75%,rgb(20_40_30/0.1)_100%)]" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 lg:pt-36 pb-36 sm:pb-40 lg:pb-48">
           <h1
             id="about-title"
-            className="rise lg:col-span-7 font-display text-[clamp(3rem,6.5vw,5.5rem)] leading-[0.95] font-semibold tracking-[-0.03em] text-balance text-ink"
+            className="rise max-w-[12ch] font-display text-[clamp(3rem,7vw,6rem)] leading-[0.94] font-semibold tracking-[-0.03em] text-balance text-white"
           >
             {translateSync("How HeriTech works")}
           </h1>
-          <p className="rise lg:col-span-5 text-[18px] sm:text-[19px] text-ink-2 leading-[1.6] max-w-[44ch] text-pretty" style={{ ["--rise-delay" as string]: "100ms" }}>
+          <p className="rise mt-6 sm:mt-8 text-[17px] sm:text-[19px] text-white/85 leading-[1.6] max-w-[44ch] text-pretty" style={{ ["--rise-delay" as string]: "100ms" }}>
             {translateSync("From the night a festival ends to the shelf: who collects what it leaves behind, who makes something of it, and who gets paid.")}
           </p>
         </div>
-        <nav aria-label={translateSync("On this page")} className="rise mt-10 lg:mt-14 grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5" style={{ ["--rise-delay" as string]: "180ms" }}>
-          {chapters.map((c) => (
-            <a
-              key={c.href}
-              href={c.href}
-              className="group inline-flex items-center justify-between sm:justify-start gap-2 h-11 px-5 rounded-full bg-surface text-[15px] font-medium text-ink shadow-card hover:bg-pine-50 hover:text-brand transition-colors"
-            >
-              {c.label}
-              <ArrowDown className="w-4 h-4 text-ink-3 transition-transform duration-200 group-hover:translate-y-0.5 group-hover:text-brand" />
-            </a>
-          ))}
-        </nav>
       </section>
+
+      {/* The four parts of the story, as cards that sit on the edge of the photo */}
+      <nav aria-label={translateSync("On this page")} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 sm:-mt-28 lg:-mt-32">
+        <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {chapters.map((c, i) => (
+            <li key={c.href} className="rise" style={{ ["--rise-delay" as string]: `${180 + i * 70}ms` }}>
+              <a href={c.href} className="group flex h-full flex-col overflow-hidden rounded-lg bg-surface shadow-card hover:shadow-pop transition-shadow">
+                <span className="relative block aspect-[16/10] overflow-hidden bg-pine-900">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.photo} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover transition-[scale] duration-700 ease-out group-hover:scale-[1.06]" />
+                </span>
+                <span className="flex flex-1 items-start justify-between gap-2 p-3.5 sm:p-5">
+                  <span className="min-w-0">
+                    <span className="block font-display text-[19px] sm:text-[22px] leading-tight font-semibold text-ink group-hover:text-brand-2 transition-colors">{c.label}</span>
+                    <span className="mt-1 block text-[13px] sm:text-sm text-ink-3 leading-snug text-pretty">{c.note}</span>
+                  </span>
+                  <ArrowDown className="mt-1 w-4 h-4 shrink-0 text-ink-3 transition-transform duration-200 group-hover:translate-y-0.5 group-hover:text-brand-2" />
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       {/* THE PROBLEM: what festivals leave behind, in photographs */}
       <section id="problem" className="scroll-mt-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32" aria-labelledby="problem-title">

@@ -125,7 +125,7 @@ export default function FeedHomePage() {
     if (!el || !hasMore || loadingMore || !canObserve) return;
     const io = new IntersectionObserver((entries) => {
       if (entries[0]?.isIntersecting) setLoadingMore(true);
-    }, { rootMargin: "600px 0px" });
+    }, { rootMargin: "0px 0px 120px 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, [hasMore, loadingMore, canObserve, productsState]);
@@ -136,7 +136,7 @@ export default function FeedHomePage() {
     const t = setTimeout(() => {
       setShown({ key: filterKey, count: visibleCount + PAGE });
       setLoadingMore(false);
-    }, 250);
+    }, 450);
     return () => clearTimeout(t);
   }, [loadingMore, filterKey, visibleCount]);
   const resetFilters = () => {
