@@ -107,7 +107,7 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
     // Google fetches the logo, so it is only included when the app is served over public HTTPS.
     ...(isPublicHttps ? { logo: { sourceUri: { uri: `${appUrl}/logo_heritech.png` }, contentDescription: text("HeriTech") } } : {}),
     ...(isPublicHttps && pass.hasHeroImage
-      ? { heroImage: { sourceUri: { uri: `${appUrl}/api/wallet/hero/${encodeURIComponent(pass.serial)}` }, contentDescription: text(pass.productTitle) } }
+      ? { heroImage: { sourceUri: { uri: `${appUrl}/api/wallet/hero/${encodeURIComponent(pass.serial)}?v=2` }, contentDescription: text(pass.productTitle) } }
       : {}),
     textModulesData: [
       ...(pass.ownerName ? [{ id: "owner", header: "Owned by", body: pass.ownerName }] : []),

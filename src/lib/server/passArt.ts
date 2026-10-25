@@ -3,7 +3,7 @@ import sharp from "sharp";
 
 /**
  * Artwork for Google Wallet passes, made from the product photo so every
- * piece gets its own look: a blurred banner and a matching background colour.
+ * piece gets its own look: a photo banner and a matching background colour.
  */
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -45,12 +45,14 @@ export async function loadProductImage(src: string, appOrigin: string): Promise<
   }
 }
 
-/** A blurred, slightly darkened 1032×336 banner. */
+/**
+ * The 1032×336 banner Wallet shows under the card: the piece itself, sharp.
+ * Wallet can't put an image behind the card text, so a blur only hid the product.
+ */
 export function heroBanner(image: Buffer): Promise<Buffer> {
   return sharp(image, { density: 144 })
-    .resize(HERO.width, HERO.height, { fit: "cover" })
-    .blur(18)
-    .modulate({ brightness: 0.8, saturation: 1.1 })
+    .resize(HERO.width, HERO.height, { fit: "cover", position: "attention" })
+    .modulate({ saturation: 1.05 })
     .png()
     .toBuffer();
 }
@@ -87,14 +89,50 @@ export async function passBackground(image: Buffer): Promise<string> {
   const best = colourful.length
     ? colourful.reduce((a, c) => (c.count * c.saturation > a.count * a.saturation ? c : a))
     : all.reduce((a, c) => (c.count > a.count ? c : a));
-  let [r, g, b] = [best.r / best.count, best.g / best.count, best.b / best.count];
+  const [h, photoS, photoL] = toHsl(best.r / best.count, best.g / best.count, best.b / best.count);
+  // A near-grey photo would give a muddy card, so those get HeriTech green.
+  if (photoS < 0.12) return PASS_GREEN;
+  // A deep, clear version of the photo's colour, rather than its darkened average (which turns taupe).
+  const s = Math.max(photoS, 0.45);
+  let l = Math.min(Math.max(photoL, 0.22), 0.32);
+  let rgb = fromHsl(h, s, l);
+  while (luminance(rgb) > 0.18) rgb = fromHsl(h, s, (l -= 0.02));
+  return `#${rgb.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("")}`;
+}
+
+const PASS_GREEN = "#1f3a2b";
+
+function luminance([r, g, b]: number[]): number {
   const channel = (c: number) => {
     const v = c / 255;
     return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
   };
-  const luminance = () => 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-  while (luminance() > 0.18) {
-    [r, g, b] = [r * 0.9, g * 0.9, b * 0.9];
-  }
-  return `#${[r, g, b].map((c) => Math.round(c).toString(16).padStart(2, "0")).join("")}`;
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+/** RGB (0–255) to hue, saturation and lightness (each 0–1). */
+function toHsl(r: number, g: number, b: number): [number, number, number] {
+  [r, g, b] = [r / 255, g / 255, b / 255];
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h / 6, s, l];
+}
+
+/** Hue, saturation and lightness (each 0–1) to RGB (0–255). */
+function fromHsl(h: number, s: number, l: number): number[] {
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const hue = (t: number) => {
+    t = (t + 1) % 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return [hue(h + 1 / 3), hue(h), hue(h - 1 / 3)].map((c) => c * 255);
 }

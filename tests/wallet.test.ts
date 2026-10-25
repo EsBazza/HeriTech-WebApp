@@ -65,12 +65,12 @@ describe("Google Wallet save links", () => {
     expect(claims.payload.genericObjects[0].classId).toBe("3388000000022114455.HeriTech2026");
   });
 
-  it("personalises the pass with the owner, the product colour and a blurred hero banner", () => {
+  it("personalises the pass with the owner, the product colour and a photo banner", () => {
     const { claims } = decode(impactPassSaveUrl(pass, "https://heritech.example"));
     const object = claims.payload.genericObjects[0];
     expect(object.textModulesData[0]).toEqual({ id: "owner", header: "Owned by", body: "Test Buyer" });
     expect(object.hexBackgroundColor).toBe("#3a2a1c");
-    expect(object.heroImage.sourceUri.uri).toBe("https://heritech.example/api/wallet/hero/HT-7KQ2-M9XD");
+    expect(object.heroImage.sourceUri.uri).toBe("https://heritech.example/api/wallet/hero/HT-7KQ2-M9XD?v=2");
     expect(claims.payload.genericClasses[0].classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos).toHaveLength(2);
   });
 
