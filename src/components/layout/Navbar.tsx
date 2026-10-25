@@ -9,6 +9,7 @@ import {
   Check,
   ChevronDown,
   FileSignature,
+  Info,
   LogOut,
   MapPin,
   Menu,
@@ -291,6 +292,7 @@ function roleLinks(role: string, t: (s: string) => string) {
   return [
     { name: t("Shop"), href: "/", icon: Store, show: true, primary: true },
     { name: t("Impact"), href: "/impact", icon: BarChart3, show: true, primary: true },
+    { name: t("About"), href: "/about", icon: Info, show: true, primary: true },
     { name: t("Material map"), href: "/map", icon: MapPin, show: role === "artisan" || role === "lgu" || role === "admin", primary: true },
     { name: t("Studio"), href: "/studio", icon: Palette, show: role === "artisan" || role === "admin", primary: true },
     { name: t("Scanner"), href: "/scanner", icon: ScanLine, show: role === "lgu" || role === "admin", primary: true },

@@ -37,7 +37,7 @@ function useCountIn(active: boolean, duration = 1600) {
 
 /**
  * One endless row. It drifts on its own, always runs right to left, picks up speed
- * while the page scrolls, and eases to a stop under the mouse or when paused.
+ * while the page scrolls, and keeps moving under the mouse; only the pause button stops it.
  * The figure passing the middle of the screen comes up to full light; the rest
  * sit back. Positions are measured on resize only, so a frame writes styles and
  * reads nothing. Off screen it stops drawing.
@@ -46,7 +46,6 @@ function MarqueeTrack({ children, speed, paused, className }: { children: React.
   const wrapRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
-  const hovered = useRef(false);
   const pausedRef = useRef(paused);
   const layout = useRef({ copy: 1, view: 1, items: [] as { el: HTMLElement; mid: number }[] });
   const [copies, setCopies] = useState(2);
@@ -99,7 +98,7 @@ function MarqueeTrack({ children, speed, paused, className }: { children: React.
       const ease = (rate: number) => 1 - Math.exp(-dt * rate);
       const scrollSpeed = dt > 0 ? Math.abs(dy) / dt : 0;
       boost += (1 + Math.min(scrollSpeed / 450, 3.5) - boost) * ease(5);
-      pace += ((hovered.current || pausedRef.current ? 0 : 1) - pace) * ease(5);
+      pace += ((pausedRef.current ? 0 : 1) - pace) * ease(5);
 
       const { copy: w, view, items } = layout.current;
       x -= speed * boost * pace * dt;
@@ -133,16 +132,7 @@ function MarqueeTrack({ children, speed, paused, className }: { children: React.
   }, [speed]);
 
   return (
-    <div
-      ref={wrapRef}
-      className={cn("marquee overflow-hidden", className)}
-      onPointerEnter={(e) => {
-        if (e.pointerType === "mouse") hovered.current = true;
-      }}
-      onPointerLeave={() => {
-        hovered.current = false;
-      }}
-    >
+    <div ref={wrapRef} className={cn("marquee overflow-hidden", className)}>
       <div ref={railRef} className="flex w-max will-change-transform">
         {Array.from({ length: copies }, (_, i) => (
           <div key={i} ref={i === 0 ? copyRef : undefined} className="flex shrink-0 items-center">
