@@ -14,10 +14,10 @@ export function DeletionTerms() {
   const { translateSync } = useTranslation();
   return (
     <ul className="list-disc pl-5 space-y-1.5 text-sm text-ink-2">
-      <li>{translateSync("Deleted: your profile, your Google sign-in link to HeriTech, your messages, your HeriTech Circle progress and your booth claim.")}</li>
+      <li>{translateSync("Deleted: your profile, your Google sign-in link to HeriTech, your messages, and your HeriTech Circle progress. Your cart, drafts and assistant conversation are cleared from this device.")}</li>
       <li>
         {translateSync(
-          "Kept without your name: orders and Impact Passes, because each pass is a public record of where a piece came from and where the money went. Your shipping address is removed from them."
+          "Kept without your name: orders, Impact Passes and any booth claim, because each pass is a public record of where a piece came from and where the money went. Your shipping address is removed from them."
         )}
       </li>
       <li>{translateSync("Artisans: your listings leave the shop and any reservation you hold is released.")}</li>

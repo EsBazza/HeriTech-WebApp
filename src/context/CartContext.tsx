@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from "react";
+import { ACCOUNT_CHANGED_EVENT, DEVICE_KEYS } from "@/lib/deviceSession";
 
 export interface CartProduct {
   id: string;
@@ -71,7 +72,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("heritech_cart");
+      const saved = localStorage.getItem(DEVICE_KEYS.cart);
       if (saved) {
         setItems(JSON.parse(saved));
       }
@@ -81,10 +82,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLoaded(true);
   }, []);
 
+  // Another account on this device starts with an empty cart.
+  useEffect(() => {
+    const reset = () => {
+      setItems([]);
+      setLastAdded(null);
+    };
+    window.addEventListener(ACCOUNT_CHANGED_EVENT, reset);
+    return () => window.removeEventListener(ACCOUNT_CHANGED_EVENT, reset);
+  }, []);
+
   useEffect(() => {
     if (!loaded) return;
     try {
-      localStorage.setItem("heritech_cart", JSON.stringify(items));
+      localStorage.setItem(DEVICE_KEYS.cart, JSON.stringify(items));
     } catch (e) {
       console.warn("Could not save cart:", e);
     }

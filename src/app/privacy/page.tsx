@@ -57,7 +57,7 @@ export default function PrivacyPage() {
           </li>
         </ul>
         <p>
-          Stored only on your device: your cart, your chosen language, message drafts and your conversation with the HeriTech assistant. We don&apos;t use
+          Stored only on your device: your cart, your chosen language, message drafts and your conversation with the HeriTech assistant. Everything except your language is cleared when you sign out. We don&apos;t use
           advertising or analytics trackers.
         </p>
       </Section>

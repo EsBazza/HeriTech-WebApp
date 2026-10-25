@@ -20,9 +20,10 @@ async function inBatches<T>(items: T[], write: (batch: WriteBatch, item: T) => v
 /**
  * DELETE /api/user/account — permanently deletes the signed-in user's account
  * (Google Play requires this in the app). Removed: the profile, sign-in,
- * messages, HeriTech Circle progress and booth claim. Kept without anything
- * that identifies the person: orders and impact passes, because each pass is
- * a public record of a real sale; shipping details are wiped from them. An
+ * messages and HeriTech Circle progress. Kept without anything that identifies
+ * the person: orders and impact passes, because each pass is a public record of
+ * a real sale (shipping details are wiped from them), and the booth claim, so
+ * staff can still see that its piece was handed over. An
  * artisan's listings leave the shop and their reservations are released.
  */
 export const DELETE = route(async (request: Request) => {
@@ -50,7 +51,7 @@ export const DELETE = route(async (request: Request) => {
     reserved.docs.filter((d) => d.data().status === "reserved"),
     (batch, doc) => batch.update(doc.ref, { status: "available", reservedByArtisanId: null, reservedAt: null })
   );
-  await inBatches<DocumentReference>([db.loyalty().doc(uid), db.boothClaims().doc(uid), db.users().doc(uid)], (batch, ref) => batch.delete(ref));
+  await inBatches<DocumentReference>([db.loyalty().doc(uid), db.users().doc(uid)], (batch, ref) => batch.delete(ref));
 
   try {
     await adminAuth().deleteUser(uid);

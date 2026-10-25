@@ -10,6 +10,7 @@ import { DemoSignIn } from "@/components/auth/DemoSignIn";
 import { apiJson, authFetch } from "@/lib/api";
 import type { UserRole } from "@/lib/firebase/types";
 import { userRole } from "@/lib/roleGuard";
+import { ACCOUNT_CHANGED_EVENT, DEVICE_KEYS } from "@/lib/deviceSession";
 
 interface Message {
   role: "user" | "assistant";
@@ -99,10 +100,10 @@ export function countUnreadThreads(messages: ServerMessage[], myId: string): num
 
 // Only the assistant conversation is kept in the browser; conversations with
 // people live in Firestore and are loaded from /api/messages.
-const THREADS_STORAGE_KEY = "heritech_assistant_thread_v5";
-const DRAFTS_STORAGE_KEY = "heritech_chat_drafts_v4";
+const THREADS_STORAGE_KEY = DEVICE_KEYS.assistantThread;
+const DRAFTS_STORAGE_KEY = DEVICE_KEYS.drafts;
 /** When each conversation was last read here, so new replies show as unread. */
-const SEEN_STORAGE_KEY = "heritech_chat_seen_v1";
+const SEEN_STORAGE_KEY = DEVICE_KEYS.seen;
 /** Turns sent with each assistant question, and turns kept in the browser. */
 const ASSISTANT_HISTORY_SENT = 12;
 const ASSISTANT_HISTORY_KEPT = 50;
@@ -196,6 +197,9 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
   // The latest threads, for handlers registered once.
   const threadsRef = useRef(threads);
   threadsRef.current = threads;
+  // Who is signed in now, so an inbox request made for the previous account is dropped.
+  const userIdRef = useRef(user?.id);
+  userIdRef.current = user?.id;
 
   const time = useCallback(
     (iso: string) => {
@@ -325,6 +329,21 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
     }
   }, [drafts, seen, isLoaded]);
 
+  // Someone else signed in (or out) on this device: none of the last person's conversations stay on screen.
+  useEffect(() => {
+    const reset = () => {
+      setThreads(INITIAL_THREADS);
+      setDrafts({});
+      setSeen({});
+      setActiveThreadId(null);
+      setInputMessage("");
+      setThreadsLoading(false);
+      firstLoad.current = true;
+    };
+    window.addEventListener(ACCOUNT_CHANGED_EVENT, reset);
+    return () => window.removeEventListener(ACCOUNT_CHANGED_EVENT, reset);
+  }, []);
+
   // Conversations with people: loaded when the panel opens, then checked every few seconds
   // so a reply from the other side appears without reloading.
   const loadThreads = useCallback(
@@ -335,6 +354,7 @@ export function MessagesPanel({ isOpen, onClose }: MessagesPanelProps) {
         setThreadsError(false);
       }
       const result = await apiJson<ServerMessage[]>("/api/messages");
+      if (userIdRef.current !== user.id) return;
       if (!silent) setThreadsLoading(false);
       if (!result.success) {
         if (!silent) setThreadsError(true);

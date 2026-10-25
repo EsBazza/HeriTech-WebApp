@@ -1,12 +1,13 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { signInWithGoogle as firebaseSignInWithGoogle, signOut as firebaseSignOut } from "@/lib/firebase/auth";
 import type { UserDoc, UserRole } from "@/lib/firebase/types";
 import { apiJson } from "@/lib/api";
 import { DEMO_MODE } from "@/lib/demo";
+import { forgetDeviceSession } from "@/lib/deviceSession";
 
 export type UserProfile = UserDoc;
 
@@ -30,9 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
+  // Who was signed in last, so signing out or switching accounts on this device can be noticed.
+  const lastUid = useRef<string | null>(null);
+
   // Firebase is the source of truth for who is signed in; the API holds the profile.
   useEffect(() => {
     return onAuthStateChanged(auth, async (firebaseUser) => {
+      const uid = firebaseUser?.uid ?? null;
+      // Someone else uses this device now: forget the last person's cart and chats. A guest who signs in keeps their cart.
+      if (lastUid.current && lastUid.current !== uid) forgetDeviceSession();
+      lastUid.current = uid;
       if (!firebaseUser) {
         setUser(null);
         setLoading(false);
