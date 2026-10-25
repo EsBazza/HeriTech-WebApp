@@ -112,7 +112,7 @@ export default function AboutPage() {
           priority
           sizes="100vw"
           quality={80}
-          className="about-hero-photo -z-20 object-cover object-[68%_50%]"
+          className="about-hero-photo -z-20 object-cover object-[68%_22%]"
         />
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgb(20_40_30/0.96)_0%,rgb(20_40_30/0.75)_45%,rgb(20_40_30/0.35)_100%)] lg:bg-[linear-gradient(90deg,rgb(20_40_30/0.95)_0%,rgb(20_40_30/0.78)_40%,rgb(20_40_30/0.2)_75%,rgb(20_40_30/0.1)_100%)]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 lg:pt-36 pb-36 sm:pb-40 lg:pb-48">

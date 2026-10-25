@@ -1790,6 +1790,6 @@
 }
 
 /* About: the workshop photo drifts slowly behind the headline */
-.about-hero-photo { animation: about-drift 26s ease-in-out infinite alternate; transform-origin: 70% 40%; }
+.about-hero-photo { animation: about-drift 26s ease-in-out infinite alternate; transform-origin: 68% 30%; }
 @keyframes about-drift { from { scale: 1.04; } to { scale: 1.14; } }
 @media (prefers-reduced-motion: reduce) { .about-hero-photo { animation: none; } }
