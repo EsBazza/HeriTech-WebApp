@@ -7,7 +7,7 @@ const tagList = z.array(z.string().trim().min(1).max(40)).max(12);
 
 const description = z.string().trim().max(4000);
 const stock = z.coerce.number().int().min(0).max(10_000);
-// Optional: an empty name means the share goes to HeriTech's general charity & upkeep fund.
+// Optional: an empty name means the NGO share goes to HeriTech's general tree-planting fund.
 const ngoFundName = z.string().trim().max(160);
 
 /** Editable listing fields without defaults, so an update only holds what was sent. */

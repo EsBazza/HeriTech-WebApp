@@ -611,10 +611,10 @@ function ArtisanStudioPageContent() {
                 hint={translateSync("Separate with commas. Buyers can filter the shop by these.")}
               />
               <Input
-                label={translateSync("Charity partner (optional)")}
+                label={translateSync("NGO or tree-planting partner (optional)")}
                 value={form.ngoFundName}
                 onChange={(e) => setField("ngoFundName", e.target.value)}
-                hint={translateTemplate("Named on the receipt. It shares the {share}% charity & app upkeep part of each sale.", { share: SPLIT.charityMaintenance })}
+                hint={translateTemplate("Named on the receipt. It receives the {share}% NGO share of each sale.", { share: SPLIT.ngo })}
               />
             </fieldset>
 

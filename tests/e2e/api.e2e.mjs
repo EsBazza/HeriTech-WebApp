@@ -102,7 +102,7 @@ const order = await call("/api/orders", {
 });
 check("checkout creates one order + pass per line", order.status === 201 && order.json.data.orders.length === 2 && order.json.data.passes.length === 2, JSON.stringify(order.json));
 const o1 = order.json.data.orders[0];
-check("split is 70/25/5 and sums exactly", o1.amountPaid === 66.66 && o1.artisanPayout === 46.66 && o1.lguShare === 16.67 && Math.round((o1.artisanPayout + o1.lguShare + o1.charityMaintenanceShare) * 100) === 6666, JSON.stringify(o1));
+check("split is 60/20/15/5 and sums exactly", o1.amountPaid === 66.66 && o1.artisanPayout === 40 && o1.lguShare === 13.33 && o1.developerShare === 10 && o1.ngoShare === 3.33 && Math.round((o1.artisanPayout + o1.lguShare + o1.developerShare + o1.ngoShare) * 100) === 6666, JSON.stringify(o1));
 const after = (await call(`/api/products/${productId}`)).json.data;
 check("stock decremented", after.stock === 0, `stock=${after.stock}`);
 check("over-buying -> 409", (await call("/api/orders", { token: buyer.token, method: "POST", body: { items: [{ productId }], shippingAddress: { fullName: "a", streetAddress: "b", city: "c", country: "d" } } })).status === 409);
@@ -111,7 +111,7 @@ check("artisan notified of order", artisanMsgs.some((m) => m.contextType === "or
 
 const serial = order.json.data.passes[0].serial;
 const ver = await call(`/api/verify/${serial}`);
-check("new pass verifies publicly", ver.status === 200 && ver.json.data.escrowAudit.lguShare === 16.67 && ver.json.data.originHarvest.batchId === batchId, JSON.stringify(ver.json).slice(0, 300));
+check("new pass verifies publicly", ver.status === 200 && ver.json.data.escrowAudit.lguShare === 13.33 && ver.json.data.originHarvest.batchId === batchId, JSON.stringify(ver.json).slice(0, 300));
 check("seeded pass verifies", (await call("/api/verify/HT-D3M0-0001")).json?.data?.serial === "HT-D3M0-0001");
 const wallet = await call(`/api/wallet/${serial}`, { token: buyer.token });
 check("buyer gets a Google Wallet save link (or a clear 503 if Wallet isn't configured)", (wallet.status === 200 && wallet.json.data.saveUrl.startsWith("https://pay.google.com/gp/v/save/")) || wallet.status === 503, JSON.stringify(wallet.json).slice(0, 200));

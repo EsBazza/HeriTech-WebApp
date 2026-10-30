@@ -24,8 +24,8 @@ const ROLE_TONE: Record<string, BadgeTone> = { buyer: "neutral", artisan: "accen
 // Recharts needs literal colours; these are the pine-500, line, and split tokens from globals.css.
 const CHART = { collected: "#3c6b52", target: "#cfc4ae", grid: "#e2d9c7", tick: "#5f6661" };
 // Day colours as the fill; the classes swap in the night theme's split colours.
-const SPLIT_COLORS = ["#1f3a2b", "#8fb09c", "#c4471e"];
-const SPLIT_FILLS = ["fill-split-artisan", "fill-split-platform", "fill-split-ngo"];
+const SPLIT_COLORS = ["#1f3a2b", "#8fb09c", "#c9922e", "#c4471e"];
+const SPLIT_FILLS = ["fill-split-artisan", "fill-split-platform", "fill-split-dev", "fill-split-ngo"];
 
 /** A step that needs a second tap: rejecting an applicant or changing someone's role. */
 interface PendingAction {
@@ -428,7 +428,7 @@ function AdminDashboardPageContent() {
               <h3 className="text-[15px] font-semibold text-ink font-sans">
                 {translateSync("Payment split")} ({SPLIT_LABEL})
               </h3>
-              <p className="text-sm text-ink-3 mt-0.5">{translateSync("How completed sales were divided between artisans, local governments, and charity & app upkeep.")}</p>
+              <p className="text-sm text-ink-3 mt-0.5">{translateSync("How completed sales were divided between artisans, local governments, developers and NGOs.")}</p>
             </div>
             <div className="h-56 w-full">
               {loading ? (
@@ -446,11 +446,12 @@ function AdminDashboardPageContent() {
                 </ResponsiveContainer>
               )}
             </div>
-            <ul className="grid grid-cols-3 gap-2 text-center text-sm pt-3 border-t border-line">
+            <ul className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-3 text-center text-sm pt-3 border-t border-line">
               {[
                 { pct: SPLIT.artisan, color: "bg-split-artisan", label: "Artisan" },
                 { pct: SPLIT.lgu, color: "bg-split-platform", label: "Local government" },
-                { pct: SPLIT.charityMaintenance, color: "bg-split-ngo", label: "Charity & app upkeep" },
+                { pct: SPLIT.developers, color: "bg-split-dev", label: "Developers" },
+                { pct: SPLIT.ngo, color: "bg-split-ngo", label: "NGOs & tree planting" },
               ].map((s) => (
                 <li key={s.label}>
                   <span className="flex items-center justify-center gap-1.5 text-ink font-semibold tabular">

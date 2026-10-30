@@ -11,7 +11,7 @@ Where the July plan below differs from this list, this list is right.
 - **AI scanner (Gemini):** names one of five general categories (paper and card, flowers and plant matter, fabric and textile, mixed plastics, wood and frame offcuts) plus anything else mixed in, the condition, what to remove first and a rough weight. It refuses photos with people in them. A Teachable Machine model trained by the team runs on the device when Gemini can't be reached.
 - **Material map (Google Maps):** batches by status, pickup point named by Geocoding, in-app route (Routes API). Artisans reserve a batch for 48 hours and collect it with a signed QR pickup code that the officer scans in the app.
 - **Studio:** artisans list pieces linked to the batch they collected; listings can never promise more kilograms than the batch weighed. Gemini drafts the product story from the logged facts only.
-- **Checkout:** demo payments (no card is charged). Every sale splits **70% artisan / 25% local government / 5% charity and app upkeep**.
+- **Checkout:** demo payments (no card is charged). Every sale splits **60% artisan / 20% local government / 15% developers / 5% NGOs and tree planting**.
 - **Impact Pass (Google Wallet):** issued per piece, with the owner's name, a banner from the product photo and the collection photo. Its QR code opens a public record (maker, batch, festival, collection point, officer, split) with a tamper check on the collection record. **Publishing access was approved in October 2026, so anyone can save a pass.**
 - **HeriTech Circle (Google Wallet loyalty card):** 5 passes or $100 unlocks 5% off the next order, paid from the 5% share.
 - **3D journey (Maps photorealistic 3D)** on product pages; **Cloud Translation** for English, Chinese (Simplified and Traditional), Japanese, Thai, Indonesian, Filipino and Hindi; **Firebase** Authentication and Cloud Firestore.
@@ -153,10 +153,10 @@ Verified artisan partners browse available material batches by type, quantity, a
 When a piece is finished, the artisan photographs it and links it to the original Material ID(s). A short "material story" (waste photo → craft photo → finished product) is auto-drafted by Gemini from the logged journey data, then reviewed by the artisan before publishing — this is a genuinely useful, non-gimmicky use of generative AI.
 
 **Step 5 — Marketplace Listing & Transparent Checkout**
-The product is listed with its story. At checkout, the buyer sees the full split: **70% to the artisan, 25% to the local government for collection and transport, 5% to charity and app upkeep** — not just a vague "some goes to charity." Showing the full breakdown is what separates this from greenwashing (see Section 10).
+The product is listed with its story. At checkout, the buyer sees the full split: **60% to the artisan, 20% to the local government for collection and transport, 15% to the developers who build and run HeriTech, 5% to an NGO or tree-planting group** — not just a vague "some goes to charity." Showing the full breakdown is what separates this from greenwashing (see Section 10).
 
 **Step 6 — Charity Disbursement**
-The 5% charity and upkeep share is shown on every public impact record. *(Built: the share is recorded per sale. Not built: paying it out to a named charity.)* This should be backed by an actual signed relationship before any public claim is made — see Section 10.
+The 5% NGO and tree-planting share is shown on every public impact record. *(Built: the share is recorded per sale. Not built: paying it out to a named NGO.)* This should be backed by an actual signed relationship before any public claim is made — see Section 10.
 
 **Step 7 — Impact Pass Issuance**
 On purchase, the buyer taps "Add to Google Wallet" and receives their pass (full spec in Section 7).
@@ -180,7 +180,7 @@ A public impact record aggregates: total material collected (kg), passes issued,
   - Artisan Name & Location
   - Donation Amount + Charity Name
   - Unique Provenance ID
-- **QR code → public Impact Page.** This is the part that makes the pass *proof* instead of *decoration*: scanning it opens a public webpage showing the full chain-of-custody (collection photo → collection record with tamper check → artisan pickup → finished piece → sale and its 70/25/5 split, all timestamped). Anyone — a judge, a skeptical buyer, a journalist — can verify the claim independently.
+- **QR code → public Impact Page.** This is the part that makes the pass *proof* instead of *decoration*: scanning it opens a public webpage showing the full chain-of-custody (collection photo → collection record with tamper check → artisan pickup → finished piece → sale and its 60/20/15/5 split, all timestamped). Anyone — a judge, a skeptical buyer, a journalist — can verify the claim independently.
 - **Plain-language label:** call it a **"Verified Impact Pass,"** not a generic loyalty-card-style name. The word "verified" is doing real work here because it points at the QR-code proof mechanism.
 
 **Build note (updated October 2026):** publishing access was approved, so the issuer is live and anyone can save an Impact Pass, including judges and booth visitors, with no test-user list. The pass as built shows the owner's name, kg diverted and origin on the front, a banner from the product photo, the collection photo, the split, and links to the public record, the 3D journey and the maker.
@@ -210,9 +210,10 @@ A public impact record aggregates: total material collected (kg), passes issued,
 ## 9. Business Model
 
 **Revenue split per transaction (decided 17 October 2026, built into checkout):**
-- **70%** → the artisan or cooperative
-- **25%** → the local government, for collection and transport
-- **5%** → charity and the upkeep of the HeriTech app
+- **60%** → the artisan or cooperative
+- **20%** → the local government, for collection and transport
+- **15%** → the developers who build, host and maintain HeriTech
+- **5%** → an NGO or tree-planting group
 - The HeriTech Circle loyalty discount (5% off after 5 passes or $100) comes out of the 5% share only, so the artisan and local government are always paid in full.
 
 **Show this full breakdown at checkout and in the pitch.** A donation-only headline number ("10% to charity") invites a greenwashing challenge from a sharp judge; a transparent full split invites trust instead.
@@ -274,7 +275,7 @@ Given the goal is a **working app/prototype you can demo live**, scope it to wha
 - *"We're not a craft marketplace with an app bolted on — we're a circular digital system for physical materials. Festival waste is our proof case."*
 - *"It took Phool.co eighteen months of manual relationship-building to get temples to hand over their waste. We built a digital consent layer to make that trust-building process repeatable and fast."*
 - *"No new hardware: HeriTech runs on the phones officers and artisans already carry, and still names the material when there's no signal."*
-- *"Every dollar is traceable. Scan the pass, see the collection photo, the artisan, and the 70/25/5 split — in public."*
+- *"Every dollar is traceable. Scan the pass, see the collection photo, the artisan, and the 60/20/15/5 split — in public."*
 
 ---
 

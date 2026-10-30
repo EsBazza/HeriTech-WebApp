@@ -19,7 +19,8 @@ export async function orderTotals() {
         gross: AggregateField.sum("amountPaid"),
         artisan: AggregateField.sum("artisanPayout"),
         lgu: AggregateField.sum("lguShare"),
-        charity: AggregateField.sum("charityMaintenanceShare"),
+        developers: AggregateField.sum("developerShare"),
+        ngo: AggregateField.sum("ngoShare"),
       })
       .get(),
     db.orders().where("paymentMode", "==", "free_claim").count().get(),
@@ -32,7 +33,8 @@ export async function orderTotals() {
     grossVolume: round2(t.gross ?? 0),
     artisanPayoutTotal: round2(t.artisan ?? 0),
     lguShareTotal: round2(t.lgu ?? 0),
-    charityMaintenanceTotal: round2(t.charity ?? 0),
+    developerShareTotal: round2(t.developers ?? 0),
+    ngoShareTotal: round2(t.ngo ?? 0),
   };
 }
 

@@ -4,8 +4,8 @@
  *
  * Collecting 5 Impact Passes or spending $100, whichever comes first, unlocks a
  * one-time 5% discount on the next order. Progress then starts again. The
- * discount comes out of the charity & maintenance share (see calculateEscrowSplit),
- * so artisans and LGUs are always paid in full.
+ * discount comes out of the developers' share (see calculateEscrowSplit),
+ * so artisans, LGUs and NGOs are always paid in full.
  */
 export const LOYALTY = { passesForReward: 5, spendForReward: 100, discountPercent: 5 } as const;
 

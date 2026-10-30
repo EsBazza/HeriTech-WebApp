@@ -211,9 +211,9 @@ export function VerifyPass({ serial }: { serial: string }) {
           {
             icon: <HeartHandshake className="w-4 h-4" />,
             title: translateSync("Split recorded"),
-            detail: `${formatCurrency(escrow.lguShare ?? 0)} ${translateSync("to the local government")} · ${formatCurrency(escrow.charityMaintenanceShare ?? 0)} ${translateSync(
-              "to charity"
-            )}${escrow.ngoFundName ? ` (${translateSync(escrow.ngoFundName)})` : ""} ${translateSync("& app upkeep")}`,
+            detail: `${formatCurrency(escrow.lguShare ?? 0)} ${translateSync("to the local government")} · ${formatCurrency(escrow.developerShare ?? 0)} ${translateSync(
+              "to the developers"
+            )} · ${formatCurrency(escrow.ngoShare ?? 0)} ${translateSync("to")} ${escrow.ngoFundName ? translateSync(escrow.ngoFundName) : translateSync("NGOs & tree planting")}`,
           },
         ]),
   ];

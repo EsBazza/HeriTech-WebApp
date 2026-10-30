@@ -28,7 +28,7 @@ interface HomeStats {
   kg: number;
   artisans: number;
   passes: number;
-  charity: number;
+  ngo: number;
 }
 
 const PAGE = 6;
@@ -75,7 +75,7 @@ export default function FeedHomePage() {
         kg: d.totalKgCollected,
         artisans: d.verifiedArtisansCount,
         passes: d.totalPassesIssued,
-        charity: d.escrowSplitSummary.charityMaintenance,
+        ngo: d.escrowSplitSummary.ngoShare,
       });
     });
   }, []);

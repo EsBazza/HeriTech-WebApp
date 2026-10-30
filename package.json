@@ -22,6 +22,8 @@
     "seed": "tsx --env-file=.env scripts/seed-firebase.ts",
     "seed:demo": "tsx --env-file=.env.demo.local scripts/seed-firebase.ts --reset",
     "set-role": "tsx --env-file=.env scripts/set-role.ts",
+    "migrate:split": "tsx --env-file=.env scripts/migrate-split.ts",
+    "migrate:split:demo": "tsx --env-file=.env.demo.local scripts/migrate-split.ts",
     "check:firebase": "tsx --env-file=.env scripts/test-firebase-connection.ts"
   },
   "dependencies": {

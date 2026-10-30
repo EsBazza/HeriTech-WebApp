@@ -41,14 +41,14 @@ function useTween(value: number, duration = 800) {
   return shown;
 }
 
-/** Adds up the 70/25/5 split piece by piece, so it matches what checkout charges to the cent. */
+/** Adds up the 60/20/15/5 split piece by piece, so it matches what checkout charges to the cent. */
 function cartSplit(items: CartProduct[]) {
   return items.reduce(
     (acc, item) => {
       const s = calculateEscrowSplit(item.price);
-      return { artisan: acc.artisan + s.artisanPayout, lgu: acc.lgu + s.lguShare, charity: acc.charity + s.charityMaintenanceShare };
+      return { artisan: acc.artisan + s.artisanPayout, lgu: acc.lgu + s.lguShare, developers: acc.developers + s.developerShare, ngo: acc.ngo + s.ngoShare };
     },
-    { artisan: 0, lgu: 0, charity: 0 }
+    { artisan: 0, lgu: 0, developers: 0, ngo: 0 }
   );
 }
 
@@ -85,7 +85,8 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
   const shares = [
     { key: "artisan", pct: SPLIT.artisan, value: split.artisan, color: "bg-split-artisan", label: translateSync("Artisans") },
     { key: "lgu", pct: SPLIT.lgu, value: split.lgu, color: "bg-split-platform", label: translateSync("Local government") },
-    { key: "charity", pct: SPLIT.charityMaintenance, value: split.charity, color: "bg-split-ngo", label: translateSync("Charity & upkeep") },
+    { key: "developers", pct: SPLIT.developers, value: split.developers, color: "bg-split-dev", label: translateSync("Developers") },
+    { key: "ngo", pct: SPLIT.ngo, value: split.ngo, color: "bg-split-ngo", label: translateSync("NGOs & tree planting") },
   ];
 
   const count = items.length;

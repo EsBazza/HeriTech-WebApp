@@ -109,7 +109,7 @@ export interface ProductDoc {
   materialTags: string[];
   stock: number;
   kgDiverted: number;
-  /** Charity partner that receives part of the charity & maintenance share. */
+  /** NGO or tree-planting group that receives the NGO share of each sale. */
   ngoFundName: string;
   /** Removed listings stay stored so existing impact passes keep resolving. */
   archived?: boolean;
@@ -138,8 +138,9 @@ export interface OrderDoc {
   amountPaid: number;
   artisanPayout: number;
   lguShare: number;
-  charityMaintenanceShare: number;
-  /** Loyalty discount taken off the list price, paid for from the charity & maintenance share. */
+  developerShare: number;
+  ngoShare: number;
+  /** Loyalty discount taken off the list price, paid for from the developers' share. */
   discount?: number;
   loyaltyRewardApplied?: boolean;
   /** No payment provider is connected yet: orders are simulated payments, or free booth claims. */

@@ -10,7 +10,7 @@ export interface LedgerFigures {
   kg: number;
   artisans: number;
   passes: number;
-  charity: number;
+  ngo: number;
 }
 
 /** Counts every copy of the figures up together, once, when the band enters view. */
@@ -156,7 +156,7 @@ export function LedgerMarquee({ stats, offline }: { stats: LedgerFigures | null;
     { label: translateSync("of festival material traced"), value: stats ? formatNumber(Math.round(stats.kg * p * 10) / 10) : "—", unit: "kg" },
     { label: translateSync("verified artisans"), value: stats ? formatNumber(Math.round(stats.artisans * p)) : "—" },
     { label: translateSync("impact passes issued"), value: stats ? formatNumber(Math.round(stats.passes * p)) : "—" },
-    { label: translateSync("raised for charity and upkeep"), value: stats ? formatCurrency(Math.round(stats.charity * p * 100) / 100) : "—" },
+    { label: translateSync("raised for NGOs and tree planting"), value: stats ? formatCurrency(Math.round(stats.ngo * p * 100) / 100) : "—" },
   ];
 
   const steps = [translateSync("Collected"), translateSync("Classified"), translateSync("Matched"), translateSync("Crafted"), translateSync("Verified")];

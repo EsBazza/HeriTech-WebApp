@@ -58,9 +58,10 @@
   --color-danger-100: #fbe6e4;
   --color-danger-solid: #b42318;
 
-  /* Money split 70/25/5: artisan, local government, charity & upkeep */
+  /* Money split 60/20/15/5: artisan, local government, developers, NGOs & tree planting */
   --color-split-artisan: #1f3a2b;
   --color-split-platform: #8fb09c;
+  --color-split-dev: #c9922e;
   --color-split-ngo: #c4471e;
 
   --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
@@ -136,6 +137,7 @@
     --color-danger-solid: #b42318;
     --color-split-artisan: #7cc79c;
     --color-split-platform: #3c6b52;
+    --color-split-dev: #e3b062;
     --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
   }
@@ -1036,6 +1038,9 @@
 .js .split-anim .split-seg:nth-child(3) {
   transition-delay: 0.24s;
 }
+.js .split-anim .split-seg:nth-child(4) {
+  transition-delay: 0.36s;
+}
 .js .split-anim.is-visible .split-seg {
   transform: none;
 }
@@ -1639,6 +1644,7 @@
 .cart-split-seg { transform-origin: left; animation: cart-seg 0.8s var(--ease-out) both; }
 .cart-split-seg:nth-child(2) { animation-delay: 0.12s; }
 .cart-split-seg:nth-child(3) { animation-delay: 0.24s; }
+.cart-split-seg:nth-child(4) { animation-delay: 0.36s; }
 @keyframes cart-seg { from { transform: scaleX(0); } to { transform: none; } }
 .cart-checkout:active { transform: scale(0.98); }
 /* Empty cart: the leaf settles onto the bag */

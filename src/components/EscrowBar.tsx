@@ -10,9 +10,9 @@ import { CountUp } from "@/components/motion/CountUp";
 interface EscrowBarProps {
   /** When provided, each row shows the actual amount for this price. */
   amount?: number;
-  /** HeriTech Circle reward; it comes out of the charity & maintenance row only, so the rows add up to what the buyer pays. */
+  /** HeriTech Circle reward; it comes out of the developers' row only, so the rows add up to what the buyer pays. */
   discountPercent?: number;
-  /** Names the charity partner in the charity & maintenance row. */
+  /** Names the NGO or tree-planting partner in the NGO row. */
   ngoName?: string;
   /** Hide per-row descriptions for tight spaces (cards, checkout). */
   compact?: boolean;
@@ -21,7 +21,7 @@ interface EscrowBarProps {
   className?: string;
 }
 
-/** The single artisan / LGU / charity split visual used across the app. */
+/** The single artisan / LGU / developers / NGO split visual used across the app. */
 export function EscrowBar({ amount, discountPercent = 0, ngoName, compact, animate = false, className }: EscrowBarProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const { translateSync, formatCurrency } = useTranslation();
@@ -45,14 +45,20 @@ export function EscrowBar({ amount, discountPercent = 0, ngoName, compact, anima
       value: split?.lguShare,
     },
     {
-      key: "charity",
-      pct: SPLIT.charityMaintenance,
+      key: "developers",
+      pct: SPLIT.developers,
+      color: "bg-split-dev",
+      label: translateSync("Paid to the developers"),
+      desc: translateSync("Keeps HeriTech built, hosted and secure."),
+      value: split?.developerShare,
+    },
+    {
+      key: "ngo",
+      pct: SPLIT.ngo,
       color: "bg-split-ngo",
-      label: ngoName
-        ? `${translateSync("Charity")} (${translateSync(ngoName)}) ${translateSync("& app upkeep")}`
-        : translateSync("Charity & app upkeep"),
-      desc: translateSync("Shared between the charity partner and keeping HeriTech running."),
-      value: split?.charityMaintenanceShare,
+      label: ngoName ? `${translateSync("Paid to")} ${translateSync(ngoName)}` : translateSync("Paid to NGOs & tree planting"),
+      desc: translateSync("Goes to a partner NGO or tree-planting group."),
+      value: split?.ngoShare,
     },
   ];
 
@@ -61,7 +67,7 @@ export function EscrowBar({ amount, discountPercent = 0, ngoName, compact, anima
       <div
         className="flex h-2.5 w-full overflow-hidden rounded-full bg-paper-2"
         role="img"
-        aria-label={`${SPLIT.artisan}% artisan, ${SPLIT.lgu}% local government, ${SPLIT.charityMaintenance}% charity and app upkeep`}
+        aria-label={`${SPLIT.artisan}% artisan, ${SPLIT.lgu}% local government, ${SPLIT.developers}% developers, ${SPLIT.ngo}% NGOs and tree planting`}
       >
         {rows.map((r) => (
           <div key={r.key} className={cn("split-seg h-full", r.color)} style={{ width: `${r.pct}%` }} />

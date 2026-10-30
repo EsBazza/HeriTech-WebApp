@@ -49,7 +49,7 @@ describe("Google Wallet save links", () => {
     expect(claims.payload.genericClasses[0].id).toBe("3388000000022114455.heritech_impact_pass");
     expect(object.id).toBe("3388000000022114455.HT-7KQ2-M9XD");
     expect(object.barcode).toEqual({ type: "QR_CODE", value: pass.verifyUrl, alternateText: pass.serial });
-    expect(object.textModulesData.find((m: { id: string }) => m.id === "split").body).toContain("70% artisan");
+    expect(object.textModulesData.find((m: { id: string }) => m.id === "split").body).toContain("60% artisan");
   });
 
   it("shows no money split on a free piece claimed at the booth", () => {
