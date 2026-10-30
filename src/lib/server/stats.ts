@@ -10,14 +10,18 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  * are counted separately, so `orderCount` is sales only.
  */
 export async function orderTotals() {
-  const [snap, freeClaims] = await Promise.all([
-    db
-      .orders()
-      .where("status", "==", "completed")
+  const completed = db.orders().where("status", "==", "completed");
+  // Firestore allows at most five aggregations per query, so the shares are summed in two.
+  const [sales, shares, freeClaims] = await Promise.all([
+    completed
       .aggregate({
         count: AggregateField.count(),
         gross: AggregateField.sum("amountPaid"),
         artisan: AggregateField.sum("artisanPayout"),
+      })
+      .get(),
+    completed
+      .aggregate({
         lgu: AggregateField.sum("lguShare"),
         developers: AggregateField.sum("developerShare"),
         ngo: AggregateField.sum("ngoShare"),
@@ -25,7 +29,7 @@ export async function orderTotals() {
       .get(),
     db.orders().where("paymentMode", "==", "free_claim").count().get(),
   ]);
-  const t = snap.data();
+  const t = { ...sales.data(), ...shares.data() };
   const freeClaimCount = freeClaims.data().count;
   return {
     orderCount: Math.max(t.count - freeClaimCount, 0),
