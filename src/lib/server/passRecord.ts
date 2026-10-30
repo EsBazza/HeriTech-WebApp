@@ -1,5 +1,6 @@
 import "server-only";
 import { checkHarvestIntegrity } from "@/lib/crypto";
+import { orderSplit } from "@/lib/escrow";
 import { db } from "@/lib/server/firestore";
 import { notFound } from "@/lib/server/http";
 import { isPassSerial } from "@/lib/server/ids";
@@ -37,10 +38,7 @@ export async function passRecord(serial: string) {
     },
     escrowAudit: {
       totalAmount: order.amountPaid,
-      artisanPayout: order.artisanPayout,
-      lguShare: order.lguShare,
-      developerShare: order.developerShare,
-      ngoShare: order.ngoShare,
+      ...orderSplit(order),
       ngoFundName: product.ngoFundName,
       paymentMode: order.paymentMode,
     },

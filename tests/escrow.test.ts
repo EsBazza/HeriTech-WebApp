@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SPLIT, calculateEscrowSplit, type EscrowSplit } from "@/lib/escrow";
+import { SPLIT, calculateEscrowSplit, orderSplit, type EscrowSplit } from "@/lib/escrow";
 
 const cents = (n: number) => Math.round(n * 100);
 const sum = (s: EscrowSplit) => cents(s.artisanPayout) + cents(s.lguShare) + cents(s.developerShare) + cents(s.ngoShare);
@@ -46,6 +46,12 @@ describe("calculateEscrowSplit", () => {
     expect(split.lguShare).toBe(full.lguShare);
     expect(split.ngoShare).toBe(full.ngoShare);
     expect(split.developerShare).toBeGreaterThanOrEqual(0);
+  });
+
+  it("works out orders from before the developer and NGO shares under the new split", () => {
+    expect(orderSplit({ amountPaid: 95, discount: 5, artisanPayout: 70, lguShare: 25, paymentMode: "simulated" })).toEqual({ artisanPayout: 60, lguShare: 20, developerShare: 10, ngoShare: 5 });
+    expect(orderSplit({ amountPaid: 0, paymentMode: "free_claim" })).toEqual({ artisanPayout: 0, lguShare: 0, developerShare: 0, ngoShare: 0 });
+    expect(orderSplit({ amountPaid: 40, artisanPayout: 24, lguShare: 8, developerShare: 6, ngoShare: 2 })).toEqual({ artisanPayout: 24, lguShare: 8, developerShare: 6, ngoShare: 2 });
   });
 
   it("never discounts more than the developers' share", () => {

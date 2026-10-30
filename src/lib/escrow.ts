@@ -46,3 +46,33 @@ export function calculateEscrowSplit(listPrice: number, { discountPercent = 0 }:
     discount: discountCents / 100,
   };
 }
+
+/** The money fields stored on an order. Orders from before the 60/20/15/5 split have no developer or NGO share. */
+export interface StoredSplit {
+  amountPaid?: number;
+  discount?: number;
+  paymentMode?: string;
+  artisanPayout?: number;
+  lguShare?: number;
+  developerShare?: number;
+  ngoShare?: number;
+}
+
+/**
+ * An order's split under the current SPLIT. Orders recorded before the developer and NGO
+ * shares existed are worked out again from what was paid, the same way checkout does now.
+ */
+export function orderSplit(order: StoredSplit): Pick<EscrowSplit, "artisanPayout" | "lguShare" | "developerShare" | "ngoShare"> {
+  if (order.developerShare != null && order.ngoShare != null) {
+    return { artisanPayout: order.artisanPayout ?? 0, lguShare: order.lguShare ?? 0, developerShare: order.developerShare, ngoShare: order.ngoShare };
+  }
+  if (order.paymentMode === "free_claim" || !order.amountPaid) return { artisanPayout: 0, lguShare: 0, developerShare: 0, ngoShare: 0 };
+  const discount = order.discount ?? 0;
+  const full = calculateEscrowSplit(order.amountPaid + discount);
+  return {
+    artisanPayout: full.artisanPayout,
+    lguShare: full.lguShare,
+    developerShare: Math.round((full.developerShare - discount) * 100) / 100,
+    ngoShare: full.ngoShare,
+  };
+}
