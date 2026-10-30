@@ -119,8 +119,8 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
                     <span key={s.key} className={cn("cart-split-seg h-full rounded-full", s.color)} style={{ width: `${s.pct}%` }} />
                   ))}
                 </div>
-                {/* One line per share: label on the left, amount on the right; two columns once the drawer is wide */}
-                <dl className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                {/* One line per share: label on the left, amount on the right */}
+                <dl className="mt-3 grid grid-cols-1 gap-y-1.5">
                   {shares.map((s) => (
                     <div key={s.key} className="min-w-0 flex items-baseline justify-between gap-3">
                       <dt className="min-w-0 flex items-baseline gap-1.5 text-[13px] leading-snug text-ink-2">
