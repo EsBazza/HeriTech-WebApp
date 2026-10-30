@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, Leaf, QrCode, ShoppingBag } from "lucide-react";
+import { ArrowRight, Check, Leaf, QrCode, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart, type CartProduct } from "@/context/CartContext";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
@@ -119,14 +119,16 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
                     <span key={s.key} className={cn("cart-split-seg h-full rounded-full", s.color)} style={{ width: `${s.pct}%` }} />
                   ))}
                 </div>
-                <dl className="mt-3 grid grid-cols-3 gap-2">
+                {/* One line per share: label on the left, amount on the right; two columns once the drawer is wide */}
+                <dl className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
                   {shares.map((s) => (
-                    <div key={s.key} className="min-w-0 flex flex-col justify-between">
-                      <dt className="flex items-start gap-1.5 text-[13px] leading-tight text-ink-3">
-                        <span aria-hidden className={cn("mt-1 w-2 h-2 rounded-full shrink-0", s.color)} />
-                        {s.label}
+                    <div key={s.key} className="min-w-0 flex items-baseline justify-between gap-3">
+                      <dt className="min-w-0 flex items-baseline gap-1.5 text-[13px] leading-snug text-ink-2">
+                        <span aria-hidden className={cn("w-2 h-2 rounded-full shrink-0 translate-y-[-1px]", s.color)} />
+                        <span className="truncate">{s.label}</span>
+                        <span className="tabular text-ink-3">{s.pct}%</span>
                       </dt>
-                      <dd className="tabular mt-0.5 text-[15px] font-semibold text-ink">{formatCurrency(s.value)}</dd>
+                      <dd className="tabular shrink-0 text-[14px] font-semibold text-ink">{formatCurrency(s.value)}</dd>
                     </div>
                   ))}
                 </dl>
@@ -193,29 +195,29 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
               </p>
             </div>
 
-            <ul className="px-5 py-5 space-y-3">
+            <ul className="px-4 sm:px-5 py-5 space-y-3">
               {items.map((item, i) => {
                 const maker = item.artisanName || item.cooperativeName;
                 return (
                   <li
                     key={item.id}
                     data-leaving={leaving.has(item.id)}
-                    className="cart-row grid grid-cols-[88px_1fr] gap-4 rounded-lg bg-paper p-3"
+                    className="cart-row grid grid-cols-[72px_1fr] min-[400px]:grid-cols-[88px_1fr] gap-3 min-[400px]:gap-4 rounded-lg bg-paper p-3"
                     style={{ "--i": i } as React.CSSProperties}
                   >
-                    <div className="relative w-[88px] h-[88px] overflow-hidden rounded-md bg-paper-2">
+                    <div className="relative aspect-square w-full self-start overflow-hidden rounded-md bg-paper-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={item.image} alt="" className="cart-photo w-full h-full object-cover" />
                     </div>
                     <div className="min-w-0 flex flex-col">
                       <div className="flex items-start justify-between gap-3">
                         <p className="text-[16px] leading-snug font-medium text-ink line-clamp-2">{translateSync(item.title)}</p>
-                        <p className="tabular shrink-0 font-display text-[20px] leading-none font-semibold text-ink pt-0.5">{formatCurrency(item.price)}</p>
+                        <p className="tabular shrink-0 font-display text-[19px] min-[400px]:text-[20px] leading-none font-semibold text-ink pt-0.5">{formatCurrency(item.price)}</p>
                       </div>
                       {maker && <p className="mt-0.5 text-[14px] text-ink-2 truncate">{translateTemplate("by {maker}", { maker: translateSync(maker) })}</p>}
-                      <div className="mt-auto pt-2 flex items-end justify-between gap-2">
+                      <div className="mt-auto pt-1.5 flex items-end justify-between gap-1">
                         {item.kgDiverted ? (
-                          <span className="inline-flex items-start gap-1 pb-3 text-[13px] leading-snug text-brand min-w-0">
+                          <span className="inline-flex items-start gap-1 pb-2.5 text-[13px] leading-snug text-brand min-w-0">
                             <Leaf className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                             <span>
                               {item.festivalName
@@ -230,9 +232,10 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
                           type="button"
                           onClick={() => remove(item.id)}
                           aria-label={`${translateSync("Remove")}: ${translateSync(item.title)}`}
-                          className="shrink-0 -mr-1 min-h-11 px-2 rounded-md text-[13px] font-medium text-ink-3 hover:text-danger hover:bg-danger-100 transition-colors cursor-pointer"
+                          title={translateSync("Remove")}
+                          className="shrink-0 -mr-1.5 -mb-1.5 w-11 h-11 inline-flex items-center justify-center rounded-md text-ink-3 hover:text-danger hover:bg-danger-100 transition-colors cursor-pointer"
                         >
-                          {translateSync("Remove")}
+                          <Trash2 className="w-[18px] h-[18px]" strokeWidth={1.75} aria-hidden />
                         </button>
                       </div>
                     </div>
