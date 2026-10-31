@@ -11,6 +11,29 @@ export const SPLIT = { artisan: 60, platform: 20, lgu: 15, ngo: 5 } as const;
 
 export const SPLIT_LABEL = `${SPLIT.artisan}/${SPLIT.platform}/${SPLIT.lgu}/${SPLIT.ngo}`;
 
+/** The NGO share is pooled and sent to NGOs and tree planters each time it reaches this many dollars. */
+export const NGO_PAYOUT_THRESHOLD = 1000;
+
+/**
+ * Splits the pooled NGO total into what has been sent (one payout per full threshold) and
+ * progress toward the next payout, in whole cents. Reaching the threshold exactly counts as sent.
+ */
+export function ngoPayoutProgress(totalRaised: number) {
+  const totalCents = Number.isFinite(totalRaised) ? Math.max(0, Math.round(totalRaised * 100)) : 0;
+  const thresholdCents = NGO_PAYOUT_THRESHOLD * 100;
+  const payouts = Math.floor(totalCents / thresholdCents);
+  const pendingCents = totalCents - payouts * thresholdCents;
+  return {
+    totalRaised: totalCents / 100,
+    payouts,
+    sent: (payouts * thresholdCents) / 100,
+    pending: pendingCents / 100,
+    remaining: (thresholdCents - pendingCents) / 100,
+    /** Progress toward the next payout, as a percentage with one decimal. */
+    pct: Math.round((pendingCents * 1000) / thresholdCents) / 10,
+  };
+}
+
 export interface EscrowSplit {
   /** What the buyer pays: the list price minus any loyalty discount. */
   totalAmount: number;

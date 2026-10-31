@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SPLIT, calculateEscrowSplit, orderSplit, type EscrowSplit } from "@/lib/escrow";
+import { NGO_PAYOUT_THRESHOLD, SPLIT, calculateEscrowSplit, ngoPayoutProgress, orderSplit, type EscrowSplit } from "@/lib/escrow";
 
 const cents = (n: number) => Math.round(n * 100);
 const sum = (s: EscrowSplit) => cents(s.artisanPayout) + cents(s.lguShare) + cents(s.platformShare) + cents(s.ngoShare);
@@ -61,5 +61,29 @@ describe("calculateEscrowSplit", () => {
     const split = calculateEscrowSplit(100, { discountPercent: 50 });
     expect(split.discount).toBe(20);
     expect(split.totalAmount).toBe(80);
+  });
+});
+
+describe("ngoPayoutProgress", () => {
+  it("pays out the NGO pool every $1,000", () => {
+    expect(NGO_PAYOUT_THRESHOLD).toBe(1000);
+    expect(ngoPayoutProgress(0)).toEqual({ totalRaised: 0, payouts: 0, sent: 0, pending: 0, remaining: 1000, pct: 0 });
+    expect(ngoPayoutProgress(250.5)).toEqual({ totalRaised: 250.5, payouts: 0, sent: 0, pending: 250.5, remaining: 749.5, pct: 25.1 });
+  });
+
+  it("counts reaching the threshold as sent and starts the bar again", () => {
+    expect(ngoPayoutProgress(1000)).toEqual({ totalRaised: 1000, payouts: 1, sent: 1000, pending: 0, remaining: 1000, pct: 0 });
+    expect(ngoPayoutProgress(2345.67)).toEqual({ totalRaised: 2345.67, payouts: 2, sent: 2000, pending: 345.67, remaining: 654.33, pct: 34.6 });
+  });
+
+  it("never goes negative or NaN on odd input", () => {
+    for (const total of [-5, 0.004, 999.999, Number.NaN]) {
+      const p = ngoPayoutProgress(total);
+      for (const v of Object.values(p)) {
+        expect(Number.isNaN(v)).toBe(false);
+        expect(v).toBeGreaterThanOrEqual(0);
+      }
+      expect(p.pct).toBeLessThan(100);
+    }
   });
 });

@@ -5,10 +5,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { EscrowBar } from "@/components/EscrowBar";
 import { Badge, Card, RoleHero, SectionHeader, Skeleton, cn, type BadgeTone } from "@/components/ui";
-import { Coins, Landmark, Leaf as LeafIcon, QrCode as PassIcon } from "lucide-react";
+import { Coins, Landmark, Leaf as LeafIcon, QrCode as PassIcon, TreePine } from "lucide-react";
 import { apiJson } from "@/lib/api";
 import type { PublicStats } from "@/app/api/stats/route";
-import { SPLIT } from "@/lib/escrow";
+import { NGO_PAYOUT_THRESHOLD, SPLIT, ngoPayoutProgress } from "@/lib/escrow";
 
 interface LeaderboardEntry {
   rank: number;
@@ -24,7 +24,7 @@ type FilterRole = "all" | LeaderboardEntry["role"];
 
 export default function ImpactLeaderboardPage() {
   const { user } = useAuth();
-  const { formatNumber, formatCurrency, translateSync } = useTranslation();
+  const { formatNumber, formatCurrency, translateSync, translateTemplate } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState<FilterRole>("all");
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,6 +49,7 @@ export default function ImpactLeaderboardPage() {
 
   const split = stats?.escrowSplitSummary;
   const festivals = stats?.festivals ?? [];
+  const ngoPool = ngoPayoutProgress(split?.ngoShare ?? 0);
 
   return (
     <div>
@@ -70,6 +71,59 @@ export default function ImpactLeaderboardPage() {
           {translateSync("The figures can't load right now. Try again shortly.")}
         </p>
       )}
+
+      {/* NGO pool: sent to NGOs and tree planters every NGO_PAYOUT_THRESHOLD dollars */}
+      <Card className="p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <span className="mt-0.5 w-9 h-9 rounded-full bg-paper-2 text-split-ngo flex items-center justify-center shrink-0" aria-hidden>
+              <TreePine className="w-4 h-4" strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-ink font-sans">{translateSync("Raised for NGOs & tree planting")}</h2>
+              <p className="text-sm text-ink-3">
+                {translateTemplate("{share}% of every sale is pooled and sent to partner NGOs and tree planters each time it reaches {goal}.", {
+                  share: SPLIT.ngo,
+                  goal: formatCurrency(NGO_PAYOUT_THRESHOLD),
+                })}
+              </p>
+            </div>
+          </div>
+          {!loading && (
+            <p className="tabular text-ink shrink-0">
+              <span className="text-2xl font-semibold">{offline ? "—" : formatCurrency(ngoPool.pending)}</span>
+              <span className="text-ink-3"> / {formatCurrency(NGO_PAYOUT_THRESHOLD)}</span>
+            </p>
+          )}
+        </div>
+        {loading ? (
+          <Skeleton className="mt-5 h-16" />
+        ) : (
+          <>
+            <div
+              className="mt-5 h-2.5 rounded-full bg-paper-2 overflow-hidden"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={NGO_PAYOUT_THRESHOLD}
+              aria-valuenow={offline ? undefined : ngoPool.pending}
+              aria-label={translateSync("Progress toward the next NGO payout")}
+            >
+              <div className="h-full rounded-full bg-split-ngo" style={{ width: `${offline ? 0 : ngoPool.pct}%` }} />
+            </div>
+            {!offline && (
+              <p className="mt-2.5 text-sm text-ink-3">
+                {translateTemplate("{amount} to go until the next payout", { amount: formatCurrency(ngoPool.remaining) })}
+                {ngoPool.payouts > 0 &&
+                  ` · ${
+                    ngoPool.payouts === 1
+                      ? translateTemplate("{sent} sent so far in 1 payout", { sent: formatCurrency(ngoPool.sent) })
+                      : translateTemplate("{sent} sent so far in {count} payouts", { sent: formatCurrency(ngoPool.sent), count: ngoPool.payouts })
+                  }`}
+              </p>
+            )}
+          </>
+        )}
+      </Card>
 
       {/* Festivals + money */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">

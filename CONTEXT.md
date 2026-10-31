@@ -69,7 +69,7 @@ Fixed **60 / 20 / 15 / 5**, defined once in `src/lib/escrow.ts`:
 - **60%** to the artisan or cooperative
 - **20%** to the HeriTech platform (build, hosting, upkeep); loyalty discounts and rounding come out of this share
 - **15%** to the LGU for collection and logistics
-- **5%** to an NGO or tree-planting group
+- **5%** to an NGO or tree-planting group; this share is pooled and sent each time it reaches $1,000 (`NGO_PAYOUT_THRESHOLD`), shown as a progress bar on the Impact page
 
 Amounts are computed in whole cents; any rounding remainder goes to the platform's 20% share so the four parts always equal the price.
 
