@@ -25,7 +25,7 @@ function Cord({ id, top, x }: { id: string; top: number; x: number }) {
 /** A round paper lantern with ribs, caps and a tassel; the paper glows from a candle inside. */
 export function HangingLantern({ tone = "lantern", className, style }: { tone?: "lantern" | "pine"; className?: string; style?: React.CSSProperties }) {
   const id = useId().replace(/:/g, "");
-  const paper = tone === "lantern" ? "var(--color-lantern)" : "var(--color-split-platform)";
+  const paper = tone === "lantern" ? "var(--color-lantern)" : "var(--color-split-lgu)";
   return (
     <svg viewBox="0 0 100 230" aria-hidden className={cn("hang-piece pointer-events-none overflow-visible", className)} style={style}>
       <defs>
@@ -98,7 +98,7 @@ export function Parol({ className, style }: { className?: string; style?: React.
         <circle cx={cx} cy={cy} r="11" fill="#fff3dc" stroke="var(--color-split-artisan)" strokeWidth="1.2" />
         <g fill="none" strokeWidth="4" strokeLinecap="round" className="hang-tassel">
           <path d={`M${lx} ${ly} c -6 26, 10 44, -2 78`} stroke="var(--color-split-artisan)" />
-          <path d={`M${rx} ${ry} c 6 26, -10 44, 2 78`} stroke="var(--color-split-platform)" />
+          <path d={`M${rx} ${ry} c 6 26, -10 44, 2 78`} stroke="var(--color-split-lgu)" />
         </g>
       </g>
     </svg>
@@ -121,7 +121,7 @@ const SAG = 34;
 const cordY = (t: number) => Y0 + 4 * SAG * t * (1 - t);
 
 const FLAG_COLORS = [
-  { fill: "var(--color-split-platform)", stitch: "rgb(255 255 255 / 0.7)" },
+  { fill: "var(--color-split-lgu)", stitch: "rgb(255 255 255 / 0.7)" },
   { fill: "var(--color-lantern)", stitch: "rgb(255 236 210 / 0.75)" },
   { fill: "var(--color-paper-2)", stitch: "var(--color-ink-3)" },
   { fill: "var(--color-split-artisan)", stitch: "rgb(255 255 255 / 0.5)" },

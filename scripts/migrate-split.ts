@@ -1,6 +1,6 @@
 /**
  * Rewrites the stored split on every order to the current SPLIT in src/lib/escrow.ts
- * (60% artisan / 20% LGU / 15% developers / 5% NGO). Payments are simulated, so this only
+ * (60% artisan / 20% platform / 15% LGU / 5% NGO). Payments are simulated, so this only
  * changes how recorded sales are divided; what each buyer paid stays the same.
  *
  *   npm run migrate:split               dry run against .env: prints what would change
@@ -28,15 +28,15 @@ async function main() {
     // The discount always came out of HeriTech's own share, so the list price is what was paid plus it.
     const full = calculateEscrowSplit(Number(o.amountPaid ?? 0) + discount);
     const next = free
-      ? { artisanPayout: 0, lguShare: 0, developerShare: 0, ngoShare: 0 }
-      : { artisanPayout: full.artisanPayout, lguShare: full.lguShare, developerShare: (cents(full.developerShare) - cents(discount)) / 100, ngoShare: full.ngoShare };
+      ? { artisanPayout: 0, lguShare: 0, platformShare: 0, ngoShare: 0 }
+      : { artisanPayout: full.artisanPayout, lguShare: full.lguShare, platformShare: (cents(full.platformShare) - cents(discount)) / 100, ngoShare: full.ngoShare };
 
-    const same = (Object.keys(next) as (keyof typeof next)[]).every((k) => o[k] === next[k]) && o.charityMaintenanceShare === undefined;
+    const same = (Object.keys(next) as (keyof typeof next)[]).every((k) => o[k] === next[k]) && o.charityMaintenanceShare === undefined && o.developerShare === undefined;
     if (same) continue;
     changed++;
-    console.log(`${doc.id}  paid ${o.amountPaid}  ->  ${next.artisanPayout} / ${next.lguShare} / ${next.developerShare} / ${next.ngoShare}`);
+    console.log(`${doc.id}  paid ${o.amountPaid}  ->  ${next.artisanPayout} / ${next.lguShare} / ${next.platformShare} / ${next.ngoShare}`);
     if (APPLY) {
-      writer.update(doc.ref, { ...next, charityMaintenanceShare: FieldValue.delete() });
+      writer.update(doc.ref, { ...next, charityMaintenanceShare: FieldValue.delete(), developerShare: FieldValue.delete() });
       if (++pending === 400) {
         await writer.commit();
         writer = db.batch();

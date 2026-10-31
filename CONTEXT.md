@@ -67,11 +67,11 @@ New accounts are buyers. Users apply to become artisans or LGU officers from the
 Fixed **60 / 20 / 15 / 5**, defined once in `src/lib/escrow.ts`:
 
 - **60%** to the artisan or cooperative
-- **20%** to the LGU for collection and logistics
-- **15%** to the HeriTech developers (build, hosting, upkeep); loyalty discounts and rounding come out of this share
+- **20%** to the HeriTech platform (build, hosting, upkeep); loyalty discounts and rounding come out of this share
+- **15%** to the LGU for collection and logistics
 - **5%** to an NGO or tree-planting group
 
-Amounts are computed in whole cents; any rounding remainder goes to the 5% share so the three parts always equal the price.
+Amounts are computed in whole cents; any rounding remainder goes to the platform's 20% share so the four parts always equal the price.
 
 Real payouts **(planned)**: a payment provider such as Stripe Connect.
 
@@ -108,7 +108,7 @@ Types live in `src/lib/firebase/types.ts`. Dates are stored as Firestore Timesta
 
 - Day: washi paper `#F6F1E7`, ink `#1B1F1C`, pine `#1F3A2B` (chrome and primary buttons), ember `#C4471E` (the one action per screen), impact pine `#2F6B4F` (kilograms and the artisan's share), glow `#F2A65A` (highlights only)
 - Night: the same roles on deep pine `#101A14`; it follows the phone (Auto) or a saved Day/Night choice from the menu or Profile → Settings. `THEME_HEAD_SCRIPT` sets `<html data-theme>` before the first paint.
-- Split colours: artisan `#1F3A2B`, LGU `#8FB09C`, developers `#C9922E`, NGO `#C4471E`
+- Split colours: artisan `#1F3A2B`, platform `#C9922E`, LGU `#8FB09C`, NGO `#C4471E`
 - Type: Fraunces (display), Figtree (UI), IBM Plex Mono (serials and figures)
 - Shapes: pill buttons, arched photo frames (`.arch`), ticket-cut passes (`.ticket`), stitched dividers
 - Motion: three curves (`--ease-out`, `--ease-in-out`, `--ease-drawer`), entrances 300–400 ms, no endless loops except "working" indicators; reduced motion keeps fades and colour and drops movement

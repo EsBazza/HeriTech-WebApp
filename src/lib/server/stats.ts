@@ -15,9 +15,9 @@ export async function orderTotals() {
   const snap = await db
     .orders()
     .where("status", "==", "completed")
-    .select("amountPaid", "discount", "paymentMode", "artisanPayout", "lguShare", "developerShare", "ngoShare")
+    .select("amountPaid", "discount", "paymentMode", "artisanPayout", "lguShare", "platformShare", "ngoShare")
     .get();
-  const t = { gross: 0, artisan: 0, lgu: 0, developers: 0, ngo: 0 };
+  const t = { gross: 0, artisan: 0, lgu: 0, platform: 0, ngo: 0 };
   let freeClaimCount = 0;
   for (const doc of snap.docs) {
     const order = doc.data() as StoredSplit;
@@ -26,7 +26,7 @@ export async function orderTotals() {
     t.gross += order.amountPaid ?? 0;
     t.artisan += split.artisanPayout;
     t.lgu += split.lguShare;
-    t.developers += split.developerShare;
+    t.platform += split.platformShare;
     t.ngo += split.ngoShare;
   }
   return {
@@ -35,7 +35,7 @@ export async function orderTotals() {
     grossVolume: round2(t.gross),
     artisanPayoutTotal: round2(t.artisan),
     lguShareTotal: round2(t.lgu),
-    developerShareTotal: round2(t.developers),
+    platformShareTotal: round2(t.platform),
     ngoShareTotal: round2(t.ngo),
   };
 }

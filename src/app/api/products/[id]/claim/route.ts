@@ -59,7 +59,7 @@ export const POST = route(async (request: Request, { params }: Context) => {
       amountPaid: 0,
       artisanPayout: 0,
       lguShare: 0,
-      developerShare: 0,
+      platformShare: 0,
       ngoShare: 0,
       paymentMode: "free_claim",
       shippingAddress: null,

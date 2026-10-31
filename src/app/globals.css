@@ -58,10 +58,10 @@
   --color-danger-100: #fbe6e4;
   --color-danger-solid: #b42318;
 
-  /* Money split 60/20/15/5: artisan, local government, developers, NGOs & tree planting */
+  /* Money split 60/20/15/5: artisan, platform, local government, NGOs & tree planting */
   --color-split-artisan: #1f3a2b;
-  --color-split-platform: #8fb09c;
-  --color-split-dev: #c9922e;
+  --color-split-lgu: #8fb09c;
+  --color-split-platform: #c9922e;
   --color-split-ngo: #c4471e;
 
   --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
@@ -136,8 +136,8 @@
     --color-danger-100: #3d2228;
     --color-danger-solid: #b42318;
     --color-split-artisan: #7cc79c;
-    --color-split-platform: #3c6b52;
-    --color-split-dev: #e3b062;
+    --color-split-lgu: #3c6b52;
+    --color-split-platform: #e3b062;
     --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
   }

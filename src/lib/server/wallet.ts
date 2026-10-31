@@ -118,7 +118,7 @@ export function impactPassSaveUrl(pass: ImpactPassDetails, appUrl: string): stri
         : {
             id: "split",
             header: "Where the money went",
-            body: `${SPLIT.artisan}% artisan · ${SPLIT.lgu}% local government · ${SPLIT.developers}% developers · ${SPLIT.ngo}% NGOs & tree planting`,
+            body: `${SPLIT.artisan}% artisan · ${SPLIT.platform}% platform · ${SPLIT.lgu}% local government · ${SPLIT.ngo}% NGOs & tree planting`,
           },
       { id: "issued", header: "Issued", body: new Date(pass.issuedAt).toISOString().slice(0, 10) },
     ],
@@ -200,7 +200,7 @@ function loyaltyBalances(state: LoyaltyState) {
       {
         id: "how",
         header: "How it works",
-        body: `Collect ${LOYALTY.passesForReward} Impact Passes or spend $${LOYALTY.spendForReward} to unlock ${LOYALTY.discountPercent}% off your next order. The discount comes from the developers' share, so artisans, local governments and NGOs are always paid in full.`,
+        body: `Collect ${LOYALTY.passesForReward} Impact Passes or spend $${LOYALTY.spendForReward} to unlock ${LOYALTY.discountPercent}% off your next order. The discount comes from the platform's share, so artisans, local governments and NGOs are always paid in full.`,
       },
     ],
   };

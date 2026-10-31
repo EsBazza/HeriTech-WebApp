@@ -46,9 +46,9 @@ function cartSplit(items: CartProduct[]) {
   return items.reduce(
     (acc, item) => {
       const s = calculateEscrowSplit(item.price);
-      return { artisan: acc.artisan + s.artisanPayout, lgu: acc.lgu + s.lguShare, developers: acc.developers + s.developerShare, ngo: acc.ngo + s.ngoShare };
+      return { artisan: acc.artisan + s.artisanPayout, lgu: acc.lgu + s.lguShare, platform: acc.platform + s.platformShare, ngo: acc.ngo + s.ngoShare };
     },
-    { artisan: 0, lgu: 0, developers: 0, ngo: 0 }
+    { artisan: 0, lgu: 0, platform: 0, ngo: 0 }
   );
 }
 
@@ -84,8 +84,8 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
 
   const shares = [
     { key: "artisan", pct: SPLIT.artisan, value: split.artisan, color: "bg-split-artisan", label: translateSync("Artisans") },
-    { key: "lgu", pct: SPLIT.lgu, value: split.lgu, color: "bg-split-platform", label: translateSync("Local government") },
-    { key: "developers", pct: SPLIT.developers, value: split.developers, color: "bg-split-dev", label: translateSync("Developers") },
+    { key: "platform", pct: SPLIT.platform, value: split.platform, color: "bg-split-platform", label: translateSync("Platform") },
+    { key: "lgu", pct: SPLIT.lgu, value: split.lgu, color: "bg-split-lgu", label: translateSync("Local government") },
     { key: "ngo", pct: SPLIT.ngo, value: split.ngo, color: "bg-split-ngo", label: translateSync("NGOs & tree planting") },
   ];
 

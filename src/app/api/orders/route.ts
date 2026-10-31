@@ -32,7 +32,7 @@ const schema = z.object({
  * POST /api/orders — checkout. Payment is simulated: no money moves.
  * Stock is checked and decremented atomically, and each line gets its own
  * order, impact pass and artisan notification. A waiting HeriTech Circle reward
- * takes 5% off every line, paid for from the developers' share.
+ * takes 5% off every line, paid for from the platform's share.
  */
 export const POST = route(async (request: Request) => {
   const buyer = await requireUser(request);
@@ -79,7 +79,7 @@ export const POST = route(async (request: Request) => {
         amountPaid: split.totalAmount,
         artisanPayout: split.artisanPayout,
         lguShare: split.lguShare,
-        developerShare: split.developerShare,
+        platformShare: split.platformShare,
         ngoShare: split.ngoShare,
         discount: split.discount,
         loyaltyRewardApplied: redeemReward,

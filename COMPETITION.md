@@ -11,7 +11,7 @@ Where the July plan below differs from this list, this list is right.
 - **AI scanner (Gemini):** names one of five general categories (paper and card, flowers and plant matter, fabric and textile, mixed plastics, wood and frame offcuts) plus anything else mixed in, the condition, what to remove first and a rough weight. It refuses photos with people in them. A Teachable Machine model trained by the team runs on the device when Gemini can't be reached.
 - **Material map (Google Maps):** batches by status, pickup point named by Geocoding, in-app route (Routes API). Artisans reserve a batch for 48 hours and collect it with a signed QR pickup code that the officer scans in the app.
 - **Studio:** artisans list pieces linked to the batch they collected; listings can never promise more kilograms than the batch weighed. Gemini drafts the product story from the logged facts only.
-- **Checkout:** demo payments (no card is charged). Every sale splits **60% artisan / 20% local government / 15% developers / 5% NGOs and tree planting**.
+- **Checkout:** demo payments (no card is charged). Every sale splits **60% artisan / 20% platform / 15% local government / 5% NGOs and tree planting**.
 - **Impact Pass (Google Wallet):** issued per piece, with the owner's name, a banner from the product photo and the collection photo. Its QR code opens a public record (maker, batch, festival, collection point, officer, split) with a tamper check on the collection record. **Publishing access was approved in October 2026, so anyone can save a pass.**
 - **HeriTech Circle (Google Wallet loyalty card):** 5 passes or $100 unlocks 5% off the next order, paid from the 5% share.
 - **3D journey (Maps photorealistic 3D)** on product pages; **Cloud Translation** for English, Chinese (Simplified and Traditional), Japanese, Thai, Indonesian, Filipino and Hindi; **Firebase** Authentication and Cloud Firestore.
@@ -153,7 +153,7 @@ Verified artisan partners browse available material batches by type, quantity, a
 When a piece is finished, the artisan photographs it and links it to the original Material ID(s). A short "material story" (waste photo → craft photo → finished product) is auto-drafted by Gemini from the logged journey data, then reviewed by the artisan before publishing — this is a genuinely useful, non-gimmicky use of generative AI.
 
 **Step 5 — Marketplace Listing & Transparent Checkout**
-The product is listed with its story. At checkout, the buyer sees the full split: **60% to the artisan, 20% to the local government for collection and transport, 15% to the developers who build and run HeriTech, 5% to an NGO or tree-planting group** — not just a vague "some goes to charity." Showing the full breakdown is what separates this from greenwashing (see Section 10).
+The product is listed with its story. At checkout, the buyer sees the full split: **60% to the artisan, 20% to the HeriTech platform that builds and runs the app, 15% to the local government for collection and transport, 5% to an NGO or tree-planting group** — not just a vague "some goes to charity." Showing the full breakdown is what separates this from greenwashing (see Section 10).
 
 **Step 6 — Charity Disbursement**
 The 5% NGO and tree-planting share is shown on every public impact record. *(Built: the share is recorded per sale. Not built: paying it out to a named NGO.)* This should be backed by an actual signed relationship before any public claim is made — see Section 10.
@@ -211,10 +211,10 @@ A public impact record aggregates: total material collected (kg), passes issued,
 
 **Revenue split per transaction (decided 17 October 2026, built into checkout):**
 - **60%** → the artisan or cooperative
-- **20%** → the local government, for collection and transport
-- **15%** → the developers who build, host and maintain HeriTech
+- **20%** → the HeriTech platform, which builds, hosts and maintains the app
+- **15%** → the local government, for collection and transport
 - **5%** → an NGO or tree-planting group
-- The HeriTech Circle loyalty discount (5% off after 5 passes or $100) comes out of the 5% share only, so the artisan and local government are always paid in full.
+- The HeriTech Circle loyalty discount (5% off after 5 passes or $100) comes out of the platform's 20% share only, so the artisan, local government and NGO are always paid in full.
 
 **Show this full breakdown at checkout and in the pitch.** A donation-only headline number ("10% to charity") invites a greenwashing challenge from a sharp judge; a transparent full split invites trust instead.
 

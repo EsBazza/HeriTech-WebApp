@@ -35,7 +35,7 @@ Festivals across Asia leave tonnes of paper, bamboo, fabric and flowers behind e
 
 | Who | What HeriTech gives them |
 | --- | --- |
-| **Local government officers** | A fast way to log and classify what they collect, plus **20%** of every sale made from it |
+| **Local government officers** | A fast way to log and classify what they collect, plus **15%** of every sale made from it |
 | **Artisans** | A map of free, classified material near them, safe pickup, and **60%** of every sale |
 | **Buyers** | Crafts with a **Verified Impact Pass**: a public, scannable record of the material, the maker and the money |
 
@@ -85,7 +85,7 @@ That last number shows the material has value once someone collects it. HeriTech
 1. **Collect & classify.** A local government officer signs a material release agreement, photographs the collected material and lets **Gemini** name it, rate its condition and flag contamination (tape, wax, moisture, wire…). The officer weighs it and logs the batch at its location on the map. If Gemini can't be reached, an on-device **Teachable Machine** model gives a clearly labelled estimate instead.
 2. **Reserve & hand over.** A verified artisan finds the batch on the **material map** and reserves it, and the logging officer is notified. At pickup, the artisan shows (or downloads, or shares) a **signed QR code that is valid for 30 minutes**. The officer scans it with the camera or imports a photo of it, and custody moves to the artisan. Each step is logged.
 3. **Craft & list.** The artisan lists the finished piece, linked to the batch it came from. **Gemini** drafts a short story about the piece for the artisan to edit. **Cloud Translation** lets buyers read the shop in their own language.
-4. **Buy & verify.** At checkout the buyer sees exactly where the money goes: **60% artisan, 20% local government, 15% developers, 5% NGOs & tree planting**. Each piece comes with a **Verified Impact Pass** that can be saved to **Google Wallet**. Its QR code opens the piece's public record at `/verify/<serial>` for anyone who scans it, no account needed.
+4. **Buy & verify.** At checkout the buyer sees exactly where the money goes: **60% artisan, 20% platform, 15% local government, 5% NGOs & tree planting**. Each piece comes with a **Verified Impact Pass** that can be saved to **Google Wallet**. Its QR code opens the piece's public record at `/verify/<serial>` for anyone who scans it, no account needed.
 
 > **Why a public record?** "Made from recycled materials" is easy to claim. The pass lets a stranger check it: what was collected, where, when it changed hands, who made the piece, and how the payment was split.
 
@@ -263,7 +263,7 @@ The sections below are for running and deploying HeriTech yourself.
 - Firestore access is typed (`src/lib/server/firestore.ts`). Relations are stored as ids and joined in `src/lib/server/views.ts`. Anything that must be consistent — reservations, handovers, checkout and stock, id sequences — runs in a transaction.
 - Request bodies are validated with zod; errors come back as `{ success: false, error }` with the right status code.
 - Roles: `buyer` (default for new accounts), `artisan`, `lgu`, `admin`. People apply from their profile and an admin approves them. Nobody can change their own role.
-- Every sale is split **60% artisan / 20% local government / 15% developers / 5% NGOs & tree planting** (`src/lib/escrow.ts` is the single source of truth). Payments are **simulated** — no payment provider is connected yet, and the UI says so.
+- Every sale is split **60% artisan / 20% platform / 15% local government / 5% NGOs & tree planting** (`src/lib/escrow.ts` is the single source of truth). Payments are **simulated** — no payment provider is connected yet, and the UI says so.
 
 ## Getting started
 

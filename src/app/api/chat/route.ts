@@ -43,7 +43,7 @@ Features and Google technology:
 - Public impact record: totals of kilograms collected, passes issued and money paid out.
 
 Money:
-Every sale is split automatically: ${SPLIT.artisan} percent to the artisan, ${SPLIT.lgu} percent to the local government for collection and transport, ${SPLIT.developers} percent to the developers who build and run the HeriTech app, and ${SPLIT.ngo} percent to an NGO or tree-planting group. Checkout uses demo payments for now, so no real money is charged.`;
+Every sale is split automatically: ${SPLIT.artisan} percent to the artisan, ${SPLIT.platform} percent to the HeriTech platform that builds and runs the app, ${SPLIT.lgu} percent to the local government for collection and transport, and ${SPLIT.ngo} percent to an NGO or tree-planting group. Checkout uses demo payments for now, so no real money is charged.`;
 
 /** Only the most recent turns are sent, which bounds cost per request. */
 const MAX_HISTORY = 12;

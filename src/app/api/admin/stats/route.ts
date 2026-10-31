@@ -28,8 +28,8 @@ async function adminStats() {
     },
     escrowSplitDistribution: [
       { name: `Artisan payout (${SPLIT.artisan}%)`, value: orders.artisanPayoutTotal },
+      { name: `Platform (${SPLIT.platform}%)`, value: orders.platformShareTotal },
       { name: `Local government (${SPLIT.lgu}%)`, value: orders.lguShareTotal },
-      { name: `Developers (${SPLIT.developers}%)`, value: orders.developerShareTotal },
       { name: `NGOs & tree planting (${SPLIT.ngo}%)`, value: orders.ngoShareTotal },
     ],
     festivals: materials.festivals.map((f) => ({

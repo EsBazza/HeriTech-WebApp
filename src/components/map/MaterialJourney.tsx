@@ -130,7 +130,7 @@ export function MaterialJourney({ product }: { product: ProductView }) {
                   "journey-dot relative mt-1 w-6 h-6 rounded-full flex items-center justify-center",
                   s.tone === "collect" && "bg-lantern",
                   s.tone === "handover" && "bg-pine-700 ring-2 ring-inset ring-white/60",
-                  s.tone === "workshop" && "bg-split-platform"
+                  s.tone === "workshop" && "bg-split-lgu"
                 )}
               >
                 <span className="w-2 h-2 rounded-full bg-pine-900" />

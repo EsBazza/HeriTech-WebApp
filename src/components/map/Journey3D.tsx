@@ -308,7 +308,7 @@ export function Journey3D({ collection, workshop }: Journey3DProps) {
           </li>
           {workshop && (
             <li className="flex items-center gap-2">
-              <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-split-platform" />
+              <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-split-lgu" />
               {translateSync("Workshop")}
             </li>
           )}

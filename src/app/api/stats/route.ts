@@ -20,7 +20,7 @@ async function publicStats() {
         totalGrossVolume: orders.grossVolume,
         artisanPayout: orders.artisanPayoutTotal,
         lguShare: orders.lguShareTotal,
-        developerShare: orders.developerShareTotal,
+        platformShare: orders.platformShareTotal,
         ngoShare: orders.ngoShareTotal,
       },
       festivals: materials.festivals,

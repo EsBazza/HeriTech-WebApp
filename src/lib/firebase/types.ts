@@ -138,9 +138,9 @@ export interface OrderDoc {
   amountPaid: number;
   artisanPayout: number;
   lguShare: number;
-  developerShare: number;
+  platformShare: number;
   ngoShare: number;
-  /** Loyalty discount taken off the list price, paid for from the developers' share. */
+  /** Loyalty discount taken off the list price, paid for from the platform's share. */
   discount?: number;
   loyaltyRewardApplied?: boolean;
   /** No payment provider is connected yet: orders are simulated payments, or free booth claims. */

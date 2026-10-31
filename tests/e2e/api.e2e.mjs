@@ -102,7 +102,7 @@ const order = await call("/api/orders", {
 });
 check("checkout creates one order + pass per line", order.status === 201 && order.json.data.orders.length === 2 && order.json.data.passes.length === 2, JSON.stringify(order.json));
 const o1 = order.json.data.orders[0];
-check("split is 60/20/15/5 and sums exactly", o1.amountPaid === 66.66 && o1.artisanPayout === 40 && o1.lguShare === 13.33 && o1.developerShare === 10 && o1.ngoShare === 3.33 && Math.round((o1.artisanPayout + o1.lguShare + o1.developerShare + o1.ngoShare) * 100) === 6666, JSON.stringify(o1));
+check("split is 60/20/15/5 and sums exactly", o1.amountPaid === 66.66 && o1.artisanPayout === 40 && o1.lguShare === 10 && o1.platformShare === 13.33 && o1.ngoShare === 3.33 && Math.round((o1.artisanPayout + o1.lguShare + o1.platformShare + o1.ngoShare) * 100) === 6666, JSON.stringify(o1));
 const after = (await call(`/api/products/${productId}`)).json.data;
 check("stock decremented", after.stock === 0, `stock=${after.stock}`);
 check("over-buying -> 409", (await call("/api/orders", { token: buyer.token, method: "POST", body: { items: [{ productId }], shippingAddress: { fullName: "a", streetAddress: "b", city: "c", country: "d" } } })).status === 409);
